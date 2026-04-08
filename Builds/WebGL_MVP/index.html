@@ -7,117 +7,9 @@
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
   <script src="TemplateData/profiler.js"></script>
-  <style>
-    #auth-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.72);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 99999;
-    }
-    #auth-card {
-      width: min(92vw, 420px);
-      background: rgba(22, 24, 34, 0.95);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 14px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
-      padding: 24px;
-      color: #f3f4f6;
-      font-family: Arial, sans-serif;
-    }
-    #auth-title {
-      margin: 0 0 10px 0;
-      font-size: 22px;
-      font-weight: 700;
-      text-align: center;
-    }
-    #auth-subtitle {
-      margin: 0 0 16px 0;
-      font-size: 14px;
-      opacity: 0.85;
-      text-align: center;
-    }
-    #auth-password {
-      width: 100%;
-      box-sizing: border-box;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      background: rgba(255, 255, 255, 0.06);
-      color: #fff;
-      border-radius: 10px;
-      padding: 11px 12px;
-      outline: none;
-      font-size: 15px;
-    }
-    #auth-submit {
-      margin-top: 12px;
-      width: 100%;
-      border: 0;
-      border-radius: 10px;
-      padding: 11px 12px;
-      color: #fff;
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    #auth-error {
-      margin-top: 10px;
-      min-height: 20px;
-      color: #ef4444;
-      font-size: 13px;
-      text-align: center;
-      font-weight: 700;
-    }
-    /* Masaustu: tam ekran oyun alani (TemplateData/style.css merkez kutusunu override eder) */
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      box-sizing: border-box;
-    }
-    #unity-container.unity-desktop {
-      position: fixed !important;
-      left: 0 !important;
-      top: 0 !important;
-      transform: none !important;
-      width: 100vw;
-      height: 100vh;
-      max-width: 100vw;
-      max-height: 100vh;
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-    }
-    #unity-container.unity-desktop #unity-canvas {
-      flex: 1 1 0;
-      align-self: stretch;
-      width: 100% !important;
-      min-height: 0;
-      display: block;
-    }
-    #unity-container.unity-desktop #unity-footer {
-      flex: 0 0 auto;
-    }
-  </style>
   </head>
   <body>
-    <div id="auth-overlay">
-      <div id="auth-card">
-        <h1 id="auth-title">Erisim Kontrolu</h1>
-        <p id="auth-subtitle">Oyuna girmek icin sifreyi girin.</p>
-        <input id="auth-password" type="password" placeholder="Sifre" autocomplete="off" />
-        <button id="auth-submit" type="button">Girisi Ac</button>
-        <div id="auth-error"></div>
-      </div>
-    </div>
-
-    <div id="unity-container" class="unity-desktop" style="display:none;">
+    <div id="unity-container" class="unity-desktop">
       <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
       <div id="unity-loading-bar">
         <div id="unity-logo"></div>
@@ -212,54 +104,20 @@
 
 
       } else {
-        /* Tam ekran boyut CSS ile verilir; sabit 960x600 kullanma */
+        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
+        canvas.style.width = "960px";
+        canvas.style.height = "600px";
       }
 
-      var ACCESS_PASSWORD = "kumar2026";
-      var authOverlay = document.querySelector("#auth-overlay");
-      var authPassword = document.querySelector("#auth-password");
-      var authSubmit = document.querySelector("#auth-submit");
-      var authError = document.querySelector("#auth-error");
-      var unityBootStarted = false;
+      document.querySelector("#unity-loading-bar").style.display = "block";
 
-      function startUnityBoot() {
-        if (unityBootStarted) return;
-        unityBootStarted = true;
-        document.querySelector("#unity-container").style.display = "block";
-        document.querySelector("#unity-loading-bar").style.display = "block";
-
-        var script = document.createElement("script");
-        script.src = loaderUrl;
-        script.onload = () => {
-          function installRuntimeErrorBridge(unityInstanceRef) {
-          if (window.__unityWebglErrorBridgeInstalled) return;
-          window.__unityWebglErrorBridgeInstalled = true;
-          window.__unityLastRuntimeError = "";
-          function pushError(prefix, payload) {
-            var text = prefix + ": " + payload;
-            window.__unityLastRuntimeError = text;
-            try {
-              if (unityInstanceRef && unityInstanceRef.SendMessage) {
-                unityInstanceRef.SendMessage("OyunYoneticisi", "WebGlJsHataAl", text);
-              }
-            } catch (e) {
-              // no-op, non-blocking debug bridge
-            }
-          }
-          window.onerror = function(message, source, lineno, colno) {
-            pushError("window.onerror", String(message) + " @ " + String(source) + ":" + String(lineno) + ":" + String(colno));
-          };
-          window.onunhandledrejection = function(event) {
-            var reason = event && event.reason ? event.reason : "unknown";
-            pushError("unhandledrejection", String(reason));
-          };
-        }
-
-          createUnityInstance(canvas, config, (progress) => {
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
           document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
               }).then((unityInstance) => {
                 document.querySelector("#unity-loading-bar").style.display = "none";
-                installRuntimeErrorBridge(unityInstance);
                 document.querySelector("#unity-fullscreen-button").onclick = () => {
                   unityInstance.SetFullscreen(1);
                 };
@@ -301,26 +159,9 @@
               }).catch((message) => {
                 alert(message);
               });
-          };
+            };
 
-        document.body.appendChild(script);
-      }
-
-      function tryAuth() {
-        var val = (authPassword.value || "").trim();
-        if (val === ACCESS_PASSWORD) {
-          authError.textContent = "";
-          authOverlay.style.display = "none";
-          startUnityBoot();
-          return;
-        }
-        authError.textContent = "Hatali sifre. Lutfen tekrar deneyin.";
-      }
-
-      authSubmit.addEventListener("click", tryAuth);
-      authPassword.addEventListener("keydown", function(e) {
-        if (e.key === "Enter") tryAuth();
-      });
+      document.body.appendChild(script);
 
     </script>
   </body>
