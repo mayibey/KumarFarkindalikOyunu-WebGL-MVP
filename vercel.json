@@ -1,54 +1,22 @@
 {
-  "cleanUrls": false,
-  "trailingSlash": false,
   "headers": [
     {
-      "source": "/",
+      "source": "/(.*)\\.unityweb$",
       "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+        { "key": "Content-Encoding", "value": "gzip" }
       ]
     },
     {
-      "source": "/Builds/WebGL_MVP/index.html",
+      "source": "/(.*)\\.data$",
       "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+        { "key": "Content-Encoding", "value": "gzip" }
       ]
     },
     {
-      "source": "/Build/(.*\\.wasm)",
+      "source": "/(.*)\\.wasm$",
       "headers": [
-        { "key": "Content-Type", "value": "application/wasm" }
-      ]
-    },
-    {
-      "source": "/Build/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=3600, must-revalidate" }
-      ]
-    },
-    {
-      "source": "/Builds/WebGL_MVP/Build/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=3600, must-revalidate" }
-      ]
-    },
-    {
-      "source": "/TemplateData/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=86400, must-revalidate" }
-      ]
-    },
-    {
-      "source": "/Builds/WebGL_MVP/TemplateData/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=86400, must-revalidate" }
+        { "key": "Content-Encoding", "value": "gzip" }
       ]
     }
-  ],
-  "rewrites": [
-    { "source": "/", "destination": "/Builds/WebGL_MVP/index.html" },
-    { "source": "/Build/(.*)", "destination": "/Builds/WebGL_MVP/Build/$1" },
-    { "source": "/TemplateData/(.*)", "destination": "/Builds/WebGL_MVP/TemplateData/$1" },
-    { "source": "/favicon.ico", "destination": "/Builds/WebGL_MVP/TemplateData/favicon.ico" }
   ]
 }
