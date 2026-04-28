@@ -1142,6 +1142,34 @@ public partial class OyunYoneticisi
     private int _yeniOyuncuOncekiEgilim = 65;
     private int _yeniOyuncuOncekiMax = 0;
 
+    [HideInInspector] public int bonusOtomatikSpinPeriyodu = 200;
+    public void AdminSetBonusOtomatikSpinPeriyodu(int oran)
+    {
+        bonusOtomatikSpinPeriyodu = Mathf.Max(1, oran);
+        Debug.Log("[ADMIN][PANEL] Bonus otomatik spin periyodu = " + bonusOtomatikSpinPeriyodu);
+    }
+
+    [HideInInspector] public int carpanSahteOraniYuzde = 0;
+    public void AdminSetCarpanSahteOrani(int yuzde)
+    {
+        carpanSahteOraniYuzde = Mathf.Clamp(yuzde, 0, 100);
+        Debug.Log($"[ADMIN][PANEL] Çarpan sahte gösterimi: {carpanSahteOraniYuzde}%");
+    }
+
+    [HideInInspector] public int carpanOlasilikYuzde = 2;
+    public void AdminSetCarpanOlasilik(int yuzde)
+    {
+        carpanOlasilikYuzde = Mathf.Clamp(yuzde, 0, 100);
+        Debug.Log($"[ADMIN][PANEL] Çarpan düşme olasılığı: {carpanOlasilikYuzde}%");
+    }
+
+    [HideInInspector] public int maxCarpanTekSpinSayisi = 1;
+    public void AdminSetMaxCarpanTekSpin(int max)
+    {
+        maxCarpanTekSpinSayisi = Mathf.Clamp(max, 1, 10);
+        Debug.Log($"[ADMIN][PANEL] Tek spinde max çarpan: {maxCarpanTekSpinSayisi}");
+    }
+
     public void AdminSetYeniOyuncuModu(bool aktif)
     {
         if (aktif)

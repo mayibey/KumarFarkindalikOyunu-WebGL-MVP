@@ -25,7 +25,8 @@
       "Bash(grep *)",
       "Bash(awk 'NR>=1430 && NR<=1455 {print NR\": \"$0} NR>=1542 && NR<=1545 {print NR\": \"$0} NR>=685 && NR<=705 {print NR\": \"$0}' \"D:/KumarFarkindalikOyunu/Assets/Scenes/01_GirisScene.unity\")",
       "Bash(awk 'NR>=1454 && NR<=1545 {print NR\": \"$0}' \"D:/KumarFarkindalikOyunu/Assets/Scenes/01_GirisScene.unity\")",
-      "Bash(awk NR>=697 && NR<=730 {print NR\": \"$0} *)"
+      "Bash(awk NR>=697 && NR<=730 {print NR\": \"$0} *)",
+      "Bash(awk NR>=1089 && NR<=1110 {print NR\": \"$0} *)"
     ]
   }
 }

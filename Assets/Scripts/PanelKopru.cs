@@ -40,6 +40,7 @@ public class PanelKopru : MonoBehaviour
     public static bool yeniOyuncuModu = true;
     public static bool carpanTumbleAktif = true;
     public static string bonusModu = "manuel";
+    public static int bonusOtomatikSpinPeriyodu = 200;
     public static string aktifSenaryo = "normal";
 
     // ===== PANELİ AÇMA =====
@@ -111,6 +112,29 @@ public class PanelKopru : MonoBehaviour
 
             case "bonusModu":
                 bonusModu = deger;
+                break;
+
+            case "bonusOtomatikOran":
+                if (int.TryParse(deger, out int oran))
+                {
+                    bonusOtomatikSpinPeriyodu = oran;
+                    _oy?.AdminSetBonusOtomatikSpinPeriyodu(oran);
+                }
+                break;
+
+            case "carpanSahteOrani":
+                if (int.TryParse(deger, out int sahte))
+                    _oy?.AdminSetCarpanSahteOrani(sahte);
+                break;
+
+            case "carpanOlasilik":
+                if (int.TryParse(deger, out int olasilik))
+                    _oy?.AdminSetCarpanOlasilik(olasilik);
+                break;
+
+            case "maxCarpanTekSpin":
+                if (int.TryParse(deger, out int maxC))
+                    _oy?.AdminSetMaxCarpanTekSpin(maxC);
                 break;
 
             case "carpanTumble":

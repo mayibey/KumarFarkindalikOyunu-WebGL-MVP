@@ -555,11 +555,328 @@
     }
     .panel-header { padding-top: 20px; }
   }
+
+  /* === ALTIN SIYAH TEMA === */
+  .panel {
+    background: #0a0a0a;
+    border: 1px solid rgba(244, 214, 120, 0.3);
+    box-shadow: 0 0 40px rgba(244, 214, 120, 0.1);
+  }
+  .panel-header,
+  .panel-content,
+  .panel-footer {
+    background: #0a0a0a;
+  }
+  .panel-header { border-bottom-color: rgba(244, 214, 120, 0.15); }
+  .panel-footer { border-top-color: rgba(244, 214, 120, 0.2); }
+
+  /* Başlık ve metinler */
+  .panel-header h2 { color: #f4d678; font-weight: 600; }
+  .panel-header p  { color: #8a7c5c; }
+  .section-title,
+  .section-title.persistent,
+  .section-title.realtime {
+    color: #f4d678;
+    font-weight: 600;
+    letter-spacing: 3px;
+  }
+  .setting-header label { color: #f4d678; }
+  .value-display { color: #f4d678; font-weight: 700; }
+  .description, .ifsa-line { color: #b8a875; }
+  .mod-aciklama-line { color: #8a7c5c; border-top-color: rgba(244, 214, 120, 0.15); }
+  .toggle-label { color: #f4d678; }
+  .input-row span { color: #b8a875; }
+  .scenario-header label { color: #f4d678; }
+
+  /* Kartlar — sadece çerçeve, ortak siyah arka plan */
+  .setting-card {
+    background: #0a0a0a;
+    border: 1px solid rgba(244, 214, 120, 0.25);
+    border-radius: 10px;
+    box-shadow: none;
+    transition: border-color 0.2s ease;
+  }
+  .setting-card:hover { border-color: rgba(244, 214, 120, 0.5); }
+  .setting-card.realtime {
+    background: #0a0a0a;
+    border-color: rgba(244, 214, 120, 0.25);
+  }
+  .scenario-card {
+    background: #0a0a0a;
+    border: 1px solid rgba(244, 214, 120, 0.25);
+  }
+
+  /* Açıklama / ifşa şeridi — kırmızı yerine altın */
+  .ifsa-line {
+    background: rgba(244, 214, 120, 0.04);
+    border-left: 3px solid #d4a857;
+  }
+
+  /* İnput / select */
+  select, input[type="number"] {
+    background: #1a1410;
+    border: 1px solid rgba(244, 214, 120, 0.2);
+    color: #f4d678;
+    transition: border-color 0.2s ease;
+  }
+  select:focus, input:focus { border-color: #d4a857; }
+  select option { color: #0a0a0a; background: #f4d678; }
+  input::placeholder { color: #5a5040; }
+
+  /* Slider */
+  input[type="range"] {
+    background: #1a1410;
+    height: 6px;
+    border-radius: 3px;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    background: linear-gradient(90deg, #d4a857, #f4d678);
+    height: 6px;
+    border-radius: 3px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    background: #f4d678;
+    border: 2px solid #0a0a0a;
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(244, 214, 120, 0.5);
+    transition: transform 0.2s ease;
+    margin-top: -6px;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.1); }
+  input[type="range"]::-moz-range-thumb {
+    width: 18px; height: 18px;
+    background: #f4d678;
+    border: 2px solid #0a0a0a;
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(244, 214, 120, 0.5);
+  }
+  input[type="range"]::-moz-range-track {
+    background: linear-gradient(90deg, #d4a857, #f4d678);
+    height: 6px;
+    border-radius: 3px;
+  }
+
+  /* Toggle */
+  .toggle {
+    background: #2a2520;
+    border: 1px solid rgba(244, 214, 120, 0.2);
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+  .toggle.active {
+    background: linear-gradient(135deg, #d4a857, #f4d678);
+    border-color: #f4d678;
+    box-shadow: 0 0 10px rgba(244, 214, 120, 0.4);
+  }
+  .toggle-dot { background: #0a0a0a; transition: left 0.3s ease, background 0.3s ease; }
+  .toggle.active .toggle-dot { background: #ffffff; }
+
+  /* Sayı badge'leri — altın yuvarlak, koyu yazı */
+  .badge-num {
+    background: linear-gradient(135deg, #d4a857, #f4d678);
+    color: #0a0a0a;
+    font-weight: 700;
+    box-shadow: 0 0 8px rgba(244, 214, 120, 0.3);
+  }
+  .badge {
+    background: linear-gradient(135deg, #d4a857, #f4d678);
+    color: #0a0a0a;
+    font-weight: 600;
+  }
+  .badge-critical {
+    background: rgba(255, 100, 80, 0.15);
+    color: #ff8a80;
+    border: 1px solid rgba(255, 100, 80, 0.4);
+    font-weight: 600;
+  }
+
+  /* Help icon ? */
+  .help-icon {
+    background: rgba(244, 214, 120, 0.1);
+    color: #f4d678;
+    border: 1px solid rgba(244, 214, 120, 0.2);
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .help-icon:hover { background: #d4a857; color: #0a0a0a; }
+  .help-icon.active { background: #d4a857; color: #0a0a0a; }
+
+  /* Tooltip popup */
+  .tooltip-popup {
+    background: #1a1410;
+    color: #f4d678;
+    border: 1px solid #d4a857;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  }
+  .tooltip-popup h4 { color: #f4d678; }
+  .tooltip-popup strong { color: #ffffff; }
+  .tooltip-popup em { color: #d4a857; }
+
+  /* Butonlar */
+  .btn-primary {
+    background: linear-gradient(135deg, #d4a857, #b58e3d);
+    color: #0a0a0a;
+    border: none;
+    font-weight: 600;
+    transition: background 0.2s ease, transform 0.1s ease;
+  }
+  .btn-primary:hover { background: linear-gradient(135deg, #e8b96a, #d4a857); }
+  .btn-primary:active { transform: scale(0.98); }
+
+  .btn-secondary {
+    background: transparent;
+    color: #f4d678;
+    border: 1px solid rgba(244, 214, 120, 0.4);
+    transition: background 0.2s ease, transform 0.1s ease;
+  }
+  .btn-secondary:hover { background: rgba(244, 214, 120, 0.1); }
+  .btn-secondary:active { transform: scale(0.98); }
+
+  /* Bonus tetikle özel butonu */
+  .trigger-btn {
+    background: rgba(212, 168, 87, 0.08);
+    border: 1px solid #d4a857;
+    color: #f4d678;
+    font-weight: 500;
+    transition: background 0.2s ease, transform 0.1s ease;
+  }
+  .trigger-btn:hover { background: rgba(212, 168, 87, 0.18); }
+  .trigger-btn:active { transform: scale(0.98); }
+
+  /* Mode-switch (Manuel/Otomatik) */
+  .mode-switch {
+    background: #1a1410;
+    border: 1px solid rgba(244, 214, 120, 0.2);
+  }
+  .mode-switch button {
+    background: transparent;
+    color: #8a7c5c;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .mode-switch button.active {
+    background: linear-gradient(135deg, #d4a857, #f4d678);
+    color: #0a0a0a;
+    font-weight: 600;
+  }
+
+  /* ×100, ×250, ×500 çarpan butonları (kritik vurgu kırmızı) */
+  .multiplier-btn {
+    background: rgba(255, 100, 80, 0.12);
+    border: 1px solid rgba(255, 100, 80, 0.3);
+    color: #ff8a80;
+    font-weight: 600;
+    transition: background 0.2s ease, transform 0.1s ease;
+  }
+  .multiplier-btn:hover { background: rgba(255, 100, 80, 0.2); transform: translateY(-1px); }
+  .multiplier-btn:active { transform: scale(0.98); }
+
+  /* Kapat × ikonu */
+  .close-btn {
+    color: #8a7c5c;
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+  .close-btn:hover { color: #f4d678; transform: scale(1.1); }
+
+  /* Scrollbar — altın gradient */
+  .panel-content {
+    scrollbar-width: thin;
+    scrollbar-color: #d4a857 #1a1410;
+  }
+  .panel-content::-webkit-scrollbar { width: 6px; }
+  .panel-content::-webkit-scrollbar-track { background: #1a1410; }
+  .panel-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #d4a857, #f4d678);
+    border-radius: 3px;
+  }
+  .panel-content::-webkit-scrollbar-thumb:hover { background: #f4d678; }
+
+  /* Notification */
+  .notification {
+    background: linear-gradient(135deg, #d4a857, #f4d678);
+    color: #0a0a0a;
+    font-weight: 600;
+  }
+
+  /* Accordion */
+  .accordion-section {
+    margin-bottom: 12px;
+    border: 1px solid rgba(244, 214, 120, 0.2);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .accordion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    cursor: pointer;
+    background: rgba(244, 214, 120, 0.04);
+    transition: background 0.2s ease;
+    user-select: none;
+  }
+  .accordion-header:hover { background: rgba(244, 214, 120, 0.08); }
+  .accordion-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #f4d678;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+  .accordion-chevron {
+    color: #d4a857;
+    font-size: 12px;
+    transition: transform 0.3s ease;
+    transform: rotate(0deg);
+  }
+  .accordion-section[data-open="true"] .accordion-chevron {
+    transform: rotate(90deg);
+  }
+  .accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+    padding: 0 4px;
+  }
+  .accordion-section[data-open="true"] .accordion-content {
+    max-height: 5000px;
+    padding: 12px 4px 4px;
+  }
+
+  /* Apply pulse — preview modunda Uygula vurgusu */
+  .apply-btn-pulsing {
+    animation: applyPulse 1.2s ease-in-out infinite;
+    box-shadow: 0 0 16px rgba(244, 214, 120, 0.6) !important;
+  }
+  @keyframes applyPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+  }
+
+  /* Toast bildirim */
+  #toast {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #0a0a0a;
+    color: #f4d678;
+    border: 1px solid #d4a857;
+    padding: 12px 18px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 0 12px rgba(244,214,120,0.2);
+    z-index: 9999;
+    font-size: 14px;
+    font-weight: 500;
+    max-width: 300px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
 </style>
 </head>
 <body>
 
 <div class="notification" id="notification"></div>
+<div id="toast"></div>
 
 <!-- FLOATING TOOLTIP POPUP — JS tarafından doldurulur ve konumlandırılır -->
 <div id="tooltipEl" class="tooltip-popup" style="display:none;"></div>
@@ -579,31 +896,102 @@
     <!-- 1. OYUN MODU SENARYOSU — TAM GENİŞLİK -->
     <div class="scenario-card">
       <div class="scenario-header">
-        <span class="badge">1</span>
-        <label>Oyun modu senaryosu</label>
+        <label style="font-size: 19px;">Oyun modu</label>
         <span class="help-icon" data-tip="oyunModu">?</span>
       </div>
       <div class="scenario-row">
-        <select id="oyunModu" onchange="modAciklamasiniGuncelle(this.value)">
+        <select id="oyunModu" onchange="senaryoPreview(this.value)">
           <option value="normal">Normal oyun</option>
           <option value="hook">Taze Kan Modu</option>
           <option value="yontma">Az Az Kayıp Modu</option>
           <option value="tutma">Kaçış Engelleme Modu</option>
           <option value="koruma">Bakiye Tüketme Modu</option>
         </select>
-        <button class="btn-primary" onclick="senaryoUygula()">Uygula</button>
+        <button class="btn-primary" id="senaryoUygulaBtn" onclick="senaryoUygula()">Uygula</button>
+        <span id="pendingHint" style="display:none; color:#b8a875; font-size:14px; margin-left:10px; font-style:italic; align-self:center;">değişiklikler bekliyor</span>
       </div>
       <div class="mod-aciklama-line" id="modAciklama"></div>
     </div>
 
-    <!-- 2 SÜTUNLU GRID -->
-    <div class="two-col-grid">
+    <!-- ACCORDION: OLASILIK AYARLARI -->
+    <div class="accordion-section" data-open="false">
+      <div class="accordion-header" onclick="toggleSection(this)">
+        <span class="accordion-title">Olasılık Ayarları</span>
+        <span class="accordion-chevron">▶</span>
+      </div>
+      <div class="accordion-content">
 
-      <!-- SOL SÜTUN: KALICI MANİPÜLASYON -->
-      <div class="col-block">
-        <div class="section-title persistent">Kalıcı manipülasyon</div>
+      <!-- 1.1 Çarpan düşme olasılığı -->
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
+        <span style="color:#f4d678; font-size:15px; flex:1;">Çarpan düşme olasılığı</span>
+        <span class="help-icon" data-tip="carpanOlasilik">?</span>
+        <span class="value-display" id="carpanOlasilikDeger" style="font-size:18px;">2%</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <input type="range" id="carpanOlasilik" min="0" max="100" step="1" value="2" style="flex:1;"
+               oninput="carpanOlasilikSliderDegisti(this.value)">
+        <input type="number" id="carpanOlasilikInput" min="0" max="100" step="1" value="2"
+               style="width:60px; padding:6px; font-size:14px; background:#1a1410; color:#f4d678; border:1px solid rgba(244,214,120,0.2); border-radius:6px;"
+               onchange="carpanOlasilikInputDegisti(this.value)">
+        <span style="color:#b8a875; font-size:14px;">%</span>
+      </div>
 
-        <!-- 2. KAZANDIRMA SIKLIĞI -->
+      <hr style="border:0; border-top:1px solid rgba(244,214,120,0.1); margin:14px 0;">
+
+      <!-- 1.2 Tek spinde maksimum çarpan -->
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <span style="color:#f4d678; font-size:15px; flex:1;">Tek spinde maksimum kaç çarpan gelsin</span>
+        <span class="help-icon" data-tip="maxCarpanTekSpin">?</span>
+        <input type="number" id="maxCarpanTekSpin" min="1" max="6" step="1" value="1"
+               style="width:60px; padding:6px; font-size:14px; background:#1a1410; color:#f4d678; border:1px solid rgba(244,214,120,0.2); border-radius:6px;"
+               oninput="ayarDegisti('maxCarpanTekSpin', this.value)">
+        <span style="color:#b8a875; font-size:14px;">adet</span>
+      </div>
+
+      <hr style="border:0; border-top:1px solid rgba(244,214,120,0.1); margin:14px 0;">
+
+      <!-- 1.3 Bonus sembolü düşme olasılığı -->
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
+        <span style="color:#f4d678; font-size:15px; flex:1;">Bonus sembolü düşme olasılığı</span>
+        <span class="help-icon" data-tip="bonusSiklik">?</span>
+        <span class="value-display" style="font-size:18px;">%<span id="bonusSembolDeger">0.5</span></span>
+      </div>
+      <input type="range" id="bonusSembolOlasilik" min="0" max="5" step="0.1" value="0.5" style="width:100%;"
+             oninput="bonusSembolOlasilikDegisti(this.value)">
+      <div style="font-size:14px; color:#b8a875; font-style:italic; margin-top:8px;">
+        Her <span id="bonusSpinHesap">200</span> spin'de 1 bonus
+      </div>
+      </div>
+    </div>
+
+    <!-- ACCORDION: MANİPÜLASYON AYARLARI -->
+    <div class="accordion-section" data-open="false">
+      <div class="accordion-header" onclick="toggleSection(this)">
+        <span class="accordion-title">Manipülasyon Ayarları</span>
+        <span class="accordion-chevron">▶</span>
+      </div>
+      <div class="accordion-content">
+
+        <!-- 1. YENİ OYUNCU MODU -->
+        <div class="setting-card">
+          <div class="setting-header">
+            <div class="setting-header-left">
+              <span class="badge-num">1</span>
+              <label>Yeni oyuncu modu</label>
+              <span class="help-icon" data-tip="yeniOyuncu">?</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="toggle-label" id="yeniOyuncuLabel">Aktif</span>
+              <div class="toggle active" id="yeniOyuncuToggle" onclick="toggleDegisti('yeniOyuncu')">
+                <div class="toggle-dot"></div>
+              </div>
+            </div>
+          </div>
+          <div class="description">İlk 30 dakika boyunca %85 kazandırma aktif</div>
+          <div class="ifsa-line">Açıkken yeni oyuncuya ilk 30 dakika boyunca yüksek kazandırma uygulanır, böylece oyuna alışıp bağlanması sağlanır.</div>
+        </div>
+
+        <!-- 3. KAZANDIRMA SIKLIĞI -->
         <div class="setting-card">
           <div class="setting-header">
             <div class="setting-header-left">
@@ -611,10 +999,10 @@
               <label>Kazandırma sıklığı</label>
               <span class="help-icon" data-tip="kazanmaOrani">?</span>
             </div>
-            <span class="value-display" id="kazanmaOraniDeger">65%</span>
+            <span class="value-display" id="kazanmaOraniDeger">10'da 3</span>
           </div>
-          <input type="range" id="kazanmaOrani" min="0" max="100" value="65"
-                 oninput="ayarDegisti('kazanmaOrani', this.value, 'kazanmaOraniDeger', '%')">
+          <input type="range" id="kazanmaOrani" min="0" max="10" step="1" value="3"
+                 oninput="kazanmaOraniInputDegisti(this.value)">
           <div class="ifsa-line">Burada yapılan ayarla oyunculara 10 oyundan kaçında "kazandım" hissinin yaşatılacağı belirlenir.</div>
         </div>
 
@@ -628,14 +1016,20 @@
               <span class="help-icon" data-tip="odemeAraligi">?</span>
             </div>
           </div>
-          <div class="input-row">
-            <span>×</span>
-            <input type="number" id="minCarpan" value="0" placeholder="Min" step="0.1" min="0" style="max-width:90px;"
-                   oninput="ayarDegisti('minCarpan', this.value)">
-            <span>—</span>
-            <input type="number" id="maksCarpan" value="0" placeholder="Maks" step="0.1" min="0" style="max-width:90px;"
-                   oninput="ayarDegisti('maksCarpan', this.value)">
-            <span>× bahis</span>
+          <div style="display:flex; align-items:end; gap:10px; flex-wrap:wrap;">
+            <span style="font-size:14px; color:#8a7c5c; align-self:center; padding-bottom:8px;">×</span>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <span style="font-size:12px; color:#8a7c5c; letter-spacing:1px; text-transform:uppercase;">Min</span>
+              <input type="number" id="minCarpan" value="0" placeholder="Min" step="0.1" min="0" style="max-width:90px;"
+                     oninput="ayarDegisti('minCarpan', this.value)">
+            </div>
+            <span style="color:#8a7c5c; font-size:14px; align-self:center; padding-bottom:8px;">—</span>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <span style="font-size:12px; color:#8a7c5c; letter-spacing:1px; text-transform:uppercase;">Max</span>
+              <input type="number" id="maksCarpan" value="0" placeholder="Maks" step="0.1" min="0" style="max-width:90px;"
+                     oninput="ayarDegisti('maksCarpan', this.value)">
+            </div>
+            <span style="font-size:14px; color:#8a7c5c; align-self:center; padding-bottom:8px;">× bahis</span>
           </div>
           <div class="ifsa-line">Burada yapılan ayarla oyuncuların kazandığında alacağı miktar bahisinin kaç katı olabileceği belirlenir. (en az – en çok)</div>
         </div>
@@ -645,13 +1039,13 @@
           <div class="setting-header">
             <div class="setting-header-left">
               <span class="badge-num">4</span>
-              <label>Neredeyse Oluyordu Modu</label>
+              <label>Neredeyse Oluyordu Hissi</label>
               <span class="help-icon" data-tip="nearMiss">?</span>
             </div>
-            <span class="value-display" id="yakinKacirmaDeger">40%</span>
+            <span class="value-display" id="yakinKacirmaDeger">10'da 4</span>
           </div>
-          <input type="range" id="yakinKacirma" min="0" max="100" value="40"
-                 oninput="ayarDegisti('yakinKacirma', this.value, 'yakinKacirmaDeger', '%')">
+          <input type="range" id="yakinKacirma" min="1" max="10" value="4"
+                 oninput="yakinKacirmaInputDegisti(this.value)">
           <div class="ifsa-line">Burada yapılan ayarla oyunculara 10 oyundan kaçında "neredeyse kazanıyordum" hissinin yaşatılacağı belirlenir.</div>
         </div>
 
@@ -672,17 +1066,22 @@
           <div class="ifsa-line">Burada yapılan ayarla oyuncu üst üste kaç kez kaybettikten sonra ona zorunlu küçük bir kazanç verileceği belirlenir.</div>
         </div>
 
-      </div><!-- /col-block sol -->
+      </div>
+    </div>
 
-      <!-- SAĞ SÜTUN: ANLIK MÜDAHALE -->
-      <div class="col-block">
-        <div class="section-title realtime">Anlık müdahale</div>
+    <!-- ACCORDION: ANLIK MÜDAHALE -->
+    <div class="accordion-section" data-open="false">
+      <div class="accordion-header" onclick="toggleSection(this)">
+        <span class="accordion-title">Anlık Müdahale</span>
+        <span class="accordion-chevron">▶</span>
+      </div>
+      <div class="accordion-content">
 
-        <!-- 7. BONUS TETİKLEME -->
+        <!-- 6. BONUS TETİKLEME -->
         <div class="setting-card realtime">
           <div class="setting-header">
             <div class="setting-header-left">
-              <span class="badge-num">7</span>
+              <span class="badge-num">6</span>
               <label>Bonus tetikleme</label>
               <span class="help-icon" data-tip="bonusTetik">?</span>
             </div>
@@ -699,7 +1098,7 @@
         <div class="setting-card realtime">
           <div class="setting-header">
             <div class="setting-header-left">
-              <span class="badge-num">8</span>
+              <span class="badge-num">7</span>
               <label>Çarpan zorla</label>
               <span class="help-icon" data-tip="carpanZorla">?</span>
             </div>
@@ -713,38 +1112,19 @@
             <button class="multiplier-btn" onclick="carpanZorla(250)">×250</button>
             <button class="multiplier-btn" onclick="carpanZorla(500)">×500</button>
           </div>
+          <div class="ifsa-line">Bir sonraki spinde grid'e zorla düşürülecek çarpan değeri belirlenir. (×100, ×250, ×500 veya özel değer)</div>
+
           <div style="display:flex;align-items:center;gap:10px;margin-top:10px;">
             <div class="toggle active" id="carpanOdemeToggle" onclick="toggleDegisti('carpanOdeme')">
               <div class="toggle-dot"></div>
             </div>
-            <span style="color:#ccc;font-size:18px;">Çarpan sonrası tumble (zincir kazanç)</span>
+            <span style="color:#ccc;font-size:18px;">Çarpan Düşünce Ödeme Versin</span>
             <span class="toggle-label" id="carpanOdemeLabel">Aktif</span>
           </div>
-          <div class="ifsa-line">Bir sonraki spinde grid'e zorla düşürülecek çarpan değeri belirlenir. (×100, ×250, ×500 veya özel değer)</div>
         </div>
 
-        <!-- 6. YENİ OYUNCU MODU -->
-        <div class="setting-card">
-          <div class="setting-header">
-            <div class="setting-header-left">
-              <span class="badge-num">6</span>
-              <label>Yeni oyuncu modu</label>
-              <span class="help-icon" data-tip="yeniOyuncu">?</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <span class="toggle-label" id="yeniOyuncuLabel">Aktif</span>
-              <div class="toggle active" id="yeniOyuncuToggle" onclick="toggleDegisti('yeniOyuncu')">
-                <div class="toggle-dot"></div>
-              </div>
-            </div>
-          </div>
-          <div class="description">İlk 30 dakika boyunca %85 kazandırma aktif</div>
-          <div class="ifsa-line">Açıkken yeni oyuncuya ilk 30 dakika boyunca yüksek kazandırma uygulanır, böylece oyuna alışıp bağlanması sağlanır.</div>
-        </div>
-
-      </div><!-- /col-block sag -->
-
-    </div><!-- /two-col-grid -->
+      </div>
+    </div>
 
   </div><!-- /panel-content -->
 
@@ -781,10 +1161,9 @@
       + '<p>Operatör tek tuşla moddan moda geçebilir. Oyuncu fark edemez — oyunun adı, görseli, sesleri hiç değişmez; sadece <strong>kazandırma algoritması</strong> değişir.</p>',
 
     kazanmaOrani: '<h4>Kazandırma Sıklığı</h4>'
-      + '<p>Slot oyunlarında "kazanmak" her zaman kâr etmek değildir.</p>'
-      + '<p>Sistem <strong>"kayıp süsü verilen kazanç"</strong> tekniğini kullanır: 10 TL bahis koyarsın, 2 TL geri verir. Ekran ışıldar, melodi çalar, oyuncu "kazandım" sanır. Hâlbuki net 8 TL kaybetmiştir.</p>'
-      + '<p>Slider\'ı %65 yaparsan, oyuncu her 100 spinin 65\'inde "kazanç" görür. Bu sayı yüksek görünür ama net kayıp değişmez — sadece oyuncu kaybettiğini fark etmez.</p>'
-      + '<p>Gerçek slot sitelerinde bu değer genellikle <strong>%25-35</strong> arasındadır.</p>',
+      + '<p>10 oyundan kaç tanesinde oyuncuya "kazandım" hissi yaşatılacağını belirler. Doğal slot oyunlarında bu oran <strong>10\'da 3 civarındadır</strong> — bu istatistiksel rastlantıdır.</p>'
+      + '<p>Operatör bu değeri <strong>10\'da 8</strong>\'e çekerse oyuncu sürekli kazanır gibi hisseder, oyuna çekilir. <strong>10\'da 1</strong>\'e indirirse oyuncu sürekli kaybeder, ama "birazdan kazanırım" umuduyla devam eder.</p>'
+      + '<p><strong>Önemli:</strong> Bu "kazanma" her zaman gerçek kâr anlamına gelmez — ödeme aralığı düşükse, kazansa bile bahisinden az alabilir. İki ayar birlikte çalışır: bu sıklık <em>"hissi"</em>, ödeme aralığı <em>"gerçek miktarı"</em> belirler.</p>',
 
     odemeAraligi: '<h4>Ödeme Aralığı (En Kritik Ayar)</h4>'
       + '<p>Bu, kasanın kâr garantisinin teknik adıdır. Min ve Max değerleri <strong>bahsin katı</strong> olarak çalışır.</p>'
@@ -797,8 +1176,8 @@
       + '<p>Bu, kumar bilimindeki <strong>en güçlü manipülasyon tekniğidir.</strong></p>'
       + '<p>Oxford Üniversitesi araştırmasına göre (Clark ve ark., 2009): Oyuncu "az kalmıştı" anında beyninde <strong>gerçek kazanç anıyla aynı</strong> dopamin salınımı oluşur. Yani oyuncu kaybetmiştir ama beyni <strong>kazanmış gibi</strong> ödüllendirir.</p>'
       + '<p>Sistem rastgele yenilgi göstermez. <strong>Kasıtlı olarak</strong> 4 sembolü dizip 5.\'sini farklı yapar. Bu "kıl payı kaçış" sahtedir, hesaplanmış üretilmiştir.</p>'
-      + '<p>%40\'ta her 10 spinin 4\'ünde near-miss yaşatılır — oyuncu "bir spin daha" der, dayanamaz, basar.</p>'
-      + '<p>Gerçek slot sitelerinde bu değer <strong>%55-65</strong> arasındadır.</p>',
+      + '<p>4/10\'da her 10 spinin 4\'ünde near-miss yaşatılır — oyuncu "bir spin daha" der, dayanamaz, basar.</p>'
+      + '<p>Gerçek slot sitelerinde bu değer <strong>6/10-7/10</strong> arasındadır.</p>',
 
     kacisFreni: '<h4>Kaçış Frenleme</h4>'
       + '<p>Oyuncu üst üste kaybetmeye başladığında "yeter, çekiliyorum" düşüncesi belirir. Sistem bu çıkış anını <strong>algılar ve önler.</strong></p>'
@@ -819,11 +1198,24 @@
       + '<p><strong>Otomatik modda:</strong> Sistem oyuncunun bahis hızı, bakiye düşüşü, oyun süresi gibi metrikleri okuyup bonusu <strong>stratejik anda</strong> açar — yine bağlamak için.</p>'
       + '<p>Hiçbir bonus rastgele değildir. Hepsi <strong>bağlama mekanizmasının</strong> parçasıdır.</p>',
 
+    bonusSiklik: '<h4>Bonus Sembolü Düşme Olasılığı</h4>'
+      + '<p>Her spin\'de bonus sembolünün (scatter) grid\'e doğal olarak düşme ihtimali. Sweet Bonanza\'da bu oran yaklaşık <strong>%0.5\'tir</strong> — yani her 200 spin\'de 1 bonus tetiklenir. Doğal istatistiksel rastlantı budur.</p>'
+      + '<p>Operatör bu değeri <strong>%3.3</strong>\'e (30 spin\'de 1) çekerse oyuncu bonusları sürekli görür: "bu oyun çok cömert" der, devam eder. <strong>%0.1</strong>\'e indirirse bonus neredeyse hiç gelmez: oyuncu spin\'lerini boşa harcar, yine de "birazdan gelir" umuduyla oturmaya devam eder.</p>'
+      + '<p>Oyuncu bu sayıyı asla göremez — sadece "bugün şanslı bir gün" veya "bugün hiç şans yok" hissini yaşar. Aslında her ikisi de <strong>operatörün kararıdır</strong>.</p>',
+
     carpanZorla: '<h4>Çarpan Zorla</h4>'
       + '<p>Oyuncu büyük çarpanları (×100, ×500) gördüğünde inanılmaz heyecan yaşar. <strong>"Bugün şansımın günü"</strong> hissi tepe yapar.</p>'
       + '<p>Hâlbuki o çarpan <strong>operatörün düğmeye basmasıyla</strong> ekrana getirilmiştir. Şans değil, müdahale.</p>'
       + '<p>Daha sinsi olan: Tumble toggle\'ı <strong>kapalı</strong> iken zorla çarpan düşürülürse, çarpan görünür ama <strong>sembol patlamaz</strong> — sistem grid\'i kasıtlı olarak cluster oluşmayacak şekilde dağıtır. Oyuncu ×500\'ü görür, "yazık ki sembol tutmadı" der. Oysa tutmaması da <strong>operatörün kararıdır.</strong></p>'
-      + '<p>Bu, kumar sitelerinin <strong>en kurnaz numarasıdır</strong> — oyuncuya "ne büyük şanssızlık" hissi yaşatıp aslında onu manipüle etmek.</p>'
+      + '<p>Bu, kumar sitelerinin <strong>en kurnaz numarasıdır</strong> — oyuncuya "ne büyük şanssızlık" hissi yaşatıp aslında onu manipüle etmek.</p>',
+
+    carpanOlasilik: '<h4>Çarpan Düşme Olasılığı</h4>'
+      + '<p>Doğal akışta çarpanın grid\'e düşme oranı. %2 = her 50 spinde bir çarpan görünür.</p>'
+      + '<p>Yüksek değerlerde oyuncu sürekli çarpan görür, kazanç beklentisi tepe yapar — ama <strong>Ödeme Aralığı tavanı</strong> kazancı baskılar. Slider 0-50 arası, gerçek değer için sağdaki kutuya elle 0-100 yazılabilir.</p>',
+
+    maxCarpanTekSpin: '<h4>Tek Spinde Maksimum Çarpan</h4>'
+      + '<p>Bir spinde aynı anda kaç çarpan düşebileceğini sınırlar. <strong>1</strong> ise tek çarpan, <strong>5</strong> ise aynı spinde 5 çarpan birden görünebilir.</p>'
+      + '<p>Yüksek değer "büyük gün" hissi yaratır ama gerçek kazanç matematik tavanla sabittir.</p>'
   };
 
   // ===== TOOLTIP SİSTEMİ =====
@@ -929,6 +1321,13 @@
     } catch (e) { console.warn('[Panel → Unity] HATA:', e, mesaj); }
   }
 
+  // ===== ACCORDION =====
+  function toggleSection(headerEl) {
+    var section = headerEl.parentElement;
+    var isOpen = section.getAttribute('data-open') === 'true';
+    section.setAttribute('data-open', isOpen ? 'false' : 'true');
+  }
+
   // ===== BİLDİRİM =====
   function bildirimGoster(metin) {
     var el = document.getElementById('notification');
@@ -945,6 +1344,55 @@
     unityeGonder(anahtar, Number(deger));
   }
 
+  // Neredeyse Oluyordu Hissi: HTML slider 1-10, Unity'e yüzde gönder (n * 10)
+  function yakinKacirmaInputDegisti(deger) {
+    var n = parseInt(deger, 10);
+    document.getElementById('yakinKacirmaDeger').textContent = "10'da " + n;
+    unityeGonder('yakinKacirma', n * 10);
+  }
+
+  // Kazandırma Sıklığı: HTML slider 0-10, Unity'e yüzde gönder (n * 10)
+  function kazanmaOraniInputDegisti(deger) {
+    var n = parseInt(deger, 10);
+    if (isNaN(n)) n = 0;
+    document.getElementById('kazanmaOraniDeger').textContent = "10'da " + n;
+    unityeGonder('kazanmaOrani', n * 10);
+  }
+
+  // Çarpan düşme olasılığı: slider (0-50) + number input (0-100) senkron
+  function carpanOlasilikSliderDegisti(deger) {
+    var n = parseInt(deger, 10);
+    if (isNaN(n)) n = 0;
+    document.getElementById('carpanOlasilikInput').value = n;
+    document.getElementById('carpanOlasilikDeger').textContent = n + '%';
+    unityeGonder('carpanOlasilik', n);
+  }
+  function carpanOlasilikInputDegisti(deger) {
+    var n = parseInt(deger, 10);
+    if (isNaN(n) || n < 0) n = 0;
+    if (n > 100) n = 100;
+    // Slider 0-50; number 50'den büyükse slider 50'de kalır, gerçek değer Unity'e gider
+    document.getElementById('carpanOlasilik').value = Math.min(n, 50);
+    document.getElementById('carpanOlasilikInput').value = n;
+    document.getElementById('carpanOlasilikDeger').textContent = n + '%';
+    unityeGonder('carpanOlasilik', n);
+  }
+
+  // Bonus sembolü düşme olasılığı: yüzde slider 0-5 step 0.1, postMessage int spin = round(100/yüzde)
+  function bonusSembolOlasilikDegisti(deger) {
+    var yuzde = parseFloat(deger);
+    if (isNaN(yuzde) || yuzde < 0) yuzde = 0;
+    document.getElementById('bonusSembolDeger').textContent = yuzde.toFixed(1);
+    if (yuzde <= 0) {
+      document.getElementById('bonusSpinHesap').textContent = '∞';
+      // postMessage gönderme — bonus efektif olarak kapalı
+    } else {
+      var spin = Math.round(100 / yuzde);
+      document.getElementById('bonusSpinHesap').textContent = spin;
+      unityeGonder('bonusOtomatikOran', spin);
+    }
+  }
+
   // ===== TOGGLE =====
   function toggleDegisti(anahtar) {
     var toggle = document.getElementById(anahtar + 'Toggle');
@@ -957,31 +1405,149 @@
 
   // ===== SENARYO UYGULA =====
   var SENARYOLAR = {
-    normal:  { kazanmaOrani: 65, minCarpan: 0,   maksCarpan: 0,  yakinKacirma: 20 },
-    hook:    { kazanmaOrani: 85, minCarpan: 0,   maksCarpan: 5,  yakinKacirma: 60 },
-    yontma:  { kazanmaOrani: 25, minCarpan: 0,   maksCarpan: 3,  yakinKacirma: 70 },
-    tutma:   { kazanmaOrani: 45, minCarpan: 0.5, maksCarpan: 8,  yakinKacirma: 80 },
-    koruma:  { kazanmaOrani: 15, minCarpan: 0,   maksCarpan: 2,  yakinKacirma: 90 }
+    normal:  { kazanmaOrani: 3, minCarpan: 1,   maksCarpan: 100, yakinKacirma: 20, yeniOyuncu: false, ardisikKayip: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 0.5, carpanOdeme: false },
+    hook:    { kazanmaOrani: 8, minCarpan: 2,   maksCarpan: 20,  yakinKacirma: 30, yeniOyuncu: true,  ardisikKayip: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 3.3, carpanOdeme: false },
+    yontma:  { kazanmaOrani: 6, minCarpan: 0.5, maksCarpan: 3,   yakinKacirma: 60, yeniOyuncu: false, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: false },
+    tutma:   { kazanmaOrani: 3, minCarpan: 1,   maksCarpan: 50,  yakinKacirma: 40, yeniOyuncu: false, ardisikKayip: 5, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: true  },
+    koruma:  { kazanmaOrani: 2, minCarpan: 0.5, maksCarpan: 2,   yakinKacirma: 90, yeniOyuncu: false, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: false }
   };
 
+  // Son APPLY edilen state — sayfa açılışta normal preset
+  var savedSenaryo = 'normal';
+  var savedState = Object.assign({}, SENARYOLAR.normal);
+  var previewAktif = false;
+
+  // Toggle class set (postMessage GÖNDERMEZ — sadece UI)
+  function setToggleClass(anahtar, aktif) {
+    var t = document.getElementById(anahtar + 'Toggle');
+    var l = document.getElementById(anahtar + 'Label');
+    if (t) t.classList.toggle('active', !!aktif);
+    if (l) l.textContent = aktif ? 'Aktif' : 'Kapalı';
+  }
+
+  // Slider/number animate — postMessage tetiklenmez
+  function animateValueSet(el, hedef, displaySetter, sure) {
+    sure = sure || 500;
+    var start = parseFloat(el.value);
+    var end = parseFloat(hedef);
+    if (isNaN(start)) start = end;
+    var t0 = performance.now();
+    function adim(now) {
+      var t = Math.min((now - t0) / sure, 1);
+      var eased = 1 - Math.pow(1 - t, 3);
+      var cur = start + (end - start) * eased;
+      el.value = cur;
+      if (displaySetter) displaySetter(cur);
+      if (t < 1) requestAnimationFrame(adim);
+      else { el.value = end; if (displaySetter) displaySetter(end); }
+    }
+    requestAnimationFrame(adim);
+  }
+
+  // Tüm input'ları preset'e göre UI olarak güncelle (postMessage YOK)
+  function uygulaUI(s) {
+    animateValueSet(document.getElementById('kazanmaOrani'), s.kazanmaOrani, function(v) {
+      document.getElementById('kazanmaOraniDeger').textContent = "10'da " + Math.round(v);
+    });
+    document.getElementById('minCarpan').value  = s.minCarpan;
+    document.getElementById('maksCarpan').value = s.maksCarpan;
+    var ykOnda = Math.round(s.yakinKacirma / 10);
+    animateValueSet(document.getElementById('yakinKacirma'), ykOnda, function(v) {
+      document.getElementById('yakinKacirmaDeger').textContent = "10'da " + Math.round(v);
+    });
+    document.getElementById('ardisikKayip').value = s.ardisikKayip;
+    setToggleClass('yeniOyuncu', s.yeniOyuncu);
+    setToggleClass('carpanOdeme', s.carpanOdeme);
+    document.getElementById('bonusManuel').classList.toggle('active', s.bonusModu === 'manuel');
+    document.getElementById('bonusOtomatik').classList.toggle('active', s.bonusModu === 'otomatik');
+
+    // Bonus sembolü düşme olasılığı (preview'de animate, postMessage YOK)
+    var bonusSembolEl = document.getElementById('bonusSembolOlasilik');
+    if (bonusSembolEl) {
+      animateValueSet(bonusSembolEl, s.bonusSembolOlasilik, function(v) {
+        document.getElementById('bonusSembolDeger').textContent = v.toFixed(1);
+        var spinH = v <= 0 ? '∞' : Math.round(100 / v);
+        document.getElementById('bonusSpinHesap').textContent = spinH;
+      });
+    }
+  }
+
+  // Dropdown change → preview (postMessage YOK, vurgu açık)
+  function senaryoPreview(secim) {
+    modAciklamasiniGuncelle(secim);
+    var s = SENARYOLAR[secim];
+    if (!s) return;
+    uygulaUI(s);
+    previewAktif = true;
+    var btn = document.getElementById('senaryoUygulaBtn');
+    if (btn) btn.classList.add('apply-btn-pulsing');
+    var hint = document.getElementById('pendingHint');
+    if (hint) hint.style.display = 'inline';
+  }
+
+  // İptal sonrası eski state'e geri dön
+  function revertToSavedState() {
+    document.getElementById('oyunModu').value = savedSenaryo;
+    uygulaUI(savedState);
+    previewAktif = false;
+    var btn = document.getElementById('senaryoUygulaBtn');
+    if (btn) btn.classList.remove('apply-btn-pulsing');
+    var hint = document.getElementById('pendingHint');
+    if (hint) hint.style.display = 'none';
+    modAciklamasiniGuncelle(savedSenaryo);
+  }
+
+  // Toast
+  function showToast(mesaj) {
+    var el = document.getElementById('toast');
+    if (!el) return;
+    el.textContent = mesaj;
+    el.style.display = 'block';
+    setTimeout(function() { el.style.opacity = '1'; }, 10);
+    clearTimeout(window.toastTimer);
+    window.toastTimer = setTimeout(function() {
+      el.style.opacity = '0';
+      setTimeout(function() { el.style.display = 'none'; }, 300);
+    }, 3000);
+  }
+
+  // Uygula → confirm + apply
   function senaryoUygula() {
     var secim = document.getElementById('oyunModu').value;
     var s = SENARYOLAR[secim];
-    if (s) {
-      document.getElementById('kazanmaOrani').value            = s.kazanmaOrani;
-      document.getElementById('kazanmaOraniDeger').textContent = s.kazanmaOrani + '%';
-      document.getElementById('minCarpan').value               = s.minCarpan;
-      document.getElementById('maksCarpan').value              = s.maksCarpan;
-      document.getElementById('yakinKacirma').value            = s.yakinKacirma;
-      document.getElementById('yakinKacirmaDeger').textContent = s.yakinKacirma + '%';
-      unityeGonder('kazanmaOrani', s.kazanmaOrani);
-      unityeGonder('minCarpan',    s.minCarpan);
-      unityeGonder('maksCarpan',   s.maksCarpan);
-      unityeGonder('yakinKacirma', s.yakinKacirma);
+    if (!s) return;
+
+    if (!confirm('Bu ayarlar tüm aktif oyunculara hemen uygulanacak. Devam edilsin mi?')) {
+      revertToSavedState();
+      return;
     }
-    unityeGonder('oyunModu', secim);
+
+    // postMessage'lar fire et
+    unityeGonder('oyunModu',          secim);
+    unityeGonder('kazanmaOrani',      s.kazanmaOrani * 10);
+    unityeGonder('minCarpan',         s.minCarpan);
+    unityeGonder('maksCarpan',        s.maksCarpan);
+    unityeGonder('yakinKacirma',      s.yakinKacirma);
+    unityeGonder('ardisikKayip',      s.ardisikKayip);
+    unityeGonder('yeniOyuncu',        s.yeniOyuncu);
+    unityeGonder('bonusModu',         s.bonusModu);
+    if (s.bonusSembolOlasilik > 0)
+      unityeGonder('bonusOtomatikOran', Math.round(100 / s.bonusSembolOlasilik));
+    unityeGonder('carpanOdeme',       s.carpanOdeme);
+
+    // savedState güncelle
+    savedSenaryo = secim;
+    savedState = Object.assign({}, s);
+
+    // UI feedback temizle
+    previewAktif = false;
+    var btn = document.getElementById('senaryoUygulaBtn');
+    if (btn) btn.classList.remove('apply-btn-pulsing');
+    var hint = document.getElementById('pendingHint');
+    if (hint) hint.style.display = 'none';
+
     modAciklamasiniGuncelle(secim);
-    bildirimGoster('Senaryo uygulandı: ' + secim);
+    showToast(secim + ' modu uygulandı');
   }
 
   function bonusModuDegistir(mod) {
@@ -1001,10 +1567,10 @@
   }
 
   function varsayilanaDon() {
-    document.getElementById('kazanmaOrani').value            = 65;
-    document.getElementById('kazanmaOraniDeger').textContent = '65%';
-    document.getElementById('yakinKacirma').value            = 40;
-    document.getElementById('yakinKacirmaDeger').textContent = '40%';
+    document.getElementById('kazanmaOrani').value            = 3;
+    document.getElementById('kazanmaOraniDeger').textContent = "10'da 3";
+    document.getElementById('yakinKacirma').value            = 4;
+    document.getElementById('yakinKacirmaDeger').textContent = "10'da 4";
     document.getElementById('minCarpan').value               = 0;
     document.getElementById('maksCarpan').value              = 0;
     document.getElementById('ardisikKayip').value            = 8;
@@ -1017,10 +1583,10 @@
   function tumAyarlariUygula() {
     var tumAyarlar = {
       oyunModu:       document.getElementById('oyunModu').value,
-      kazanmaOrani:   Number(document.getElementById('kazanmaOrani').value),
+      kazanmaOrani:   Number(document.getElementById('kazanmaOrani').value) * 10,
       minCarpan:      Number(document.getElementById('minCarpan').value),
       maksCarpan:     Number(document.getElementById('maksCarpan').value),
-      yakinKacirma:   Number(document.getElementById('yakinKacirma').value),
+      yakinKacirma:   Number(document.getElementById('yakinKacirma').value) * 10,
       ardisikKayip:   Number(document.getElementById('ardisikKayip').value),
       yeniOyuncuModu: document.getElementById('yeniOyuncuToggle').classList.contains('active'),
       bonusModu:      document.getElementById('bonusManuel').classList.contains('active') ? 'manuel' : 'otomatik'
@@ -1033,7 +1599,67 @@
 
   function paneliKapat() { unityeGonder('paneliKapat', true); }
 
+  // Sayfa açılışta Normal preset'i UI + savedState + Unity'e uygula (preview/pulse YOK)
+  function panelInitNormalApply() {
+    var s = SENARYOLAR.normal;
+
+    // UI anlık yaz (animasyonsuz)
+    document.getElementById('oyunModu').value                = 'normal';
+    document.getElementById('kazanmaOrani').value            = s.kazanmaOrani;
+    document.getElementById('kazanmaOraniDeger').textContent = "10'da " + s.kazanmaOrani;
+    document.getElementById('minCarpan').value               = s.minCarpan;
+    document.getElementById('maksCarpan').value              = s.maksCarpan;
+    var ykOnda = Math.round(s.yakinKacirma / 10);
+    document.getElementById('yakinKacirma').value            = ykOnda;
+    document.getElementById('yakinKacirmaDeger').textContent = "10'da " + ykOnda;
+    document.getElementById('ardisikKayip').value            = s.ardisikKayip;
+    setToggleClass('yeniOyuncu',  s.yeniOyuncu);
+    setToggleClass('carpanOdeme', s.carpanOdeme);
+    document.getElementById('bonusManuel').classList.toggle('active',   s.bonusModu === 'manuel');
+    document.getElementById('bonusOtomatik').classList.toggle('active', s.bonusModu === 'otomatik');
+
+    // Bonus sembolü düşme olasılığı (anlık)
+    var bonusSembolInit = document.getElementById('bonusSembolOlasilik');
+    if (bonusSembolInit) {
+      bonusSembolInit.value = s.bonusSembolOlasilik;
+      document.getElementById('bonusSembolDeger').textContent = s.bonusSembolOlasilik.toFixed(1);
+      document.getElementById('bonusSpinHesap').textContent = s.bonusSembolOlasilik > 0 ? Math.round(100 / s.bonusSembolOlasilik) : '∞';
+    }
+
+    // Ödeme aralığı + ardisikKayip number input'ları için: input + change event fire et
+    // (mevcut oninput handler'larını uyandır, Unity'e ek güvence postMessage)
+    var minEl = document.getElementById('minCarpan');
+    var maxEl = document.getElementById('maksCarpan');
+    var akEl  = document.getElementById('ardisikKayip');
+    if (minEl) { minEl.dispatchEvent(new Event('input', { bubbles: true })); minEl.dispatchEvent(new Event('change', { bubbles: true })); }
+    if (maxEl) { maxEl.dispatchEvent(new Event('input', { bubbles: true })); maxEl.dispatchEvent(new Event('change', { bubbles: true })); }
+    if (akEl)  { akEl.dispatchEvent(new Event('input', { bubbles: true }));  akEl.dispatchEvent(new Event('change', { bubbles: true })); }
+
+    // savedState init + pulse/hint temizle
+    savedSenaryo = 'normal';
+    savedState   = Object.assign({}, s);
+    previewAktif = false;
+    var btn  = document.getElementById('senaryoUygulaBtn');
+    var hint = document.getElementById('pendingHint');
+    if (btn)  btn.classList.remove('apply-btn-pulsing');
+    if (hint) hint.style.display = 'none';
+
+    // Unity'e gönder (apply olarak)
+    unityeGonder('oyunModu',          'normal');
+    unityeGonder('kazanmaOrani',      s.kazanmaOrani * 10);
+    unityeGonder('minCarpan',         s.minCarpan);
+    unityeGonder('maksCarpan',        s.maksCarpan);
+    unityeGonder('yakinKacirma',      s.yakinKacirma);
+    unityeGonder('ardisikKayip',      s.ardisikKayip);
+    unityeGonder('yeniOyuncu',        s.yeniOyuncu);
+    unityeGonder('bonusModu',         s.bonusModu);
+    if (s.bonusSembolOlasilik > 0)
+      unityeGonder('bonusOtomatikOran', Math.round(100 / s.bonusSembolOlasilik));
+    unityeGonder('carpanOdeme',       s.carpanOdeme);
+  }
+
   window.addEventListener('load', function () {
+    panelInitNormalApply();
     unityeGonder('panelHazir', true);
     modAciklamasiniGuncelle(document.getElementById('oyunModu').value);
   });
@@ -1046,13 +1672,13 @@
       var modu = document.getElementById('oyunModu');
       if (modu && a.aktifSenaryo) { modu.value = a.aktifSenaryo; modAciklamasiniGuncelle(a.aktifSenaryo); }
       var sliderKO = document.getElementById('kazanmaOrani');
-      if (sliderKO) { sliderKO.value = a.kazanmaOrani; document.getElementById('kazanmaOraniDeger').textContent = Math.round(a.kazanmaOrani) + '%'; }
+      if (sliderKO) { var koOnda = Math.max(0, Math.min(10, Math.round(a.kazanmaOrani / 10))); sliderKO.value = koOnda; document.getElementById('kazanmaOraniDeger').textContent = "10'da " + koOnda; }
       var mkMin = document.getElementById('minCarpan');
       if (mkMin) mkMin.value = a.minCarpan || 0;
       var mkMax = document.getElementById('maksCarpan');
       if (mkMax) mkMax.value = a.maksCarpan || 0;
       var sliderYK = document.getElementById('yakinKacirma');
-      if (sliderYK) { sliderYK.value = a.yakinKacirma; document.getElementById('yakinKacirmaDeger').textContent = Math.round(a.yakinKacirma) + '%'; }
+      if (sliderYK) { var ykOndaG = Math.max(1, Math.min(10, Math.round(a.yakinKacirma / 10))); sliderYK.value = ykOndaG; document.getElementById('yakinKacirmaDeger').textContent = "10'da " + ykOndaG; }
       var akInput = document.getElementById('ardisikKayip');
       if (akInput) akInput.value = a.ardisikKayipLimiti;
       var tog = document.getElementById('yeniOyuncuToggle'), lbl = document.getElementById('yeniOyuncuLabel');
