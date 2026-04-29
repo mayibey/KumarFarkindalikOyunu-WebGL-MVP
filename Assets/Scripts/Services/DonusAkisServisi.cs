@@ -223,22 +223,16 @@ public class DonusAkisServisi
             }
             else
             {
-                string aktifSahne = SceneManager.GetActiveScene().name;
-                bool adminSahnesi = aktifSahne == "03_AdminOyunScene" || aktifSahne == "06_AdminOyunKopya";
-                // Admin sahnelerinde ödeme modeli test amaçlı deterministik olmalı:
-                // Simülasyonda üretilen teorik tutar havuz kesintisiyle "1 TL" gibi bozulmasın.
-                odenen = adminSahnesi
-                    ? teorikToplam
-                    : (_ctx.OdemeServisi != null ? _ctx.OdemeServisi.PayFromHavuz(teorikToplam) : teorikToplam);
-                // Senaryo modunda Kasa havuzu boş olabilir; kazancı yine de bütçe limitine göre bakiyeye ekle.
-                if (SenaryoYoneticisi.I != null && odenebilirNormal != int.MaxValue && odenen < teorikToplam)
-                    odenen = Mathf.Min(teorikToplam, odenebilirNormal);
+                // BUG FIX (2026-04-29): Havuz kontrolü ve odenebilirNormal clamp KALDIRILDI.
+                // Eskiden: PayFromHavuz havuz yetmezse 100K (havuz × %10) döndürüyordu, sonra Mathf.Min ile clamp.
+                // Bu durum "kazanç ekranında 900.000 TL göster, bakiyeye 100.000 ekle" tutarsızlığına neden oluyordu.
+                // Artık tam teorikToplam ödenir; havuz tamamen bypass.
+                odenen = teorikToplam;
                 _ctx.EkonomiServisi.AddWinnings(odenen, _ctx.SpinBahisTL);
+                Debug.Log($"[ODEME] ham={hamKazanc} carpan={toplamX} teorikToplam={teorikToplam} odenen={odenen} (havuz bypass)");
             }
             _ctx.SonSpinKazanci = odenen;
             _ctx.DonusKayitServisi?.RecordSpinResult(_ctx.SpinPrevBakiye, _ctx.EkonomiServisi.Bakiye, _ctx.SpinBahisTL, odenen);
-            if (!zorlaCarpanKullanildi && odenen < teorikToplam)
-                Debug.LogWarning($"[KASA] Ödül havuzu yetmedi. İstenen={teorikToplam} Ödenen={odenen}");
         }
         SettledSpinDegerleriniNormalizeEt(odenen);
 
@@ -276,13 +270,8 @@ public class DonusAkisServisi
 
         Debug.Log($"[NORMAL] SpinKazanci(istenen)={teorikToplam} Odenen={odenen} | Bakiye={_ctx.EkonomiServisi.Bakiye}");
 
-        // Invariant: Normal spinde (bonus ve zorla çarpan dışında) ödenen tutar, spin başında hesaplanan ödenebilir limiti aşmamalı.
-        if (!_ctx.BonusAktif && !zorlaCarpanKullanildi && odenen > 0 && odenebilirNormal != int.MaxValue && odenen > odenebilirNormal)
-        {
-            int spinNoLimitIhlal = SenaryoYoneticisi.I != null ? SenaryoYoneticisi.I.toplamSpin : -1;
-            string asamaAdi = SenaryoYoneticisi.I != null ? SenaryoYoneticisi.I.GetAsamaAdi() : "Bilinmiyor";
-            Debug.LogError($"[SentetikOyuncu][İHLAL] Normal spin ödemesi spin limitini aştı. Odenen={odenen} TL, SpinLimiti={odenebilirNormal} TL, SpinNo={spinNoLimitIhlal}, Asama={asamaAdi}");
-        }
+        // BUG FIX (2026-04-29): Eski "İhlal" invariant kontrolü kaldırıldı — havuz clamp'i artık yok,
+        // her spin teorik kazancın tamamını ödüyor; bu kontrol her büyük kazançta yanlış yere LogError üretirdi.
 
         if (_ctx.Grid != null && _ctx.Satir > 0 && _ctx.Sutun > 0)
         {
