@@ -1025,19 +1025,19 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
             bonusEndCloseButton.onClick.RemoveAllListeners();
             bonusEndCloseButton.onClick.AddListener(() => bonusEndCloseRequested = true);
         }
-        // === BAHİS +/- BUTON BAĞLAMA === (OyunYoneticisi metotları: senaryo paneli + ekonomi güncellenir)
+        // === BAHİS +/- BUTON BAĞLAMA === (2026-04-29: artık her ikisi de BahisSecimPopup açar)
         if (bahisArttirButon != null)
         {
             bahisArttirButon.onClick.RemoveAllListeners();
-            bahisArttirButon.onClick.AddListener(BahisArttir);
+            bahisArttirButon.onClick.AddListener(BahisSecimPopupGoster);
         }
 
         if (bahisAzaltButon != null)
         {
             bahisAzaltButon.onClick.RemoveAllListeners();
-            bahisAzaltButon.onClick.AddListener(BahisAzalt);
+            bahisAzaltButon.onClick.AddListener(BahisSecimPopupGoster);
         }
-        Debug.Log($"[BAHIS HOOK] ArttirButon={(bahisArttirButon != null)} AzaltButon={(bahisAzaltButon != null)}");
+        Debug.Log($"[BAHIS HOOK] ArttirButon={(bahisArttirButon != null)} AzaltButon={(bahisAzaltButon != null)} (popup modu)");
         // Otomatik spin: panel kapalı, dropdown 20/50/100/250, butonlar
         if (otomatikSpinPanel != null)
             otomatikSpinPanel.SetActive(false);

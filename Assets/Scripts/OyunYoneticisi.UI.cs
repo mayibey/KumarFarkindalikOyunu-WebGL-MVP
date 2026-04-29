@@ -668,6 +668,33 @@ public partial class OyunYoneticisi
         }
     }
 
+    /// <summary>Bahis +/- butonlarına basıldığında BahisSecimPopup açılır (2026-04-29).
+    /// Tek tıklama 10 TL artırma yerine 6 hızlı miktar + manuel input içeren pop-up.</summary>
+    public void BahisSecimPopupGoster()
+    {
+        if (spinCalisiyor || bonusAktif)
+        {
+            Debug.LogWarning("[BAHİS] Spin/Bonus aktif iken bahis pop-up'ı açılmaz.");
+            return;
+        }
+        var canvas = FindObjectOfType<Canvas>();
+        if (canvas == null)
+        {
+            Debug.LogError("[BAHİS] Canvas bulunamadı, BahisSecimPopup açılamadı.");
+            return;
+        }
+        int bakiye = _ekonomiServisi != null ? _ekonomiServisi.Bakiye : 0;
+        BahisSecimPopup.Goster(canvas, bakiye, secilen =>
+        {
+            if (_ekonomiServisi != null)
+            {
+                _ekonomiServisi.SetBahis(secilen);
+                Debug.Log($"[BAHİS] Pop-up'tan seçildi: {secilen} TL → SetBahis çağrıldı.");
+            }
+            _uiServisi?.UI_Guncelle();
+        });
+    }
+
     public void BahisArttir()
     {
         if (_ekonomiServisi == null) return;

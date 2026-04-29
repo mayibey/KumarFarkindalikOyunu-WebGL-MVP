@@ -17312,6 +17312,8 @@ var dynCall_viiiifii = Module["dynCall_viiiifii"] = createExportWrapper("dynCall
 /** @type {function(...*):?} */
 var dynCall_iiiffii = Module["dynCall_iiiffii"] = createExportWrapper("dynCall_iiiffii");
 /** @type {function(...*):?} */
+var dynCall_viiiifiiiii = Module["dynCall_viiiifiiiii"] = createExportWrapper("dynCall_viiiifiiiii");
+/** @type {function(...*):?} */
 var dynCall_viddiiii = Module["dynCall_viddiiii"] = createExportWrapper("dynCall_viddiiii");
 /** @type {function(...*):?} */
 var dynCall_fijji = Module["dynCall_fijji"] = createExportWrapper("dynCall_fijji");

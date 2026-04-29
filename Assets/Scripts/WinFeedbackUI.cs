@@ -105,6 +105,10 @@ public class WinFeedbackUI : MonoBehaviour
     //  PUBLIC API
     // ════════════════════════════════════════════════
 
+    private bool _atlaTiklamaBagli = false;
+    private bool _gosterimAktif = false;
+    private int _hedefKazanc;
+
     public void ShowWin(int kazanc, int bahis)
     {
         if (panelCanvasGroup == null || baslikText == null || kazancText == null) return;
@@ -120,7 +124,58 @@ public class WinFeedbackUI : MonoBehaviour
         if (_aktifParaParent        != null) { Destroy(_aktifParaParent);              _aktifParaParent        = null; }
         _donuyor = false;
 
+        // Tıkla-atla: karartmaOverlay'a Button ekle (lazy, bir kere)
+        TiklamaAtlaBagla();
+
+        _hedefKazanc = kazanc;
+        _gosterimAktif = true;
         _aktifGosterimCoroutine = StartCoroutine(GosterimCoroutine(sev, kazanc));
+    }
+
+    private void TiklamaAtlaBagla()
+    {
+        if (_atlaTiklamaBagli || karartmaOverlay == null) return;
+        var btn = karartmaOverlay.GetComponent<Button>();
+        if (btn == null) btn = karartmaOverlay.gameObject.AddComponent<Button>();
+        btn.transition = Selectable.Transition.None;
+        btn.onClick.RemoveAllListeners();
+        btn.onClick.AddListener(AtlaVeKapat);
+        karartmaOverlay.raycastTarget = true;
+        _atlaTiklamaBagli = true;
+    }
+
+    /// <summary>Pop-up tıklandığında veya dış kaynaktan çağrıldığında: animasyon atlanır,
+    /// kazanç metni anında final değere ayarlanır, gösterim kapanır.</summary>
+    public void AtlaVeKapat()
+    {
+        if (!_gosterimAktif) return;
+        _gosterimAktif = false;
+
+        StopAllCoroutines();
+        _aktifGosterimCoroutine = null;
+        _aktifParaCoroutine = null;
+        _halkaCoroutine = null;
+        _donuyor = false;
+
+        if (kazancText != null)
+            kazancText.text = OyunFormatServisi.FormatTL(_hedefKazanc);
+
+        if (_aktifParaParent != null) { Destroy(_aktifParaParent); _aktifParaParent = null; }
+
+        if (panelCanvasGroup != null)
+        {
+            panelCanvasGroup.alpha = 0f;
+            panelCanvasGroup.gameObject.SetActive(false);
+        }
+        if (olcekKoku != null) olcekKoku.localScale = Vector3.zero;
+
+        DisableKatman(karartmaOverlay);
+        DisableKatman(_glow);
+        DisableKatman(_isinAlt);
+        DisableKatman(_isinUst);
+        DisableKatman(_halka);
+
+        Debug.Log("[WinFeedback] Tikla-atla: gosterim hizla kapatildi, kazanc=" + _hedefKazanc);
     }
 
     // ════════════════════════════════════════════════
@@ -287,6 +342,7 @@ public class WinFeedbackUI : MonoBehaviour
         DisableKatman(_isinUst); DisableKatman(_halka);
         if (tmp != null) { tmp.fontStyle = FontStyles.Normal; tmp.outlineWidth = 0f; }
         _aktifGosterimCoroutine = null;
+        _gosterimAktif = false;
     }
 
     // ════════════════════════════════════════════════

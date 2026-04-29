@@ -145,7 +145,8 @@
 
 
       } else {
-        
+        canvas.style.width = "1920px";
+        canvas.style.height = "1080px";
       }
 
       document.querySelector("#unity-loading-bar").style.display = "block";
@@ -196,20 +197,20 @@
     <script>
       (function() {
         function forceFullscreen() {
-          var c = document.querySelector('#unity-canvas');
+          var c = document.querySelector("#unity-canvas");
           if (c) {
-            c.style.width  = window.innerWidth  + 'px';
-            c.style.height = window.innerHeight + 'px';
+            c.style.width  = window.innerWidth  + "px";
+            c.style.height = window.innerHeight + "px";
           }
-          var ct = document.querySelector('#unity-container');
+          var ct = document.querySelector("#unity-container");
           if (ct) {
-            ct.style.width  = window.innerWidth  + 'px';
-            ct.style.height = window.innerHeight + 'px';
+            ct.style.width  = window.innerWidth  + "px";
+            ct.style.height = window.innerHeight + "px";
           }
         }
-        window.addEventListener('resize', forceFullscreen);
-        window.addEventListener('orientationchange', forceFullscreen);
-        window.addEventListener('load', function() {
+        window.addEventListener("resize", forceFullscreen);
+        window.addEventListener("orientationchange", forceFullscreen);
+        window.addEventListener("load", function() {
           forceFullscreen();
           setTimeout(forceFullscreen, 100);
           setTimeout(forceFullscreen, 500);
