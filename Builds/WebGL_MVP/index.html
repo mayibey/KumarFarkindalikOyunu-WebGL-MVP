@@ -30,8 +30,11 @@
         height: 100vh;
       }
       #unity-canvas {
-        width: 100% !important;
-        height: 100% !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: none !important;
+        max-height: none !important;
+        aspect-ratio: unset !important;
         background: #000;
         display: block;
       }
@@ -187,6 +190,33 @@
 
       document.body.appendChild(script);
 
+    </script>
+
+    <!-- WEBGL_FULLSCREEN_PATCH_FS3: Aggressive canvas resize override -->
+    <script>
+      (function() {
+        function forceFullscreen() {
+          var c = document.querySelector('#unity-canvas');
+          if (c) {
+            c.style.width  = window.innerWidth  + 'px';
+            c.style.height = window.innerHeight + 'px';
+          }
+          var ct = document.querySelector('#unity-container');
+          if (ct) {
+            ct.style.width  = window.innerWidth  + 'px';
+            ct.style.height = window.innerHeight + 'px';
+          }
+        }
+        window.addEventListener('resize', forceFullscreen);
+        window.addEventListener('orientationchange', forceFullscreen);
+        window.addEventListener('load', function() {
+          forceFullscreen();
+          setTimeout(forceFullscreen, 100);
+          setTimeout(forceFullscreen, 500);
+          setTimeout(forceFullscreen, 1500);
+          setTimeout(forceFullscreen, 3000);
+        });
+      })();
     </script>
   </body>
 </html>

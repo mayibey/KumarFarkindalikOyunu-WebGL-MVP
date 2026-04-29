@@ -1595,6 +1595,7 @@
     var ozelCarpan = parseInt(document.getElementById('carpanInput').value);
     if (ozelCarpan > 0) unityeGonder('carpanZorla', ozelCarpan);
     bildirimGoster('Tüm ayarlar uygulandı');
+    setTimeout(paneliKapat, 1500);
   }
 
   function paneliKapat() { unityeGonder('paneliKapat', true); }
