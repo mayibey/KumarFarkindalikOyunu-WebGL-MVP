@@ -1,6 +1,12 @@
 {
   "headers": [
     {
+      "source": "/(.*)\\.br$",
+      "headers": [
+        { "key": "Content-Encoding", "value": "br" }
+      ]
+    },
+    {
       "source": "/(.*)\\.unityweb$",
       "headers": [
         { "key": "Content-Encoding", "value": "gzip" }
