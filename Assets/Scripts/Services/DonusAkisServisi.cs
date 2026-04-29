@@ -203,12 +203,10 @@ public class DonusAkisServisi
         // Sahte para tamamen kaldırıldı. Kaçış Frenleme artık BİR SONRAKİ spin'in grid'ini cluster oluşacak şekilde zorlar
         // (bkz. spin sonu güncellemesi aşağıda + OyunYoneticisi.SimuleEtVeKaydetImpl içinde GrideZorlaEnAzBirCluster çağrısı).
 
-        // Maks ödeme tavanı: panel carpan sistemi (kazancı yukarı çekmez, sadece sınırlar — sahte para değil)
-        if (teorikToplam > 0 && _ctx.SpinBahisTL > 0 && _ctx.MaksOdemeCarpan > 0f)
-        {
-            int maksTL = Mathf.RoundToInt(_ctx.SpinBahisTL * _ctx.MaksOdemeCarpan);
-            if (teorikToplam > maksTL) teorikToplam = maksTL;
-        }
+        // BUG FIX (2026-04-29): Maks ödeme tavanı KALDIRILDI. Görünen kazanç ile bakiyeye eklenen
+        // miktar tutarsızdı (örn: 300.000 TL gösterilip 100.000 ekleniyordu) — bu oyuncuyu kandırıyor gibi
+        // görünüyordu. Artık clamp yok; yalnızca negatif sanity check uygulanır.
+        if (teorikToplam < 0) teorikToplam = 0;
 
         int odenen = 0;
         if (teorikToplam > 0)
