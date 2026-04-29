@@ -1173,13 +1173,28 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
         var metin = hosgeldinizGo.GetComponent<TMP_Text>();
         if (metin == null) return;
 
+        // BUG FIX (2026-04-29): 4 katmanlı fallback — modal hangi yola yazsa orada bulur.
         string kullaniciAdi = KullaniciVerileri.KullaniciAdi;
-        if (string.IsNullOrWhiteSpace(kullaniciAdi))
-            kullaniciAdi = GameManager.I?.ActivePlayer?.playerName;
+        if (string.IsNullOrWhiteSpace(kullaniciAdi) || kullaniciAdi == "Misafir")
+        {
+            string ppAd = PlayerPrefs.GetString("KullaniciAdi", "");
+            if (!string.IsNullOrWhiteSpace(ppAd))
+                kullaniciAdi = ppAd;
+        }
+        if (string.IsNullOrWhiteSpace(kullaniciAdi) || kullaniciAdi == "Misafir")
+        {
+            string apAd = GameManager.I?.ActivePlayer?.playerName;
+            if (!string.IsNullOrWhiteSpace(apAd))
+                kullaniciAdi = apAd;
+        }
         if (string.IsNullOrWhiteSpace(kullaniciAdi))
             kullaniciAdi = "Misafir";
 
+        // Statik alanı da senkronla (sahne yenilense bile tutarlı kalsın)
+        KullaniciVerileri.KullaniciAdi = kullaniciAdi;
+
         metin.text = $"Hoşgeldin,\n{kullaniciAdi}";
+        Debug.Log($"[HOSGELDIN] Kullanıcı adı: '{kullaniciAdi}'");
     }
 
     void AdminSifirlaButonunuBagla()

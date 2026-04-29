@@ -159,6 +159,16 @@ public class KullaniciAdiModal : MonoBehaviour
 
     void OnDevamEt(string ad)
     {
+        // BUG FIX (2026-04-29): Kullanıcı adı 3 yere senkron yazılır — eskiden sadece callback'e geçiyordu,
+        // sahne geçişinden sonra "Misafir" gözüküyordu çünkü KullaniciVerileri.KullaniciAdi ve PlayerPrefs boştu.
+        if (string.IsNullOrWhiteSpace(ad)) ad = "Misafir";
+        KullaniciVerileri.KullaniciAdi = ad;
+        UnityEngine.PlayerPrefs.SetString("KullaniciAdi", ad);
+        UnityEngine.PlayerPrefs.Save();
+        if (GameManager.I != null && GameManager.I.ActivePlayer != null)
+            GameManager.I.ActivePlayer.playerName = ad;
+        UnityEngine.Debug.Log($"[KullaniciAdiModal] Ad kaydedildi: '{ad}' (statik + PlayerPrefs + ActivePlayer)");
+
         var cb = _onDevam;
         _onDevam = null;
         Destroy(gameObject);
