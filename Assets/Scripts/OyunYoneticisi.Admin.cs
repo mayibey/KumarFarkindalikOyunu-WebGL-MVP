@@ -1169,9 +1169,14 @@ public partial class OyunYoneticisi
         Debug.Log($"[ADMIN][PANEL] MinOdemeCarpan = {_minOdemeCarpan}x");
     }
 
+    /// <summary>NO-OP (2026-04-29): Maks ödeme tavanı kaldırıldı; bu setter artık panel state için tutulur ama
+    /// ödeme akışında okunmuyor. _maksOdemeCarpan her zaman 0 kalır → DonusAkisServisi clamp koşulu false.</summary>
     public void AdminSetMaksOdemeCarpan(float carpan)
     {
-        _maksOdemeCarpan = Mathf.Max(0f, carpan);
+        // Ödeme tavanı kaldırıldı — değer ne gelirse gelsin 0 (etkisiz) tut.
+        _maksOdemeCarpan = 0f;
+        if (carpan > 0f)
+            Debug.LogWarning($"[ADMIN][PANEL] AdminSetMaksOdemeCarpan({carpan}) ETKİSİZ — ödeme tavanı kalkıktan beri okunmuyor.");
         OncedenHesaplananSpinOnbelleginiTemizle();
         Debug.Log($"[ADMIN][PANEL] MaksOdemeCarpan = {_maksOdemeCarpan}x");
     }
