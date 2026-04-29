@@ -672,27 +672,74 @@ public partial class OyunYoneticisi
     /// Tek tıklama 10 TL artırma yerine 6 hızlı miktar + manuel input içeren pop-up.</summary>
     public void BahisSecimPopupGoster()
     {
-        if (spinCalisiyor || bonusAktif)
+        try
         {
-            Debug.LogWarning("[BAHİS] Spin/Bonus aktif iken bahis pop-up'ı açılmaz.");
-            return;
-        }
-        var canvas = FindObjectOfType<Canvas>();
-        if (canvas == null)
-        {
-            Debug.LogError("[BAHİS] Canvas bulunamadı, BahisSecimPopup açılamadı.");
-            return;
-        }
-        int bakiye = _ekonomiServisi != null ? _ekonomiServisi.Bakiye : 0;
-        BahisSecimPopup.Goster(canvas, bakiye, secilen =>
-        {
-            if (_ekonomiServisi != null)
+            Debug.Log("[BAHIS_POPUP] Goster çağrıldı");
+
+            if (spinCalisiyor)
             {
-                _ekonomiServisi.SetBahis(secilen);
-                Debug.Log($"[BAHİS] Pop-up'tan seçildi: {secilen} TL → SetBahis çağrıldı.");
+                Debug.LogWarning("[BAHIS_POPUP] spinCalisiyor=true, popup açılmıyor");
+                return;
             }
-            _uiServisi?.UI_Guncelle();
-        });
+            if (bonusAktif)
+            {
+                Debug.LogWarning("[BAHIS_POPUP] bonusAktif=true, popup açılmıyor");
+                return;
+            }
+            if (_ekonomiServisi == null)
+            {
+                Debug.LogError("[BAHIS_POPUP] _ekonomiServisi NULL — popup açılamadı");
+                return;
+            }
+
+            // ScreenSpaceOverlay canvas önceliği (popup için doğru render mode)
+            Canvas canvas = null;
+            var canvases = FindObjectsOfType<Canvas>();
+            Debug.Log($"[BAHIS_POPUP] Sahne'de {canvases.Length} canvas bulundu");
+            foreach (var c in canvases)
+            {
+                if (c == null) continue;
+                if (c.renderMode == RenderMode.ScreenSpaceOverlay)
+                {
+                    canvas = c;
+                    break;
+                }
+            }
+            if (canvas == null && canvases.Length > 0)
+                canvas = canvases[0]; // fallback: ilk canvas
+
+            if (canvas == null)
+            {
+                Debug.LogError("[BAHIS_POPUP] Canvas bulunamadı — popup açılamadı");
+                return;
+            }
+
+            int bakiye = _ekonomiServisi.Bakiye;
+            Debug.Log($"[BAHIS_POPUP] Canvas={canvas.name} bakiye={bakiye}");
+
+            BahisSecimPopup.Goster(canvas, bakiye, secilen =>
+            {
+                try
+                {
+                    Debug.Log($"[BAHIS_POPUP] Callback: secilen={secilen}");
+                    if (_ekonomiServisi != null)
+                    {
+                        _ekonomiServisi.SetBahis(secilen);
+                        Debug.Log($"[BAHIS_POPUP] SetBahis({secilen}) tamam");
+                    }
+                    if (_uiServisi != null)
+                        _uiServisi.UI_Guncelle();
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError($"[BAHIS_POPUP] Callback HATA: {ex.Message}\n{ex.StackTrace}");
+                }
+            });
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"[BAHIS_POPUP] HATA: {ex.Message}\n{ex.StackTrace}");
+        }
     }
 
     public void BahisArttir()

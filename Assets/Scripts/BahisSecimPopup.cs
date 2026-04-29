@@ -22,19 +22,45 @@ public class BahisSecimPopup : MonoBehaviour
 
     public static BahisSecimPopup Goster(Canvas canvas, int mevcutBakiye, Action<int> onSec)
     {
-        if (canvas == null) return null;
-        var go = new GameObject("[BahisSecimPopup]", typeof(RectTransform));
-        go.transform.SetParent(canvas.transform, false);
-        go.transform.SetAsLastSibling();
-        var m = go.AddComponent<BahisSecimPopup>();
-        m._onSec = onSec;
-        m._mevcutBakiye = mevcutBakiye;
-        m.Build();
-        return m;
+        try
+        {
+            if (canvas == null)
+            {
+                Debug.LogError("[BahisSecimPopup] Goster: canvas NULL");
+                return null;
+            }
+            Debug.Log($"[BahisSecimPopup] Goster başladı: canvas={canvas.name} bakiye={mevcutBakiye}");
+            var go = new GameObject("[BahisSecimPopup]", typeof(RectTransform));
+            go.transform.SetParent(canvas.transform, false);
+            go.transform.SetAsLastSibling();
+            var m = go.AddComponent<BahisSecimPopup>();
+            if (m == null)
+            {
+                Debug.LogError("[BahisSecimPopup] AddComponent NULL döndü");
+                return null;
+            }
+            m._onSec = onSec;
+            m._mevcutBakiye = mevcutBakiye;
+            m.Build();
+            Debug.Log("[BahisSecimPopup] Goster tamam");
+            return m;
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"[BahisSecimPopup] Goster HATA: {ex.Message}\n{ex.StackTrace}");
+            return null;
+        }
     }
 
     void Build()
     {
+        try { BuildIc(); }
+        catch (System.Exception ex) { Debug.LogError($"[BahisSecimPopup] Build HATA: {ex.Message}\n{ex.StackTrace}"); }
+    }
+
+    void BuildIc()
+    {
+        Debug.Log("[BahisSecimPopup] Build başladı");
         var rt = (RectTransform)transform;
         rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
         rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
