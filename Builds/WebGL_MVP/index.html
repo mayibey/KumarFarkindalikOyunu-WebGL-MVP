@@ -68,6 +68,7 @@
         z-index: 100;
       }
     </style>
+  <script src="TemplateData/profiler.js"></script>
   </head>
   <body>
     <div id="unity-container" class="unity-desktop">
@@ -122,12 +123,12 @@
       }
 
       var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/WebGL_MVP.loader.js?v=20260429-fs2";
+      var loaderUrl = buildUrl + "/WebGL_MVP.loader.js";
       var config = {
         arguments: [],
-        dataUrl: buildUrl + "/WebGL_MVP.data.unityweb?v=20260429-fs2",
-        frameworkUrl: buildUrl + "/WebGL_MVP.framework.js.unityweb?v=20260429-fs2",
-        codeUrl: buildUrl + "/WebGL_MVP.wasm.unityweb?v=20260429-fs2",
+        dataUrl: buildUrl + "/WebGL_MVP.data",
+        frameworkUrl: buildUrl + "/WebGL_MVP.framework.js",
+        codeUrl: buildUrl + "/WebGL_MVP.wasm",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "DefaultCompany",
         productName: "KumarFarkindalikOyunu",
@@ -162,6 +163,23 @@
                   unityInstance.SetFullscreen(1);
                 };
 
+                var profile = unityProfiler.createButton(unityInstance);
+                profile.style.marginLeft = '5px';
+                document.querySelector("#unity-build-title").appendChild(profile);
+
+                var quit = document.createElement("button");
+                quit.style = "margin-left: 5px; background-color: lightgray; border: none; padding: 5px; cursor: pointer";
+                quit.innerHTML = "Unload";
+                document.querySelector("#unity-build-title").appendChild(quit);
+                quit.onclick = () => {
+                  unityInstance.Quit().then(() => {
+                    unityProfiler.shutDown();
+                    document.querySelector("#unity-container").remove();
+                    canvas = null;
+                    script.remove();
+                    script = null;
+                  });
+                };
               }).catch((message) => {
                 alert(message);
               });
