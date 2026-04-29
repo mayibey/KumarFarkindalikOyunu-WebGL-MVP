@@ -96,8 +96,10 @@ public class PanelKopru : MonoBehaviour
                 break;
 
             case "yakinKacirma":
-                // Bu projede near-miss (yakın kaçırma) özelliği bulunmuyor; değer yalnızca panel state'te tutulur.
-                yakinKacirma = float.Parse(deger);
+                // 0-100 arası float gelir; 10'da N formatına (0-10) ölçekle ve OyunYoneticisi'ne ilet.
+                yakinKacirma = float.Parse(deger, System.Globalization.CultureInfo.InvariantCulture);
+                int yk10da = Mathf.Clamp(Mathf.RoundToInt(yakinKacirma / 10f), 0, 10);
+                _oy?.AdminSetYakinKacirma(yk10da);
                 break;
 
             case "ardisikKayip":
@@ -145,6 +147,10 @@ public class PanelKopru : MonoBehaviour
 
             case "bonusTetikle":
                 BonusOyunuTetikle();
+                break;
+
+            case "manuelBonusTetikle":
+                _oy?.AdminManuelBonusBaslat();
                 break;
 
             case "carpanZorla":

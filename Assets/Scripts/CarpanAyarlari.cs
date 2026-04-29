@@ -18,11 +18,11 @@ public class CarpanAyarlari : MonoBehaviour
     public int MaxCarpanAdedi = 2;
 
     [Min(0)]
-    public int CarpanHavuzu = 10;
+    public int CarpanHavuzu = 5;
 
-    [Tooltip("Rastgele çarpan seçilirken 100x/250x/500x gelme olasılığı (0-1). Yüksek = büyük çarpanlar daha sık düşer.")]
+    [Tooltip("DEPRECATED: doğal havuzda artık kullanılmıyor. 100x/250x/500x yalnızca force path (admin/senaryo 4-5) üzerinden düşer.")]
     [Range(0f, 1f)]
-    public float YuksekCarpanOrani = 0.30f;
+    public float YuksekCarpanOrani = 0.0f;
 
     [Tooltip("Test/Debug: Bir sonraki carpani zorla (0 ise kapali).")]
     public int ZorlaSiradakiCarpan = 0;
@@ -190,15 +190,12 @@ public class CarpanAyarlari : MonoBehaviour
 
     public virtual int RastgeleCarpan()
     {
-        float oran = Mathf.Clamp01(YuksekCarpanOrani);
-        if (oran > 0f && Random.value < oran)
-        {
-            int[] yuksek = new int[] { 100, 250, 500 };
-            return yuksek[Random.Range(0, yuksek.Length)];
-        }
-        int[] pool = new int[] { 2, 3, 5, 10, 20, 50, 100, 200, 500, 1000 };
-        int n = Mathf.Clamp(CarpanHavuzu, 1, pool.Length);
-        return pool[Random.Range(0, n)];
+        // Doğal havuz yalnızca {2,3,5,8,10}; 100x/250x/500x force path üzerinden gider.
+        // OyunYoneticisi.RastgeleCarpan delegate olarak set edilirse bu fallback çağrılmaz.
+        int[] havuz = new int[] { 2, 3, 5, 8, 10 };
+        int secilen = havuz[Random.Range(0, havuz.Length)];
+        Debug.Log($"[CARPAN] kaynak=DOGAL havuz=FALLBACK secilen={secilen}x");
+        return secilen;
     }
 
     public virtual int GetCurrentMultiplierInt()

@@ -107,6 +107,7 @@ public class CarpanServisi
 
             _pendingCarpanDusurecek.Clear();
             _pendingCarpanDusurecek.Add(force);
+            Debug.Log($"[CARPAN] kaynak=FORCE secilen={force}x (admin/senaryo bomb path)");
             return true;
         }
 

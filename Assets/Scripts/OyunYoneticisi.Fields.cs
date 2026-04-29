@@ -152,6 +152,9 @@ public partial class OyunYoneticisi
 
     private int _ardisikKayipLimiti = 8;
     private int _ardisikKayipSayac = 0;
+    // Kaçış Frenleme: ardışık kayıp eşiği aşıldığında SONRAKİ spin'in grid'i cluster oluşacak şekilde zorlanır.
+    // Bayrak SimuleEtVeKaydetImpl tarafından okunur ve bir kez tüketilir.
+    private bool _kacisFrenlemeBuSpinAktif = false;
     private bool _yeniOyuncuModuAktif = false;
     private float _yeniOyuncuBaslangicZamani = 0f;
     private float _minOdemeCarpan = 0f;   // panel: min ödeme bahis katı (0=devre dışı)
@@ -534,10 +537,10 @@ public partial class OyunYoneticisi
     public bool carpanUretimiAktif = true;
     public bool carpanSadeceBonus = false;
     [Range(0f, 1f)] public float carpanUretimOlasiligi = 0.15f;
-    [Range(1, 10)] public int maxCarpanAdedi = 2;
-    [Range(1, 10)] public int carpanHavuzu = 10; // havuz büyüklüğü
-    [Tooltip("Rastgele çarpan seçilirken 100x/250x/500x gelme olasılığı (0-1). Yüksek = büyük çarpanlar daha sık düşer.")]
-    [Range(0f, 1f)] public float yuksekCarpanOrani = 0.30f;
+    [Range(1, 10)] public int maxCarpanAdedi = 3;
+    [Range(1, 10)] public int carpanHavuzu = 5; // havuz büyüklüğü (doğal havuz {2,3,5,8,10} → 5 öğe)
+    [Tooltip("DEPRECATED: doğal havuzda kullanılmıyor. 100x/250x/500x yalnızca force path (admin/senaryo 4-5) üzerinden düşer.")]
+    [Range(0f, 1f)] public float yuksekCarpanOrani = 0.0f;
     public int zorlaSiradakiCarpan = 0;
 
 [Header("Çarpan Görseli (Sweet Bonanza tarzı)")]

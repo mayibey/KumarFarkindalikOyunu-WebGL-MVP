@@ -130,9 +130,9 @@ public class WinFeedbackUI : MonoBehaviour
     private static KazancSeviyesi KazancSeviyesiHesapla(int kazanc, int bahis)
     {
         long b = bahis;
-        if (kazanc >= 30 * b) return KazancSeviyesi.EpicWin;
-        if (kazanc >= 10 * b) return KazancSeviyesi.MegaWin;
-        if (kazanc >=  3 * b) return KazancSeviyesi.BigWin;
+        if (kazanc >= 15 * b) return KazancSeviyesi.EpicWin;
+        if (kazanc >=  5 * b) return KazancSeviyesi.MegaWin;
+        if (kazanc >=  2 * b) return KazancSeviyesi.BigWin;
         return KazancSeviyesi.Normal;
     }
 

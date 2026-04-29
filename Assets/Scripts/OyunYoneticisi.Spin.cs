@@ -287,6 +287,12 @@ public partial class OyunYoneticisi
             if (carpanAyarlari != null)
                 carpanAyarlari.ZorlaSiradakiCarpan = 0;
         }
+        // Kaçış Frenleme: ardışık kayıp eşiği aşıldığında bir önceki spin sonu flag set etmiştir.
+        // Bu spinde grid cluster oluşacak şekilde zorlanır; flag tek atımlık (spin başında tüketilir).
+        // Bonus / zorla çarpan path'lerinde çakışma olmasın diye sadece normal spinde uygulanır.
+        bool kacisFrenlemeUygula = _kacisFrenlemeBuSpinAktif && !bonusSpin && zorlaCarpanDegeri <= 0;
+        if (_kacisFrenlemeBuSpinAktif)
+            _kacisFrenlemeBuSpinAktif = false;
         // Force carpan aktifse toggle durumundan bağımsız çarpan üretimi açık sayılır.
         bool carpanToggleSecili = zorlaCarpanDegeri > 0 ? true : carpanUretimiAktif;
         if (zorlaCarpanDegeri > 0)
@@ -482,6 +488,14 @@ public partial class OyunYoneticisi
             // Admin manuel testte (özellikle zorluk 4-5) patlama görünürlüğünü garanti et.
             // Senaryo akışını bozmasın diye yalnızca admin manuel mod + normal spin için devreye al.
             if (spinPolitikasi.AdminManuelIlkGriddeClusterZorlansin(bonusSpin, adminManuelMod, zorlaCarpanDegeri, zorlukSeviyesi))
+            {
+                GrideZorlaEnAzBirCluster();
+                _tumbleServisi?.SetGrid(grid);
+            }
+
+            // Kaçış Frenleme: ardışık kayıp eşiği aşıldı → bu spin'in grid'i cluster oluşacak şekilde zorlanır.
+            // Sahte para yok; gerçek cluster patlar, gerçek tumble olur, gerçek ödeme akışı işler.
+            if (kacisFrenlemeUygula)
             {
                 GrideZorlaEnAzBirCluster();
                 _tumbleServisi?.SetGrid(grid);

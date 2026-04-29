@@ -360,7 +360,8 @@ public partial class OyunYoneticisi
         // Normal Oyun modunda (senaryo kapalı): kayıp ve küçük kazanç için popup yok.
         if (!_senaryoPresetAktif)
         {
-            bool buyukKazancNO = bahis > 0 && odenen >= bahis * 10;
+            // Öncül filtre BigWin'in yeni eşiği (2x) ile uyumlu; içerideki KazancSeviyesiHesapla doğru kategoriye yönlendirir.
+            bool buyukKazancNO = bahis > 0 && odenen >= bahis * 2;
             if (buyukKazancNO)
                 winFeedbackUI?.ShowWin(odenen, bahis);
             yield break;

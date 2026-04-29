@@ -862,6 +862,62 @@ public partial class OyunYoneticisi
         AdminSenaryoPresetUygula(index - 1);
     }
 
+    /// <summary>SpinTestAraci için: tüm kritik servislerin (Awake/Start sonrası) başlatıldığını döner.
+    /// Reflection'a gerek kalmadan WaitUntil ile bekleyebilmek için public.</summary>
+    public bool TumServislerHazirMi()
+    {
+        return _ekonomiServisi != null
+            && _odemeServisi != null
+            && _carpanServisi != null
+            && _izgaraServisi != null
+            && _tumbleServisi != null
+            && _donusAkisServisi != null;
+    }
+
+    /// <summary>SpinTestAraci için: bakiye/bahis manipülasyonu için public servis erişimi.</summary>
+    public EkonomiServisi TestEkonomiServisi => _ekonomiServisi;
+
+    /// <summary>SpinTestAraci için: scatter index'i + state field okuma için public erişim.</summary>
+    public int TestScatterIndex => _scatterIndexCache;
+    public bool TestKacisFrenlemeAktif => _kacisFrenlemeBuSpinAktif;
+    public int TestArdisikKayipSayac => _ardisikKayipSayac;
+
+    /// <summary>SpinTestAraci için: senaryo dropdown index'iyle senaryo aktive eder. 0 = Normal Oyun, 1-5 = Senaryo 1-5.</summary>
+    public void TestSenaryoSec(int dropdownIndex0Bazli)
+    {
+        if (dropdownIndex0Bazli <= 0)
+        {
+            AdminNormalOyunUygula();
+            return;
+        }
+        _senaryoPresetAktif = true;
+        AdminSenaryoPresetUygula(dropdownIndex0Bazli - 1);
+    }
+
+    /// <summary>SpinTestAraci için senkron spin simülasyonu. Animasyon ÇAĞRILMAZ — sadece veri akışı.
+    /// Dönen kayıttan ham kazanç, çarpan, tumble adımları, force carpan kullanımı okunur.</summary>
+    public SpinSimulasyonKaydi TestSpinSimuleEt(bool bonusSpin = false)
+    {
+        int odenebilir = _odemeServisi != null ? _odemeServisi.GetSpinOdenebilirLimit() : int.MaxValue;
+        return SimuleEtVeKaydetImpl(odenebilir, bonusSpin);
+    }
+
+    /// <summary>SpinTestAraci için: bonus oyununun bir bonus turunu simüle eder; toplam ödemeyi döner.
+    /// Gerçek bonus akışını kısa devre eder; her tur için SimuleEtVeKaydetImpl(bonusSpin=true) çağırır.</summary>
+    public int TestBonusOyunSimuleEt(int bonusHak = 10)
+    {
+        int toplam = 0;
+        for (int i = 0; i < bonusHak; i++)
+        {
+            var kayit = SimuleEtVeKaydetImpl(int.MaxValue, true);
+            if (kayit == null) continue;
+            int ham = kayit.ToplamHamKazanc;
+            int carpan = Mathf.Max(1, kayit.NihaiCarpanToplam);
+            toplam += ham * carpan;
+        }
+        return toplam;
+    }
+
     private void AdminSenaryoPresetUygula(int index)
     {
         if (_adminSenaryoPresetleri == null || _adminSenaryoPresetleri.Length == 0) return;
@@ -1142,12 +1198,18 @@ public partial class OyunYoneticisi
     private int _yeniOyuncuOncekiEgilim = 65;
     private int _yeniOyuncuOncekiMax = 0;
 
-    [HideInInspector] public int bonusOtomatikSpinPeriyodu = 200;
+    [HideInInspector] public int bonusOtomatikSpinPeriyodu = 0; // 0 = devre dışı
     public void AdminSetBonusOtomatikSpinPeriyodu(int oran)
     {
-        bonusOtomatikSpinPeriyodu = Mathf.Max(1, oran);
-        Debug.Log("[ADMIN][PANEL] Bonus otomatik spin periyodu = " + bonusOtomatikSpinPeriyodu);
+        bonusOtomatikSpinPeriyodu = Mathf.Max(0, oran);
+        // Periyot değişince sayaç sıfırlansın (anında yeni rejime geç)
+        _bonusOtomatikSpinSayaci = 0;
+        Debug.Log("[ADMIN][PANEL] Bonus otomatik spin periyodu = " + bonusOtomatikSpinPeriyodu + " (0 = kapalı)");
     }
+
+    // DonusAkisServisi spin sonu güncellemesinde kullanılan sayaç ve flag.
+    [HideInInspector] public int _bonusOtomatikSpinSayaci = 0;
+    [HideInInspector] public bool _bonusOtomatikTetikSonrakiSpin = false;
 
     [HideInInspector] public int carpanSahteOraniYuzde = 0;
     public void AdminSetCarpanSahteOrani(int yuzde)
@@ -1163,11 +1225,37 @@ public partial class OyunYoneticisi
         Debug.Log($"[ADMIN][PANEL] Çarpan düşme olasılığı: {carpanOlasilikYuzde}%");
     }
 
-    [HideInInspector] public int maxCarpanTekSpinSayisi = 1;
+    [HideInInspector] public int maxCarpanTekSpinSayisi = 3;
     public void AdminSetMaxCarpanTekSpin(int max)
     {
         maxCarpanTekSpinSayisi = Mathf.Clamp(max, 1, 10);
-        Debug.Log($"[ADMIN][PANEL] Tek spinde max çarpan: {maxCarpanTekSpinSayisi}");
+        // CarpanServisi gerçek field 'maxCarpanAdedi' okuyor; değişikliği oraya da yansıt.
+        maxCarpanAdedi = maxCarpanTekSpinSayisi;
+        Debug.Log($"[ADMIN][PANEL] Tek spinde max çarpan: {maxCarpanTekSpinSayisi} (maxCarpanAdedi={maxCarpanAdedi})");
+    }
+
+    // ────────────────────────────────────────────────────────────
+    // YAKIN KAÇIRMA (Near-Miss) — 10'da N formatında, 0 = kapalı
+    // ────────────────────────────────────────────────────────────
+    [HideInInspector] public int yakinKacirmaDegeri10da = 0;
+    public void AdminSetYakinKacirma(int deger10da)
+    {
+        yakinKacirmaDegeri10da = Mathf.Clamp(deger10da, 0, 10);
+        Debug.Log($"[ADMIN][PANEL] Yakın Kaçırma = 10'da {yakinKacirmaDegeri10da}");
+    }
+
+    // ────────────────────────────────────────────────────────────
+    // MANUEL BONUS TETİKLEME (test ve panel butonu için)
+    // ────────────────────────────────────────────────────────────
+    public void AdminManuelBonusBaslat()
+    {
+        if (bonusAktif)
+        {
+            Debug.LogWarning("[ADMIN][PANEL] Bonus zaten aktif; manuel tetikleme atlandı.");
+            return;
+        }
+        Debug.Log("[ADMIN][PANEL] Manuel bonus tetikleme başlatıldı.");
+        BaslatBonus();
     }
 
     public void AdminSetYeniOyuncuModu(bool aktif)
@@ -1203,19 +1291,6 @@ public partial class OyunYoneticisi
         AdminSetMaxOdeme(_yeniOyuncuOncekiMax);
         Debug.Log("[ADMIN] Yeni oyuncu modu 30 dakika doldu, otomatik sonlandı.");
     }
-
-    /// <summary>PanelKopru: bonus oyununu manuel olarak başlatır.</summary>
-    public void AdminManuelBonusBaslat()
-    {
-        if (_donusServisi == null)
-        {
-            Debug.LogWarning("[ADMIN][PANEL] DonusServisi null, bonus başlatılamadı.");
-            return;
-        }
-        Debug.Log("[ADMIN][PANEL] Bonus manuel tetiklendi.");
-        _donusServisi.BaslatBonus();
-    }
-
 
     public bool AdminBahisAyarla(int hedefBahis)
     {

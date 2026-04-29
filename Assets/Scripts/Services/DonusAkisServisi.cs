@@ -88,6 +88,17 @@ public interface IDonusAkisBaglami
     /// <summary>Panel: N ardışık kayıptan sonra zorunlu kırıntı eşiği.</summary>
     int ArdisikKayipLimiti { get; }
     int ArdisikKayipSayac { get; set; }
+    /// <summary>Eşik aşıldığında bir SONRAKİ spin için "garanti cluster" bayrağını set eder ve önbelleği temizler.
+    /// Sahte para yok; oynanacak spin gerçek cluster ile gerçek ödeme üretir.</summary>
+    void SonrakiSpinKacisFrenlemeAktifEt();
+    /// <summary>Bonus otomatik tetikleme periyodu (admin panel ayarı). 0 = kapalı.</summary>
+    int BonusOtomatikSpinPeriyodu { get; }
+    int BonusOtomatikSpinSayaci { get; set; }
+    bool BonusOtomatikTetikSonrakiSpin { get; set; }
+    /// <summary>Yakın Kaçırma (10'da N) admin paneli ayarı; 0 = kapalı.</summary>
+    int YakinKacirmaDegeri10da { get; }
+    /// <summary>Görsel near-miss enjeksiyon: 7 aynı sembol komşu hücrelere yerleştirilir (cluster oluşmaz).</summary>
+    void GrideNearMissEnjekteEt();
 }
 
 /// <summary>
@@ -188,24 +199,11 @@ public class DonusAkisServisi
         else
             _ctx.CarpanKutuUcusFormulKilidiniKaldir();
 
-        // Kaçış Frenleme: ardışık kayıp limiti dolmuşsa zorunlu kırıntı
-        if (teorikToplam == 0 && _ctx.ArdisikKayipLimiti > 0 && _ctx.ArdisikKayipSayac >= _ctx.ArdisikKayipLimiti)
-        {
-            teorikToplam = Mathf.Max(1, Mathf.RoundToInt(_ctx.SpinBahisTL * UnityEngine.Random.Range(0.5f, 2.0f)));
-            _ctx.ArdisikKayipSayac = 0;
-            OturumKayitcisi.EkleEvent("ardisik_kayip_kirintisi", $"{_ctx.ArdisikKayipLimiti} kayıptan sonra zorunlu ödeme", _ctx.spinNo);
-            Debug.Log($"[KAÇIŞ_FRENLEME] {_ctx.ArdisikKayipLimiti} ardışık kayıptan sonra kırıntı: {teorikToplam} TL");
-        }
+        // BUG 1 fix (2026-04-29): Eskiden burada "ardışık kayıp kırıntısı" ve "min ödeme garantisi" sahte para enjekte ediyordu.
+        // Sahte para tamamen kaldırıldı. Kaçış Frenleme artık BİR SONRAKİ spin'in grid'ini cluster oluşacak şekilde zorlar
+        // (bkz. spin sonu güncellemesi aşağıda + OyunYoneticisi.SimuleEtVeKaydetImpl içinde GrideZorlaEnAzBirCluster çağrısı).
 
-        // Min ödeme garantisi: panel carpan sistemi (öncelikli), yoksa TL fallback
-        if (teorikToplam > 0 && _ctx.SpinBahisTL > 0 && _ctx.MinOdemeCarpan > 0f)
-        {
-            int minTL = Mathf.RoundToInt(_ctx.SpinBahisTL * _ctx.MinOdemeCarpan);
-            if (teorikToplam < minTL) teorikToplam = minTL;
-        }
-        else if (teorikToplam > 0 && _ctx.MinOdemeTL > 0 && teorikToplam < _ctx.MinOdemeTL)
-            teorikToplam = _ctx.MinOdemeTL;
-        // Maks ödeme tavanı: panel carpan sistemi
+        // Maks ödeme tavanı: panel carpan sistemi (kazancı yukarı çekmez, sadece sınırlar — sahte para değil)
         if (teorikToplam > 0 && _ctx.SpinBahisTL > 0 && _ctx.MaksOdemeCarpan > 0f)
         {
             int maksTL = Mathf.RoundToInt(_ctx.SpinBahisTL * _ctx.MaksOdemeCarpan);
@@ -246,11 +244,34 @@ public class DonusAkisServisi
         }
         SettledSpinDegerleriniNormalizeEt(odenen);
 
-        // Ardışık kayıp sayacı güncelle
+        // Ardışık kayıp sayacı güncelle + Kaçış Frenleme tetikleme
         if (odenen > 0)
+        {
             _ctx.ArdisikKayipSayac = 0;
+        }
         else
+        {
             _ctx.ArdisikKayipSayac++;
+            if (_ctx.ArdisikKayipLimiti > 0 && _ctx.ArdisikKayipSayac >= _ctx.ArdisikKayipLimiti)
+            {
+                _ctx.SonrakiSpinKacisFrenlemeAktifEt();
+                _ctx.ArdisikKayipSayac = 0;
+                OturumKayitcisi.EkleEvent("kacis_frenleme_aktif", $"{_ctx.ArdisikKayipLimiti} kayıp sonrası bir sonraki spin'de cluster zorlanıyor", _ctx.spinNo);
+                Debug.Log($"[KAÇIŞ_FRENLEME] {_ctx.ArdisikKayipLimiti} ardışık kayıp → bir sonraki spin için cluster zorlanacak.");
+            }
+        }
+
+        // Bonus otomatik tetikleme periyodu (admin paneli)
+        if (_ctx.BonusOtomatikSpinPeriyodu > 0 && !_ctx.BonusAktif)
+        {
+            _ctx.BonusOtomatikSpinSayaci++;
+            if (_ctx.BonusOtomatikSpinSayaci >= _ctx.BonusOtomatikSpinPeriyodu)
+            {
+                _ctx.BonusOtomatikTetikSonrakiSpin = true;
+                _ctx.BonusOtomatikSpinSayaci = 0;
+                Debug.Log($"[BONUS_OTOMATIK] {_ctx.BonusOtomatikSpinPeriyodu} spin sonrası bonus tetiklenecek (sonraki spin sonu).");
+            }
+        }
 
         if (_ctx.Senaryo23SpinSonrasiDonguIlerletilmeliMi(kayit))
             _ctx.Senaryo2Veya3SpinSonundaUstUsteDonguIlerlet();
@@ -302,7 +323,15 @@ public class DonusAkisServisi
         int scatterIdx = _ctx.IzgaraServisi != null ? _ctx.IzgaraServisi.GetScatterSpriteIndex() : -1;
         Debug.Log($"🧪 BonusKontrol: ScatterSay(ilk)={scIlk} ScatterSay(simdi)={scSimdi} kullanilan={sc} / Esik={esik} | scatter index={scatterIdx}");
 
-        if (sc >= esik)
+        // Otomatik bonus tetikleme: önceki spin sonunda flag set edildiyse bonus başlat
+        bool bonusOtomatikTetik = _ctx.BonusOtomatikTetikSonrakiSpin;
+        if (bonusOtomatikTetik)
+        {
+            _ctx.BonusOtomatikTetikSonrakiSpin = false;
+            Debug.Log("[BONUS_OTOMATIK] Periyot sonu — bonus zorla tetikleniyor.");
+            SenaryoYoneticisi.I?.OnBonusTriggered();
+        }
+        else if (sc >= esik)
         {
             Debug.Log("🧪 BonusKontrol: EŞİK GEÇİLDİ -> Bonus başlıyor");
             SenaryoYoneticisi.I?.OnBonusTriggered();
@@ -330,15 +359,22 @@ public class DonusAkisServisi
         if (SenaryoYoneticisi.I != null && SenaryoYoneticisi.I.mevcutAsama == SenaryoYoneticisi.SenaryoAsama.Asama7_Finale)
             yield return new WaitForSeconds(1.5f);
 
-        if (sc >= esik)
+        if (sc >= esik || bonusOtomatikTetik)
         {
-            if (_runCoroutine != null)
+            if (sc >= esik && _runCoroutine != null)
                 yield return _runCoroutine(_ctx.ScatterBuyutEfekti());
             // Bonus başlangıç paneli, scatter birleşme/patlama efekti tamamen algılandıktan sonra açılsın.
             yield return new WaitForSecondsRealtime(0.80f);
             _ctx.SpinCalisiyor = false;
             _ctx.BaslatBonus();
             yield break;
+        }
+
+        // Yakın Kaçırma: KAYIP spin'de (cluster yok) yakinKacirma oranıyla görsel near-miss enjekte et
+        if (odenen == 0 && _ctx.YakinKacirmaDegeri10da > 0 && !_ctx.BonusAktif
+            && UnityEngine.Random.Range(0, 10) < _ctx.YakinKacirmaDegeri10da)
+        {
+            _ctx.GrideNearMissEnjekteEt();
         }
 
         // Çarpan düşse de spin özeti popup'ı mutlaka açılsın.
@@ -378,7 +414,9 @@ public class DonusAkisServisi
             _ctx.SpinKazanciOturumaEklendi = false;
             _ctx.UIServisi?.UI_Guncelle();
 
-            int bonusLimit = _ctx.SenaryoServisi.GetBonusRemainingPayableTL();
+            // BONUS BANT CLAMP KALDIRILDI (2026-04-29): Senaryo bandı bonus'u 720 TL/10 spin gibi saçma seviyelere
+            // çekiyordu. Bonus oyunu artık sınırsız simüle edilir; sadece BonusMaxOdemeTL ve havuz bütçesi tavanı uygulanır.
+            int bonusLimit = int.MaxValue;
             SpinSimulasyonKaydi kayit = _ctx.SimuleEtVeKaydet(bonusLimit, true);
             if (_runCoroutine != null && kayit != null)
                 yield return _runCoroutine(_ctx.SimulasyonKaydiniOynat(kayit));
@@ -395,10 +433,10 @@ public class DonusAkisServisi
             int toplamX = (kayit != null && kayit.NihaiCarpanToplam >= 1) ? kayit.NihaiCarpanToplam : _ctx.CarpanServisi.GetTotalMultiplierForSpin();
             int teorikToplam = _ctx.CarpanServisi.MulClampInt(hamKazanc, toplamX);
             bool zorlaCarpanGoster = kayit != null && kayit.ZorlaCarpanKullanildi;
-            int maxOdenebilir = zorlaCarpanGoster ? int.MaxValue : _ctx.SenaryoServisi.GetBonusRemainingPayableTL();
+            // BONUS BANT CLAMP KALDIRILDI (2026-04-29): senaryo bandı clamp etmiyor; sadece zorla çarpan değilse de
+            // tüm teorikToplam ödenir (BonusMaxOdemeTL ve BonusBudget ileride ayrıca uygulanır).
+            int maxOdenebilir = int.MaxValue;
             int spinKazanci = teorikToplam;
-            if (maxOdenebilir != int.MaxValue && spinKazanci > maxOdenebilir)
-                spinKazanci = maxOdenebilir;
 
             _ctx.SonSpinKazancHamGoster = hamKazanc;
             _ctx.SonSpinCarpanGoster = toplamX;

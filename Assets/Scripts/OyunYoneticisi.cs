@@ -259,6 +259,17 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
     float IDonusAkisBaglami.MaksOdemeCarpan => _maksOdemeCarpan;
     int IDonusAkisBaglami.ArdisikKayipLimiti => _ardisikKayipLimiti;
     int IDonusAkisBaglami.ArdisikKayipSayac { get => _ardisikKayipSayac; set => _ardisikKayipSayac = value; }
+    void IDonusAkisBaglami.SonrakiSpinKacisFrenlemeAktifEt()
+    {
+        _kacisFrenlemeBuSpinAktif = true;
+        // Önbellekteki spin cluster zorlamasını içermez; geçersizleştir ki yeni spin garanti cluster ile üretilsin.
+        OncedenHesaplananSpinOnbelleginiTemizle();
+    }
+    int IDonusAkisBaglami.BonusOtomatikSpinPeriyodu => bonusOtomatikSpinPeriyodu;
+    int IDonusAkisBaglami.BonusOtomatikSpinSayaci { get => _bonusOtomatikSpinSayaci; set => _bonusOtomatikSpinSayaci = value; }
+    bool IDonusAkisBaglami.BonusOtomatikTetikSonrakiSpin { get => _bonusOtomatikTetikSonrakiSpin; set => _bonusOtomatikTetikSonrakiSpin = value; }
+    int IDonusAkisBaglami.YakinKacirmaDegeri10da => yakinKacirmaDegeri10da;
+    void IDonusAkisBaglami.GrideNearMissEnjekteEt() => GrideNearMissEnjekteEt();
     IEnumerator IDonusAkisBaglami.ShowNormalSpinSonucPopup(int odened, int bahis) => ShowNormalSpinSonucPopup(odened, bahis);
 
     // IOyunUIGuncellemeBaglami

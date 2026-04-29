@@ -144,6 +144,40 @@ public partial class OyunYoneticisi
         _tumbleServisi?.SetGrid(grid);
     }
 
+    /// <summary>Yakın Kaçırma görsel enjeksiyonu: 7 adet aynı sembol komşu hücrelere yerleştirir.
+    /// Cluster eşiği 8 olduğu için ÖDEME ÜRETMEZ — sadece "az kalmıştı" görsel hissi.</summary>
+    private void GrideNearMissEnjekteEt()
+    {
+        if (grid == null || sutun <= 0 || satir <= 0) return;
+        const int NEAR_MISS_ADET = 7;
+        int n = (tumbleAyarlari != null && tumbleAyarlari.PayTable_8_9 != null) ? tumbleAyarlari.PayTable_8_9.Length : 9;
+        if (n <= 0) return;
+        int scatterIdx = _scatterIndexCache;
+        var aday = new List<Vector2Int>();
+        for (int x = 0; x < sutun; x++)
+            for (int y = 0; y < satir; y++)
+                if (grid[x, y] != CARPAN_SEMBOL && grid[x, y] >= 0)
+                    aday.Add(new Vector2Int(x, y));
+        if (aday.Count < NEAR_MISS_ADET) return;
+        // Düşük ödemeli sembol seç (index 0-3 arası)
+        int sembol = UnityEngine.Random.Range(0, Mathf.Min(4, n));
+        if (sembol == scatterIdx) sembol = (sembol + 1) % n;
+        // Karıştır (Fisher-Yates) ki her spinde farklı 7 hücre
+        for (int i = aday.Count - 1; i > 0; i--)
+        {
+            int j = UnityEngine.Random.Range(0, i + 1);
+            var t = aday[i]; aday[i] = aday[j]; aday[j] = t;
+        }
+        for (int i = 0; i < NEAR_MISS_ADET && i < aday.Count; i++)
+        {
+            var p = aday[i];
+            grid[p.x, p.y] = sembol;
+        }
+        _tumbleServisi?.SetGrid(grid);
+        OturumKayitcisi.EkleEvent("yakin_kacirma", $"7 adet sembol {sembol} yerleştirildi (cluster oluşmaz)", _spinNo);
+        Debug.Log($"[YAKIN_KACIRMA] 7 adet sembol {sembol} grid'e yerleştirildi (eşik 8, ödeme yok).");
+    }
+
     /// <summary>Zorla çarpan + toggle açıkken tumble garantisi: gridde en az 8 aynı sembol (bir cluster) oluşturur.</summary>
     private void GrideZorlaEnAzBirCluster()
     {
@@ -869,36 +903,36 @@ private float BiasMultiplier(float easyMult, float hardMult)
 
 private int RastgeleCarpan()
 {
-    // Admin'de 1. Senaryo preset aktifken sadece 2/3/5 düşmeli.
+    // Doğal (operatör müdahalesi olmayan) çarpan havuzu yalnızca {2,3,5,8,10}.
+    // 100x/250x/500x gibi büyük çarpanlar yalnızca force path üzerinden düşer:
+    //   - Operatör admin paneli: AdminZorlaCarpanSec → zorlaSiradakiCarpan → CarpanServisi._forceCarpan
+    //   - Senaryo 4/5 BOMB tipi: OyunYoneticisi.Senaryolar.cs içinde zorlaSiradakiCarpan = 100/500 olarak set edilir
+    // Force path TryScheduleCarpanDrop'ta _rollCarpanDegeri çağrılmadan kullanılır (CarpanServisi.cs:102-110).
+    int secilen;
+    string havuzAdi;
     if (IsAdminSenaryo1Veya2Aktif())
     {
-        int[] sadeceKucuk = new int[] { 2, 3, 5 };
-        return sadeceKucuk[UnityEngine.Random.Range(0, sadeceKucuk.Length)];
+        // Senaryo 1/2 manipülasyon davranışı: yalnızca 2/3/5.
+        int[] havuz = new int[] { 2, 3, 5 };
+        secilen = havuz[UnityEngine.Random.Range(0, havuz.Length)];
+        havuzAdi = "SEN12";
     }
-    // Admin'de 3. Senaryo preset aktifken sadece 2/3/5/10 düşmeli.
-    if (IsAdminSenaryo3Aktif())
+    else if (IsAdminSenaryo3Aktif())
     {
-        int[] sinirli = new int[] { 2, 3, 5, 10 };
-        return sinirli[UnityEngine.Random.Range(0, sinirli.Length)];
+        // Senaryo 3 manipülasyon davranışı: 2/3/5/10.
+        int[] havuz = new int[] { 2, 3, 5, 10 };
+        secilen = havuz[UnityEngine.Random.Range(0, havuz.Length)];
+        havuzAdi = "SEN3";
     }
-
-    // İlk 2 senaryoda (1 ve 2) 100x, 150x, 250x, 500x düşmesin; sadece küçük çarpanlar.
-    var asama = SenaryoYoneticisi.I != null ? (int)SenaryoYoneticisi.I.mevcutAsama : 0;
-    if (asama == 1 || asama == 2)
+    else
     {
-        int[] kucukPool = new int[] { 2, 3, 5, 10, 20, 50 };
-        return kucukPool[UnityEngine.Random.Range(0, kucukPool.Length)];
+        // Asama 1/2 (senaryolu sahne) ve diğer tüm doğal yollar: ortak temiz havuz.
+        int[] havuz = new int[] { 2, 3, 5, 8, 10 };
+        secilen = havuz[UnityEngine.Random.Range(0, havuz.Length)];
+        havuzAdi = "DOGAL";
     }
-    // Yüksek çarpan oranı: 100x / 250x / 500x daha sık gelsin.
-    float oran = Mathf.Clamp01(yuksekCarpanOrani);
-    if (oran > 0f && UnityEngine.Random.value < oran)
-    {
-        int[] yuksek = new int[] { 100, 250, 500 };
-        return yuksek[UnityEngine.Random.Range(0, yuksek.Length)];
-    }
-    int[] pool = new int[] { 2, 3, 5, 10, 20, 50, 100, 200, 500, 1000 };
-    int n = Mathf.Clamp(carpanHavuzu, 1, pool.Length);
-    return pool[UnityEngine.Random.Range(0, n)];
+    Debug.Log($"[CARPAN] kaynak=DOGAL havuz={havuzAdi} secilen={secilen}x");
+    return secilen;
 }
 
     private int UygulaSpinCarpani(int spinKazanci) => _ekonomiServisi != null ? _ekonomiServisi.UygulaSpinCarpani(spinKazanci) : 0;

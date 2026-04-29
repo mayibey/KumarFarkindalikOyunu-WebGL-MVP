@@ -27,6 +27,12 @@ public class SenaryoOtomatikAkis : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void AutoSpawn()
     {
+        // SpinTestAraci aktifken otomatik akış spawn edilmez — test runner kontrol etsin.
+        if (PlayerPrefs.GetInt("SpinTest_Aktif", 0) == 1)
+        {
+            Debug.Log("[SenaryoOtomatikAkis] SpinTest_Aktif=1, otomatik akış DEVRE DIŞI.");
+            return;
+        }
         string sahne = SceneManager.GetActiveScene().name;
         if (sahne != "06_AdminOyunKopya") return;
         var go = new GameObject("[OturumHUD]");
