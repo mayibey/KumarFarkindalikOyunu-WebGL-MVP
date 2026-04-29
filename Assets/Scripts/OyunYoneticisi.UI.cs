@@ -668,13 +668,29 @@ public partial class OyunYoneticisi
         }
     }
 
-    /// <summary>Bahis +/- butonlarına basıldığında BahisSecimPopup açılır (2026-04-29).
-    /// Tek tıklama 10 TL artırma yerine 6 hızlı miktar + manuel input içeren pop-up.</summary>
+    /// <summary>PanelKopru için: mevcut ekonomik bakiyeyi public erişimle döner (HTML iframe panele postMessage için).</summary>
+    public int BahisPanelMevcutBakiye() => _ekonomiServisi != null ? _ekonomiServisi.Bakiye : 0;
+
+    /// <summary>Bahis +/- butonlarına basıldığında çağrılır (2026-04-30 hibrit).
+    /// WebGL: HTML iframe (bahisSec.html). Editor: Unity UI fallback.</summary>
     public void BahisSecimPopupGoster()
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        // WebGL: PanelKopru üzerinden HTML iframe paneli aç
+        var pk = FindObjectOfType<PanelKopru>();
+        if (pk != null) pk.BahisSecPaneliAc();
+        else { Debug.LogError("[BAHIS_POPUP] PanelKopru bulunamadı, Editor fallback'e düşülüyor"); BahisSecimPopupGosterEditorFallback(); }
+#else
+        BahisSecimPopupGosterEditorFallback();
+#endif
+    }
+
+    /// <summary>Editor (Unity UI) fallback — eski programatik UI builder. WebGL'de iframe kullanılıyor.</summary>
+    public void BahisSecimPopupGosterEditorFallback()
     {
         try
         {
-            Debug.Log("[BAHIS_POPUP] Goster çağrıldı");
+            Debug.Log("[BAHIS_POPUP] Goster çağrıldı (Editor fallback Unity UI)");
 
             if (spinCalisiyor)
             {

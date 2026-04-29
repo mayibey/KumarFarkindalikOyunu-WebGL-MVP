@@ -31,6 +31,15 @@ public class PanelKopru : MonoBehaviour
     [DllImport("__Internal")]
     private static extern void AyarlariPanelleGonder(string json);
 
+    [DllImport("__Internal")]
+    private static extern void BahisPaneliAc(string url);
+
+    [DllImport("__Internal")]
+    private static extern void BahisPaneliKapat();
+
+    [DllImport("__Internal")]
+    private static extern void BahisPaneliBakiyeGonder(int bakiye);
+
     // ===== OYUN AYARLARI (panel state takibi) =====
     public static float kazanmaOrani = 65f;
     public static float minCarpan = 0f;         // min ödeme bahis katı (0=devre dışı)
@@ -51,6 +60,30 @@ public class PanelKopru : MonoBehaviour
             PaneliAc(tamYol);
         #else
             Debug.Log("[PanelKopru] Panel sadece WebGL build'de açılır. Editor'de test için browser'da panel.html'i aç.");
+        #endif
+    }
+
+    // ===== BAHİS SEÇİM PANELİ (küçük HTML iframe) =====
+    /// <summary>Bahis +/- butonlarına basıldığında çağrılır. WebGL'de bahisSec.html iframe açar;
+    /// Editor'da OyunYoneticisi'in Unity UI fallback'ine yönlendirir.</summary>
+    public void BahisSecPaneliAc()
+    {
+        #if UNITY_WEBGL && !UNITY_EDITOR
+            BahisPaneliAc("StreamingAssets/bahisSec.html");
+            // Bakiye iframe yüklendikten sonra postMessage ile gönderilir.
+            int bakiye = (_oy != null) ? _oy.BahisPanelMevcutBakiye() : 0;
+            StartCoroutine(BahisBakiyeGonderGecikmeli(bakiye, 0.3f));
+        #else
+            Debug.Log("[PanelKopru] Editor: Unity UI fallback BahisSecimPopupGoster çağrılıyor.");
+            if (_oy != null) _oy.BahisSecimPopupGosterEditorFallback();
+        #endif
+    }
+
+    private System.Collections.IEnumerator BahisBakiyeGonderGecikmeli(int bakiye, float gecikme)
+    {
+        yield return new UnityEngine.WaitForSeconds(gecikme);
+        #if UNITY_WEBGL && !UNITY_EDITOR
+            BahisPaneliBakiyeGonder(bakiye);
         #endif
     }
 
@@ -165,9 +198,25 @@ public class PanelKopru : MonoBehaviour
                 Debug.Log("[PanelKopru] Tüm ayarlar uygulandı: " + deger);
                 break;
 
+            case "bahisSec":
+                if (int.TryParse(deger, out int bahisMiktari) && bahisMiktari > 0)
+                {
+                    if (_oy != null)
+                    {
+                        bool ok = _oy.AdminBahisAyarla(bahisMiktari);
+                        Debug.Log("[PanelKopru] Bahis HTML panelden ayarlandı: " + bahisMiktari + " (sonuç=" + ok + ")");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[PanelKopru] _oy null, bahis ayarlanamadı: " + bahisMiktari);
+                    }
+                }
+                break;
+
             case "paneliKapat":
                 #if UNITY_WEBGL && !UNITY_EDITOR
                     PaneliKapat();
+                    BahisPaneliKapat();
                 #endif
                 break;
 

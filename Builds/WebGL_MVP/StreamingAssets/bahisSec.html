@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Bahis Seç</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px;
+    background: linear-gradient(135deg, #1a0e0e 0%, #2a1410 50%, #1a0e0e 100%);
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, sans-serif;
+    overflow: hidden;
+  }
+
+  .container { max-width: 480px; margin: 0 auto; position: relative; }
+
+  /* setting-card (panel.html realtime varyantı) */
+  .setting-card {
+    background: rgba(245,196,179,0.06);
+    border: 1px solid rgba(245,196,179,0.25);
+    border-radius: 14px;
+    padding: 20px 22px;
+  }
+
+  .setting-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .badge-num {
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.85);
+    border-radius: 10px;
+    padding: 4px 10px;
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 24px;
+    text-align: center;
+  }
+
+  .setting-header label {
+    font-size: 22px;
+    font-weight: 500;
+    color: #fff;
+    flex: 1;
+  }
+
+  .bakiye-display {
+    color: #F5C4B3;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .description {
+    color: rgba(255,255,255,0.55);
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+
+  .bahis-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .bahis-btn {
+    background: rgba(245,196,179,0.15);
+    color: #F5C4B3;
+    border: 1px solid rgba(245,196,179,0.4);
+    border-radius: 10px;
+    padding: 14px 8px;
+    font-size: 19px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .bahis-btn:hover { background: rgba(245,196,179,0.28); transform: translateY(-1px); }
+  .bahis-btn:active { transform: scale(0.96); }
+  .bahis-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+  .manuel-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .manuel-input {
+    background: rgba(245,196,179,0.1);
+    color: #F5C4B3;
+    border: 1px solid rgba(245,196,179,0.4);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 18px;
+    font-family: inherit;
+    outline: none;
+  }
+  .manuel-input:focus { border-color: rgba(245,196,179,0.7); background: rgba(245,196,179,0.15); }
+  .manuel-input::placeholder { color: rgba(245,196,179,0.5); }
+
+  .onayla-btn {
+    background: rgba(46,160,67,0.25);
+    color: #7ce896;
+    border: 1px solid rgba(46,160,67,0.5);
+    border-radius: 8px;
+    padding: 12px 22px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .onayla-btn:hover { background: rgba(46,160,67,0.45); }
+  .onayla-btn:active { transform: scale(0.96); }
+
+  .ifsa-line {
+    color: rgba(255,140,140,0.7);
+    font-size: 12px;
+    font-style: italic;
+    border-top: 1px dashed rgba(255,140,140,0.2);
+    padding-top: 12px;
+    margin-top: 4px;
+  }
+
+  .iptal-x {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: rgba(0,0,0,0.4);
+    color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.2);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-family: inherit;
+    z-index: 5;
+    transition: all 0.15s;
+  }
+  .iptal-x:hover { background: rgba(255,255,255,0.15); color: #fff; }
+</style>
+</head>
+<body>
+  <div class="container">
+    <button class="iptal-x" onclick="iptal()" title="Kapat">×</button>
+    <div class="setting-card">
+      <div class="setting-header">
+        <span class="badge-num">₺</span>
+        <label>Bahis Seç</label>
+        <span class="bakiye-display" id="bakiyeText">— TL bakiye</span>
+      </div>
+      <div class="description">Sonraki spinde kullanılacak bahis miktarı</div>
+
+      <div class="bahis-grid">
+        <button class="bahis-btn" data-miktar="50"   onclick="bahisSec(50)">50 TL</button>
+        <button class="bahis-btn" data-miktar="100"  onclick="bahisSec(100)">100 TL</button>
+        <button class="bahis-btn" data-miktar="200"  onclick="bahisSec(200)">200 TL</button>
+        <button class="bahis-btn" data-miktar="300"  onclick="bahisSec(300)">300 TL</button>
+        <button class="bahis-btn" data-miktar="500"  onclick="bahisSec(500)">500 TL</button>
+        <button class="bahis-btn" data-miktar="1000" onclick="bahisSec(1000)">1000 TL</button>
+      </div>
+
+      <div class="manuel-row">
+        <input type="number" class="manuel-input" id="manuelMiktar" placeholder="Özel miktar..." min="1"
+               onkeydown="if(event.key==='Enter'){onaylaManuel()}">
+        <button class="onayla-btn" onclick="onaylaManuel()">Onayla</button>
+      </div>
+
+      <div class="ifsa-line">Bahsi yükselten butonlar oyuncuyu daha fazla kayba sürükler.</div>
+    </div>
+  </div>
+
+<script>
+  // panel.html'den unityeGonder paterni
+  function unityeGonder(key, value) {
+    var msg = { source: 'yoneticiPanel', key: key, value: value };
+    try {
+      var hasParent = window.parent && window.parent !== window;
+      if (hasParent && window.parent.unityInstance && window.parent.unityInstance.SendMessage) {
+        var json = JSON.stringify({ source: msg.source, key: msg.key, value: String(msg.value) });
+        window.parent.unityInstance.SendMessage('PanelKopru', 'AyarAl', json);
+        return;
+      }
+      if (hasParent) { window.parent.postMessage(msg, '*'); return; }
+    } catch(e) { console.warn('[bahisSec] unityeGonder hata:', e); }
+  }
+
+  function bahisSec(miktar) {
+    if (!miktar || miktar < 1) return;
+    unityeGonder('bahisSec', miktar);
+    unityeGonder('paneliKapat', true);
+  }
+
+  function onaylaManuel() {
+    var v = parseInt(document.getElementById('manuelMiktar').value, 10);
+    if (!v || v < 1) {
+      document.getElementById('manuelMiktar').value = '';
+      return;
+    }
+    bahisSec(v);
+  }
+
+  function iptal() { unityeGonder('paneliKapat', true); }
+
+  // ESC ile kapatma
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') iptal();
+  });
+
+  // Unity'den bakiye gelmesi için listener (AyarlariPanelleGonder veya custom postMessage)
+  window.addEventListener('message', function(e) {
+    var d = e.data;
+    if (!d) return;
+    // Iki kaynaktan gelebilir: 'unityToBahis' (custom) veya 'unityToPanel' (jslib AyarlariPanelleGonder)
+    var bakiye = null;
+    if (d.source === 'unityToBahis' && typeof d.bakiye !== 'undefined') {
+      bakiye = Number(d.bakiye);
+    } else if (d.source === 'unityToPanel' && d.key === 'bahisBakiye') {
+      bakiye = Number(d.value);
+    }
+    if (bakiye !== null && !isNaN(bakiye)) {
+      document.getElementById('bakiyeText').textContent =
+        bakiye.toLocaleString('tr-TR') + ' TL bakiye';
+      var btns = document.querySelectorAll('.bahis-btn');
+      btns.forEach(function(b) {
+        var m = parseInt(b.getAttribute('data-miktar'), 10);
+        b.disabled = (bakiye < m);
+      });
+    }
+  });
+
+  // Panel açıldığında parent'a "ben hazırım, bakiye gönder" sinyali
+  try {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ source: 'bahisPanelHazir' }, '*');
+    }
+  } catch(e) {}
+</script>
+</body>
+</html>
