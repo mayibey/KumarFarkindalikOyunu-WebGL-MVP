@@ -171,7 +171,7 @@ mergeInto(LibraryManager.library, {
 
         var container = document.createElement('div');
         container.id = 'anlaticiPanelContainer';
-        container.style.cssText = 'position:fixed;top:200px;left:12px;width:380px;z-index:5000;pointer-events:auto;';
+        container.style.cssText = 'position:fixed;top:200px;left:12px;width:420px;max-height:calc(100vh - 360px);overflow-y:auto;z-index:5000;pointer-events:auto;';
 
         var iframe = document.createElement('iframe');
         iframe.id = 'anlaticiPanelIframe';
