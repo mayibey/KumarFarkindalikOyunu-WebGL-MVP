@@ -177,8 +177,6 @@
                  onkeydown="if(event.key==='Enter'){onaylaManuel()}">
           <button class="onayla-btn" onclick="onaylaManuel()">Onayla</button>
         </div>
-
-        <div class="ifsa-line">Bahsi yükselten butonlar oyuncuyu daha fazla kayba sürükler.</div>
       </div>
     </div>
   </div>
@@ -205,9 +203,36 @@
   }
 
   function onaylaManuel() {
-    var v = parseInt(document.getElementById('manuelMiktar').value, 10);
-    if (!v || v < 1) { document.getElementById('manuelMiktar').value = ''; return; }
+    var input = document.getElementById('manuelMiktar');
+    var v = parseInt(input.value, 10);
+    if (!v || v < 1) {
+      gosterUyari('Lütfen geçerli bir miktar girin.');
+      return;
+    }
+    if (v % 10 !== 0) {
+      gosterUyari("10'un katları şeklinde girmelisiniz (örn. 50, 100, 250).");
+      return;
+    }
     bahisSec(v);
+  }
+
+  function gosterUyari(mesaj) {
+    var existing = document.getElementById('uyariToast');
+    if (existing) existing.remove();
+    var toast = document.createElement('div');
+    toast.id = 'uyariToast';
+    toast.textContent = mesaj;
+    toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
+      'background:rgba(220,80,80,0.95);color:#fff;padding:14px 22px;border-radius:10px;' +
+      'font-size:15px;z-index:99999;box-shadow:0 8px 24px rgba(0,0,0,0.4);' +
+      'border:1px solid rgba(255,255,255,0.2);max-width:320px;text-align:center;' +
+      'font-family:inherit;';
+    document.body.appendChild(toast);
+    setTimeout(function() {
+      toast.style.transition = 'opacity 0.3s';
+      toast.style.opacity = '0';
+      setTimeout(function() { if (toast.parentNode) toast.remove(); }, 300);
+    }, 2200);
   }
 
   function iptal() { unityeGonder('paneliKapat', true); }
