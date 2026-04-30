@@ -88,12 +88,9 @@ public class OyunUIGuncellemeServisi
 
         if (_ctx.BahisText != null)
         {
-            int gosterBahis = CiftSansKutusu.HesaplaSpinMaliyeti(_ctx.GetBahis());
-            _ctx.BahisText.text = "Bahis: " + OyunFormatServisi.FormatTL(gosterBahis);
+            // Çift şans bileşeni kaldırıldı (2026-04-30) — bahis doğrudan gösterilir
+            _ctx.BahisText.text = "Bahis: " + OyunFormatServisi.FormatTL(_ctx.GetBahis());
         }
-
-        // Çift şans panelindeki metinler (TxtBahis / ciftesansbedeli) bahis değişiminde anlık senkron kalsın.
-        CiftSansKutusu.GuncelleTumOrnekler();
 
         if (_ctx.HakText != null)
         {

@@ -184,7 +184,8 @@ public partial class OyunYoneticisi
     private IEnumerator BirSpinHazirlaVeAt()
     {
         int mevcutBahis = _ekonomiServisi.Bahis;
-        int spinMaliyeti = CiftSansKutusu.HesaplaSpinMaliyeti(mevcutBahis);
+        // Çift şans bileşeni kaldırıldı (2026-04-30) — spin maliyeti = bahisin kendisi (1.5x mantığı yok)
+        int spinMaliyeti = mevcutBahis;
         // "Bahis artırma" sayacı: sadece yeni spin başlarken ve bahis gerçekten bir önceki spin bahisinden yüksekse artar.
         if (_sonSpinBaslangicBahis >= 0 && mevcutBahis > _sonSpinBaslangicBahis)
             SenaryoYoneticisi.I?.BahisArtirimiYapildi();
@@ -198,6 +199,10 @@ public partial class OyunYoneticisi
         _logServisi?.RecordSpinStart(_spinPrevBakiye, _ekonomiServisi.Bakiye, _spinBahisTL, _spinOdenebilirLimit);
         _uiServisi?.UI_Guncelle();
         yield return _donusServisi.NormalSpinAkisi();
+
+        // Anlatıcı Şerit'e spin sonu bildir (varsa) — 7 aşamalı manipülasyon hikayesi ilerlemesi
+        var anlatici = AnlaticiSeritKopru.Ornek;
+        if (anlatici != null) anlatici.SpinAtildi();
     }
 
 

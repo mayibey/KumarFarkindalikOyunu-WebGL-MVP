@@ -42,6 +42,14 @@ public class SenaryoOtomatikAkis : MonoBehaviour
 
     void Start()
     {
+        // Anlatıcı Şerit varsa, SenaryoOtomatikAkis devre dışı kalır (rakip sistem çakışması).
+        if (AnlaticiSeritKopru.Ornek != null)
+        {
+            Debug.Log("[SenaryoOtomatikAkis] Anlatıcı Şerit aktif, SenaryoOtomatikAkis devre dışı.");
+            enabled = false;
+            return;
+        }
+
         _oy = FindObjectOfType<OyunYoneticisi>();
         if (_oy == null)
             Debug.LogWarning("[SenaryoOtomatikAkis] OyunYoneticisi bulunamadı.");

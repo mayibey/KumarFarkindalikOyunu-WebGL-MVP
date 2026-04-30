@@ -671,6 +671,9 @@ public partial class OyunYoneticisi
     /// <summary>PanelKopru için: mevcut ekonomik bakiyeyi public erişimle döner (HTML iframe panele postMessage için).</summary>
     public int BahisPanelMevcutBakiye() => _ekonomiServisi != null ? _ekonomiServisi.Bakiye : 0;
 
+    /// <summary>AnlaticiSeritKopru için: mevcut bahis miktarı (etap profili max ödeme hesabı için).</summary>
+    public int AnlaticiMevcutBahis() => _ekonomiServisi != null ? _ekonomiServisi.Bahis : 0;
+
     /// <summary>Bahis +/- butonlarına basıldığında çağrılır (2026-04-30 hibrit).
     /// WebGL: HTML iframe (bahisSec.html). Editor: Unity UI fallback.</summary>
     public void BahisSecimPopupGoster()

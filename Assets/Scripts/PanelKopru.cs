@@ -219,6 +219,19 @@ public class PanelKopru : MonoBehaviour
                 }
                 break;
 
+            case "anlaticiAsamaDegis":
+                if (int.TryParse(deger, out int yeniAsama))
+                {
+                    var ask = AnlaticiSeritKopru.Ornek ?? FindObjectOfType<AnlaticiSeritKopru>();
+                    if (ask != null) ask.HtmlAsamaDegisti(yeniAsama);
+                }
+                break;
+
+            case "anlaticiYenidenBaslat":
+                var asky = AnlaticiSeritKopru.Ornek ?? FindObjectOfType<AnlaticiSeritKopru>();
+                if (asky != null) asky.YenidenBaslat();
+                break;
+
             case "paneliKapat":
                 #if UNITY_WEBGL && !UNITY_EDITOR
                     PaneliKapat();

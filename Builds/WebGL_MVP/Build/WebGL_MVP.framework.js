@@ -1714,20 +1714,6 @@ function dbg(text) {
       }
     }
 
-  function _AyarlariPanelleGonder(jsonPtr) {
-          var json = UTF8ToString(jsonPtr);
-          var iframe = document.getElementById('panelIframe');
-          if (iframe && iframe.contentWindow) {
-              iframe.contentWindow.postMessage({
-                  source: 'unityToPanel',
-                  key:    'mevcutAyarlar',
-                  value:  json
-              }, '*');
-          } else {
-              console.warn('[PanelBridge] AyarlariPanelleGonder: panelIframe bulunamadi');
-          }
-      }
-
   var PanelBridge = {listenerKuruldu:false,mesajListenerKur:function() {
               if (PanelBridge.listenerKuruldu) return;
               PanelBridge.listenerKuruldu = true;
@@ -1764,7 +1750,6 @@ function dbg(text) {
                   }
   
                   if (msg.type === 'ready') {
-                      // Iframe yüklendi → cached bakiyeyi gönder (varsa)
                       if (typeof window._sonBahisBakiye !== 'undefined' && iframe.contentWindow) {
                           iframe.contentWindow.postMessage({
                               source: 'unityToBahis',
@@ -1773,7 +1758,77 @@ function dbg(text) {
                       }
                   }
               }, false);
+  
+              // 3. Anlatıcı Şerit HTML'den gelen resize/ready mesajları
+              window.addEventListener('message', function(e) {
+                  var msg = e.data;
+                  if (!msg || msg.source !== 'anlaticiHtml') return;
+                  var iframe = document.getElementById('anlaticiPanelIframe');
+                  if (!iframe) return;
+  
+                  if (msg.type === 'resize' && msg.height) {
+                      iframe.style.height = (msg.height + 8) + 'px';
+                  }
+                  if (msg.type === 'ready') {
+                      if (typeof window._sonAnlaticiState !== 'undefined' && iframe.contentWindow) {
+                          var st = window._sonAnlaticiState;
+                          st.source = 'unityToAnlatici';
+                          iframe.contentWindow.postMessage(st, '*');
+                      }
+                  }
+              }, false);
           }};
+  
+  function _AnlaticiPaneliAc(urlPtr) {
+          PanelBridge.mesajListenerKur();
+          var url = UTF8ToString(urlPtr);
+  
+          var existing = document.getElementById('anlaticiPanelContainer');
+          if (existing) existing.remove();
+  
+          var container = document.createElement('div');
+          container.id = 'anlaticiPanelContainer';
+          container.style.cssText = 'position:fixed;top:80px;left:12px;width:320px;z-index:5000;pointer-events:auto;';
+  
+          var iframe = document.createElement('iframe');
+          iframe.id = 'anlaticiPanelIframe';
+          iframe.src = url;
+          iframe.style.cssText = 'width:100%;height:600px;border:none;background:transparent;';
+          iframe.setAttribute('allowtransparency', 'true');
+  
+          container.appendChild(iframe);
+          document.body.appendChild(container);
+      }
+
+  function _AnlaticiPaneliGuncelle(jsonPtr) {
+          var json = UTF8ToString(jsonPtr);
+          try {
+              var data = JSON.parse(json);
+              window._sonAnlaticiState = data;
+              var iframe = document.getElementById('anlaticiPanelIframe');
+              if (iframe && iframe.contentWindow) {
+                  data.source = 'unityToAnlatici';
+                  iframe.contentWindow.postMessage(data, '*');
+              }
+          } catch(e) {
+              console.warn('[AnlaticiPaneliGuncelle] JSON parse hatasi:', e);
+          }
+      }
+
+  function _AyarlariPanelleGonder(jsonPtr) {
+          var json = UTF8ToString(jsonPtr);
+          var iframe = document.getElementById('panelIframe');
+          if (iframe && iframe.contentWindow) {
+              iframe.contentWindow.postMessage({
+                  source: 'unityToPanel',
+                  key:    'mevcutAyarlar',
+                  value:  json
+              }, '*');
+          } else {
+              console.warn('[PanelBridge] AyarlariPanelleGonder: panelIframe bulunamadi');
+          }
+      }
+
   
   function _BahisPaneliAc(urlPtr) {
           PanelBridge.mesajListenerKur();
@@ -1804,7 +1859,6 @@ function dbg(text) {
       }
 
   function _BahisPaneliBakiyeGonder(bakiye) {
-          // Cache'le (iframe henüz hazır değilse 'ready' sinyali geldiğinde gönderilecek)
           window._sonBahisBakiye = bakiye;
           var iframe = document.getElementById('bahisPanelIframe');
           if (iframe && iframe.contentWindow) {
@@ -16593,6 +16647,8 @@ function checkIncomingModuleAPI() {
   ignoredModuleProp('fetchSettings');
 }
 var wasmImports = {
+  "AnlaticiPaneliAc": _AnlaticiPaneliAc,
+  "AnlaticiPaneliGuncelle": _AnlaticiPaneliGuncelle,
   "AyarlariPanelleGonder": _AyarlariPanelleGonder,
   "BahisPaneliAc": _BahisPaneliAc,
   "BahisPaneliBakiyeGonder": _BahisPaneliBakiyeGonder,
