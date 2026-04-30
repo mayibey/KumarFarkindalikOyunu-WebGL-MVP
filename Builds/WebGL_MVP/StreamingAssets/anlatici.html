@@ -260,6 +260,9 @@
       if (typeof d.spin === 'number') aktifSpin = d.spin;
       if (typeof d.bakiyeNet === 'number') bakiyeNet = d.bakiyeNet;
       if (typeof d.toplamSpin === 'number') toplamSpin = d.toplamSpin;
+      if (d.tukenisKapat === true) {
+        document.getElementById('tukenisOverlay').classList.remove('aktif');
+      }
       if (d.tukenis === true) { tukenisGoster(); return; }
       render();
     }

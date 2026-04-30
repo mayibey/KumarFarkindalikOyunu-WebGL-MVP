@@ -188,17 +188,30 @@ public class AnlaticiSeritKopru : MonoBehaviour
 
     public void YenidenBaslat()
     {
-        _aktifAsama = 0;
-        _aktifSpin = 0;
-        _toplamSpin = 0;
-        _sonUygulananAsama = -1; // bahis tekrar set edilsin
+        Debug.Log("[Anlatici] YENİDEN BAŞLAT — full reset");
+
+        // 1. Bakiye reset
         if (_oy != null)
         {
             _oy.AnlaticiBakiyeyiSifirla(BASLANGIC_BAKIYE);
-            _baslangicBakiye = BASLANGIC_BAKIYE;
         }
+        _baslangicBakiye = BASLANGIC_BAKIYE;
+
+        // 2. Anlatıcı state reset
+        _aktifAsama = 0;
+        _aktifSpin = 0;
+        _toplamSpin = 0;
+        _sonUygulananAsama = -1; // KRİTİK: yeniAsama=true olsun, bahis 100'e tekrar set
+
+        // 3. Aşama 1 zorla uygula (egilim 100, maxCarpan 2x, otomatik bahis 100)
         AsamayiUygula(0);
-        Guncelle();
-        Debug.Log("[Anlatici] Yeniden başlatıldı, bakiye 50000 TL.");
+
+        // 4. HTML panele "tukenisKapat" + tüm state'i tek JSON'la gönder
+        string json = "{\"asama\":0,\"spin\":0,\"bakiyeNet\":0,\"toplamSpin\":0,\"tukenisKapat\":true}";
+#if UNITY_WEBGL && !UNITY_EDITOR
+        AnlaticiPaneliGuncelle(json);
+#endif
+
+        Debug.Log("[Anlatici] Reset tamam: bakiye=" + BASLANGIC_BAKIYE + ", asama=0, bahis=100");
     }
 }
