@@ -5,6 +5,8 @@ mergeInto(LibraryManager.library, {
         mesajListenerKur: function() {
             if (PanelBridge.listenerKuruldu) return;
             PanelBridge.listenerKuruldu = true;
+
+            // 1. Yönetici Panel mesajları (admin panel.html'den)
             window.addEventListener('message', function(e) {
                 var msg = e.data;
                 if (!msg || msg.source !== 'yoneticiPanel') return;
@@ -21,6 +23,28 @@ mergeInto(LibraryManager.library, {
                     if (ov) ov.remove();
                     var bo = document.getElementById('bahisPanelOverlay');
                     if (bo) bo.remove();
+                }
+            }, false);
+
+            // 2. Bahis Sec HTML'den gelen resize/ready mesajları
+            window.addEventListener('message', function(e) {
+                var msg = e.data;
+                if (!msg || msg.source !== 'bahisSecHtml') return;
+                var iframe = document.getElementById('bahisPanelIframe');
+                if (!iframe) return;
+
+                if (msg.type === 'resize' && msg.height) {
+                    iframe.style.height = (msg.height + 8) + 'px'; // 8px tampon
+                }
+
+                if (msg.type === 'ready') {
+                    // Iframe yüklendi → cached bakiyeyi gönder (varsa)
+                    if (typeof window._sonBahisBakiye !== 'undefined' && iframe.contentWindow) {
+                        iframe.contentWindow.postMessage({
+                            source: 'unityToBahis',
+                            bakiye: window._sonBahisBakiye
+                        }, '*');
+                    }
                 }
             }, false);
         }
@@ -76,7 +100,6 @@ mergeInto(LibraryManager.library, {
         PanelBridge.mesajListenerKur();
         var url = UTF8ToString(urlPtr);
 
-        // Var olan bahis overlay varsa önce temizle (idempotent)
         var existing = document.getElementById('bahisPanelOverlay');
         if (existing) existing.remove();
 
@@ -87,13 +110,13 @@ mergeInto(LibraryManager.library, {
         var iframe = document.createElement('iframe');
         iframe.id = 'bahisPanelIframe';
         iframe.src = url;
+        // Başlangıç height 480px; resize mesajı geldiğinde gerçek içerik boyutuna ayarlanır.
         iframe.style.cssText = 'width:min(540px, calc(100vw - 32px));height:480px;max-height:90vh;border:none;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.6);background:transparent;z-index:10001;';
         iframe.setAttribute('allowtransparency', 'true');
 
         overlay.appendChild(iframe);
         document.body.appendChild(overlay);
 
-        // Overlay dışına tıklayınca kapat
         overlay.addEventListener('click', function(e) {
             if (e.target === overlay) overlay.remove();
         });
@@ -102,9 +125,13 @@ mergeInto(LibraryManager.library, {
     BahisPaneliKapat: function() {
         var ov = document.getElementById('bahisPanelOverlay');
         if (ov) ov.remove();
+        // Cached bakiyeyi temizle (sonraki açılışta stale değer kalmasın)
+        window._sonBahisBakiye = undefined;
     },
 
     BahisPaneliBakiyeGonder: function(bakiye) {
+        // Cache'le (iframe henüz hazır değilse 'ready' sinyali geldiğinde gönderilecek)
+        window._sonBahisBakiye = bakiye;
         var iframe = document.getElementById('bahisPanelIframe');
         if (iframe && iframe.contentWindow) {
             iframe.contentWindow.postMessage({

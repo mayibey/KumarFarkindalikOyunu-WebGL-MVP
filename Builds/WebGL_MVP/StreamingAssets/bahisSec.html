@@ -7,21 +7,24 @@
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    padding: 24px;
-    background: linear-gradient(135deg, #1a0e0e 0%, #2a1410 50%, #1a0e0e 100%);
+    padding: 0;
+    background: transparent;
     color: #fff;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, sans-serif;
     overflow: hidden;
   }
 
+  #bahisRoot { padding: 24px; }
+
   .container { max-width: 480px; margin: 0 auto; position: relative; }
 
-  /* setting-card (panel.html realtime varyantı) */
+  /* setting-card — gradient arka plan kart içine taşındı */
   .setting-card {
-    background: rgba(245,196,179,0.06);
-    border: 1px solid rgba(245,196,179,0.25);
+    background: linear-gradient(135deg, #1a0e0e 0%, #2a1410 50%, #1a0e0e 100%);
+    border: 1px solid rgba(245,196,179,0.28);
     border-radius: 14px;
     padding: 20px 22px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.5);
   }
 
   .setting-header {
@@ -33,7 +36,7 @@
 
   .badge-num {
     background: rgba(255,255,255,0.12);
-    color: rgba(255,255,255,0.85);
+    color: rgba(255,255,255,0.9);
     border-radius: 10px;
     padding: 4px 10px;
     font-size: 14px;
@@ -132,9 +135,9 @@
     position: absolute;
     top: -10px;
     right: -10px;
-    background: rgba(0,0,0,0.4);
-    color: rgba(255,255,255,0.7);
-    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(0,0,0,0.55);
+    color: rgba(255,255,255,0.75);
+    border: 1px solid rgba(255,255,255,0.25);
     font-size: 22px;
     line-height: 1;
     cursor: pointer;
@@ -145,41 +148,43 @@
     z-index: 5;
     transition: all 0.15s;
   }
-  .iptal-x:hover { background: rgba(255,255,255,0.15); color: #fff; }
+  .iptal-x:hover { background: rgba(255,255,255,0.18); color: #fff; }
 </style>
 </head>
 <body>
-  <div class="container">
-    <button class="iptal-x" onclick="iptal()" title="Kapat">×</button>
-    <div class="setting-card">
-      <div class="setting-header">
-        <span class="badge-num">₺</span>
-        <label>Bahis Seç</label>
-        <span class="bakiye-display" id="bakiyeText">— TL bakiye</span>
-      </div>
-      <div class="description">Sonraki spinde kullanılacak bahis miktarı</div>
+  <div id="bahisRoot">
+    <div class="container">
+      <button class="iptal-x" onclick="iptal()" title="Kapat">×</button>
+      <div class="setting-card">
+        <div class="setting-header">
+          <span class="badge-num">₺</span>
+          <label>Bahis Seç</label>
+          <span class="bakiye-display" id="bakiyeText">— TL bakiye</span>
+        </div>
+        <div class="description">Sonraki spinde kullanılacak bahis miktarı</div>
 
-      <div class="bahis-grid">
-        <button class="bahis-btn" data-miktar="50"   onclick="bahisSec(50)">50 TL</button>
-        <button class="bahis-btn" data-miktar="100"  onclick="bahisSec(100)">100 TL</button>
-        <button class="bahis-btn" data-miktar="200"  onclick="bahisSec(200)">200 TL</button>
-        <button class="bahis-btn" data-miktar="300"  onclick="bahisSec(300)">300 TL</button>
-        <button class="bahis-btn" data-miktar="500"  onclick="bahisSec(500)">500 TL</button>
-        <button class="bahis-btn" data-miktar="1000" onclick="bahisSec(1000)">1000 TL</button>
-      </div>
+        <div class="bahis-grid">
+          <button class="bahis-btn" data-miktar="50"   onclick="bahisSec(50)">50 TL</button>
+          <button class="bahis-btn" data-miktar="100"  onclick="bahisSec(100)">100 TL</button>
+          <button class="bahis-btn" data-miktar="200"  onclick="bahisSec(200)">200 TL</button>
+          <button class="bahis-btn" data-miktar="300"  onclick="bahisSec(300)">300 TL</button>
+          <button class="bahis-btn" data-miktar="500"  onclick="bahisSec(500)">500 TL</button>
+          <button class="bahis-btn" data-miktar="1000" onclick="bahisSec(1000)">1000 TL</button>
+        </div>
 
-      <div class="manuel-row">
-        <input type="number" class="manuel-input" id="manuelMiktar" placeholder="Özel miktar..." min="1"
-               onkeydown="if(event.key==='Enter'){onaylaManuel()}">
-        <button class="onayla-btn" onclick="onaylaManuel()">Onayla</button>
-      </div>
+        <div class="manuel-row">
+          <input type="number" class="manuel-input" id="manuelMiktar" placeholder="Özel miktar..." min="1"
+                 onkeydown="if(event.key==='Enter'){onaylaManuel()}">
+          <button class="onayla-btn" onclick="onaylaManuel()">Onayla</button>
+        </div>
 
-      <div class="ifsa-line">Bahsi yükselten butonlar oyuncuyu daha fazla kayba sürükler.</div>
+        <div class="ifsa-line">Bahsi yükselten butonlar oyuncuyu daha fazla kayba sürükler.</div>
+      </div>
     </div>
   </div>
 
 <script>
-  // panel.html'den unityeGonder paterni
+  // ===== Unity'ye mesaj gönderme =====
   function unityeGonder(key, value) {
     var msg = { source: 'yoneticiPanel', key: key, value: value };
     try {
@@ -201,25 +206,51 @@
 
   function onaylaManuel() {
     var v = parseInt(document.getElementById('manuelMiktar').value, 10);
-    if (!v || v < 1) {
-      document.getElementById('manuelMiktar').value = '';
-      return;
-    }
+    if (!v || v < 1) { document.getElementById('manuelMiktar').value = ''; return; }
     bahisSec(v);
   }
 
   function iptal() { unityeGonder('paneliKapat', true); }
 
-  // ESC ile kapatma
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') iptal();
   });
 
-  // Unity'den bakiye gelmesi için listener (AyarlariPanelleGonder veya custom postMessage)
+  // ===== IFRAME-PARENT HANDSHAKE: boyut + ready =====
+  function bildirBoyut() {
+    var root = document.getElementById('bahisRoot');
+    if (!root) return;
+    var h = root.getBoundingClientRect().height;
+    try {
+      window.parent.postMessage({
+        source: 'bahisSecHtml',
+        type:   'resize',
+        height: Math.ceil(h)
+      }, '*');
+    } catch(e) {}
+  }
+
+  window.addEventListener('load', function() {
+    bildirBoyut();
+    // Parent'a "ben hazırım, bakiye gönder" sinyali
+    try {
+      window.parent.postMessage({ source: 'bahisSecHtml', type: 'ready' }, '*');
+    } catch(e) {}
+  });
+
+  // İçerik değişince yeniden boyut bildir (input açılınca, bakiye gelince vs.)
+  if (typeof ResizeObserver !== 'undefined') {
+    var ro = new ResizeObserver(function() { bildirBoyut(); });
+    setTimeout(function() {
+      var root = document.getElementById('bahisRoot');
+      if (root) ro.observe(root);
+    }, 100);
+  }
+
+  // ===== Bakiye listener (Unity'den postMessage) =====
   window.addEventListener('message', function(e) {
     var d = e.data;
     if (!d) return;
-    // Iki kaynaktan gelebilir: 'unityToBahis' (custom) veya 'unityToPanel' (jslib AyarlariPanelleGonder)
     var bakiye = null;
     if (d.source === 'unityToBahis' && typeof d.bakiye !== 'undefined') {
       bakiye = Number(d.bakiye);
@@ -234,15 +265,9 @@
         var m = parseInt(b.getAttribute('data-miktar'), 10);
         b.disabled = (bakiye < m);
       });
+      bildirBoyut(); // bakiye geldikten sonra layout değişebilir
     }
   });
-
-  // Panel açıldığında parent'a "ben hazırım, bakiye gönder" sinyali
-  try {
-    if (window.parent && window.parent !== window) {
-      window.parent.postMessage({ source: 'bahisPanelHazir' }, '*');
-    }
-  } catch(e) {}
 </script>
 </body>
 </html>
