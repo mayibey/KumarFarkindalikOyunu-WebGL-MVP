@@ -674,6 +674,25 @@ public partial class OyunYoneticisi
     /// <summary>AnlaticiSeritKopru için: mevcut bahis miktarı (etap profili max ödeme hesabı için).</summary>
     public int AnlaticiMevcutBahis() => _ekonomiServisi != null ? _ekonomiServisi.Bahis : 0;
 
+    /// <summary>AnlaticiSeritKopru için: aşama geçişinde önerilen bahis set eder.</summary>
+    public void AnlaticiSetBahis(int tl)
+    {
+        if (_ekonomiServisi == null) return;
+        if (tl < 10) tl = 10;
+        _ekonomiServisi.SetBahis(tl);
+        _uiServisi?.UI_Guncelle();
+        Debug.Log("[AnlaticiSetBahis] Bahis " + tl + " TL");
+    }
+
+    /// <summary>AnlaticiSeritKopru için: bakiyeyi 50000 TL'ye reset (her sahne girişinde sıfırdan).</summary>
+    public void AnlaticiBakiyeyiSifirla(int yeniBakiye = 50000)
+    {
+        if (_ekonomiServisi == null) return;
+        _ekonomiServisi.SetBakiye(yeniBakiye);
+        _uiServisi?.UI_Guncelle();
+        Debug.Log("[BAKIYE RESET] Başlangıç bakiye " + yeniBakiye + " TL'ye sıfırlandı");
+    }
+
     /// <summary>Bahis +/- butonlarına basıldığında çağrılır (2026-04-30 hibrit).
     /// WebGL: HTML iframe (bahisSec.html). Editor: Unity UI fallback.</summary>
     public void BahisSecimPopupGoster()

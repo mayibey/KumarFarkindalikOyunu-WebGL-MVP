@@ -19,8 +19,13 @@ public class AnlaticiSeritKopru : MonoBehaviour
     private int _aktifSpin = 0;
     private int _toplamSpin = 0;
     private long _baslangicBakiye = 0;
+    private int _sonUygulananAsama = -1; // YENI: aşama değişimi tespiti için
     private const int SPIN_PER_ASAMA = 10;
+    private const int BASLANGIC_BAKIYE = 50000;
     private static AnlaticiSeritKopru _ornek;
+
+    /// <summary>Aşama bazlı önerilen bahis (yeniAsama geçişinde set edilir, kullanıcı sonra manuel değiştirebilir).</summary>
+    private static readonly int[] _onerilenBahisler = new int[] { 100, 200, 500, 1000, 2000, 1000, 500 };
 
     [System.Serializable]
     public class AsamaAyari
@@ -55,7 +60,17 @@ public class AnlaticiSeritKopru : MonoBehaviour
             Debug.LogError("[AnlaticiSeritKopru] OyunYoneticisi bulunamadi");
             return;
         }
-        _baslangicBakiye = _oy.BahisPanelMevcutBakiye();
+
+        // Eğitim aracı: her sahne girişinde sıfırdan başla
+        _aktifAsama = 0;
+        _aktifSpin = 0;
+        _toplamSpin = 0;
+        _sonUygulananAsama = -1;
+
+        // Bakiye 50.000 TL'ye reset
+        _oy.AnlaticiBakiyeyiSifirla(BASLANGIC_BAKIYE);
+        _baslangicBakiye = BASLANGIC_BAKIYE;
+
         AsamayiUygula(0);
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -106,11 +121,22 @@ public class AnlaticiSeritKopru : MonoBehaviour
     {
         if (idx < 0 || idx >= _asamalar.Length || _oy == null) return;
         var a = _asamalar[idx];
-        int bahis = _oy.AnlaticiMevcutBahis();
-        // KORUMA: Bahis henüz set edilmemiş olabilir (Start anında 0 gelir bootstrap öncesi).
-        // Bu durumda maxOdeme = 0 olur ve oyun bozulur. Default minimum kullan.
-        if (bahis <= 0) bahis = 100;
 
+        // Yeni aşama geçişi mi? (Aynı aşamada her spin sonrası sadece egilim/maxOdeme yeniden hesaplanır,
+        // bahis kullanıcının manuel değiştirdiği değerle kalır)
+        bool yeniAsama = (idx != _sonUygulananAsama);
+        _sonUygulananAsama = idx;
+
+        // Otomatik bahis SADECE yeni aşama geçişinde
+        if (yeniAsama && idx >= 0 && idx < _onerilenBahisler.Length)
+        {
+            int onerilen = _onerilenBahisler[idx];
+            try { _oy.AnlaticiSetBahis(onerilen); }
+            catch (System.Exception e) { Debug.LogWarning("[AnlaticiSeritKopru] AnlaticiSetBahis hata: " + e.Message); }
+        }
+
+        int bahis = _oy.AnlaticiMevcutBahis();
+        if (bahis <= 0) bahis = 100;
         int maxOdeme = Mathf.CeilToInt(bahis * a.maxCarpani);
         try
         {
@@ -121,7 +147,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
         {
             Debug.LogWarning("[AnlaticiSeritKopru] AsamayiUygula hata: " + e.Message);
         }
-        Debug.Log($"[Anlatici] Aşama {idx + 1} uygulandı: egilim=%{a.egilim}, maxCarpan={a.maxCarpani}x, bahis={bahis}, maxOdeme={maxOdeme} TL, nearMiss={a.nearMiss}");
+        Debug.Log($"[Anlatici] Aşama {idx + 1} uygulandı (yeniAsama={yeniAsama}): egilim=%{a.egilim}, maxCarpan={a.maxCarpani}x, bahis={bahis}, maxOdeme={maxOdeme} TL, nearMiss={a.nearMiss}");
     }
 
     private void Guncelle()
@@ -165,9 +191,14 @@ public class AnlaticiSeritKopru : MonoBehaviour
         _aktifAsama = 0;
         _aktifSpin = 0;
         _toplamSpin = 0;
-        if (_oy != null) _baslangicBakiye = _oy.BahisPanelMevcutBakiye();
+        _sonUygulananAsama = -1; // bahis tekrar set edilsin
+        if (_oy != null)
+        {
+            _oy.AnlaticiBakiyeyiSifirla(BASLANGIC_BAKIYE);
+            _baslangicBakiye = BASLANGIC_BAKIYE;
+        }
         AsamayiUygula(0);
         Guncelle();
-        Debug.Log("[Anlatici] Yeniden başlatıldı.");
+        Debug.Log("[Anlatici] Yeniden başlatıldı, bakiye 50000 TL.");
     }
 }

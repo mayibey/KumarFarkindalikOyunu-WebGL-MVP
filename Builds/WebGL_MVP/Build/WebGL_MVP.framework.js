@@ -1788,7 +1788,7 @@ function dbg(text) {
   
           var container = document.createElement('div');
           container.id = 'anlaticiPanelContainer';
-          container.style.cssText = 'position:fixed;top:80px;left:12px;width:320px;z-index:5000;pointer-events:auto;';
+          container.style.cssText = 'position:fixed;top:200px;left:12px;width:380px;z-index:5000;pointer-events:auto;';
   
           var iframe = document.createElement('iframe');
           iframe.id = 'anlaticiPanelIframe';
