@@ -105,8 +105,9 @@ mergeInto(LibraryManager.library, {
 
         var overlay = document.createElement('div');
         overlay.id = 'bahisPanelOverlay';
-        // align-items:flex-start + padding-top:12vh — popup biraz aşağı, slot ekranın üst kısmı görünsün
-        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:flex-start;justify-content:center;padding-top:12vh;';
+        // align-items:flex-end + padding-bottom:140px — popup viewport altına yaslanır,
+        // SPIN butonu ve alt UI şeridinin azıcık üstünde durur (slot ekran üst kısmı serbest kalır)
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:flex-end;justify-content:center;padding-bottom:140px;';
 
         var iframe = document.createElement('iframe');
         iframe.id = 'bahisPanelIframe';
