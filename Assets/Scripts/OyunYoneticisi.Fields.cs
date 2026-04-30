@@ -338,7 +338,7 @@ public partial class OyunYoneticisi
     // === BAHİS +/- KONTROL ===
     [Header("Bahis Kontrol")]
     [HideInInspector] public int bahisMin = 1;
-    [HideInInspector] public int bahisMax = 500;
+    [HideInInspector] public int bahisMax = 100000;
     [HideInInspector] public int bahisAdim = 1;
     [HideInInspector] public SpinIconRotate spinIcon;   // (LEGACY)
     [HideInInspector] public Button bahisArttirButon; // (LEGACY)

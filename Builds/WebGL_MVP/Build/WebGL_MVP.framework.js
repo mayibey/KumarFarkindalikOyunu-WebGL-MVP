@@ -1766,7 +1766,7 @@ function dbg(text) {
           var iframe = document.createElement('iframe');
           iframe.id = 'bahisPanelIframe';
           iframe.src = url;
-          iframe.style.cssText = 'width:540px;height:auto;min-height:520px;max-height:90vh;border:none;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.6);background:transparent;z-index:10001;';
+          iframe.style.cssText = 'width:min(540px, calc(100vw - 32px));height:480px;max-height:90vh;border:none;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.6);background:transparent;z-index:10001;';
           iframe.setAttribute('allowtransparency', 'true');
   
           overlay.appendChild(iframe);

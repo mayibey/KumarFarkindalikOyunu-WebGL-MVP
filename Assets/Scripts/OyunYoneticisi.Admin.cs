@@ -1305,8 +1305,17 @@ public partial class OyunYoneticisi
         int yeni = _ekonomiServisi.Bahis;
         _uiServisi?.UI_Guncelle();
         SenaryoYoneticisi.I?.UI_Guncelle();
-        Debug.Log($"[ADMIN-SENARYO] Bahis ayarlandı: {onceki} -> {yeni} (hedef={hedefBahis})");
-        return yeni != onceki;
+
+        // KRİTİK (2026-04-30): Bahis değiştiyse precompute önbelleğini geçersizleştir.
+        // Aksi halde sonraki spin ESKİ bahisle hesaplanmış kayıttan oynar — kazançlar düşük çıkar.
+        if (yeni != onceki)
+        {
+            OncedenHesaplananSpinOnbelleginiTemizle();
+            Debug.Log($"[BAHIS] Ayarlandı: {onceki} -> {yeni} (hedef={hedefBahis}), precompute önbelleği temizlendi.");
+            return true;
+        }
+        Debug.Log($"[BAHIS] Hedef={hedefBahis}, sonuc={yeni} (değişiklik yok — clamp olabilir, bahisMax={bahisMax}).");
+        return false;
     }
     public bool AdminMaxScatterPerSpinAyarla(int hedef)
     {

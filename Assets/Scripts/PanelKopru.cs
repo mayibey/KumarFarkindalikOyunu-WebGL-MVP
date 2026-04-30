@@ -199,17 +199,23 @@ public class PanelKopru : MonoBehaviour
                 break;
 
             case "bahisSec":
+                Debug.Log($"[PanelKopru] BAHIS HTML panelden geldi: ham_deger='{deger}'");
                 if (int.TryParse(deger, out int bahisMiktari) && bahisMiktari > 0)
                 {
+                    Debug.Log($"[PanelKopru] BAHIS parse_sonuc={bahisMiktari}, AdminBahisAyarla çağrılıyor...");
                     if (_oy != null)
                     {
                         bool ok = _oy.AdminBahisAyarla(bahisMiktari);
-                        Debug.Log("[PanelKopru] Bahis HTML panelden ayarlandı: " + bahisMiktari + " (sonuç=" + ok + ")");
+                        Debug.Log($"[PanelKopru] AdminBahisAyarla sonuc={ok} (true=değişti+önbellek temizlendi, false=clamp/aynı)");
                     }
                     else
                     {
                         Debug.LogWarning("[PanelKopru] _oy null, bahis ayarlanamadı: " + bahisMiktari);
                     }
+                }
+                else
+                {
+                    Debug.LogWarning($"[PanelKopru] BAHIS parse hatası: '{deger}' geçersiz");
                 }
                 break;
 
