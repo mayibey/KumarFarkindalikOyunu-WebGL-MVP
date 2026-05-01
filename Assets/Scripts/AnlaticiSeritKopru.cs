@@ -49,7 +49,17 @@ public class AnlaticiSeritKopru : MonoBehaviour
 
     public static AnlaticiSeritKopru Ornek => _ornek;
 
-    void Awake() { _ornek = this; }
+    void Awake()
+    {
+        string aktifSahne = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        if (aktifSahne != "03_SenaryoluOyun")
+        {
+            Debug.Log("[AnlaticiSeritKopru] Aktif sahne " + aktifSahne + ", anlatici devre disi.");
+            gameObject.SetActive(false);
+            return;
+        }
+        _ornek = this;
+    }
     void OnDestroy() { if (_ornek == this) _ornek = null; }
 
     void Start()
