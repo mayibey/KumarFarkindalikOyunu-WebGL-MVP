@@ -1,0 +1,8 @@
+﻿# Test Tarihi;2026-04-29 22:33:28
+# Toplam Süre (sn);3,9
+# Spin Sayisi;30
+# Bahis;100
+# Bakiye;10000
+
+Senaryo;Spin;ToplamBahis;ToplamKazanc;NetKar;RTP%;CarpanDus%;ClusterPatla%;BonusTetik;MaxKazanc;MaxArdKayip;MaxArdKazanc;KacisTetik;OrtSureMs
+0. Normal Oyun;1000;100000;212150;112150;212,2;10,4;31,5;22;30780;13;6;0;0,1

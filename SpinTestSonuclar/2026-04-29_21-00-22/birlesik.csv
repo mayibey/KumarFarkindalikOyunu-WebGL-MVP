@@ -1,0 +1,121 @@
+﻿Senaryo;SpinNo;Bahis;Odenen;CarpanDeger;Bonus;Kategori;SpinTipi
+"0. Normal Oyun";1;100;20;0;False;Normal;Normal
+"0. Normal Oyun";2;100;40;0;False;Normal;Normal
+"0. Normal Oyun";3;100;0;0;False;Normal;Normal
+"0. Normal Oyun";4;100;440;0;False;BigWin;Normal
+"0. Normal Oyun";5;100;0;0;False;Normal;Normal
+"0. Normal Oyun";6;100;30;0;False;Normal;Normal
+"0. Normal Oyun";7;100;0;0;False;Normal;Normal
+"0. Normal Oyun";8;100;0;0;False;Normal;Normal
+"0. Normal Oyun";9;100;0;0;False;Normal;Normal
+"0. Normal Oyun";10;100;0;0;False;Normal;Normal
+"0. Normal Oyun";11;100;20;0;False;Normal;Normal
+"0. Normal Oyun";12;100;0;0;False;Normal;Normal
+"0. Normal Oyun";13;100;200;0;False;BigWin;Normal
+"0. Normal Oyun";14;100;0;0;False;Normal;Normal
+"0. Normal Oyun";15;100;0;0;False;Normal;Normal
+"0. Normal Oyun";16;100;80;0;False;Normal;Normal
+"0. Normal Oyun";17;100;60;0;False;Normal;Normal
+"0. Normal Oyun";18;100;0;0;False;Normal;Normal
+"0. Normal Oyun";19;100;0;0;False;Normal;Normal
+"0. Normal Oyun";20;100;0;0;False;Normal;Normal
+"0. Normal Oyun";21;100;0;0;False;Normal;Normal
+"0. Normal Oyun";22;100;0;0;False;Normal;Normal
+"0. Normal Oyun";23;100;0;0;False;Normal;Normal
+"0. Normal Oyun";24;100;50;0;False;Normal;Normal
+"0. Normal Oyun";25;100;0;0;False;Normal;Normal
+"0. Normal Oyun";26;100;0;0;False;Normal;Normal
+"0. Normal Oyun";27;100;0;0;False;Normal;Normal
+"0. Normal Oyun";28;100;0;0;False;Normal;Normal
+"0. Normal Oyun";29;100;0;0;False;Normal;Normal
+"0. Normal Oyun";30;100;0;0;False;Normal;Normal
+"1. Alıştırma";1;100;500;5;False;MegaWin;Normal
+"1. Alıştırma";2;100;500;0;False;MegaWin;Normal
+"1. Alıştırma";3;100;500;0;False;MegaWin;Normal
+"1. Alıştırma";4;100;500;0;False;MegaWin;Normal
+"1. Alıştırma";5;100;400;2;False;BigWin;Normal
+"1. Alıştırma";6;100;500;0;False;MegaWin;Normal
+"1. Alıştırma";7;100;500;0;False;MegaWin;Normal
+"1. Alıştırma";8;100;420;5;False;BigWin;Normal
+"1. Alıştırma";9;100;500;5;False;MegaWin;Normal
+"1. Alıştırma";10;100;480;3;False;BigWin;Normal
+"1. Alıştırma";11;100;450;3;False;BigWin;Normal
+"1. Alıştırma";12;100;500;0;False;MegaWin;Normal
+"1. Alıştırma";13;100;440;2;False;BigWin;Normal
+"1. Alıştırma";14;100;500;5;False;MegaWin;Normal
+"1. Alıştırma";15;100;420;2;False;BigWin;Normal
+"1. Alıştırma";16;100;500;0;False;MegaWin;Normal
+"1. Alıştırma";17;100;400;5;False;BigWin;Normal
+"1. Alıştırma";18;100;420;3;False;BigWin;Normal
+"1. Alıştırma";19;100;500;2;False;MegaWin;Normal
+"1. Alıştırma";20;100;400;2;False;BigWin;Normal
+"1. Alıştırma";21;100;500;0;False;MegaWin;Normal
+"1. Alıştırma";22;100;500;0;False;MegaWin;Normal
+"1. Alıştırma";23;100;500;0;False;MegaWin;Normal
+"1. Alıştırma";24;100;500;3;False;MegaWin;Normal
+"1. Alıştırma";25;100;500;0;False;MegaWin;Normal
+"1. Alıştırma";26;100;500;0;False;MegaWin;Normal
+"1. Alıştırma";27;100;500;0;False;MegaWin;Normal
+"1. Alıştırma";28;100;500;0;False;MegaWin;Normal
+"1. Alıştırma";29;100;500;0;False;MegaWin;Normal
+"1. Alıştırma";30;100;400;0;False;BigWin;Normal
+"2. Biraz Kazandıralım";1;100;500;0;False;MegaWin;Normal
+"2. Biraz Kazandıralım";2;100;600;3;False;MegaWin;Normal
+"2. Biraz Kazandıralım";3;100;650;0;False;MegaWin;Normal
+"2. Biraz Kazandıralım";4;100;500;0;False;MegaWin;Normal
+"2. Biraz Kazandıralım";5;100;620;2;False;MegaWin;Normal
+"2. Biraz Kazandıralım";6;100;330;0;False;BigWin;Normal
+"2. Biraz Kazandıralım";7;100;500;0;False;MegaWin;Normal
+"2. Biraz Kazandıralım";8;100;500;0;False;MegaWin;Normal
+"2. Biraz Kazandıralım";9;100;300;0;False;BigWin;Normal
+"2. Biraz Kazandıralım";10;100;500;2;False;MegaWin;Normal
+"2. Biraz Kazandıralım";11;100;500;0;False;MegaWin;Normal
+"2. Biraz Kazandıralım";12;100;500;0;False;MegaWin;Normal
+"2. Biraz Kazandıralım";13;100;300;0;False;BigWin;Normal
+"2. Biraz Kazandıralım";14;100;600;3;False;MegaWin;Normal
+"2. Biraz Kazandıralım";15;100;300;0;False;BigWin;Normal
+"2. Biraz Kazandıralım";16;100;500;0;False;MegaWin;Normal
+"2. Biraz Kazandıralım";17;100;400;2;False;BigWin;Normal
+"2. Biraz Kazandıralım";18;100;330;0;False;BigWin;Normal
+"2. Biraz Kazandıralım";19;100;300;3;False;BigWin;Normal
+"2. Biraz Kazandıralım";20;100;340;0;False;BigWin;Normal
+"2. Biraz Kazandıralım";21;100;500;0;False;MegaWin;Normal
+"2. Biraz Kazandıralım";22;100;560;5;False;MegaWin;Normal
+"2. Biraz Kazandıralım";23;100;330;0;False;BigWin;Normal
+"2. Biraz Kazandıralım";24;100;750;3;False;MegaWin;Normal
+"2. Biraz Kazandıralım";25;100;750;2;False;MegaWin;Normal
+"2. Biraz Kazandıralım";26;100;500;5;False;MegaWin;Normal
+"2. Biraz Kazandıralım";27;100;300;5;False;BigWin;Normal
+"2. Biraz Kazandıralım";28;100;450;3;False;BigWin;Normal
+"2. Biraz Kazandıralım";29;100;300;0;False;BigWin;Normal
+"2. Biraz Kazandıralım";30;100;500;0;False;MegaWin;Normal
+"3. Biraz Kaybettirelim";1;100;40;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";2;100;40;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";3;100;50;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";4;100;30;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";5;100;30;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";6;100;30;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";7;100;0;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";8;100;20;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";9;100;0;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";10;100;40;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";11;100;0;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";12;100;40;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";13;100;0;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";14;100;60;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";15;100;60;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";16;100;50;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";17;100;60;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";18;100;40;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";19;100;30;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";20;100;0;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";21;100;50;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";22;100;20;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";23;100;0;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";24;100;0;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";25;100;20;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";26;100;40;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";27;100;30;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";28;100;60;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";29;100;30;0;False;Normal;Normal
+"3. Biraz Kaybettirelim";30;100;0;0;False;Normal;Normal
