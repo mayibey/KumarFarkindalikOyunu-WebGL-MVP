@@ -419,7 +419,7 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
         // Çok düşük saha değerlerinde tumble dolumu okunaklı kalsın.
         temel = bonusAktif ? Mathf.Max(0.58f, temel) : Mathf.Max(0.62f, temel);
         // Sadece admin sahnesinde otomatik spin sırasında meyve düşüşünü biraz yavaşlat.
-        if (_otomatikSpinKalan > 0 && SceneManager.GetActiveScene().name == "03_AdminOyunScene")
+        if (_otomatikSpinKalan > 0 && SceneManager.GetActiveScene().name == "04_AdminOyunScene")
             return temel * 1.35f;
         return temel;
     }
@@ -1085,7 +1085,7 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
 
     IEnumerator AdminButonBaglamaGecikmeli()
     {
-        if (SceneManager.GetActiveScene().name != "03_AdminOyunScene")
+        if (SceneManager.GetActiveScene().name != "04_AdminOyunScene")
             yield break;
         // Geç çalışan scriptler listenerları ezebiliyor; birkaç kare sonra tekrar bağla.
         yield return null;
@@ -1100,7 +1100,7 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
 
     void Sahne3GirisDonButonunuOverlayOlustur()
     {
-        if (SceneManager.GetActiveScene().name != "03_AdminOyunScene")
+        if (SceneManager.GetActiveScene().name != "04_AdminOyunScene")
             return;
 
         // Eski overlay geri dön butonunu tamamen kaldır.
@@ -1139,7 +1139,7 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
 
     void UygulaAdminSahneButonHoverBuyutme()
     {
-        if (SceneManager.GetActiveScene().name != "03_AdminOyunScene")
+        if (SceneManager.GetActiveScene().name != "04_AdminOyunScene")
             return;
 
         var tumButonlar = FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None);
@@ -1164,7 +1164,7 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
     void AdminHosgeldinizMetniniAyarla()
     {
         string sahneAdi = SceneManager.GetActiveScene().name;
-        bool adminSahnesi = sahneAdi == "03_AdminOyunScene" || sahneAdi == "06_AdminOyunKopya";
+        bool adminSahnesi = sahneAdi == "04_AdminOyunScene" || sahneAdi == "03_SenaryoluOyun";
         if (!adminSahnesi)
             return;
 
@@ -1199,7 +1199,7 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
 
     void AdminSifirlaButonunuBagla()
     {
-        if (SceneManager.GetActiveScene().name != "03_AdminOyunScene")
+        if (SceneManager.GetActiveScene().name != "04_AdminOyunScene")
             return;
 
         var tumButonlar = FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None);
@@ -1446,14 +1446,14 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
     void AdminAyarButonlariniBagla()
     {
         string aktifSahne = SceneManager.GetActiveScene().name;
-        bool adminSahnesi = aktifSahne == "03_AdminOyunScene" || aktifSahne == "06_AdminOyunKopya";
+        bool adminSahnesi = aktifSahne == "04_AdminOyunScene" || aktifSahne == "03_SenaryoluOyun";
         if (!adminSahnesi)
             return;
 
         _adminAyarPanelKok = AdminSettingsPanelKokunuBul();
-        // 06_AdminOyunKopya'da AyarlarButton, sahnede PanelKopru.AyarlarButonunaBasildi'ye bağlı;
+        // 03_SenaryoluOyun (ana oyun) sahnesinde AyarlarButton, PanelKopru.AyarlarButonunaBasildi'ye bağlı;
         // RemoveAllListeners() o bağlamı sileceğinden bu sahnede dokunmuyoruz.
-        if (aktifSahne != "06_AdminOyunKopya")
+        if (aktifSahne != "03_SenaryoluOyun")
         {
             var ayarlarBtn = GameObject.Find("AyarlarButton")?.GetComponent<Button>();
             if (ayarlarBtn != null)
@@ -1694,7 +1694,7 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
     void UygulaSenaryo2TamEkranArkaPlan()
     {
         string sahneAdi = SceneManager.GetActiveScene().name;
-        if (sahneAdi != "02_SenaryoluOyun" && sahneAdi != "03_AdminOyunScene")
+        if (sahneAdi != "03_SenaryoluOyun" && sahneAdi != "04_AdminOyunScene")
             return;
 
         Sprite bg = Resources.Load<Sprite>("arkaplan");
@@ -1761,7 +1761,7 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
 
     void Sahne2TumButonlaraHoverBuyutmeEkle()
     {
-        if (SceneManager.GetActiveScene().name != "02_SenaryoluOyun")
+        if (SceneManager.GetActiveScene().name != "03_SenaryoluOyun")
             return;
 
         Button[] butonlar = FindObjectsOfType<Button>(true);

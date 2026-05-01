@@ -288,7 +288,7 @@ public partial class OyunYoneticisi
     private static bool AdminOyunSahnesiMi()
     {
         string sn = SceneManager.GetActiveScene().name;
-        return sn == "03_AdminOyunScene" || sn == "06_AdminOyunKopya";
+        return sn == "04_AdminOyunScene";
     }
     private void AdminVideoArdisikKazancSayaciniGuncelle()
     {

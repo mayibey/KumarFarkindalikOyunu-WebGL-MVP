@@ -2723,7 +2723,7 @@ MonoBehaviour:
   misafirButton: {fileID: 1916990393}
   modalCanvasGroup: {fileID: 1390558478}
   modalPanel: {fileID: 1390558476}
-  hedefSahne: 06_AdminOyunKopya
+  hedefSahne: 03_SenaryoluOyun
   fadeSuresi: 0.4
 --- !u!225 &1390558478
 CanvasGroup:

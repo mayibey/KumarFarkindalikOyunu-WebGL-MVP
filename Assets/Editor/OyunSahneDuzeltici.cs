@@ -6,8 +6,8 @@ using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// Kumar / Sahne → 06 Duzenle menüsünden çalıştır.
-/// Sahne 06_AdminOyunKopya açıkken çalıştırılmalı.
+/// Kumar / Sahne → 04 Duzenle menüsünden çalıştır.
+/// Sahne 04_AdminOyunScene açıkken çalıştırılmalı.
 /// </summary>
 public static class OyunSahneDuzeltici
 {

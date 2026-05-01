@@ -177,7 +177,7 @@ public class GameManager : MonoBehaviour
 
     void SahneYuklendi(Scene sahne, LoadSceneMode mod)
     {
-        if (sahne.name == "02_SenaryoluOyun" && ActivePlayer != null)
+        if (sahne.name == "03_SenaryoluOyun" && ActivePlayer != null)
         {
             // Oturum snapshot'ı sahne yüklendikten sonra yap (SenaryoYoneticisi boş logu yüklesin diye önce temizledik)
             _oturumBaslangicSpins = ActivePlayer.totalSpins;
@@ -302,7 +302,7 @@ public class GameManager : MonoBehaviour
     // ==== SAHNE ====
     public void LoadScene(string sceneName)
     {
-        if (sceneName == "02_SenaryoluOyun" && ActivePlayer != null)
+        if (sceneName == "03_SenaryoluOyun" && ActivePlayer != null)
             YeniOturumBaslat();
         SceneManager.LoadScene(sceneName);
     }

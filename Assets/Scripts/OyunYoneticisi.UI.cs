@@ -947,9 +947,9 @@ public partial class OyunYoneticisi
     private void IstatistikButonTiklandi()
     {
         if (GameManager.I != null)
-            GameManager.I.LoadScene("04_LogScane");
+            GameManager.I.LoadScene("05_LogScane");
         else
-            UnityEngine.SceneManagement.SceneManager.LoadScene("04_LogScane", UnityEngine.SceneManagement.LoadSceneMode.Single);
+            UnityEngine.SceneManagement.SceneManager.LoadScene("05_LogScane", UnityEngine.SceneManagement.LoadSceneMode.Single);
     }
 
 
@@ -958,9 +958,9 @@ public partial class OyunYoneticisi
         AdminGirisDogrulama.Ac(() =>
         {
             if (GameManager.I != null)
-                GameManager.I.LoadScene("03_AdminOyunScene");
+                GameManager.I.LoadScene("04_AdminOyunScene");
             else
-                UnityEngine.SceneManagement.SceneManager.LoadScene("03_AdminOyunScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
+                UnityEngine.SceneManagement.SceneManager.LoadScene("04_AdminOyunScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
         });
     }
 

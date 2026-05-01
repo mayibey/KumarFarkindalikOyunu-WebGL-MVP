@@ -13,7 +13,7 @@ public class LogEkrani : MonoBehaviour
     private static LogEkrani _instance;
 
     const string GIRIS_SAHNE = "01_GirisScene";
-    const string OYUN_SAHNE  = "06_AdminOyunKopya";
+    const string OYUN_SAHNE  = "03_SenaryoluOyun";
 
     // ── Statik giriş noktası ────────────────────────────────────────
     public static void Ac()

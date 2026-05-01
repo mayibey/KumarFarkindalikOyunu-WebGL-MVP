@@ -217,7 +217,7 @@ public partial class OyunYoneticisi
             SetGlobalTiklamaKilidi(false);
             _otomatikSpinKalan--;
             // Sadece sahne 3'te auto spin sırasında spinler arası ekstra nefes ver.
-            if (_otomatikSpinKalan > 0 && SceneManager.GetActiveScene().name == "03_AdminOyunScene")
+            if (_otomatikSpinKalan > 0 && SceneManager.GetActiveScene().name == "04_AdminOyunScene")
                 yield return new WaitForSeconds(0.22f);
         }
         // Bonus tetiklenince döngüden çıkıyoruz; kalan sayıyı SIFIRLAMA ki panel 5 sn kapansın ve bonus bitince spin devam etsin.

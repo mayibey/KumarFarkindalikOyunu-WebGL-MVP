@@ -55,7 +55,7 @@ public class OrtakArkaPlanUygulayici : MonoBehaviour
     {
         // Admin sahnesinde doğrudan ana canvas arka planını hedefle.
         string sn = SceneManager.GetActiveScene().name;
-        if (sn == "03_AdminOyunScene" || sn == "06_AdminOyunKopya")
+        if (sn == "04_AdminOyunScene")
         {
             Image adminArkaPlan = AdminCanvasArkaPlanImageBul();
             if (adminArkaPlan != null) return adminArkaPlan;

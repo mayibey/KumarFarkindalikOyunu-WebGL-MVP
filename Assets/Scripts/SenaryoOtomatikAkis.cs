@@ -34,7 +34,7 @@ public class SenaryoOtomatikAkis : MonoBehaviour
             return;
         }
         string sahne = SceneManager.GetActiveScene().name;
-        if (sahne != "06_AdminOyunKopya") return;
+        if (sahne != "03_SenaryoluOyun") return;
         var go = new GameObject("[OturumHUD]");
         DontDestroyOnLoad(go);
         go.AddComponent<SenaryoOtomatikAkis>();

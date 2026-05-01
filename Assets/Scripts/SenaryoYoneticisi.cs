@@ -884,7 +884,7 @@ public class SenaryoYoneticisi : MonoBehaviour
                 GameManager.I.ActivePlayer.balance = mevcutBakiye;
                 GameManager.SaveProfiles(GameManager.I.Profiles);
             }
-            GameManager.I.LoadScene("04_LogScane");
+            GameManager.I.LoadScene("05_LogScane");
         }
     }
 

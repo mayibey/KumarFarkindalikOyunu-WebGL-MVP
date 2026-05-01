@@ -292,7 +292,7 @@ public class SpinTestAraci : EditorWindow
             return;
         }
 
-        string sahneYolu = "Assets/Scenes/06_AdminOyunKopya.unity";
+        string sahneYolu = "Assets/Scenes/03_SenaryoluOyun.unity";
         if (!File.Exists(sahneYolu))
         {
             EditorUtility.DisplayDialog("Spin Test", $"Test sahnesi bulunamadı: {sahneYolu}", "Tamam");

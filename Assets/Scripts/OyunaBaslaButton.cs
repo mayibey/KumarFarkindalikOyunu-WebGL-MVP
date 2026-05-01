@@ -5,7 +5,7 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Button))]
 public class OyunaBaslaButton : MonoBehaviour
 {
-    [SerializeField] private string hedefSahne = "06_AdminOyunKopya";
+    [SerializeField] private string hedefSahne = "03_SenaryoluOyun";
 
     void Awake()
     {
