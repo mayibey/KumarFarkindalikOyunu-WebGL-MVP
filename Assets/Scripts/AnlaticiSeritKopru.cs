@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
@@ -20,6 +21,8 @@ public class AnlaticiSeritKopru : MonoBehaviour
     private int _toplamSpin = 0;
     private long _baslangicBakiye = 0;
     private int _sonUygulananAsama = -1; // YENI: aşama değişimi tespiti için
+    private long _sonBakiye = 50000; // bir önceki spin sonu bakiye — spin başına net delta için
+    private readonly List<int> _asamaSpinNet = new List<int>(); // mevcut aşamadaki spin başına net (+/-) TL
     private const int SPIN_PER_ASAMA = 10;
     private const int BASLANGIC_BAKIYE = 50000;
     private static AnlaticiSeritKopru _ornek;
@@ -80,6 +83,8 @@ public class AnlaticiSeritKopru : MonoBehaviour
         // Bakiye 50.000 TL'ye reset
         _oy.AnlaticiBakiyeyiSifirla(BASLANGIC_BAKIYE);
         _baslangicBakiye = BASLANGIC_BAKIYE;
+        _sonBakiye = BASLANGIC_BAKIYE;
+        _asamaSpinNet.Clear();
 
         AsamayiUygula(0);
 
@@ -100,6 +105,13 @@ public class AnlaticiSeritKopru : MonoBehaviour
     /// <summary>OyunYoneticisi.Spin spin tamamlandıktan sonra çağırır.</summary>
     public void SpinAtildi()
     {
+        // Bu spin'in net kazanç/kaybı: spin sonrası bakiye - spin öncesi bakiye
+        // (NormalSpinAkisi tamamlandıktan sonra çağrılır → bakiye güncel)
+        long simdikiBakiye = _oy != null ? _oy.BahisPanelMevcutBakiye() : _sonBakiye;
+        int spinNet = (int)(simdikiBakiye - _sonBakiye);
+        _sonBakiye = simdikiBakiye;
+        _asamaSpinNet.Add(spinNet);
+
         _aktifSpin++;
         _toplamSpin++;
 
@@ -107,14 +119,17 @@ public class AnlaticiSeritKopru : MonoBehaviour
         {
             if (_aktifAsama < 6)
             {
+                // Önce 10. spin çubuğunu rengiyle göster (HTML render)
+                Guncelle();
                 _aktifAsama++;
                 _aktifSpin = 0;
+                _asamaSpinNet.Clear(); // yeni aşama, çubuklar sıfırlansın
                 AsamayiUygula(_aktifAsama);
             }
             else
             {
+                Guncelle(); // 10. çubuğu son aşamada da göster
                 Tukenis();
-                Guncelle();
                 return;
             }
         }
@@ -165,10 +180,12 @@ public class AnlaticiSeritKopru : MonoBehaviour
         if (_oy == null) return;
         long bakiye = _oy.BahisPanelMevcutBakiye();
         long net = bakiye - _baslangicBakiye;
+        string spinNetJson = "[" + string.Join(",", _asamaSpinNet.ConvertAll(n => n.ToString())) + "]";
         string json = "{\"asama\":" + _aktifAsama +
                       ",\"spin\":" + _aktifSpin +
                       ",\"bakiyeNet\":" + net +
-                      ",\"toplamSpin\":" + _toplamSpin + "}";
+                      ",\"toplamSpin\":" + _toplamSpin +
+                      ",\"spinNetleri\":" + spinNetJson + "}";
 #if UNITY_WEBGL && !UNITY_EDITOR
         AnlaticiPaneliGuncelle(json);
 #endif
@@ -192,6 +209,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
         if (yeniAsama < 0 || yeniAsama > 6) return;
         _aktifAsama = yeniAsama;
         _aktifSpin = 0;
+        _asamaSpinNet.Clear(); // manuel aşama değişiminde de çubuklar sıfır
         AsamayiUygula(yeniAsama);
         Guncelle();
     }
@@ -212,12 +230,14 @@ public class AnlaticiSeritKopru : MonoBehaviour
         _aktifSpin = 0;
         _toplamSpin = 0;
         _sonUygulananAsama = -1; // KRİTİK: yeniAsama=true olsun, bahis 100'e tekrar set
+        _sonBakiye = BASLANGIC_BAKIYE;
+        _asamaSpinNet.Clear();
 
         // 3. Aşama 1 zorla uygula (egilim 100, maxCarpan 2x, otomatik bahis 100)
         AsamayiUygula(0);
 
         // 4. HTML panele "tukenisKapat" + tüm state'i tek JSON'la gönder
-        string json = "{\"asama\":0,\"spin\":0,\"bakiyeNet\":0,\"toplamSpin\":0,\"tukenisKapat\":true}";
+        string json = "{\"asama\":0,\"spin\":0,\"bakiyeNet\":0,\"toplamSpin\":0,\"spinNetleri\":[],\"tukenisKapat\":true}";
 #if UNITY_WEBGL && !UNITY_EDITOR
         AnlaticiPaneliGuncelle(json);
 #endif
