@@ -27,8 +27,9 @@ public class AnlaticiSeritKopru : MonoBehaviour
     private const int BASLANGIC_BAKIYE = 50000;
     private static AnlaticiSeritKopru _ornek;
 
-    /// <summary>Aşama bazlı önerilen bahis (yeniAsama geçişinde set edilir, kullanıcı sonra manuel değiştirebilir).</summary>
-    private static readonly int[] _onerilenBahisler = new int[] { 100, 200, 500, 1000, 2000, 1000, 500 };
+    /// <summary>Aşama bazlı önerilen bahis (yeniAsama geçişinde set edilir, kullanıcı sonra manuel değiştirebilir).
+    /// Garantili 70 spin tükeniş eğrisi: 50.000 TL → 0 TL (Asama 1-2 cömert, 3-4 geri çekiliş, 5-7 tükeniş).</summary>
+    private static readonly int[] _onerilenBahisler = new int[] { 500, 1000, 1000, 2000, 3000, 2000, 1500 };
 
     [System.Serializable]
     public class AsamaAyari
@@ -41,13 +42,13 @@ public class AnlaticiSeritKopru : MonoBehaviour
     // Egilim 0-100 arası clamp'lenir (motor üst sınırı). Kazandırma maxCarpan ile yapılır.
     private static readonly AsamaAyari[] _asamalar = new AsamaAyari[]
     {
-        new AsamaAyari { egilim = 100, maxCarpani = 2.0f, nearMiss = false }, // 1 Isındırma — çok kazandır
-        new AsamaAyari { egilim = 100, maxCarpani = 1.5f, nearMiss = false }, // 2 Kontrol — biraz kazandır
-        new AsamaAyari { egilim = 70,  maxCarpani = 1.0f, nearMiss = true  }, // 3 Geri kazanma
-        new AsamaAyari { egilim = 30,  maxCarpani = 0.5f, nearMiss = true  }, // 4 Şansın döndü
-        new AsamaAyari { egilim = 20,  maxCarpani = 0.3f, nearMiss = true  }, // 5 Sonunu düşünmeyen
-        new AsamaAyari { egilim = 15,  maxCarpani = 0.2f, nearMiss = true  }, // 6 Para bulmalıyım
-        new AsamaAyari { egilim = 10,  maxCarpani = 0.1f, nearMiss = true  }  // 7 Tükeniş
+        new AsamaAyari { egilim = 95, maxCarpani = 4.0f, nearMiss = false }, // 1 Isındırma ve Umut — çarpıcı kazanç
+        new AsamaAyari { egilim = 90, maxCarpani = 3.0f, nearMiss = false }, // 2 Kontrol Bende Hissi — bol kazanç
+        new AsamaAyari { egilim = 50, maxCarpani = 1.0f, nearMiss = true  }, // 3 Geri Kazanabilirim
+        new AsamaAyari { egilim = 25, maxCarpani = 0.5f, nearMiss = true  }, // 4 Şansın Döndü
+        new AsamaAyari { egilim = 15, maxCarpani = 0.3f, nearMiss = true  }, // 5 Sonu Düşünmeyen Kahraman
+        new AsamaAyari { egilim = 15, maxCarpani = 0.2f, nearMiss = true  }, // 6 Başka Yerden Para Bulmalıyım
+        new AsamaAyari { egilim = 5,  maxCarpani = 0.1f, nearMiss = true  }  // 7 Tükeniş
     };
 
     public static AnlaticiSeritKopru Ornek => _ornek;
@@ -154,6 +155,25 @@ public class AnlaticiSeritKopru : MonoBehaviour
             // (maxOdeme = bahis × maxCarpan formülü güncel bahisle hesaplansın)
             AsamayiUygula(_aktifAsama);
         }
+
+        // Bakiye yetersizse Aşama 7 (Tükeniş) zorla atlanır — 10 spin tamamlanması beklenmez.
+        if (_oy != null && _aktifAsama < 6)
+        {
+            int simdiBakiye = (int)_oy.BahisPanelMevcutBakiye();
+            int sonrakiBahis = _onerilenBahisler[Mathf.Clamp(_aktifAsama, 0, _onerilenBahisler.Length - 1)];
+            if (simdiBakiye < sonrakiBahis)
+            {
+                Debug.Log($"[Anlatici] Bakiye yetersiz ({simdiBakiye} < {sonrakiBahis}), Aşama 7 (Tükeniş) zorla atlanıyor.");
+                _aktifAsama = 6;
+                _aktifSpin = 0;
+                _sonUygulananAsama = -1;
+                _asamaSpinNet.Clear();
+                AsamayiUygula(6);
+                Tukenis();
+                return;
+            }
+        }
+
         Guncelle();
     }
 
