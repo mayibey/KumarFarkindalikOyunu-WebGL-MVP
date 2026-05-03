@@ -74,6 +74,21 @@ public class AnlaticiSeritKopru : MonoBehaviour
             return;
         }
 
+        // KRİTİK: Eski admin senaryo preset'leri (Senaryo 1-5) Anlatıcı manipülasyonunu BYPASS ediyor.
+        // Anlatıcı sahnesinde manipülasyonu Anlatıcı yönetir → Normal Oyun moduna geçir
+        // (_senaryoPresetAktif=false, _aktifAdminSenaryoIndex=-1, policy reset, cache temizle).
+        // AdminSetOdemeEgilimi/AdminSetMaxOdeme çağrıları sonrasında AdminNormalOyunUygula'nın
+        // default değerleri (eğilim 65, max 0) anlatıcı profilinin üstüne yazılır.
+        try
+        {
+            _oy.AdminNormalOyunUygula();
+            Debug.Log("[Anlatici] AdminNormalOyunUygula çağrıldı: eski senaryo preset'leri devre dışı.");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("[Anlatici] AdminNormalOyunUygula hatası: " + e.Message);
+        }
+
         // Eğitim aracı: her sahne girişinde sıfırdan başla
         _aktifAsama = 0;
         _aktifSpin = 0;
