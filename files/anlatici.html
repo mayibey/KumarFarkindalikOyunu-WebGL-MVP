@@ -166,25 +166,25 @@
       arka: "İlk gerçek kayıp dalgası başladı. Sistem oyuncudan aldıklarını geri vermiyor — verecek de değil. Oyuncu \"telafi etmeliyim\" düşüncesiyle bahisleri yükseltiyor. Sistem tam bunu bekliyordu.",
       kafa: "\"Az önce kaybettiklerimi bir geri kazanayım, çıkayım. Sadece o kadar.\"",
       bilim: "Kayıp Kovalama — kayıp duygusu kazanç umudundan iki kat güçlüdür.",
-      rozetler: [{text:"Geri ödeme: %~75",tip:"warn"},{text:"Tavan: bahsin 1×'i",tip:"warn"},{text:"Şans: nispeten düşük",tip:"warn"}],
+      rozetler: [{text:"Geri ödeme: %~75",tip:"warn"},{text:"Tavan: bahsin 1×'i",tip:"warn"},{text:"Şans: dengeli",tip:"warn"}],
       bakiyeRengi: "kayip", bakiyeBaglam: "Telafi etmek için bahis 2 katına çıkacak — kayıp da öyle." },
     { isim: "Şansın Döndü",
       arka: "Sistem oyuncuyu artık kasıtlı kaybettiriyor. Yatırılan paranın sadece küçük bir kısmı geri dönüyor. Ekrana sürekli \"az kalmıştı\" sembolleri geliyor — ama bu görsel bir tuzak. Hiçbir spin gerçek kazanç vermeyecek.",
       kafa: "\"Bir tane daha. Az kalmıştı. Bu sefer kesin tutar — şansım dönüyor.\"",
       bilim: "Yakın Kayıp Yanılgısı — beyin yaklaşan kazançla gerçek kazancı ayırt edemez.",
-      rozetler: [{text:"Geri ödeme: %~35",tip:"kayip"},{text:"Tavan: bahsin 0.5×'i",tip:"kayip"},{text:"Şans: çok düşük",tip:"warn"}],
+      rozetler: [{text:"Geri ödeme: %~40",tip:"kayip"},{text:"Tavan: bahsin 0.6×'i",tip:"kayip"},{text:"Şans: düşük",tip:"warn"}],
       bakiyeRengi: "kayip", bakiyeBaglam: "Kayıp dakikada hızlandı. Oyuncu fark etmiyor." },
     { isim: "Sonunu Düşünen Kahraman Olamaz",
       arka: "Oyuncu mantığı bıraktı. Bahisleri agresifce yükseltiyor, \"bu sefer büyük kazanırım\" diye düşünüyor. Sistem bu davranışı bekliyordu — yüksek bahisli spinlerde kayıp katlanır. Bilinçli karar yok artık, sadece refleks.",
       kafa: "\"Yarısı gitti zaten, gerisini de koyayım. Geri çıkmazsa bana ne kalır ki?\"",
       bilim: "Batık Maliyet Yanılgısı — geçmiş kayıp gelecek kararı bozar.",
-      rozetler: [{text:"Geri ödeme: %~20",tip:"kayip"},{text:"Tavan: bahsin 0.3×'i",tip:"kayip"},{text:"Şans: minimal",tip:"kayip"}],
+      rozetler: [{text:"Geri ödeme: %~20",tip:"kayip"},{text:"Tavan: bahsin 0.4×'i",tip:"kayip"},{text:"Şans: minimal",tip:"kayip"}],
       bakiyeRengi: "kayip", bakiyeBaglam: "Toplam kayıp birikiyor. Oyuncu hâlâ duramıyor." },
     { isim: "Başka Bir Yerden Para Bulmalıyım",
       arka: "Bakiye bitti. Oyuncu \"bonus satın al\" butonuna saldırıyor, kredi kartı ekleyip yeni bakiye alıyor. Borca girdi, eve haber vermiyor, başkalarından para istiyor. Oyun dışı zarar başladı — borç, gizlilik, ilişkilerde çatlak.",
       kafa: "\"Bir kredi çekersem, son bir hamle yaparım, hem borç biter hem yeniden başlarım.\"",
       bilim: "Çaresizlik Tepkisi — beyin uzun vadeli sonucu hesaplayamaz hale gelir.",
-      rozetler: [{text:"Geri ödeme: %~15",tip:"kayip"},{text:"Tavan: bahsin 0.2×'i",tip:"kayip"},{text:"Şans: tükenmiş",tip:"kayip"}],
+      rozetler: [{text:"Geri ödeme: %~15",tip:"kayip"},{text:"Tavan: bahsin 0.3×'i",tip:"kayip"},{text:"Şans: tükenmiş",tip:"kayip"}],
       bakiyeRengi: "kayip", bakiyeBaglam: "Kart limitine bonus eklendi. Borç başladı." },
     { isim: "Tükeniş",
       arka: "Sistem son hamleyi yapıyor. Hiç kazanç vermez oldu, ne yaparsa yapsın oyuncu kaybeder. Para bitti, kredi tükendi, eve borç birikti. Oyuncu artık \"bağımlı\" — dur diyemez, oyun zaten kazanmış durumda.",
@@ -194,6 +194,10 @@
       bakiyeRengi: "kayip", bakiyeBaglam: "Bu, ortalama bir maaşın katlarına ulaştı." }
   ];
   var aktifAsama = 0, aktifSpin = 0, SPIN_PER_ASAMA = 10, bakiyeNet = 0, toplamSpin = 0;
+  // Aşama spin eşiği (Unity → JSON state.hedefSpin). Aşama 7 = 999 (dinamik tükeniş), görsel max 10.
+  var ASAMA_SPIN_HEDEF = [10, 10, 8, 8, 10, 10, 999];
+  var hedefSpin = 10;
+  var ASAMA7_GORSEL_MAX = 10;
   var spinNetleri = []; // mevcut aşamadaki spin başına net (+/-) TL
 
   function bildirBoyut() {
@@ -221,9 +225,14 @@
       rozHtml += '<span class="' + cls + '">' + r.text + '</span>';
     });
     document.getElementById('rozetler').innerHTML = rozHtml;
-    document.getElementById('spinSayac').textContent = aktifSpin + ' / ' + SPIN_PER_ASAMA;
+    // hedefSpin lokal aktif aşamadan array ile (manuel atla'da Unity onayını beklemez). Aşama 7 (999) → görsel max 10 çubuk.
+    var asamaIdx = Math.max(0, Math.min(6, aktifAsama));
+    var asamaHedef = ASAMA_SPIN_HEDEF[asamaIdx] || 10;
+    var gorselHedef = asamaHedef > 20 ? ASAMA7_GORSEL_MAX : asamaHedef;
+    var sayacText = (asamaHedef > 20) ? (aktifSpin + ' / ∞') : (aktifSpin + ' / ' + asamaHedef);
+    document.getElementById('spinSayac').textContent = sayacText;
     var barHtml = '';
-    for (var i = 0; i < SPIN_PER_ASAMA; i++) {
+    for (var i = 0; i < gorselHedef; i++) {
       var segCls = 'spin-seg', segTip = '';
       if (i < spinNetleri.length) {
         var net = spinNetleri[i];
@@ -233,10 +242,10 @@
       barHtml += '<div class="' + segCls + '"' + segTip + '></div>';
     }
     document.getElementById('spinBar').innerHTML = barHtml;
-    var kalan = SPIN_PER_ASAMA - aktifSpin;
+    var kalan = Math.max(0, asamaHedef - aktifSpin);
     document.getElementById('spinInfo').textContent = aktifAsama < 6
       ? kalan + ' spin sonra aşama ' + (aktifAsama+2) + ' başlayacak'
-      : kalan + ' spin sonra simülasyon biter';
+      : (asamaHedef > 20 ? 'Bakiye tükenince simülasyon biter' : kalan + ' spin sonra simülasyon biter');
     var noktaHtml = '';
     for (var j = 0; j < 7; j++) {
       var nCls = 'nokta';
@@ -283,6 +292,7 @@
     if (d.source === 'unityToAnlatici') {
       if (typeof d.asama === 'number' && d.asama >= 0 && d.asama < 7) aktifAsama = d.asama;
       if (typeof d.spin === 'number') aktifSpin = d.spin;
+      if (typeof d.hedefSpin === 'number' && d.hedefSpin > 0) hedefSpin = d.hedefSpin;
       if (typeof d.bakiyeNet === 'number') bakiyeNet = d.bakiyeNet;
       if (typeof d.toplamSpin === 'number') toplamSpin = d.toplamSpin;
       if (Array.isArray(d.spinNetleri)) spinNetleri = d.spinNetleri;

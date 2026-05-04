@@ -23,13 +23,16 @@ public class AnlaticiSeritKopru : MonoBehaviour
     private int _sonUygulananAsama = -1; // YENI: aşama değişimi tespiti için
     private long _sonBakiye = 50000; // bir önceki spin sonu bakiye — spin başına net delta için
     private readonly List<int> _asamaSpinNet = new List<int>(); // mevcut aşamadaki spin başına net (+/-) TL
-    private const int SPIN_PER_ASAMA = 10;
     private const int BASLANGIC_BAKIYE = 50000;
+    private const int ASAMA7_GORSEL_MAX_CUBUK = 10; // Asama 7 dinamik (999 spin) — HTML max 10 çubuk göster
     private static AnlaticiSeritKopru _ornek;
 
     /// <summary>Aşama bazlı önerilen bahis (yeniAsama geçişinde set edilir, kullanıcı sonra manuel değiştirebilir).
-    /// Garantili 70 spin tükeniş eğrisi: 50.000 TL → 0 TL (Asama 1-2 cömert, 3-4 geri çekiliş, 5-7 tükeniş).</summary>
-    private static readonly int[] _onerilenBahisler = new int[] { 500, 1000, 1000, 2000, 3000, 2000, 1500 };
+    /// Pedagojik eğri: 50K → 60K → 75K → 70K → 55K → 30K → 10K → 0 (~61 spin).</summary>
+    private static readonly int[] _onerilenBahisler = new int[] { 500, 1000, 1500, 2500, 4000, 2500, 1500 };
+
+    /// <summary>Aşama başına spin eşiği. Aşama 7 = 999 (dinamik, bakiye yetince Tukenis guard'i tetikler).</summary>
+    private static readonly int[] _asamaSpinSayisi = new int[] { 10, 10, 8, 8, 10, 10, 999 };
 
     [System.Serializable]
     public class AsamaAyari
@@ -45,9 +48,9 @@ public class AnlaticiSeritKopru : MonoBehaviour
         new AsamaAyari { egilim = 95, maxCarpani = 4.0f, nearMiss = false }, // 1 Isındırma ve Umut — çarpıcı kazanç
         new AsamaAyari { egilim = 90, maxCarpani = 3.0f, nearMiss = false }, // 2 Kontrol Bende Hissi — bol kazanç
         new AsamaAyari { egilim = 50, maxCarpani = 1.0f, nearMiss = true  }, // 3 Geri Kazanabilirim
-        new AsamaAyari { egilim = 25, maxCarpani = 0.5f, nearMiss = true  }, // 4 Şansın Döndü
-        new AsamaAyari { egilim = 15, maxCarpani = 0.3f, nearMiss = true  }, // 5 Sonu Düşünmeyen Kahraman
-        new AsamaAyari { egilim = 15, maxCarpani = 0.2f, nearMiss = true  }, // 6 Başka Yerden Para Bulmalıyım
+        new AsamaAyari { egilim = 30, maxCarpani = 0.6f, nearMiss = true  }, // 4 Şansın Döndü
+        new AsamaAyari { egilim = 20, maxCarpani = 0.4f, nearMiss = true  }, // 5 Sonu Düşünmeyen Kahraman
+        new AsamaAyari { egilim = 15, maxCarpani = 0.3f, nearMiss = true  }, // 6 Başka Yerden Para Bulmalıyım
         new AsamaAyari { egilim = 5,  maxCarpani = 0.1f, nearMiss = true  }  // 7 Tükeniş
     };
 
@@ -131,11 +134,14 @@ public class AnlaticiSeritKopru : MonoBehaviour
         _aktifSpin++;
         _toplamSpin++;
 
-        if (_aktifSpin >= SPIN_PER_ASAMA)
+        // Aşama başına spin eşiği array'den okunur (Asama 3-4 = 8 spin, diğerleri 10, Asama 7 = 999 dinamik).
+        int hedefSpin = _asamaSpinSayisi[Mathf.Clamp(_aktifAsama, 0, _asamaSpinSayisi.Length - 1)];
+
+        if (_aktifSpin >= hedefSpin)
         {
             if (_aktifAsama < 6)
             {
-                // Önce 10. spin çubuğunu rengiyle göster (HTML render)
+                // Önce son spin çubuğunu rengiyle göster (HTML render)
                 Guncelle();
                 _aktifAsama++;
                 _aktifSpin = 0;
@@ -144,7 +150,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
             }
             else
             {
-                Guncelle(); // 10. çubuğu son aşamada da göster
+                Guncelle(); // son çubuğu son aşamada da göster
                 Tukenis();
                 return;
             }
@@ -156,21 +162,31 @@ public class AnlaticiSeritKopru : MonoBehaviour
             AsamayiUygula(_aktifAsama);
         }
 
-        // Bakiye yetersizse Aşama 7 (Tükeniş) zorla atlanır — 10 spin tamamlanması beklenmez.
-        if (_oy != null && _aktifAsama < 6)
+        // Bakiye yetersizse Aşama 7 (Tükeniş) zorla atlanır veya doğrudan Tukenis tetiklenir.
+        if (_oy != null)
         {
             int simdiBakiye = (int)_oy.BahisPanelMevcutBakiye();
             int sonrakiBahis = _onerilenBahisler[Mathf.Clamp(_aktifAsama, 0, _onerilenBahisler.Length - 1)];
             if (simdiBakiye < sonrakiBahis)
             {
-                Debug.Log($"[Anlatici] Bakiye yetersiz ({simdiBakiye} < {sonrakiBahis}), Aşama 7 (Tükeniş) zorla atlanıyor.");
-                _aktifAsama = 6;
-                _aktifSpin = 0;
-                _sonUygulananAsama = -1;
-                _asamaSpinNet.Clear();
-                AsamayiUygula(6);
-                Tukenis();
-                return;
+                if (_aktifAsama < 6)
+                {
+                    Debug.Log($"[Anlatici] Bakiye yetersiz ({simdiBakiye} < {sonrakiBahis}), Aşama 7 (Tükeniş) zorla atlanıyor.");
+                    _aktifAsama = 6;
+                    _aktifSpin = 0;
+                    _sonUygulananAsama = -1;
+                    _asamaSpinNet.Clear();
+                    AsamayiUygula(6);
+                    Tukenis();
+                    return;
+                }
+                else
+                {
+                    // Aşama 7'de bakiye yetersiz → dinamik Tukenis
+                    Debug.Log($"[Anlatici] Aşama 7 bakiye tükendi ({simdiBakiye} < {sonrakiBahis}), Tukenis tetikleniyor.");
+                    Tukenis();
+                    return;
+                }
             }
         }
 
@@ -215,9 +231,11 @@ public class AnlaticiSeritKopru : MonoBehaviour
         if (_oy == null) return;
         long bakiye = _oy.BahisPanelMevcutBakiye();
         long net = bakiye - _baslangicBakiye;
+        int hedefSpin = _asamaSpinSayisi[Mathf.Clamp(_aktifAsama, 0, _asamaSpinSayisi.Length - 1)];
         string spinNetJson = "[" + string.Join(",", _asamaSpinNet.ConvertAll(n => n.ToString())) + "]";
         string json = "{\"asama\":" + _aktifAsama +
                       ",\"spin\":" + _aktifSpin +
+                      ",\"hedefSpin\":" + hedefSpin +
                       ",\"bakiyeNet\":" + net +
                       ",\"toplamSpin\":" + _toplamSpin +
                       ",\"spinNetleri\":" + spinNetJson + "}";
