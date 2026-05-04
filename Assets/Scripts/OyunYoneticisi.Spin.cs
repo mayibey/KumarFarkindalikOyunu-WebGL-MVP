@@ -249,6 +249,20 @@ public partial class OyunYoneticisi
     private const int SIMULASYON_MAX_REROLL = 28;
     private const int SIMULASYON_MAX_REROLL_ZORLA_CARPAN_TUMBLE = 80;
 
+    /// <summary>Anlatıcı aktifken aşamaya göre reroll bütçesi: yüksek RTP isteyen aşamada (1-2) çok dene,
+    /// tükeniş aşamasında (5-7) az dene. RNG'den uygun ödeme bulunamazsa bant zorlanmadan fallback olur.</summary>
+    private int AsamaIcinMaxReroll()
+    {
+        var anlatici = AnlaticiSeritKopru.Ornek;
+        if (anlatici == null) return SIMULASYON_MAX_REROLL;
+        int asama = anlatici.AktifAsama;
+        if (asama < 0) return SIMULASYON_MAX_REROLL;
+        if (asama <= 1) return 500; // 1 Isındırma, 2 Kontrol — yüksek RTP zorla bul
+        if (asama == 2) return 300; // 3 Geri Kazanabilirim
+        if (asama <= 4) return 150; // 4 Şansın Döndü, 5 Sonu Düşünmeyen
+        return 50;                  // 6 Para Bulmalıyım, 7 Tükeniş — kayıp serbest
+    }
+
 
     /// <summary>Spin politikası her zaman atanmış olmalı; null ise fabrika ile üretilir.</summary>
 
@@ -302,7 +316,7 @@ public partial class OyunYoneticisi
         bool carpanToggleSecili = zorlaCarpanDegeri > 0 ? true : carpanUretimiAktif;
         if (zorlaCarpanDegeri > 0)
             limit = int.MaxValue;
-        int maxReroll = (zorlaCarpanDegeri > 0) ? SIMULASYON_MAX_REROLL_ZORLA_CARPAN_TUMBLE : SIMULASYON_MAX_REROLL;
+        int maxReroll = (zorlaCarpanDegeri > 0) ? SIMULASYON_MAX_REROLL_ZORLA_CARPAN_TUMBLE : AsamaIcinMaxReroll();
         bool ustUsteAktif = !bonusSpin && zorlaCarpanDegeri <= 0 && UstUsteDonguAktifMi();
         var spinPolitikasi = SpinPolitikasiniAl();
         var spinPolitikaBaglam = OlusturSpinPolitikasiBaglami(ustUsteAktif);

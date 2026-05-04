@@ -56,6 +56,9 @@ public class AnlaticiSeritKopru : MonoBehaviour
 
     public static AnlaticiSeritKopru Ornek => _ornek;
 
+    /// <summary>0-6 (Aşama 1-7). OyunYoneticisi.Admin/Spin tarafından reroll/bant override için okunur.</summary>
+    public int AktifAsama => _aktifAsama;
+
     void Awake()
     {
         string aktifSahne = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;

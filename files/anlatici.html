@@ -140,7 +140,7 @@
     <div class="tukenis-overlay" id="tukenisOverlay">
       <div class="tukenis-icerik">
         <div class="tukenis-baslik">SİMÜLASYON TAMAMLANDI</div>
-        <div class="tukenis-info">70 spin · yaklaşık 70 dakika</div>
+        <div class="tukenis-info" id="tukenisSpinDakika">— spin · yaklaşık — dakika</div>
         <div class="tukenis-rakam" id="tukenisRakam">−34.000 TL</div>
         <div class="tukenis-info">Bu rakam ortalama bir aile için 2.5 aylık geçim demek. Gerçek hayatta oyuncu burada durmaz — bir sonraki maaş, bir sonraki kredi, bir sonraki dönüş umudu için devam eder.</div>
         <button class="tukenis-yeniden" onclick="yenidenBaslat()">Yeniden Başlat</button>
@@ -283,6 +283,10 @@
   }
   function tukenisGoster() {
     document.getElementById('tukenisRakam').textContent = formatTL(bakiyeNet);
+    var spinSayi = toplamSpin || 0;
+    var dakika = Math.max(1, Math.ceil(spinSayi)); // ~1 spin / dakika
+    var spinDakikaEl = document.getElementById('tukenisSpinDakika');
+    if (spinDakikaEl) spinDakikaEl.textContent = spinSayi + ' spin · yaklaşık ' + dakika + ' dakika';
     document.getElementById('tukenisOverlay').classList.add('aktif');
     setTimeout(bildirBoyut, 100);
   }
