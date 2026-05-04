@@ -626,9 +626,9 @@ public partial class OyunYoneticisi
             if (beklenenKazanc)
             {
                 if (asamaIdx == 0)
-                    efektifMin = Mathf.Max(efektifMin, Mathf.CeilToInt(bahis * 1.0f));
+                    efektifMin = Mathf.Max(efektifMin, Mathf.CeilToInt(bahis * 1.3f));
                 else if (asamaIdx == 1)
-                    efektifMin = Mathf.Max(efektifMin, Mathf.CeilToInt(bahis * 0.8f));
+                    efektifMin = Mathf.Max(efektifMin, Mathf.CeilToInt(bahis * 1.1f));
             }
             if (asamaIdx >= 4)
                 efektifMin = 0; // 0 ödeme kabul (kayıp serbestliği)

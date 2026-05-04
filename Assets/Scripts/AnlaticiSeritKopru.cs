@@ -45,8 +45,8 @@ public class AnlaticiSeritKopru : MonoBehaviour
     // Egilim 0-100 arası clamp'lenir (motor üst sınırı). Kazandırma maxCarpan ile yapılır.
     private static readonly AsamaAyari[] _asamalar = new AsamaAyari[]
     {
-        new AsamaAyari { egilim = 95, maxCarpani = 4.0f, nearMiss = false }, // 1 Isındırma ve Umut — çarpıcı kazanç
-        new AsamaAyari { egilim = 90, maxCarpani = 3.0f, nearMiss = false }, // 2 Kontrol Bende Hissi — bol kazanç
+        new AsamaAyari { egilim = 95, maxCarpani = 5.0f, nearMiss = false }, // 1 Isındırma ve Umut — çarpıcı kazanç
+        new AsamaAyari { egilim = 90, maxCarpani = 3.5f, nearMiss = false }, // 2 Kontrol Bende Hissi — bol kazanç
         new AsamaAyari { egilim = 50, maxCarpani = 1.0f, nearMiss = true  }, // 3 Geri Kazanabilirim
         new AsamaAyari { egilim = 30, maxCarpani = 0.6f, nearMiss = true  }, // 4 Şansın Döndü
         new AsamaAyari { egilim = 20, maxCarpani = 0.4f, nearMiss = true  }, // 5 Sonu Düşünmeyen Kahraman
