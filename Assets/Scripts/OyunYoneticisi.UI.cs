@@ -693,6 +693,19 @@ public partial class OyunYoneticisi
         Debug.Log("[BAKIYE RESET] Başlangıç bakiye " + yeniBakiye + " TL'ye sıfırlandı");
     }
 
+    /// <summary>AnlaticiSeritKopru için: üst üste kazanç/kayıp fazı state'ini sıfırla
+    /// (önceki oturumdan kalan _ustUsteKazancFaziAktif=true gibi durumlar Anlatıcı eğilim ayarını bypass edebiliyor).</summary>
+    public void AnlaticiKazancFaziniSifirla()
+    {
+        _ustUsteKazancFaziAktif = false;
+        _ustUsteFazdaKalan = 0;
+        _ustUsteKazancHedef = 0;
+        _ustUsteKayipHedef = 0;
+        SpinPolitikasiniYenile();
+        OncedenHesaplananSpinOnbelleginiTemizle();
+        Debug.Log("[Admin] UstUsteKazancFazi mekanizması sıfırlandı (Anlatıcı takeover).");
+    }
+
     /// <summary>Bahis +/- butonlarına basıldığında çağrılır (2026-04-30 hibrit).
     /// WebGL: HTML iframe (bahisSec.html). Editor: Unity UI fallback.</summary>
     public void BahisSecimPopupGoster()

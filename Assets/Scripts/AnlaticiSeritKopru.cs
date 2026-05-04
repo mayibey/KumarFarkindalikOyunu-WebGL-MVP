@@ -93,6 +93,28 @@ public class AnlaticiSeritKopru : MonoBehaviour
             Debug.LogError("[Anlatici] AdminNormalOyunUygula hatası: " + e.Message);
         }
 
+        // Defansif: önceki oturumdan kalan _ustUsteKazancFaziAktif=true Anlatıcı eğilim hesabını bozabiliyor.
+        try { _oy.AnlaticiKazancFaziniSifirla(); }
+        catch (System.Exception e) { Debug.LogError("[Anlatici] AnlaticiKazancFaziniSifirla hatası: " + e.Message); }
+
+        // KRİTİK: SenaryoYoneticisi paralel sistem — mevcutAsama Asama1/2'de iken ShouldForceNoPaySenaryo12()
+        // Anlatıcı'nın eğilim ayarını bypass edip spinleri zorla 0 ödetir (forcedNoPayKalan random tetiklenir).
+        // Anlatıcı sahnesinde manipülasyonu Anlatıcı yönettiği için SenaryoYoneticisi'ni Asama7_Finale'ye al
+        // ve forcedNoPay sayacını sıfırla (Asama7'de ShouldForceNoPaySenaryo12 → false).
+        if (SenaryoYoneticisi.I != null)
+        {
+            try
+            {
+                SenaryoYoneticisi.I.mevcutAsama = SenaryoYoneticisi.SenaryoAsama.Asama7_Finale;
+                SenaryoYoneticisi.I.forcedNoPayKalan = 0;
+                Debug.Log("[Anlatici] SenaryoYoneticisi devre dışı: mevcutAsama=Asama7_Finale, forcedNoPayKalan=0.");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("[Anlatici] SenaryoYoneticisi bypass hatası: " + e.Message);
+            }
+        }
+
         // Eğitim aracı: her sahne girişinde sıfırdan başla
         _aktifAsama = 0;
         _aktifSpin = 0;
