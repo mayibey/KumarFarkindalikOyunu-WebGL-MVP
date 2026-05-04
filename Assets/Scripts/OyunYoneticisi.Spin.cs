@@ -257,10 +257,13 @@ public partial class OyunYoneticisi
         if (anlatici == null) return SIMULASYON_MAX_REROLL;
         int asama = anlatici.AktifAsama;
         if (asama < 0) return SIMULASYON_MAX_REROLL;
-        if (asama <= 1) return 500; // 1 Isındırma, 2 Kontrol — yüksek RTP zorla bul
-        if (asama == 2) return 300; // 3 Geri Kazanabilirim
-        if (asama <= 4) return 150; // 4 Şansın Döndü, 5 Sonu Düşünmeyen
-        return 50;                  // 6 Para Bulmalıyım, 7 Tükeniş — kayıp serbest
+        if (asama == 0) return 2000; // 1 Isındırma — cömertlik zirvesi
+        if (asama == 1) return 1500; // 2 Kontrol Bende
+        if (asama == 2) return 500;  // 3 Geri Kazanabilirim
+        if (asama == 3) return 200;  // 4 Şansın Döndü
+        if (asama == 4) return 100;  // 5 Sonu Düşünmeyen
+        if (asama == 5) return 50;   // 6 Para Bulmalıyım
+        return 20;                   // 7 Tükeniş — minimal reroll, kayıp serbest
     }
 
 
@@ -732,6 +735,12 @@ public partial class OyunYoneticisi
                 && SenaryoYoneticisi.I != null
                 && SenaryoYoneticisi.I.mevcutAsama == SenaryoYoneticisi.SenaryoAsama.Asama1_IsindirmaUmut;
             bool adminSenaryo1Aktif = !bonusSpin && IsAdminSenaryo1Aktif();
+            // Anlatıcı Asama 0 (Isındırma) ve Asama 1 (Kontrol) cömertlik zorlama: fallback'te bant dışı kazanç
+            // bant içine çekilir (Senaryo1 ile aynı mekanik, sadece anlaticiAsama<=1 için).
+            // Asama 5-6-7 (kayıp serbest) için TETİKLENMEZ → kayıp eğrisi bozulmaz.
+            bool anlaticiCumertlikAktif = !bonusSpin
+                && AnlaticiSeritKopru.Ornek != null
+                && AnlaticiSeritKopru.Ornek.AktifAsama <= 1;
             int fallbackAdimSayisi = sonDenemeKayit.Adimlar != null ? sonDenemeKayit.Adimlar.Count : 0;
             if (spinPolitikasi.SimulasyonSonDenemedeAdimsizPozitifHamIptalEdilsinMi(
                     bonusSpin, fallbackAdimSayisi, sonDenemeKayit.ToplamHamKazanc))
@@ -750,23 +759,35 @@ public partial class OyunYoneticisi
             bool bandUygun = spinPolitikasi.SimulasyonFallbackOdemeBandinaUygunMu(
                 bonusSpin, sonDenemeKayit.ZorlaCarpanKullanildi, odemeModelUygun);
             sonDenemeKayit.SenaryoOdemeBandinaUygun = bandUygun;
-            if ((asama1PedagojikAktif || adminSenaryo1Aktif) && !bandUygun)
+            if ((asama1PedagojikAktif || adminSenaryo1Aktif || anlaticiCumertlikAktif) && !bandUygun)
             {
                 if (Senaryo1FallbackKazanciniBandIcineZorla(sonDenemeKayit, bahisFb, out int zorlananNihai))
                 {
                     nihaiFb = zorlananNihai;
                     bandUygun = true;
                     sonDenemeKayit.SenaryoOdemeBandinaUygun = true;
-                    Debug.LogWarning($"[SENARYO1][FALLBACK_ZORLAMA] Band dışı fallback, band içi kazanca çevrildi. Nihai={nihaiFb}, Bahis={bahisFb}, MinMax={_minOdemeTL}-{_maxOdemeTL}, Kaynak={(adminSenaryo1Aktif ? "AdminPreset1" : "PedagojikAsama1")}.");
+                    string kaynak = adminSenaryo1Aktif ? "AdminPreset1"
+                                  : asama1PedagojikAktif ? "PedagojikAsama1"
+                                  : ("AnlaticiAsama" + (AnlaticiSeritKopru.Ornek != null ? AnlaticiSeritKopru.Ornek.AktifAsama : -1));
+                    Debug.LogWarning($"[FALLBACK_ZORLAMA] Band dışı fallback, band içi kazanca çevrildi. Nihai={nihaiFb}, Bahis={bahisFb}, MinMax={_minOdemeTL}-{_maxOdemeTL}, Kaynak={kaynak}.");
                 }
-                else
+                else if (asama1PedagojikAktif || adminSenaryo1Aktif)
                 {
+                    // Senaryo1 yolu: zorlanacak tumble yoksa sıfır ödeme fallback (mevcut davranış korunur).
                     int fillLimit = adminManuelMod ? int.MaxValue : odenebilirLimit;
                     if (zorlaCarpanDegeri > 0 && !carpanToggleSecili)
                         fillLimit = 0;
                     Debug.LogWarning($"[SENARYO1][FALLBACK_BLOKE] Band dışı fallback engellendi ama zorlanacak tumble kaydı yok. Nihai={nihaiFb}, Bahis={bahisFb}, MinMax={_minOdemeTL}-{_maxOdemeTL}, Kaynak={(adminSenaryo1Aktif ? "AdminPreset1" : "PedagojikAsama1")}. Sıfır ödeme fallback üretildi.");
                     sonDenemeKayit = ZorunluBosSpinIcinSifirKayitUret(fillLimit);
                     nihaiFb = 0;
+                    bandUygun = true;
+                    sonDenemeKayit.SenaryoOdemeBandinaUygun = true;
+                }
+                else
+                {
+                    // Anlatıcı yolu: zorlanacak tumble yoksa "kayıp" olarak kabul et (sıfırlama yapma).
+                    // Kullanıcı kazanç bekliyordu ama RNG hiçbir yerde uygun sonuç bulamadı; sonDenemeKayit olduğu gibi gider.
+                    Debug.LogWarning($"[ANLATICI][FALLBACK_BLOKE] Band içi tumble zorlanamadı, sonDeneme kabul edildi (sıfırlama yok). Nihai={nihaiFb}, Bahis={bahisFb}, AnlaticiAsama={(AnlaticiSeritKopru.Ornek != null ? AnlaticiSeritKopru.Ornek.AktifAsama : -1)}.");
                     bandUygun = true;
                     sonDenemeKayit.SenaryoOdemeBandinaUygun = true;
                 }

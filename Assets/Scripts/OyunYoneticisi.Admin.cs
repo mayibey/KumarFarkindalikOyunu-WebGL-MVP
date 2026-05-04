@@ -617,8 +617,8 @@ public partial class OyunYoneticisi
                 return false;
         }
 
-        // Anlatıcı asama bazlı bant zorlaması: A1 (Isındırma) min=bahis*1.5, A2 (Kontrol) min=bahis*1.2,
-        // A5+ (Sansin Döndü-Tükeniş) min=0 (kayıp serbest). Beklenen kazanç durumunda RTP'yi yukarı zorla.
+        // Anlatıcı asama bazlı bant zorlaması: A1 (Isındırma) min=bahis*1.0 (bahsi geri al),
+        // A2 (Kontrol) min=bahis*0.8, A5+ (Sansin Döndü-Tükeniş) min=0 (kayıp serbest).
         var anlaticiBant = AnlaticiSeritKopru.Ornek;
         if (anlaticiBant != null)
         {
@@ -626,9 +626,9 @@ public partial class OyunYoneticisi
             if (beklenenKazanc)
             {
                 if (asamaIdx == 0)
-                    efektifMin = Mathf.Max(efektifMin, Mathf.CeilToInt(bahis * 1.5f));
+                    efektifMin = Mathf.Max(efektifMin, Mathf.CeilToInt(bahis * 1.0f));
                 else if (asamaIdx == 1)
-                    efektifMin = Mathf.Max(efektifMin, Mathf.CeilToInt(bahis * 1.2f));
+                    efektifMin = Mathf.Max(efektifMin, Mathf.CeilToInt(bahis * 0.8f));
             }
             if (asamaIdx >= 4)
                 efektifMin = 0; // 0 ödeme kabul (kayıp serbestliği)
