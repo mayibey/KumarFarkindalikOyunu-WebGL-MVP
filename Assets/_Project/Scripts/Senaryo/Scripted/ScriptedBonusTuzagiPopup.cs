@@ -2,6 +2,7 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Scripting;
 using UnityEngine.UI;
 
 namespace Senaryo.Scripted
@@ -15,6 +16,7 @@ namespace Senaryo.Scripted
     /// Pedagojik amaç: kullanıcının kasıtlı olarak "tüm parasını yatırma" kararı alması. Pop-up'ın
     /// cazibesi (altın renk, "10.000 KAT KAZAN!") hile/tuzak hissini kullanıcıya kazandırır.
     /// </summary>
+    [Preserve]
     public class ScriptedBonusTuzagiPopup : MonoBehaviour
     {
         public const int ANLATICI_SAHNE_BUILD_INDEX = 2;
@@ -32,6 +34,7 @@ namespace Senaryo.Scripted
         private Button _bonusAlButton;
         private bool _butonaTiklandi;
 
+        [Preserve]
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void OtomatikInit()
         {

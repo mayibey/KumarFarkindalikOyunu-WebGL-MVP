@@ -1,6 +1,7 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace Senaryo.Scripted
 {
@@ -19,6 +20,7 @@ namespace Senaryo.Scripted
     ///
     /// Popup AÇILMAZ — sadece uçuş animasyonu. Bakiye `Mathf.Lerp(eski, yeni, eased)` ile counting up.
     /// </summary>
+    [Preserve]
     public static class ScriptedKazancUcusu
     {
         private const float UCUS_SURE = 1.95f;

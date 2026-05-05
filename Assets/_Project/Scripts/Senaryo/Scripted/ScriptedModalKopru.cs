@@ -2,6 +2,7 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Scripting;
 using UnityEngine.UI;
 
 namespace Senaryo.Scripted
@@ -16,6 +17,7 @@ namespace Senaryo.Scripted
     ///
     /// Arka plan dim YOK; oyun görseli oyundan koparılmaz. Sadece sahne 2 (03_SenaryoluOyun)'de aktif.
     /// </summary>
+    [Preserve]
     public class ScriptedModalKopru : MonoBehaviour
     {
         public const int ANLATICI_SAHNE_BUILD_INDEX = 2;
@@ -48,6 +50,7 @@ namespace Senaryo.Scripted
         private bool _yazmaTamamlandi;
         private bool _kullaniciDevamEtti;
 
+        [Preserve]
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void OtomatikInit()
         {

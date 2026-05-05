@@ -85,6 +85,11 @@ public static class WebGLBuildMvp
         // GEÇİCİ: Disabled — bkz yukarıdaki stripEngineCode yorumu (scripted sistem koruma).
         PlayerSettings.SetManagedStrippingLevel(UnityEditor.Build.NamedBuildTarget.WebGL, ManagedStrippingLevel.Disabled);
 #endif
+        // KRİTİK: PlayerSettings runtime değişikliklerini ProjectSettings.asset'e PERSIST et.
+        // Aksi halde asset'te eski değer kalıyor; IL2CPP build base'i asset'i okuyabiliyor →
+        // RuntimeInitializeOnLoadMethod metotları strip ediliyor (scripted sistem aktive olmuyor).
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
     }
 
     private static WebGLExceptionSupport WebGlExceptionModuSec()

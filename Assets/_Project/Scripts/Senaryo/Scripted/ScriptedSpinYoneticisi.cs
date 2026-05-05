@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Scripting;
 
 namespace Senaryo.Scripted
 {
@@ -10,6 +11,7 @@ namespace Senaryo.Scripted
     /// Kullanım: <see cref="OyunYoneticisi"/>.SimuleEtVeKaydetImpl başında <see cref="Aktif"/> kontrolü yapılır;
     /// true ise <see cref="SonrakiSpiniAl"/> ile o aşama+spinNo için tanımlı kayıt alınır.
     /// </summary>
+    [Preserve]
     public class ScriptedSpinYoneticisi : MonoBehaviour
     {
         /// <summary>03_SenaryoluOyun sahnesinin Build Settings index'i (Tools → Build Settings).</summary>
@@ -27,6 +29,7 @@ namespace Senaryo.Scripted
         /// Sahne yüklendikten sonra otomatik olarak GameObject yaratır (anlatıcı sahnesinde).
         /// Manuel sahne kurulumu gerekmez. Diğer sahnelerde hiçbir şey yapmaz.
         /// </summary>
+        [Preserve]
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void OtomatikInit()
         {

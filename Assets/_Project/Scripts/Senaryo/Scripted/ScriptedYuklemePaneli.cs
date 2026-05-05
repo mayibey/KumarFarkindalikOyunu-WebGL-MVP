@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Scripting;
 using UnityEngine.UI;
 
 namespace Senaryo.Scripted
@@ -14,6 +15,7 @@ namespace Senaryo.Scripted
     ///
     /// Sahne 2 dışında devre dışı; runtime UI üretilir (prefab gerekmez).
     /// </summary>
+    [Preserve]
     public class ScriptedYuklemePaneli : MonoBehaviour
     {
         public const int ANLATICI_SAHNE_BUILD_INDEX = 2;
@@ -26,6 +28,7 @@ namespace Senaryo.Scripted
         private GameObject _root;
         private Button _borcAlButton;
 
+        [Preserve]
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void OtomatikInit()
         {

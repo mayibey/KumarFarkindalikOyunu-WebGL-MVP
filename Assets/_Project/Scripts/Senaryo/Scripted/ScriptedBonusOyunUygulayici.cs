@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Scripting;
 
 namespace Senaryo.Scripted
 {
@@ -19,6 +20,7 @@ namespace Senaryo.Scripted
     ///   4. <see cref="OyunYoneticisi.BonusAktifMi"/> false olana kadar polling (yield)
     ///   5. Modal "tuzağa düştü..." DonusAkisServisi tarafından sonra çalışır
     /// </summary>
+    [Preserve]
     public class ScriptedBonusOyunUygulayici : MonoBehaviour
     {
         public const int ANLATICI_SAHNE_BUILD_INDEX = 2;
@@ -37,6 +39,7 @@ namespace Senaryo.Scripted
         // × 1000 × paytable RTP ≈ 3-5K civarı çıkar (oyuncunun yatırdığı tüm bakiyenin altında).
         // Pedagojik: "kazandım sandım ama yine kayıptayım" hissi.
 
+        [Preserve]
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void OtomatikInit()
         {

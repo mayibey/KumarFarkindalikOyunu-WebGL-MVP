@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Scripting;
 
 namespace Senaryo.Scripted
 {
@@ -16,6 +17,7 @@ namespace Senaryo.Scripted
     ///
     /// Sadece sahne 2 (03_SenaryoluOyun)'de aktif singleton.
     /// </summary>
+    [Preserve]
     public class ScriptedBonusHUDKopru : MonoBehaviour
     {
         public const int ANLATICI_SAHNE_BUILD_INDEX = 2;
@@ -32,6 +34,7 @@ namespace Senaryo.Scripted
         private TextMeshProUGUI _oturumKazancTmp;
         private bool _aktif;
 
+        [Preserve]
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void OtomatikInit()
         {

@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Scripting;
 using UnityEngine.UI;
 
 namespace Senaryo.Scripted
@@ -12,6 +13,7 @@ namespace Senaryo.Scripted
     ///
     /// Update'te <see cref="AnlaticiSeritKopru.AktifAsama"/> == 6 (A7) algılanırsa bir kez açılır.
     /// </summary>
+    [Preserve]
     public class ScriptedFinalEkrani : MonoBehaviour
     {
         public const int ANLATICI_SAHNE_BUILD_INDEX = 2;
@@ -26,6 +28,7 @@ namespace Senaryo.Scripted
         private GameObject _root;
         private bool _gosterildi;
 
+        [Preserve]
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void OtomatikInit()
         {
