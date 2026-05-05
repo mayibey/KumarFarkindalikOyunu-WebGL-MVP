@@ -57,7 +57,11 @@ public static class WebGLBuildMvp
     {
         PlayerSettings.WebGL.dataCaching = true;
         PlayerSettings.WebGL.decompressionFallback = false;
-        PlayerSettings.stripEngineCode = true;
+        // GEÇİCİ: Stripping Disabled — scripted sistem [RuntimeInitializeOnLoadMethod]
+        // attribute'lu sınıflar Medium/Low stripper tarafından strip ediliyor.
+        // Production için: Low + [Preserve] attribute kombinasyonu (8 scripted
+        // sınıfa eklenmeli).
+        PlayerSettings.stripEngineCode = false;
 
         // Stabilite odaklı başlangıç: 512 MB.
         PlayerSettings.WebGL.memorySize = 512;
@@ -78,7 +82,8 @@ public static class WebGLBuildMvp
         }
 
 #if UNITY_2021_2_OR_NEWER
-        PlayerSettings.SetManagedStrippingLevel(UnityEditor.Build.NamedBuildTarget.WebGL, ManagedStrippingLevel.Medium);
+        // GEÇİCİ: Disabled — bkz yukarıdaki stripEngineCode yorumu (scripted sistem koruma).
+        PlayerSettings.SetManagedStrippingLevel(UnityEditor.Build.NamedBuildTarget.WebGL, ManagedStrippingLevel.Disabled);
 #endif
     }
 
