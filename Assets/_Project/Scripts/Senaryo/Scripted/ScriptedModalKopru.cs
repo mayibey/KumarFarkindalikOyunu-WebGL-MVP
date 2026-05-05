@@ -54,7 +54,18 @@ namespace Senaryo.Scripted
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void OtomatikInit()
         {
-            if (SceneManager.GetActiveScene().buildIndex != ANLATICI_SAHNE_BUILD_INDEX) return;
+            // sceneLoaded event abone: WebGL bootstrap sonrası sahne geçişlerinde de tetiklenir.
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            SceneManager.sceneLoaded += OnSceneLoaded;
+            var aktifSahne = SceneManager.GetActiveScene();
+            if (aktifSahne.buildIndex == ANLATICI_SAHNE_BUILD_INDEX)
+                OnSceneLoaded(aktifSahne, LoadSceneMode.Single);
+        }
+
+        [Preserve]
+        private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (scene.buildIndex != ANLATICI_SAHNE_BUILD_INDEX) return;
             if (Ornek != null) return;
             var go = new GameObject(nameof(ScriptedModalKopru));
             go.AddComponent<ScriptedModalKopru>();

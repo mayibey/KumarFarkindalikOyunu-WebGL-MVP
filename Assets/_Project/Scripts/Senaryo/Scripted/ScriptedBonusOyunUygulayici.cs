@@ -43,7 +43,17 @@ namespace Senaryo.Scripted
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void OtomatikInit()
         {
-            if (SceneManager.GetActiveScene().buildIndex != ANLATICI_SAHNE_BUILD_INDEX) return;
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            SceneManager.sceneLoaded += OnSceneLoaded;
+            var aktifSahne = SceneManager.GetActiveScene();
+            if (aktifSahne.buildIndex == ANLATICI_SAHNE_BUILD_INDEX)
+                OnSceneLoaded(aktifSahne, LoadSceneMode.Single);
+        }
+
+        [Preserve]
+        private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (scene.buildIndex != ANLATICI_SAHNE_BUILD_INDEX) return;
             if (Ornek != null) return;
             var go = new GameObject(nameof(ScriptedBonusOyunUygulayici));
             go.AddComponent<ScriptedBonusOyunUygulayici>();

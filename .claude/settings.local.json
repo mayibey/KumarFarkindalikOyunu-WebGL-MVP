@@ -13,7 +13,8 @@
       "Bash(curl -sI -L \"https://kumar-farkindalik-oyunu-web-gl-mvp.vercel.app/Build/WebGL_MVP.wasm\")",
       "Bash(curl -sL -o /tmp/vercel_index.html \"https://kumar-farkindalik-oyunu-web-gl-mvp.vercel.app/\")",
       "Read(//tmp/**)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

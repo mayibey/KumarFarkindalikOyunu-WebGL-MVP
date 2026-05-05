@@ -33,12 +33,28 @@ namespace Senaryo.Scripted
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void OtomatikInit()
         {
-            // TANI: WebGL build'de fail point bulmak için her adımda log.
+            Debug.Log("[ScriptedTANI] OtomatikInit ÇAĞRILDI — bootstrap; sceneLoaded event'e abone olunuyor.");
+            // RuntimeInitializeOnLoadMethod WebGL'de SADECE bootstrap'ta tetikleniyor (sahne geçişlerinde
+            // tekrar çağrılmıyor). Bu nedenle SceneManager.sceneLoaded event'ine abone oluyoruz: her
+            // sahne yüklendiğinde OnSceneLoaded çağrılır → idx==2 ise scripted GameObject yaratılır.
+            SceneManager.sceneLoaded -= OnSceneLoaded; // idempotent
+            SceneManager.sceneLoaded += OnSceneLoaded;
+
             var aktifSahne = SceneManager.GetActiveScene();
-            Debug.Log($"[ScriptedTANI] OtomatikInit ÇAĞRILDI — sahne idx={aktifSahne.buildIndex}, ad={aktifSahne.name}, beklenen idx={ANLATICI_SAHNE_BUILD_INDEX}");
-            if (aktifSahne.buildIndex != ANLATICI_SAHNE_BUILD_INDEX)
+            if (aktifSahne.buildIndex == ANLATICI_SAHNE_BUILD_INDEX)
             {
-                Debug.Log($"[ScriptedTANI] Sahne idx uyumsuz → return (sessiz). idx={aktifSahne.buildIndex}");
+                Debug.Log("[ScriptedTANI] Bootstrap'ta zaten idx=2 → OnSceneLoaded çağrılıyor.");
+                OnSceneLoaded(aktifSahne, LoadSceneMode.Single);
+            }
+        }
+
+        [Preserve]
+        private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            Debug.Log($"[ScriptedTANI] OnSceneLoaded ÇAĞRILDI — idx={scene.buildIndex}, ad={scene.name}, beklenen idx={ANLATICI_SAHNE_BUILD_INDEX}");
+            if (scene.buildIndex != ANLATICI_SAHNE_BUILD_INDEX)
+            {
+                Debug.Log($"[ScriptedTANI] Sahne uyumsuz → return. idx={scene.buildIndex}");
                 return;
             }
             if (Ornek != null)
@@ -46,11 +62,10 @@ namespace Senaryo.Scripted
                 Debug.Log("[ScriptedTANI] Ornek zaten var → return.");
                 return;
             }
-            Debug.Log("[ScriptedTANI] GameObject yaratılıyor + AddComponent...");
+            Debug.Log("[ScriptedTANI] Sahne eşleşti — GameObject yaratılıyor + AddComponent...");
             var go = new GameObject(nameof(ScriptedSpinYoneticisi));
             go.AddComponent<ScriptedSpinYoneticisi>();
-            Debug.Log("[ScriptedTANI] OtomatikInit BAŞARILI → Awake çağrılacak.");
-            // DontDestroyOnLoad istemiyoruz: anlatıcı sahnesinden çıkınca singleton tasfiye olsun.
+            Debug.Log("[ScriptedTANI] OnSceneLoaded BAŞARILI → Awake çağrılacak.");
         }
 
         private void Awake()
