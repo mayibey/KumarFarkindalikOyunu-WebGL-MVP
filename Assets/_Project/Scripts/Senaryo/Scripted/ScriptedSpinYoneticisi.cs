@@ -33,42 +33,59 @@ namespace Senaryo.Scripted
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void OtomatikInit()
         {
+            // TANI: WebGL build'de fail point bulmak için her adımda log.
             var aktifSahne = SceneManager.GetActiveScene();
-            if (aktifSahne.buildIndex != ANLATICI_SAHNE_BUILD_INDEX) return;
-            if (Ornek != null) return;
+            Debug.Log($"[ScriptedTANI] OtomatikInit ÇAĞRILDI — sahne idx={aktifSahne.buildIndex}, ad={aktifSahne.name}, beklenen idx={ANLATICI_SAHNE_BUILD_INDEX}");
+            if (aktifSahne.buildIndex != ANLATICI_SAHNE_BUILD_INDEX)
+            {
+                Debug.Log($"[ScriptedTANI] Sahne idx uyumsuz → return (sessiz). idx={aktifSahne.buildIndex}");
+                return;
+            }
+            if (Ornek != null)
+            {
+                Debug.Log("[ScriptedTANI] Ornek zaten var → return.");
+                return;
+            }
+            Debug.Log("[ScriptedTANI] GameObject yaratılıyor + AddComponent...");
             var go = new GameObject(nameof(ScriptedSpinYoneticisi));
             go.AddComponent<ScriptedSpinYoneticisi>();
+            Debug.Log("[ScriptedTANI] OtomatikInit BAŞARILI → Awake çağrılacak.");
             // DontDestroyOnLoad istemiyoruz: anlatıcı sahnesinden çıkınca singleton tasfiye olsun.
         }
 
         private void Awake()
         {
+            Debug.Log("[ScriptedTANI] Awake() ÇAĞRILDI");
             int idx = SceneManager.GetActiveScene().buildIndex;
             if (idx != ANLATICI_SAHNE_BUILD_INDEX)
             {
+                Debug.Log($"[ScriptedTANI] Awake idx uyumsuz → SetActive(false). idx={idx}");
                 Aktif = false;
                 gameObject.SetActive(false);
                 return;
             }
             if (Ornek != null && Ornek != this)
             {
+                Debug.Log("[ScriptedTANI] Awake Ornek başkası → Destroy.");
                 Destroy(gameObject);
                 return;
             }
             Ornek = this;
+            Debug.Log("[ScriptedTANI] Awake Ornek atandı, Resources.Load çağrılıyor...");
 
             // Asset'i Awake'de yükle: OyunYoneticisi.Start IlkSpinPrecomputeGecikmeli'yi tetikleyene
             // kadar Aktif=true olmalı, yoksa ilk spin önbelleği RNG akışıyla doldurur.
             _asamaListesi = Resources.Load<ScriptedAsamaListesi>(ScriptedAsamaListesi.ResourcePath);
             if (_asamaListesi == null)
             {
-                Debug.LogWarning("[ScriptedSpinYoneticisi] Resources/ScriptedSenaryo.asset bulunamadı. Tools → Kumar → Scripted Senaryo Asset'ini Yeniden Üret menüsünden üretin. RNG akışı devam edecek.");
+                Debug.LogError($"[ScriptedTANI] Resources.Load NULL DÖNDÜ! path='{ScriptedAsamaListesi.ResourcePath}', tip=ScriptedAsamaListesi. Asset bulunamadı veya tip eşleşmedi.");
                 Aktif = false;
                 return;
             }
+            Debug.Log($"[ScriptedTANI] Resources.Load OK. asamaSpinleri null mu? {(_asamaListesi.asamaSpinleri == null)}, count={_asamaListesi.asamaSpinleri?.Count ?? -1}");
             if (_asamaListesi.asamaSpinleri == null || _asamaListesi.asamaSpinleri.Count == 0)
             {
-                Debug.LogWarning("[ScriptedSpinYoneticisi] Asset boş (asamaSpinleri null/0). RNG akışı devam edecek.");
+                Debug.LogError("[ScriptedTANI] Asset boş (asamaSpinleri null/0) — deserialize fail veya tip metadata bozuk olabilir.");
                 Aktif = false;
                 return;
             }
@@ -77,7 +94,7 @@ namespace Senaryo.Scripted
             int toplam = 0;
             for (int i = 0; i < _asamaListesi.asamaSpinleri.Count; i++)
                 toplam += _asamaListesi.asamaSpinleri[i]?.spinler?.Count ?? 0;
-            Debug.Log($"[ScriptedSpinYoneticisi] Awake: asset yüklendi. Aşama={_asamaListesi.asamaSpinleri.Count}, toplam spin={toplam}. Aktif=true.");
+            Debug.Log($"[ScriptedTANI] BAŞARILI! Aşama={_asamaListesi.asamaSpinleri.Count}, toplam spin={toplam}. Aktif=true.");
         }
 
         private void Start()

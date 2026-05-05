@@ -31,6 +31,32 @@ public static class WebGLBuildMvp
             ops |= BuildOptions.CleanBuildCache;
 #endif
 
+            // KRİTİK: IL2CPP transpile cache'ini de manuel sil. CleanBuildCache yetmiyor;
+            // [Preserve] attribute eklemeleri assembly'ye girse de IL2CPP "input değişmedi"
+            // diye native compile cache'inden eski wasm'i kullanıyordu — yeni IL2CPP build
+            // için tüm cache klasörlerini temizle.
+            try
+            {
+                string[] silinecekCacheKlasorleri = {
+                    "Library/Bee/artifacts/WebGL",
+                    "Library/Il2cppBuildCache",
+                    "Library/PlayerDataCache",
+                    "Library/Bee/Build",
+                };
+                foreach (var k in silinecekCacheKlasorleri)
+                {
+                    if (Directory.Exists(k))
+                    {
+                        Directory.Delete(k, recursive: true);
+                        Debug.Log("[WebGLBuildMvp] Cache silindi: " + k);
+                    }
+                }
+            }
+            catch (Exception cacheEx)
+            {
+                Debug.LogWarning("[WebGLBuildMvp] Cache silme uyarısı: " + cacheEx.Message);
+            }
+
             var buildPlayerOptions = new BuildPlayerOptions
             {
                 scenes = sahneler,
