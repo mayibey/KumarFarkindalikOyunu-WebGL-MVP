@@ -24,6 +24,10 @@ public class SpinSimulasyonKaydi
     public int NihaiCarpanToplam { get; set; }
     /// <summary>Zorla çarpan (5x/10x/50x/100x) ile üretildiyse true; kazanç/oturum gösterimi tavanlanmadan yapılır.</summary>
     public bool ZorlaCarpanKullanildi { get; set; }
+
+    /// <summary>Scripted senaryo "çarpan kaçtı" durumu (A5 Spin 3 x500): çarpan grid'de görünür ama
+    /// hiçbir cluster oluşmaz, ödeme 0; kazanç kutusuna uçuş tetiklenmemeli — "tüh" hissi korunsun.</summary>
+    public bool CarpanKacti { get; set; }
     /// <summary>Admin senaryo 2/3: Simülasyon bu spin için ödeme modeli bandına uygun üretildiyse true. Fallback ile band dışı sonuç oynatıldıysa false (K-KY sırası ilerletilmez).</summary>
     public bool SenaryoOdemeBandinaUygun { get; set; } = true;
 }

@@ -9,6 +9,44 @@ using TMPro;
 public partial class OyunYoneticisi
 {
 
+    /// <summary>
+    /// Scripted senaryo (A5 Spin 4) için bonus oyun başlatma kapısı.
+    /// Cazip pop-up bakiyeyi düşürdükten sonra çağrılır. Bonus boyunca bahis 1000 TL'ye zorlanır
+    /// (motor doğal RTP × 1000 × 10 spin = ~3-5K çıktı; oyuncuya yatırdığı bakiyenin altı geri döner).
+    /// Cap override veya manuel düzeltme YOK. _sonBonusSatinAlindiMaliyet=1 sembolik (cap hesabında
+    /// "satın alındı" branch'ine girmek için).
+    /// </summary>
+    public void ScriptedBonusTetikle()
+    {
+        _sonBonusSatinAlindiMaliyet = 1;
+        _scriptedBonusBahisOverride = true;
+        _scriptedBonusUIOverride = true;
+        BaslatBonus();
+        // UI'yi hemen tazele ki BahisText motor bahisi 1000'e düşmeden ÖNCE "TÜM BAKİYE"ye çevrilsin.
+        _uiServisi?.UI_Guncelle();
+    }
+
+    /// <summary>
+    /// Scripted bonus bittikten sonra ScriptedBonusOyunUygulayici tarafından çağrılır.
+    /// BaslatBonus içinde 1000 TL'ye düşürülen bahisi oyuncunun gerçek bahisine geri yükler ve
+    /// UI BahisText override'ını kapatır (normal "Bahis: X TL" formatına dönülür).
+    /// </summary>
+    public void ScriptedBonusBahisOverrideKapat()
+    {
+        if (!_scriptedBonusBahisOverride && !_scriptedBonusUIOverride) return;
+        _scriptedBonusBahisOverride = false;
+        _scriptedBonusUIOverride = false;
+        if (_orijinalBahisYedek > 0)
+        {
+            try { AnlaticiSetBahis(_orijinalBahisYedek); }
+            catch (System.Exception e) { Debug.LogWarning("[ScriptedBonus] Bahis geri yükleme hata: " + e.Message); }
+            Debug.Log($"[ScriptedBonus] Bahis geri yüklendi: {_orijinalBahisYedek} TL.");
+        }
+        _orijinalBahisYedek = 0;
+        // BahisText'i normal değere yeniden çizdir (override kapandı).
+        _uiServisi?.UI_Guncelle();
+    }
+
     private void BaslatBonus()
     {
         _oncedenHesaplananHazir = false;
@@ -21,6 +59,19 @@ if (spinIcon != null) spinIcon.SetRotate(false);
             normalOyunMusic.Pause();
 
         if (bonusAktif) return;
+
+        // SCRIPTED MOD — A5 Spin 4 bonus tuzağı: bahis 1000 TL'ye zorla (orijinal yedeklenir).
+        // Motor RTP × küçük bahis × 10 spin ≈ 3-5K doğal kazanç → cap override / manuel düzeltme YOK.
+        // Sıralama: BaslatBonus cap hesabı bahis × maliyet üzerinden gittiği için bahis düşürmesi
+        // bu hesaptan ÖNCE yapılmalı; ama AnlaticiSetBahis EkonomiServisi.Bahis'i ve UI'ı günceller,
+        // kullanılan _ekonomiServisi.Bahis aşağıdaki cap hesabı için zaten yeni değeri görür.
+        if (_scriptedBonusBahisOverride && _orijinalBahisYedek == 0)
+        {
+            _orijinalBahisYedek = _ekonomiServisi != null ? _ekonomiServisi.Bahis : 0;
+            try { AnlaticiSetBahis(SCRIPTED_BONUS_BAHIS_TL); }
+            catch (System.Exception e) { Debug.LogWarning("[ScriptedBonus] Bahis override hata: " + e.Message); }
+            Debug.Log($"[ScriptedBonus] Bahis override → {SCRIPTED_BONUS_BAHIS_TL} TL (orijinal yedek: {_orijinalBahisYedek} TL). Motor doğal RTP ile hesap yapacak.");
+        }
 
         bonusAktif = true;
         SenaryoYoneticisi.I?.BonusGoruldu();

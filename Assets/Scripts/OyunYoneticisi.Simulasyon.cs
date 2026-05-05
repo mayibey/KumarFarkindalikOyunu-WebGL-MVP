@@ -394,6 +394,13 @@ public partial class OyunYoneticisi
         if (_animasyonServisi != null)
             yield return _animasyonServisi.AnimateGridDropIn();
 
+        // SCRIPTED MOD — DropIn animasyonu sırasında sprite/alpha tutarsız kalan hücreler için defansif rerender:
+        // grid kayıttan zaten yazılı; tüm 30 hücrenin sprite'ı + alpha 1 + scale 1 garanti edilir.
+        if (Senaryo.Scripted.ScriptedSpinYoneticisi.Aktif)
+        {
+            _izgaraServisi?.RenderAllSprites(setAlphaOne: true, resetScale: true);
+        }
+
         if (_kilitCoroSpin != null)
         {
             StopCoroutine(_kilitCoroSpin);
@@ -415,6 +422,33 @@ public partial class OyunYoneticisi
 
         var spinSonuCarpanHucreIdx = new List<int>();
         var spinSonuCarpanDegerleri = new List<int>();
+
+        // Scripted/RNG modlar için ilk grid çarpan toplama (özellikle scripted modda kritik):
+        // ScriptedSpinUygulayici çarpanı kayit.IlkCarpanGrid'e koyuyor; mevcut tumble loop sadece YeniSpawn'ı tarıyor.
+        // Bu blok ilk grid çarpan koordinatlarını da kazanç-kutusu uçuş listesine ekler.
+        // Atlama koşulları:
+        //   - kayit.CarpanKacti (A5 Spin 3 senaryosu): "kaçtı" hissi korunsun, uçuş yok
+        //   - kayit.ZorlaCarpanKullanildi (A4 Spin 5 x100, A5 x500): AnimatePopBombali zaten oynayacak, çift animasyon olmasın
+        bool atlaIlkGridUcus = kayit.CarpanKacti || kayit.ZorlaCarpanKullanildi;
+        if (!atlaIlkGridUcus && kayit.IlkCarpanGrid != null && _izgaraServisi != null)
+        {
+            int hucreSayisiIlk = hucreler != null ? hucreler.Length : 0;
+            for (int xx = 0; xx < kayit.Sutun && xx < sutun; xx++)
+            {
+                for (int yy = 0; yy < kayit.Satir && yy < satir; yy++)
+                {
+                    int cv = kayit.IlkCarpanGrid[xx, yy];
+                    if (cv <= 0) continue;
+                    int ix = _izgaraServisi.XYToIndex(xx, yy);
+                    if (ix >= 0 && ix < hucreSayisiIlk)
+                    {
+                        spinSonuCarpanHucreIdx.Add(ix);
+                        spinSonuCarpanDegerleri.Add(cv);
+                    }
+                }
+            }
+        }
+
         for (int a = 0; a < kayit.Adimlar.Count; a++)
         {
             var adim = kayit.Adimlar[a];
@@ -501,6 +535,14 @@ public partial class OyunYoneticisi
             }
             yield return new WaitForSeconds(0.15f);
             yield return new WaitForSeconds(betweenStepsDelay);
+
+            // SCRIPTED MOD — defansif tumble sonu render: AnimatePop scale'i 0.35'e düşürüyor, sonraki render
+            // (RenderSpritesOnlyForCells / fade-in) scale'a dokunmuyor. resetScale=true ile her hücre scale 1 +
+            // alpha 1 + sprite mantık grid'inden alınır. Mevcut RNG akışını etkilemez (Aktif=false).
+            if (Senaryo.Scripted.ScriptedSpinYoneticisi.Aktif)
+            {
+                _izgaraServisi?.RenderAllSprites(setAlphaOne: true, resetScale: true);
+            }
         }
 
         // Zorla çarpan kullanıldıysa final bomba animasyonunu oynat (overlay hâlâ grid üzerindeyken, meyveler kaybolmaz).

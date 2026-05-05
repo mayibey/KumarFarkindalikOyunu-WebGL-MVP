@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
+using Senaryo.Scripted;
 
 public partial class OyunYoneticisi
 {
@@ -67,6 +68,24 @@ public partial class OyunYoneticisi
     {
         _oncedenHesaplananKayit = null;
         _oncedenHesaplananHazir = false;
+    }
+
+    /// <summary>
+    /// ScriptedSpinYoneticisi aktif olduğunda çağrılır: önbellek RNG akışıyla doldurulmuş olabilir,
+    /// onu temizleyip yeniden precompute tetikler — bu kez scripted hook devreye girip scripted kaydı cache'ler.
+    /// Diğer durumlarda (sahne değişimi, manuel reset) da güvenle çağrılabilir.
+    /// </summary>
+    public void ScriptedSenaryoCacheTazele()
+    {
+        OncedenHesaplananSpinOnbelleginiTemizle();
+        if (grid == null || sutun <= 0 || satir <= 0)
+        {
+            Debug.Log("[ScriptedSenaryoCacheTazele] Grid hazır değil; precompute atlandı.");
+            return;
+        }
+        int limit = _odemeServisi != null ? _odemeServisi.GetSpinOdenebilirLimit() : int.MaxValue;
+        StartCoroutine(PrecomputeNextSpinCoroutine(limit, false));
+        Debug.Log("[ScriptedSenaryoCacheTazele] Önbellek temizlendi ve yeniden precompute tetiklendi.");
     }
 
 
@@ -140,6 +159,10 @@ public partial class OyunYoneticisi
     public bool SpinCalisiyorMu => spinCalisiyor;
     /// <summary>Sentetik oyuncu / bot test katmanının bonus durumunu okuması için.</summary>
     public bool BonusAktifMi => bonusAktif;
+    /// <summary>Bonus oyun sırasında kalan free spin sayısı (HUD takibi için).</summary>
+    public int BonusHakKalan => bonusHakKalan;
+    /// <summary>Oturum boyunca biriken toplam kazanç TL (bonus HUD + istatistik).</summary>
+    public int OturumKazanc => oturumKazanc;
     /// <summary>Bot: bakiye (dönüş atılabilir mi kontrolü).</summary>
     public int BotIcinBakiye => _ekonomiServisi != null ? _ekonomiServisi.Bakiye : 0;
     /// <summary>Bot: mevcut bahis.</summary>
@@ -150,6 +173,16 @@ public partial class OyunYoneticisi
     {
         if (bonusAktif) return;
         if (spinCalisiyor) return;
+
+        // SCRIPTED MOD — bloke eden paneller açıkken spin atımı engellenir.
+        // - ScriptedYuklemePaneli (A6 borç al)
+        // - ScriptedFinalEkrani (A7 cutscene; "Yeniden başla" butonuyla sahne resetlenir)
+        // - ScriptedBonusTuzagiPopup (A5 Spin 4 — cazip tuzak pop-up, kullanıcı onayı bekler)
+        // - ScriptedBonusOyunUygulayici (A5 Spin 4 — bonus oyun panel + animasyon)
+        if (ScriptedYuklemePaneli.IsAcik) return;
+        if (ScriptedFinalEkrani.IsAcik) return;
+        if (ScriptedBonusTuzagiPopup.IsAcik) return;
+        if (ScriptedBonusOyunUygulayici.IsAcik) return;
 
         if (_ekonomiServisi.Bakiye < _ekonomiServisi.Bahis)
         {
@@ -286,6 +319,20 @@ public partial class OyunYoneticisi
 
     private SpinSimulasyonKaydi SimuleEtVeKaydetImpl(int odenebilirLimit, bool bonusSpin)
     {
+        // SCRIPTED MODE — anlatıcı sahnesinde (build idx 2) scripted senaryo aktifse RNG bypass.
+        if (!bonusSpin && ScriptedSpinYoneticisi.Aktif && ScriptedSpinYoneticisi.Ornek != null)
+        {
+            int asamaIdx = AnlaticiSeritKopru.Ornek != null ? AnlaticiSeritKopru.Ornek.AktifAsama : 0;
+            int spinIdx = AnlaticiSeritKopru.Ornek != null ? AnlaticiSeritKopru.Ornek.AsamadakiSpinSayaci : 0;
+            var scriptedKayit = ScriptedSpinYoneticisi.Ornek.SonrakiSpiniAl(asamaIdx, spinIdx);
+            if (scriptedKayit != null)
+            {
+                Debug.Log($"[Scripted] Aşama {asamaIdx + 1} Spin {spinIdx + 1} — RNG bypass, brüt {scriptedKayit.brutOdeme}");
+                int gercekBahis = _ekonomiServisi != null ? _ekonomiServisi.Bahis : scriptedKayit.bahis;
+                return ScriptedSpinUygulayici.UygulaKaydi(scriptedKayit, this, gercekBahis);
+            }
+        }
+
         _bombaPatlamaSonrasiIlkRefillCarpanEngeli = false;
         bool adminManuelMod = _adminManuelZorlukKilidi || AdminOyunSahnesiMi();
         if (adminManuelMod)

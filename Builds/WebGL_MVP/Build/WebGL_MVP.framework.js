@@ -1876,6 +1876,80 @@ function dbg(text) {
           window._sonBahisBakiye = undefined;
       }
 
+  function _BonusHUDGizle() {
+          var hud = document.getElementById('scriptedBonusHud');
+          if (hud) {
+              hud.style.transition = 'transform 0.3s ease-in, opacity 0.3s ease-in';
+              hud.style.transform = 'translateX(120%)';
+              hud.style.opacity = '0';
+              setTimeout(function() { if (hud.parentNode) hud.parentNode.removeChild(hud); }, 350);
+          }
+      }
+
+  function _BonusHUDGoster() {
+          // Mevcut HUD'u kaldır (idempotent)
+          var existing = document.getElementById('scriptedBonusHud');
+          if (existing) existing.remove();
+  
+          var hud = document.createElement('div');
+          hud.id = 'scriptedBonusHud';
+          hud.style.cssText =
+              'position:fixed;top:20px;right:20px;width:280px;padding:16px;' +
+              'background:rgba(26,26,46,0.85);border:2px solid #ffd700;border-radius:12px;' +
+              'font-family:Arial,sans-serif;color:white;' +
+              'box-shadow:0 0 20px rgba(255,215,0,0.4);z-index:9999;' +
+              'animation:scriptedBonusHudSlideIn 0.4s ease-out;';
+  
+          // CSS keyframes (eğer henüz tanımlı değilse)
+          if (!document.getElementById('scriptedBonusHudStyles')) {
+              var style = document.createElement('style');
+              style.id = 'scriptedBonusHudStyles';
+              style.textContent =
+                  '@keyframes scriptedBonusHudSlideIn {' +
+                  '  from { transform: translateX(120%); opacity: 0; }' +
+                  '  to { transform: translateX(0); opacity: 1; }' +
+                  '}' +
+                  '@keyframes scriptedBonusHudKazancParla {' +
+                  '  0%,100% { color: #ffd700; }' +
+                  '  50% { color: #fff8a0; text-shadow: 0 0 8px rgba(255,215,0,0.8); }' +
+                  '}' +
+                  '#scriptedBonusHud .kazancParla {' +
+                  '  animation: scriptedBonusHudKazancParla 0.6s ease-out;' +
+                  '}';
+              document.head.appendChild(style);
+          }
+  
+          hud.innerHTML =
+              '<div style="font-size:16px;margin-bottom:8px;">' +
+              '  🎰 KALAN SPİN: <span id="scriptedBonusHudSpin">10</span> / 10' +
+              '</div>' +
+              '<div style="font-size:14px;color:#ffd700;">' +
+              '  💰 OTURUM KAZANCI: <span id="scriptedBonusHudKazanc">0</span> TL' +
+              '</div>';
+          document.body.appendChild(hud);
+      }
+
+  function _BonusHUDGuncelle(spin, kazanc) {
+          var spinEl = document.getElementById('scriptedBonusHudSpin');
+          var kazancEl = document.getElementById('scriptedBonusHudKazanc');
+          if (spinEl) spinEl.textContent = spin;
+          if (kazancEl) {
+              // Format TL: 1234 → "1.234"
+              var formatted = kazanc.toString();
+              if (kazanc >= 1000) {
+                  formatted = kazanc.toLocaleString('tr-TR');
+              }
+              // Eğer değer değiştiyse parlama animasyonu tetikle
+              if (kazancEl.textContent !== formatted) {
+                  kazancEl.textContent = formatted;
+                  kazancEl.classList.remove('kazancParla');
+                  // Reflow ile re-trigger
+                  void kazancEl.offsetWidth;
+                  kazancEl.classList.add('kazancParla');
+              }
+          }
+      }
+
   function _GetJSLoadTimeInfo(loadTimePtr) {
     loadTimePtr = (loadTimePtr >> 2);
     HEAPU32[loadTimePtr] = Module.pageStartupTime || 0;
@@ -16653,6 +16727,9 @@ var wasmImports = {
   "BahisPaneliAc": _BahisPaneliAc,
   "BahisPaneliBakiyeGonder": _BahisPaneliBakiyeGonder,
   "BahisPaneliKapat": _BahisPaneliKapat,
+  "BonusHUDGizle": _BonusHUDGizle,
+  "BonusHUDGoster": _BonusHUDGoster,
+  "BonusHUDGuncelle": _BonusHUDGuncelle,
   "GetJSLoadTimeInfo": _GetJSLoadTimeInfo,
   "GetJSMemoryInfo": _GetJSMemoryInfo,
   "JS_Accelerometer_IsRunning": _JS_Accelerometer_IsRunning,
@@ -17443,6 +17520,8 @@ var dynCall_jijii = Module["dynCall_jijii"] = createExportWrapper("dynCall_jijii
 /** @type {function(...*):?} */
 var dynCall_viiiifii = Module["dynCall_viiiifii"] = createExportWrapper("dynCall_viiiifii");
 /** @type {function(...*):?} */
+var dynCall_fi = Module["dynCall_fi"] = createExportWrapper("dynCall_fi");
+/** @type {function(...*):?} */
 var dynCall_iiiffii = Module["dynCall_iiiffii"] = createExportWrapper("dynCall_iiiffii");
 /** @type {function(...*):?} */
 var dynCall_viddiiii = Module["dynCall_viddiiii"] = createExportWrapper("dynCall_viddiiii");
@@ -17542,8 +17621,6 @@ var dynCall_iiiifiii = Module["dynCall_iiiifiii"] = createExportWrapper("dynCall
 var dynCall_diiiii = Module["dynCall_diiiii"] = createExportWrapper("dynCall_diiiii");
 /** @type {function(...*):?} */
 var dynCall_vijji = Module["dynCall_vijji"] = createExportWrapper("dynCall_vijji");
-/** @type {function(...*):?} */
-var dynCall_fi = Module["dynCall_fi"] = createExportWrapper("dynCall_fi");
 /** @type {function(...*):?} */
 var dynCall_vifffi = Module["dynCall_vifffi"] = createExportWrapper("dynCall_vifffi");
 /** @type {function(...*):?} */

@@ -59,6 +59,10 @@ public class AnlaticiSeritKopru : MonoBehaviour
     /// <summary>0-6 (Aşama 1-7). OyunYoneticisi.Admin/Spin tarafından reroll/bant override için okunur.</summary>
     public int AktifAsama => _aktifAsama;
 
+    /// <summary>0-indexed; aşamadaki kaçıncı spin. SpinAtildi() içinde artar, aşama değişiminde 0'a sıfırlanır.
+    /// ScriptedSpinYoneticisi tarafından "bu aşamadaki spin sırası" olarak okunur (SimuleEtVeKaydetImpl başında).</summary>
+    public int AsamadakiSpinSayaci => _aktifSpin;
+
     void Awake()
     {
         string aktifSahne = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
@@ -289,6 +293,20 @@ public class AnlaticiSeritKopru : MonoBehaviour
         _aktifSpin = 0;
         _asamaSpinNet.Clear(); // manuel aşama değişiminde de çubuklar sıfır
         AsamayiUygula(yeniAsama);
+        Guncelle();
+    }
+
+    /// <summary>
+    /// ⚠️ GEÇİCİ — Sadece <see cref="ScriptedDebugAtlamaPaneli"/> kullanır. Aşama + spin sayacını
+    /// doğrudan set eder; AsamayiUygula çağrılır (bahis/eğilim güncellenir). Final sürümde bu method kaldırılmalı.
+    /// </summary>
+    public void DebugAsamaSpinSet(int asama, int spin)
+    {
+        _aktifAsama = Mathf.Clamp(asama, 0, 6);
+        _aktifSpin = Mathf.Max(0, spin);
+        _sonUygulananAsama = -1; // yeniAsama=true olsun, AsamayiUygula bahisi yeniden set etsin
+        _asamaSpinNet.Clear();
+        AsamayiUygula(_aktifAsama);
         Guncelle();
     }
 

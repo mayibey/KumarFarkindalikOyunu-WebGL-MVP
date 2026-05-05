@@ -50,6 +50,8 @@ public interface IOyunUIGuncellemeBaglami
     int GetSonSpinKazancCarpanliOnizlemeTL();
     int GetSonSpinKazancToplamGoster();
     int GetBonusMaliyeti();
+    /// <summary>BahisText için geçici metin override'ı; null/boş ise normal "Bahis: X TL" formatı.</summary>
+    string BahisUIOverrideMetni { get; }
     void RefreshCarpanDisplay();
     void ShowParaCekPanel();
     void HideParaCekPanel();
@@ -88,8 +90,12 @@ public class OyunUIGuncellemeServisi
 
         if (_ctx.BahisText != null)
         {
-            // Çift şans bileşeni kaldırıldı (2026-04-30) — bahis doğrudan gösterilir
-            _ctx.BahisText.text = "Bahis: " + OyunFormatServisi.FormatTL(_ctx.GetBahis());
+            // Scripted override (A5 Spin 4 bonus tuzağı): backend bahis 1000 TL, ama UI "TÜM BAKİYE" göstersin.
+            string overrideMetin = _ctx.BahisUIOverrideMetni;
+            if (!string.IsNullOrEmpty(overrideMetin))
+                _ctx.BahisText.text = overrideMetin;
+            else
+                _ctx.BahisText.text = "Bahis: " + OyunFormatServisi.FormatTL(_ctx.GetBahis());
         }
 
         if (_ctx.HakText != null)

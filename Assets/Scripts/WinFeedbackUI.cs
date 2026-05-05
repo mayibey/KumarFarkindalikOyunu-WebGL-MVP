@@ -14,6 +14,15 @@ public class WinFeedbackUI : MonoBehaviour
     [SerializeField] private TMP_Text      baslikText;
     [SerializeField] private TMP_Text      kazancText;
 
+    /// <summary>BIG WIN+ tier'da scripted uçuş animasyonunun kaynak alacağı RectTransform (kazanç miktarı yazısı).</summary>
+    public RectTransform UcusKaynakRect => kazancText != null ? kazancText.rectTransform : olcekKoku;
+
+    /// <summary>
+    /// Panel kapandığında tetiklenir (otomatik akış sonu fade-out tamamlandığında VEYA kullanıcı tıklayıp atladığında).
+    /// ScriptedKazancUcusu bu event'i dinleyerek uçuşu panelin kapanma anına senkronize eder — sabit beklemeden bağımsız.
+    /// </summary>
+    public event System.Action OnPanelKapandi;
+
     [Header("Karartma Overlay (boş bırakılırsa otomatik oluşur)")]
     [SerializeField] private Image karartmaOverlay;
 
@@ -76,7 +85,23 @@ public class WinFeedbackUI : MonoBehaviour
             panelCanvasGroup.interactable   = false;
             panelCanvasGroup.blocksRaycasts = false;
         }
-        if (olcekKoku != null) olcekKoku.localScale = Vector3.zero;
+        if (olcekKoku != null)
+        {
+            olcekKoku.localScale = Vector3.zero;
+
+            // DEFANSIF: olcekKoku anchor full-stretch (0,0 → 1,1) ise panel tam ekran kaplar.
+            // Sahnede yanlışlıkla bu hâle gelmiş olabilir. Tespit edilirse middle-center + makul boyuta zorla.
+            bool tamEkranAnchor = olcekKoku.anchorMin == Vector2.zero && olcekKoku.anchorMax == Vector2.one;
+            if (tamEkranAnchor)
+            {
+                Debug.LogWarning("[WinFeedbackUI] olcekKoku full-stretch anchor tespit edildi (panel tam ekran). Middle-center 640×420'ye override ediliyor.");
+                olcekKoku.anchorMin = new Vector2(0.5f, 0.5f);
+                olcekKoku.anchorMax = new Vector2(0.5f, 0.5f);
+                olcekKoku.pivot = new Vector2(0.5f, 0.5f);
+                olcekKoku.sizeDelta = new Vector2(640f, 420f);
+                olcekKoku.anchoredPosition = Vector2.zero;
+            }
+        }
 
         // Sıra önemli: her katman öncekinin GetSiblingIndex+1'ine yerleşir
         if (karartmaOverlay == null) karartmaOverlay = KarartmaOlustur();
@@ -176,6 +201,9 @@ public class WinFeedbackUI : MonoBehaviour
         DisableKatman(_halka);
 
         Debug.Log("[WinFeedback] Tikla-atla: gosterim hizla kapatildi, kazanc=" + _hedefKazanc);
+
+        // Scripted uçuş bu event'i dinler — panel kapandı sinyali (sabit gecikmeyi tetikle).
+        OnPanelKapandi?.Invoke();
     }
 
     // ════════════════════════════════════════════════
@@ -229,6 +257,12 @@ public class WinFeedbackUI : MonoBehaviour
         if (k <  5000) return 2.5f;
         return 4.0f;
     }
+
+    /// <summary>
+    /// Counting up animasyonunun süresi — kazanç miktarına göre threshold'lardan seçilir
+    /// (0.8 / 1.5 / 2.5 / 4.0 sn). ScriptedKazancUcusu BIG WIN+ tier'da uçuşu bu süre + buffer kadar geciktirir.
+    /// </summary>
+    public static float GetCountUpSuresi(int kazanc) => SaymaSuresi(kazanc);
 
     // tier → görsel parametreler
     private static float GlowA(KazancSeviyesi s)  { switch(s){case KazancSeviyesi.BigWin:return 0.28f;case KazancSeviyesi.MegaWin:return 0.50f;case KazancSeviyesi.EpicWin:return 0.70f;default:return 0f;} }
@@ -343,6 +377,10 @@ public class WinFeedbackUI : MonoBehaviour
         if (tmp != null) { tmp.fontStyle = FontStyles.Normal; tmp.outlineWidth = 0f; }
         _aktifGosterimCoroutine = null;
         _gosterimAktif = false;
+
+        // Scripted uçuş bu event'i dinler — otomatik akış sonu (fade-out tamam, panel kapalı).
+        // AtlaVeKapat StopAllCoroutines ile bu coroutine'i durdurursa burası çağrılmaz; AtlaVeKapat kendi invoke'unu yapar.
+        OnPanelKapandi?.Invoke();
     }
 
     // ════════════════════════════════════════════════

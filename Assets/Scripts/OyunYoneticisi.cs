@@ -275,6 +275,9 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
     // IOyunUIGuncellemeBaglami
     TMP_Text IOyunUIGuncellemeBaglami.BakiyeText => bakiyeText;
     TMP_Text IOyunUIGuncellemeBaglami.BahisText => bahisText;
+    /// <summary>UI BahisText için geçici metin override'ı; null = normal "Bahis: X TL" gösterilir.
+    /// Scripted A5 Spin 4 bonus tuzağı sırasında "TÜM BAKİYE" döner.</summary>
+    public string BahisUIOverrideMetni => _scriptedBonusUIOverride ? SCRIPTED_BONUS_BAHIS_UI_METIN : null;
     TMP_Text IOyunUIGuncellemeBaglami.HakText => hakText;
     TMP_Text IOyunUIGuncellemeBaglami.SpinKazancText => oturumKazancText;
     TMP_Text IOyunUIGuncellemeBaglami.BonusOyunKazancText => bonusOyunKazancText;

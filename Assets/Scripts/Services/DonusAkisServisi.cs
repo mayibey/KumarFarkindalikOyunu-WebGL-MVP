@@ -369,6 +369,64 @@ public class DonusAkisServisi
         if (_runCoroutine != null)
             yield return _runCoroutine(_ctx.ShowNormalSpinSonucPopup(odenen, _ctx.SpinBahisTL));
 
+        // SCRIPTED MOD — kazanç miktarı bakiyeye uçar + counting up. Popup AÇILMAZ; sadece animasyon.
+        // Conditional kaynak: BIG WIN+ tier (>=2×bahis) ekran ortasındaki WinFeedback yazısı, aksi halde sağ üst kazancText.
+        // SIRALI BEKLEME: yield return ile uçuş tamamlanana kadar bekle — modal hook'u panel/uçuş üstüne binmesin.
+        if (Senaryo.Scripted.ScriptedSpinYoneticisi.Aktif && odenen > 0 && _runCoroutine != null)
+        {
+            var oy = UnityEngine.Object.FindObjectOfType<OyunYoneticisi>();
+            if (oy != null)
+                yield return _runCoroutine(Senaryo.Scripted.ScriptedKazancUcusu.TetikleKazancUcusu(
+                    odenen, _ctx.SpinBahisTL, oy));
+        }
+
+        // SCRIPTED MOD — A5 Spin 4 bonus tuzağı (iki adımlı):
+        //   1) Cazip pop-up (ScriptedBonusTuzagiPopup) açılır → kullanıcı [BONUS AL] basana kadar bekler
+        //   2) Pop-up onayında bakiye 0'a düşer (popup içinde senkron) → BonusOyunuOynat yatırım=0 ile çağrılır
+        //      (sadece görsel + cüzi getiri ekleme; bakiye senkron pop-up tarafından yapıldı)
+        // Modal hook'tan ÖNCE — eğitmen mesajı bonus oyun bittikten sonra çıkar.
+        if (Senaryo.Scripted.ScriptedSpinYoneticisi.Aktif
+            && Senaryo.Scripted.ScriptedSpinYoneticisi.Ornek != null
+            && _runCoroutine != null)
+        {
+            var sonKayitBonus = Senaryo.Scripted.ScriptedSpinYoneticisi.Ornek.SonKayit;
+            if (sonKayitBonus != null && sonKayitBonus.bonusOyunuTetikle)
+            {
+                var oyBonus = UnityEngine.Object.FindObjectOfType<OyunYoneticisi>();
+                if (oyBonus != null)
+                {
+                    int yatirim = oyBonus.BahisPanelMevcutBakiye();
+
+                    // 1) Cazip tuzak pop-up — kullanıcı onayı + bakiye 0'a düşürme
+                    if (Senaryo.Scripted.ScriptedBonusTuzagiPopup.Ornek != null)
+                    {
+                        yield return _runCoroutine(Senaryo.Scripted.ScriptedBonusTuzagiPopup.Ornek.PopupGoster(
+                            yatirim, oyBonus));
+                    }
+
+                    // 2) Bonus oyun — yatırım=0 (bakiye zaten popup'ta düşürüldü); sadece görsel + cüzi getiri
+                    if (Senaryo.Scripted.ScriptedBonusOyunUygulayici.Ornek != null)
+                    {
+                        yield return _runCoroutine(Senaryo.Scripted.ScriptedBonusOyunUygulayici.Ornek.BonusOyunuOynat(
+                            0, sonKayitBonus.bonusGetirisi, oyBonus));
+                    }
+                }
+            }
+        }
+
+        // SCRIPTED MOD — bloke eden modal mesaj. Asset'teki kayit.modalMesaji dolu spinlerde devreye girer.
+        // Yukarıdaki uçuş yield ile beklendiği için panel kapanmış + uçuş bitmiş halde modal açılır.
+        if (Senaryo.Scripted.ScriptedSpinYoneticisi.Aktif
+            && Senaryo.Scripted.ScriptedSpinYoneticisi.Ornek != null
+            && Senaryo.Scripted.ScriptedModalKopru.Ornek != null)
+        {
+            var sonKayit = Senaryo.Scripted.ScriptedSpinYoneticisi.Ornek.SonKayit;
+            if (sonKayit != null && !string.IsNullOrEmpty(sonKayit.modalMesaji) && _runCoroutine != null)
+            {
+                yield return _runCoroutine(Senaryo.Scripted.ScriptedModalKopru.Ornek.ModalGoster(sonKayit.modalMesaji));
+            }
+        }
+
         _ctx.SpinCalisiyor = false;
         _ctx.UIServisi?.ButonDurumu(true);
         _ctx.SetSpinIconRotate(false);

@@ -235,6 +235,18 @@ public partial class OyunYoneticisi
 
     private int _bonusBudgetKalanTL = 0;
     private int _sonBonusSatinAlindiMaliyet = 0;
+    /// <summary>Scripted senaryo (A5 Spin 4) tuzak modu: bonus boyunca bahis 1000 TL'ye düşürülür,
+    /// motor doğal RTP ile hesap yapar (cap override YOK, manuel düzeltme YOK). BaslatBonus aç +
+    /// ScriptedBonusBahisOverrideKapat kapat. Aktifken <see cref="_orijinalBahisYedek"/> oyuncunun
+    /// gerçek bahisini saklar; kapatınca geri yüklenir.</summary>
+    private bool _scriptedBonusBahisOverride = false;
+    /// <summary>Bahis override aktifken oyuncunun gerçek bahisi (bonus bitince geri yüklenir).</summary>
+    private int _orijinalBahisYedek = 0;
+    /// <summary>Scripted bonus tuzağında zorlanan bahis (TL). Motor doğal RTP × 1000 × 10 spin = ~3-5K çıktı.</summary>
+    private const int SCRIPTED_BONUS_BAHIS_TL = 1000;
+    /// <summary>UI BahisText override'ı (manipülasyon hissi): bonus boyunca sayısal değer yerine "TÜM BAKİYE" gösterir.</summary>
+    private bool _scriptedBonusUIOverride = false;
+    private const string SCRIPTED_BONUS_BAHIS_UI_METIN = "Bahis: TÜM BAKİYE";
     /// <summary>Senaryo 1'de satın alınan bonus: ödenebilir tutar tavanı uygulanmasın.</summary>
     private bool _bonusSatınAlindiSenaryo1 = false;
     /// <summary>Senaryo bonusu (scatter veya satın al): havuz/ödenebilir tavanı uygulanmasın, sadece hesaplanan cap.</summary>

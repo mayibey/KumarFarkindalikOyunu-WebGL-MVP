@@ -27,7 +27,9 @@
       "Bash(awk 'NR>=1454 && NR<=1545 {print NR\": \"$0}' \"D:/KumarFarkindalikOyunu/Assets/Scenes/01_GirisScene.unity\")",
       "Bash(awk NR>=697 && NR<=730 {print NR\": \"$0} *)",
       "Bash(awk NR>=1089 && NR<=1110 {print NR\": \"$0} *)",
-      "Bash(awk '{print $5, $NF}')"
+      "Bash(awk '{print $5, $NF}')",
+      "Bash(curl -sI -m 10 https://github.com)",
+      "Bash(uv --version)"
     ]
   }
 }

@@ -1,0 +1,561 @@
+#if UNITY_EDITOR
+using System.Collections.Generic;
+using System.IO;
+using UnityEditor;
+using UnityEngine;
+
+namespace Senaryo.Scripted.Editor
+{
+    /// <summary>
+    /// SCRIPTED_SISTEM_PLAN.md Bölüm 3 tablolarını ScriptableObject asset'ine yazan editor utility.
+    /// Menü: Tools → Kumar → Scripted Senaryo Asset'ini Yeniden Üret.
+    /// Asset yolu: Assets/_Project/Resources/ScriptedSenaryo.asset (Resources.Load ile yüklenir).
+    ///
+    /// === MİMARİ NOTU (AŞAMA 3.10) ===
+    /// Eski model: her tumble için 30 hücreli "GridRefillSonrasi" tutuluyordu, dolgu sembolleri her
+    /// tumble'da yeniden cycling ile üretiliyordu → görsel olarak dolguların değişmesi yanılgısı.
+    ///
+    /// Yeni model: ilk grid SABİT, her tumble sadece "patlayanHucreler + yukaridanDusenSemboller"
+    /// (paralel array) tutar. Motor zaten yer çekimi yapmıyor (CokmeAkisServisi.YerindeTumbleRefillGridOlustur:
+    /// patlayan hücreye yerinde yeni sembol). Yani T1 sonrası grid = ilk grid + (patlayan hücrelere düşen
+    /// yeni sembol). Patlamayan dolgu hücreleri spin boyunca AYNI kalır.
+    ///
+    /// Kritik kural: dolgu hücrelerinde TÜM tumble'larda patlayacak sembollerden olmamalı, yoksa
+    /// cluster patladıktan sonra dolgudaki aynı semboller toplam 8'i aşar (örn 8 elma cluster +
+    /// 3 dolgu elma = 11 elma → yanlış paytable). GridIlk helper allClusters parametresiyle bu
+    /// sembolleri dolgu pool'dan hariç tutar.
+    /// </summary>
+    public static class ScriptedSenaryoAssetUreteci
+    {
+        // === Sembol indeksleri (Bölüm 2.2 raporu) ===
+        private const int SYM_ARMUT = 0;
+        private const int SYM_CILEK = 1;
+        private const int SYM_ERIK = 2;
+        private const int SYM_HINDISTAN = 3;
+        private const int SYM_KARPUZ = 4;
+        private const int SYM_MUZ = 5;
+        private const int SYM_ELMA = 6;
+        private const int SYM_UZUM = 7;
+        private const int SYM_SCATTER = 8; // sahnede ScatterIndex=8 (yıldız)
+        private const int CARPAN_SEMBOL = -2;
+
+        private const int SUTUN = 6;
+        private const int SATIR = 5;
+        private const int HUCRE_SAYISI = SUTUN * SATIR; // 30
+
+        private const string ASSET_KLASOR = "Assets/_Project/Resources";
+        private const string ASSET_YOL = ASSET_KLASOR + "/ScriptedSenaryo.asset";
+
+        // === Modal mesajları (Bölüm 4 plan tablosu) ===
+        private const string M_A1_S4 = "Oyuncu ilk kazançları yaşıyor. Beyninde dopamin salgılanıyor. Bu his, sonraki saatlerce oyun oynamanın yakıtı olacak.";
+        private const string M_A1_S7 = "Sistem büyük bir kazanç yaşatmak üzere. Geçmiş kayıpları unutturacak bir an gelecek.";
+        private const string M_A1_S8 = "İlk kazanç en tehlikeli başlangıçtır.";
+
+        private const string M_A2_S3 = "Oyuncu artık 'oyunun mantığını çözdüğünü' düşünmeye başlıyor. Aslında kazançların ne zaman geleceğini sistem belirliyor.";
+        private const string M_A2_S6 = "Kontrol yanılsaması — oyuncu kendini şanslı hissediyor, kaybetme ihtimalini küçümsüyor.";
+        private const string M_A2_S8 = "Sen oyunu yönettiğini düşünürken, oyun seni adım adım içine çekiyor.";
+
+        private const string M_A3_S3 = "İlk ciddi kayıplar yaşanıyor. Amaç para kazanmaktan çıktı, kayıpları telafi etmeye dönüştü.";
+        private const string M_A3_S6 = "Oyuncu kayıpları geri kazanmak için daha fazla risk alıyor. Mantıklı düşünme yetisini kaybediyor.";
+        private const string M_A3_S8 = "Bir tur daha = bir kayıp daha.";
+
+        private const string M_A4_S2 = "Üst üste kayıplar oyuncuyu yıpratıyor. Sistem şimdi büyük bir vuruş hazırlıyor.";
+        private const string M_A4_S4 = "Oyuncu pes etmek üzere. Tam bu noktada büyük kazanç gelecek — bu kasıtlı bir manipülasyon.";
+        private const string M_A4_S5 = "Bir büyük kazanç tüm geçmiş kayıpları gölgeliyor. Oyuncu 'şansının döndüğüne' inanıyor. Bu büyük kazancın amacı yeni bahisleri tetiklemek.";
+
+        private const string M_A5_S1 = "Bahis arttı, beklenti arttı. Adrenalin salgılanıyor.";
+        private const string M_A5_S3 = "x500 çarpan ekrana düştü ama eşleşme olmadı. Oyuncuda 'bir daha denemek' arzusu yaratıldı. Sistem fırsat sunmak üzere.";
+        private const string M_A5_S4_BONUS = "🎰 ŞANSLI SAATİNDESİN! Bonus oyun aktif edildi. Bakiyenin tamamını yatır, x10000 kazanma şansını kaçırma. SINIRLI TEKLİF.";
+        private const string M_A5_S5 = "Oyuncu tüm bakiyesini bonus oyuna yatırdı. Geri aldığı miktar yatırdığının %1'i. Bu sömürünün adı 'değişken oranlı pekiştireç'.";
+
+        // === Bahis sabitleri (Bölüm 2 + AnlaticiSeritKopru._onerilenBahisler) ===
+        private const int BAHIS_A1 = 500;
+        private const int BAHIS_A2 = 1000;
+        private const int BAHIS_A3 = 1500;
+        private const int BAHIS_A4 = 1000;
+        private const int BAHIS_A5 = 2000;
+        public const int BAHIS_A6 = 2500; // A6 dinamik spinler için (ScriptedSpinYoneticisi okur)
+
+        [MenuItem("Tools/Kumar/Scripted Senaryo Asset'ini Yeniden Üret")]
+        public static void AssetiYenidenUret()
+        {
+            EnsureKlasor(ASSET_KLASOR);
+
+            var asset = AssetDatabase.LoadAssetAtPath<ScriptedAsamaListesi>(ASSET_YOL);
+            bool yeni = asset == null;
+            if (yeni)
+            {
+                asset = ScriptableObject.CreateInstance<ScriptedAsamaListesi>();
+                AssetDatabase.CreateAsset(asset, ASSET_YOL);
+            }
+
+            asset.asamaSpinleri.Clear();
+            for (int i = 0; i < 7; i++)
+                asset.asamaSpinleri.Add(new AsamaSpinListesi());
+
+            DoldurAsama1(asset.asamaSpinleri[0].spinler);
+            DoldurAsama2(asset.asamaSpinleri[1].spinler);
+            DoldurAsama3(asset.asamaSpinleri[2].spinler);
+            DoldurAsama4(asset.asamaSpinleri[3].spinler);
+            DoldurAsama5(asset.asamaSpinleri[4].spinler);
+            // A6 (idx 5) dinamik — boş; A7 (idx 6) cutscene — boş.
+
+            EditorUtility.SetDirty(asset);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            int toplamSpin = 0;
+            for (int i = 0; i < asset.asamaSpinleri.Count; i++)
+                toplamSpin += asset.asamaSpinleri[i].spinler.Count;
+            Debug.Log($"[ScriptedSenaryoAssetUreteci] Asset {(yeni ? "oluşturuldu" : "güncellendi")}: {ASSET_YOL} | Toplam tanımlı spin: {toplamSpin}");
+            EditorUtility.DisplayDialog(
+                "Scripted Senaryo Asset",
+                $"Asset {(yeni ? "oluşturuldu" : "güncellendi")}.\n\nYol: {ASSET_YOL}\nToplam tanımlı spin: {toplamSpin}\n\nYeni model: ilk grid sabit + her tumble için yukaridanDusenSemboller.\n(A6 dinamik, A7 cutscene — boş listeler)",
+                "Tamam");
+        }
+
+        [MenuItem("Tools/Kumar/Scripted Senaryo Asset'ini Logla (A1 Spin 1)")]
+        public static void AssetiLogla()
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<ScriptedAsamaListesi>(ASSET_YOL);
+            if (asset == null)
+            {
+                Debug.LogError($"[AssetiLogla] Asset bulunamadı: {ASSET_YOL}. Önce 'Yeniden Üret' menüsünden üretin.");
+                return;
+            }
+            if (asset.asamaSpinleri == null || asset.asamaSpinleri.Count == 0
+                || asset.asamaSpinleri[0]?.spinler == null || asset.asamaSpinleri[0].spinler.Count == 0)
+            {
+                Debug.LogError("[AssetiLogla] A1 listesi boş.");
+                return;
+            }
+
+            var s1 = asset.asamaSpinleri[0].spinler[0];
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine($"[AssetiLogla] A1 Spin {s1.spinSiraNo} (asama={s1.asamaIndex}, bahis={s1.bahis}, brut={s1.brutOdeme}, tip={s1.tip})");
+            sb.AppendLine($"  ilkGridSemboller len={s1.ilkGridSemboller?.Length ?? 0}, ilkCarpanDegerleri len={s1.ilkCarpanDegerleri?.Length ?? 0}");
+            sb.AppendLine($"  Konvansiyon: y=0 ÜST sıra (Unity GridLayoutGroup default).");
+            if (s1.ilkGridSemboller != null)
+            {
+                var sayim = new Dictionary<int, int>();
+                for (int y = 0; y < SATIR; y++)
+                {
+                    var row = new System.Text.StringBuilder($"  y={y}: ");
+                    for (int x = 0; x < SUTUN; x++)
+                    {
+                        int idx = y * SUTUN + x;
+                        int sym = idx < s1.ilkGridSemboller.Length ? s1.ilkGridSemboller[idx] : -99;
+                        row.Append($"({x},{y})={SembolAdi(sym)}({sym})  ");
+                        if (!sayim.ContainsKey(sym)) sayim[sym] = 0;
+                        sayim[sym]++;
+                    }
+                    sb.AppendLine(row.ToString());
+                }
+                sb.Append("  Sayım: ");
+                foreach (var kv in sayim) sb.Append($"{SembolAdi(kv.Key)}({kv.Key})={kv.Value} ");
+                sb.AppendLine();
+
+                // Sembol bazlı pozisyon listesi — kullanıcı dağılımı doğrulayabilsin (üst sıra mı, dağınık mı).
+                var symPos = new Dictionary<int, List<string>>();
+                for (int idx = 0; idx < s1.ilkGridSemboller.Length; idx++)
+                {
+                    int sym = s1.ilkGridSemboller[idx];
+                    int x = idx % SUTUN;
+                    int y = idx / SUTUN;
+                    if (!symPos.ContainsKey(sym)) symPos[sym] = new List<string>();
+                    symPos[sym].Add($"({x},{y})");
+                }
+                sb.AppendLine("  Sembol pozisyonları:");
+                foreach (var kv in symPos)
+                    sb.AppendLine($"    {SembolAdi(kv.Key)}({kv.Key}): {string.Join(" ", kv.Value)}");
+            }
+            sb.AppendLine($"  Tumble adımı: {s1.tumbleler?.Count ?? 0}");
+            if (s1.tumbleler != null)
+            {
+                for (int ti = 0; ti < s1.tumbleler.Count; ti++)
+                {
+                    var t = s1.tumbleler[ti];
+                    sb.Append($"    T{ti + 1}: patlayan={t.patlayanHucreler?.Count ?? 0} hücre, düşen=[");
+                    if (t.yukaridanDusenSemboller != null)
+                    {
+                        for (int i = 0; i < t.yukaridanDusenSemboller.Length; i++)
+                        {
+                            sb.Append(SembolAdi(t.yukaridanDusenSemboller[i]));
+                            if (i < t.yukaridanDusenSemboller.Length - 1) sb.Append(',');
+                        }
+                    }
+                    sb.AppendLine("]");
+                }
+            }
+            Debug.Log(sb.ToString());
+        }
+
+        private static string SembolAdi(int sym)
+        {
+            switch (sym)
+            {
+                case -2: return "Carpan";
+                case -1: return "Bos";
+                case 0: return "Armut";
+                case 1: return "Cilek";
+                case 2: return "Erik";
+                case 3: return "Hindistan";
+                case 4: return "Karpuz";
+                case 5: return "Muz";
+                case 6: return "Elma";
+                case 7: return "Uzum";
+                case 8: return "Yildiz";
+                default: return "Sym" + sym;
+            }
+        }
+
+        // ============================================================
+        // AŞAMA 1 — Isındırma ve Umut (bahis 500, 8 spin)
+        // ============================================================
+        private static void DoldurAsama1(List<ScriptedSpinKaydi> liste)
+        {
+            // Spin 1: 3 tumble {hindistan→elma→üzüm} = 1500
+            {
+                int[] all = { SYM_HINDISTAN, SYM_ELMA, SYM_UZUM };
+                int[] ilk = GridIlk(all, Seed(0, 1), (SYM_HINDISTAN, 8));
+                var t1 = TumbleTekDusen(ilk, new[] { SYM_HINDISTAN }, SYM_ELMA);
+                int[] g1 = GridSonrasiHesapla(ilk, t1);
+                var t2 = TumbleTekDusen(g1, new[] { SYM_ELMA }, SYM_UZUM);
+                int[] g2 = GridSonrasiHesapla(g1, t2);
+                var t3 = TumbleDolguDusen(g2, new[] { SYM_UZUM }, all);
+                liste.Add(SpinTanimi(1, 0, BAHIS_A1, SpinTipi.Kazanc, 1500, ilk, null, new[] { t1, t2, t3 }));
+            }
+            // Spin 2: saf rastgele sıfır
+            liste.Add(SpinTanimi(2, 0, BAHIS_A1, SpinTipi.Sifir, 0, GridSifir(Seed(0, 2)), null, NoTumble()));
+            // Spin 3: 8 elma + 8 üzüm + ilk grid x2 çarpan, tek tumble = 2500
+            {
+                int[] all = { SYM_ELMA, SYM_UZUM };
+                var (g, c) = GridIlkCarpanli(all, Seed(0, 3), 2, (SYM_ELMA, 8), (SYM_UZUM, 8));
+                var t1 = TumbleDolguDusen(g, new[] { SYM_ELMA, SYM_UZUM }, all);
+                liste.Add(SpinTanimi(3, 0, BAHIS_A1, SpinTipi.Kazanc, 2500, g, c, new[] { t1 }));
+            }
+            // Spin 4: 8 üzüm tek cluster = 750 | modal A1_S4
+            liste.Add(TekClusterSpin(4, 0, BAHIS_A1, 750, SYM_UZUM, SpinTipi.Kazanc, M_A1_S4));
+            // Spin 5: 2 tumble {üzüm→elma} = 1250
+            {
+                int[] all = { SYM_UZUM, SYM_ELMA };
+                int[] ilk = GridIlk(all, Seed(0, 5), (SYM_UZUM, 8));
+                var t1 = TumbleTekDusen(ilk, new[] { SYM_UZUM }, SYM_ELMA);
+                int[] g1 = GridSonrasiHesapla(ilk, t1);
+                var t2 = TumbleDolguDusen(g1, new[] { SYM_ELMA }, all);
+                liste.Add(SpinTanimi(5, 0, BAHIS_A1, SpinTipi.Kazanc, 1250, ilk, null, new[] { t1, t2 }));
+            }
+            // Spin 6: 7 üzüm near-miss
+            liste.Add(SpinTanimi(6, 0, BAHIS_A1, SpinTipi.NearMiss, 0,
+                GridIlk(null, Seed(0, 6), (SYM_UZUM, 7)), null, NoTumble()));
+            // Spin 7: 8 üzüm + 8 elma + x5 çarpan (MEGA) = 6250 | modal A1_S7
+            {
+                int[] all = { SYM_UZUM, SYM_ELMA };
+                var (g, c) = GridIlkCarpanli(all, Seed(0, 7), 5, (SYM_UZUM, 8), (SYM_ELMA, 8));
+                var t1 = TumbleDolguDusen(g, new[] { SYM_UZUM, SYM_ELMA }, all);
+                liste.Add(SpinTanimi(7, 0, BAHIS_A1, SpinTipi.MegaWin, 6250, g, c, new[] { t1 }, M_A1_S7));
+            }
+            // Spin 8: 10 elma + 8 hindistan tek tumble = 1750 | modal A1_S8
+            {
+                int[] all = { SYM_ELMA, SYM_HINDISTAN };
+                int[] ilk = GridIlk(all, Seed(0, 8), (SYM_ELMA, 10), (SYM_HINDISTAN, 8));
+                var t1 = TumbleDolguDusen(ilk, new[] { SYM_ELMA, SYM_HINDISTAN }, all);
+                liste.Add(SpinTanimi(8, 0, BAHIS_A1, SpinTipi.Kazanc, 1750, ilk, null, new[] { t1 }, M_A1_S8));
+            }
+        }
+
+        // ============================================================
+        // AŞAMA 2 — Kontrol Bende Hissi (bahis 1000, 8 spin)
+        // ============================================================
+        private static void DoldurAsama2(List<ScriptedSpinKaydi> liste)
+        {
+            liste.Add(TekClusterSpin(1, 1, BAHIS_A2, 1000, SYM_ELMA, SpinTipi.Kazanc));
+            liste.Add(TekClusterSpin(2, 1, BAHIS_A2, 500, SYM_HINDISTAN, SpinTipi.Kazanc));
+            liste.Add(SpinTanimi(3, 1, BAHIS_A2, SpinTipi.NearMiss, 0,
+                GridIlk(null, Seed(1, 3), (SYM_UZUM, 7), (SYM_ELMA, 7)), null, NoTumble(), M_A2_S3));
+            liste.Add(TekClusterSpin(4, 1, BAHIS_A2, 1500, SYM_UZUM, SpinTipi.Kazanc));
+            liste.Add(SpinTanimi(5, 1, BAHIS_A2, SpinTipi.Sifir, 0, GridSifir(Seed(1, 5)), null, NoTumble()));
+            liste.Add(SpinTanimi(6, 1, BAHIS_A2, SpinTipi.NearMiss, 0,
+                GridIlk(null, Seed(1, 6), (SYM_SCATTER, 3)), null, NoTumble(), M_A2_S6));
+            // Spin 7: 2 tumble (elma → hindistan); paytable hesabı 1500 (plana sadık değil — A2 Spin 7 plan brüt 750 typo)
+            {
+                int[] all = { SYM_ELMA, SYM_HINDISTAN };
+                int[] ilk = GridIlk(all, Seed(1, 7), (SYM_ELMA, 8));
+                var t1 = TumbleTekDusen(ilk, new[] { SYM_ELMA }, SYM_HINDISTAN);
+                int[] g1 = GridSonrasiHesapla(ilk, t1);
+                var t2 = TumbleDolguDusen(g1, new[] { SYM_HINDISTAN }, all);
+                liste.Add(SpinTanimi(7, 1, BAHIS_A2, SpinTipi.Kazanc, 750, ilk, null, new[] { t1, t2 }));
+            }
+            liste.Add(SpinTanimi(8, 1, BAHIS_A2, SpinTipi.Sifir, 0, GridSifir(Seed(1, 8)), null, NoTumble(), M_A2_S8));
+        }
+
+        // ============================================================
+        // AŞAMA 3 — Geri Kazanabilirim (bahis 1500, 8 spin)
+        // ============================================================
+        private static void DoldurAsama3(List<ScriptedSpinKaydi> liste)
+        {
+            liste.Add(SpinTanimi(1, 2, BAHIS_A3, SpinTipi.Sifir, 0, GridSifir(Seed(2, 1)), null, NoTumble()));
+            liste.Add(SpinTanimi(2, 2, BAHIS_A3, SpinTipi.NearMiss, 0,
+                GridIlk(null, Seed(2, 2), (SYM_UZUM, 7)), null, NoTumble()));
+            liste.Add(SpinTanimi(3, 2, BAHIS_A3, SpinTipi.NearMiss, 0,
+                GridIlk(null, Seed(2, 3), (SYM_ELMA, 7)), null, NoTumble(), M_A3_S3));
+            liste.Add(SpinTanimi(4, 2, BAHIS_A3, SpinTipi.NearMiss, 0,
+                GridIlk(null, Seed(2, 4), (SYM_UZUM, 7), (SYM_ELMA, 7)), null, NoTumble()));
+            liste.Add(TekClusterSpin(5, 2, BAHIS_A3, 750, SYM_HINDISTAN, SpinTipi.BahisIadesi));
+            liste.Add(SpinTanimi(6, 2, BAHIS_A3, SpinTipi.NearMiss, 0,
+                GridIlk(null, Seed(2, 6), (SYM_SCATTER, 3)), null, NoTumble(), M_A3_S6));
+            liste.Add(SpinTanimi(7, 2, BAHIS_A3, SpinTipi.Sifir, 0, GridSifir(Seed(2, 7)), null, NoTumble()));
+            liste.Add(SpinTanimi(8, 2, BAHIS_A3, SpinTipi.NearMiss, 0,
+                GridIlk(null, Seed(2, 8), (SYM_UZUM, 7), (SYM_ELMA, 7), (SYM_SCATTER, 3)), null, NoTumble(), M_A3_S8));
+        }
+
+        // ============================================================
+        // AŞAMA 4 — Şansım Döndü (bahis 1000, 5 spin)
+        // ============================================================
+        private static void DoldurAsama4(List<ScriptedSpinKaydi> liste)
+        {
+            liste.Add(SpinTanimi(1, 3, BAHIS_A4, SpinTipi.Sifir, 0, GridSifir(Seed(3, 1)), null, NoTumble()));
+            liste.Add(SpinTanimi(2, 3, BAHIS_A4, SpinTipi.NearMiss, 0,
+                GridIlk(null, Seed(3, 2), (SYM_UZUM, 7)), null, NoTumble(), M_A4_S2));
+            liste.Add(SpinTanimi(3, 3, BAHIS_A4, SpinTipi.NearMiss, 0,
+                GridIlk(null, Seed(3, 3), (SYM_UZUM, 7), (SYM_ELMA, 7)), null, NoTumble()));
+            liste.Add(SpinTanimi(4, 3, BAHIS_A4, SpinTipi.Sifir, 0, GridSifir(Seed(3, 4)), null, NoTumble(), M_A4_S4));
+            // Spin 5: 8 ARMUT + ilk grid x100 çarpan (MEGA WIN) = 20000 | modal A4_S5
+            {
+                int[] all = { SYM_ARMUT };
+                var (g, c) = GridIlkCarpanli(all, Seed(3, 5), 100, (SYM_ARMUT, 8));
+                var t1 = TumbleDolguDusen(g, new[] { SYM_ARMUT }, all);
+                liste.Add(SpinTanimi(5, 3, BAHIS_A4, SpinTipi.MegaWin, 20000, g, c, new[] { t1 }, M_A4_S5));
+            }
+        }
+
+        // ============================================================
+        // AŞAMA 5 — Sonunu Düşünen (bahis 2000, 5 spin + bonus tuzağı)
+        // ============================================================
+        private static void DoldurAsama5(List<ScriptedSpinKaydi> liste)
+        {
+            liste.Add(SpinTanimi(1, 4, BAHIS_A5, SpinTipi.Sifir, 0, GridSifir(Seed(4, 1)), null, NoTumble(), M_A5_S1));
+            // Spin 2: 8 üzüm + ilk grid x2 çarpan = 6000
+            {
+                int[] all = { SYM_UZUM };
+                var (g, c) = GridIlkCarpanli(all, Seed(4, 2), 2, (SYM_UZUM, 8));
+                var t1 = TumbleDolguDusen(g, new[] { SYM_UZUM }, all);
+                liste.Add(SpinTanimi(2, 4, BAHIS_A5, SpinTipi.Kazanc, 6000, g, c, new[] { t1 }));
+            }
+            // Spin 3: x500 çarpan grid'e düşer ama cluster yok (carpanKactiFlag) | modal A5_S3
+            {
+                var (g, c) = GridIlkCarpanli(null, Seed(4, 3), 500);
+                var spin = SpinTanimi(3, 4, BAHIS_A5, SpinTipi.Sifir, 0, g, c, NoTumble(), M_A5_S3);
+                spin.carpanKactiFlag = true;
+                liste.Add(spin);
+            }
+            // Spin 4: BonusTetik — tüm bakiye otomatik bonus oyuna yatırılır, cüzi getiri (0 TL) döner.
+            // ScriptedBonusOyunUygulayici devreye girer (DonusAkisServisi hook'ta yield ile beklenir).
+            {
+                var spin4 = SpinTanimi(4, 4, BAHIS_A5, SpinTipi.BonusTetik, 0, GridSifir(Seed(4, 4)), null, NoTumble(), M_A5_S4_BONUS);
+                spin4.bonusOyunuTetikle = true;
+                spin4.bonusGetirisi = 0; // Yatırılanın tamamı kaybolur — pedagojik vuruş.
+                liste.Add(spin4);
+            }
+            // Spin 5: bonus oyun cüzi ödeme = 800 (Aşama 5 bonus uygulayıcı tüketir) | modal A5_S5
+            liste.Add(SpinTanimi(5, 4, BAHIS_A5, SpinTipi.Kazanc, 800, GridSifir(Seed(4, 5)), null, NoTumble(), M_A5_S5));
+        }
+
+        // ============================================================
+        // === HELPERS (yeni model) ===
+        // ============================================================
+
+        /// <summary>
+        /// İlk grid: cluster'lar + (varsa) çarpan + dolgu — tümü <paramref name="seed"/>'den deterministic
+        /// rastgele konumlara dağıtılır (System.Random). Aynı seed → aynı asset (Tools menüsü idempotent).
+        /// <paramref name="allClusters"/> bu spin'in TÜM tumble'larında patlayacak sembolleri içerir;
+        /// bunlar dolgu pool'dan hariç tutulur (sonraki tumble'larda dolgudaki aynı sembol toplam 8'i aşmasın).
+        /// Cluster pays mantığı konum bağımsız (CalculateWinWithOwnPayTable sadece sembol sayısına bakar),
+        /// dolayısıyla rastgele dağılım paytable hesabını etkilemez — sadece görsel çeşitlilik sağlar.
+        /// </summary>
+        private static (int[] g, int[] c) GridIlkCarpanli(int[] allClusters, int seed, int carpanDeger, params (int sym, int adet)[] kumeler)
+        {
+            var rng = new System.Random(seed);
+            int[] g = new int[HUCRE_SAYISI];
+            int[] c = new int[HUCRE_SAYISI];
+
+            // Tüm hücre indekslerini başlangıçta "boş" listesine al; cluster ve çarpan bunlardan rastgele tüketir.
+            var kalanIndexler = new List<int>(HUCRE_SAYISI);
+            for (int i = 0; i < HUCRE_SAYISI; i++) kalanIndexler.Add(i);
+
+            // Cluster sembollerini rastgele pozisyonlara yerleştir (her sembol için adet kadar hücre).
+            foreach (var (sym, adet) in kumeler)
+            {
+                for (int i = 0; i < adet && kalanIndexler.Count > 0; i++)
+                {
+                    int pick = rng.Next(kalanIndexler.Count);
+                    int hucreIdx = kalanIndexler[pick];
+                    kalanIndexler.RemoveAt(pick);
+                    g[hucreIdx] = sym;
+                }
+            }
+
+            // Çarpan/bomba: dolgu hücrelerinden RASTGELE bir tanesine yerleştirilir (cluster bozulmaz).
+            if (carpanDeger > 0 && kalanIndexler.Count > 0)
+            {
+                int pick = rng.Next(kalanIndexler.Count);
+                int hucreIdx = kalanIndexler[pick];
+                kalanIndexler.RemoveAt(pick);
+                g[hucreIdx] = CARPAN_SEMBOL;
+                c[hucreIdx] = carpanDeger;
+            }
+
+            // Dolgu pool: 0..7 sembol (SCATTER=8 dahil değil → scatter dolguda asla yer almaz).
+            // Cluster ve allClusters sembolleri hariç tutulur.
+            int[] dolguPool = { SYM_ARMUT, SYM_CILEK, SYM_ERIK, SYM_HINDISTAN, SYM_KARPUZ, SYM_MUZ, SYM_ELMA, SYM_UZUM };
+            var hariç = new HashSet<int>();
+            if (allClusters != null) foreach (var s in allClusters) hariç.Add(s);
+            foreach (var k in kumeler) hariç.Add(k.sym);
+            var dolgu = System.Array.FindAll(dolguPool, s => !hariç.Contains(s));
+            if (dolgu.Length == 0) dolgu = new[] { SYM_ARMUT };
+
+            // Kalan hücrelere dolgu cycling. Hücre seçim sırası kalanIndexler içindeki kalan sırayla.
+            int di = 0;
+            foreach (int idx in kalanIndexler)
+            {
+                g[idx] = dolgu[di++ % dolgu.Length];
+            }
+            return (g, c);
+        }
+
+        /// <summary>İlk grid çarpansız varyantı — <see cref="GridIlkCarpanli"/>'i carpanDeger=0 ile çağırır.</summary>
+        private static int[] GridIlk(int[] allClusters, int seed, params (int sym, int adet)[] kumeler)
+        {
+            var (g, _) = GridIlkCarpanli(allClusters, seed, 0, kumeler);
+            return g;
+        }
+
+        /// <summary>
+        /// 30 hücreyi 6 farklı sembol × 5'er ile doldurur — tüm cluster'lar 8'den az → kazançsız.
+        /// Her sıfır spin için farklı seed → dolgu paterni varyasyonu.
+        /// </summary>
+        private static int[] GridSifir(int seed)
+        {
+            return GridIlk(null, seed,
+                (SYM_ARMUT, 5), (SYM_CILEK, 5), (SYM_ERIK, 5),
+                (SYM_KARPUZ, 5), (SYM_MUZ, 5), (SYM_HINDISTAN, 5));
+        }
+
+        /// <summary>Spinin grid seed'i: aşama (0..6) × 1000 + spin sıra no (1..) × 10. Her spin için tutarlı + farklı.</summary>
+        private static int Seed(int asama, int spinNo) => asama * 1000 + spinNo * 10;
+
+        /// <summary>Bir grid'de verilen sembollerden olan tüm hücreleri Vector2Int olarak döner (x = i % SUTUN, y = i / SUTUN).</summary>
+        private static List<Vector2Int> HucreleriBul(int[] grid, params int[] semboller)
+        {
+            var liste = new List<Vector2Int>();
+            var setim = new HashSet<int>(semboller);
+            for (int i = 0; i < grid.Length; i++)
+            {
+                if (setim.Contains(grid[i]))
+                {
+                    int x = i % SUTUN;
+                    int y = i / SUTUN;
+                    liste.Add(new Vector2Int(x, y));
+                }
+            }
+            return liste;
+        }
+
+        /// <summary>
+        /// Tumble: <paramref name="patlayanSyms"/>'un <paramref name="oncekiGrid"/>'deki tüm hücreleri patlar,
+        /// her biri için <paramref name="dusenSym"/> sembolü düşer (TEK tip yeni sembol — sonraki tumble cluster'ı için).
+        /// </summary>
+        private static TumbleAdimTanimi TumbleTekDusen(int[] oncekiGrid, int[] patlayanSyms, int dusenSym)
+        {
+            var koord = HucreleriBul(oncekiGrid, patlayanSyms);
+            int n = koord.Count;
+            int[] dusen = new int[n];
+            for (int i = 0; i < n; i++) dusen[i] = dusenSym;
+            return new TumbleAdimTanimi
+            {
+                patlayanHucreler = koord,
+                yukaridanDusenSemboller = dusen,
+                yukaridanDusenCarpanlar = new int[n]
+            };
+        }
+
+        /// <summary>
+        /// Tumble: cluster patlar, üstten dolgu sembolleri (cycling) düşer — kazançsız son tumble için.
+        /// <paramref name="hariçSemboller"/> dolgu pool'dan hariç tutulur (genelde allClusters).
+        /// </summary>
+        private static TumbleAdimTanimi TumbleDolguDusen(int[] oncekiGrid, int[] patlayanSyms, int[] hariçSemboller)
+        {
+            var koord = HucreleriBul(oncekiGrid, patlayanSyms);
+            int[] dolguPool = { SYM_ARMUT, SYM_CILEK, SYM_ERIK, SYM_HINDISTAN, SYM_KARPUZ, SYM_MUZ, SYM_ELMA, SYM_UZUM };
+            var hariç = new HashSet<int>();
+            if (hariçSemboller != null) foreach (var s in hariçSemboller) hariç.Add(s);
+            foreach (var s in patlayanSyms) hariç.Add(s);
+            var dolgu = System.Array.FindAll(dolguPool, s => !hariç.Contains(s));
+            if (dolgu.Length == 0) dolgu = new[] { SYM_ARMUT };
+
+            int n = koord.Count;
+            int[] dusen = new int[n];
+            for (int i = 0; i < n; i++) dusen[i] = dolgu[i % dolgu.Length];
+            return new TumbleAdimTanimi
+            {
+                patlayanHucreler = koord,
+                yukaridanDusenSemboller = dusen,
+                yukaridanDusenCarpanlar = new int[n]
+            };
+        }
+
+        /// <summary>Önceki grid + tumble adımı → sonraki grid (motor mantığı: patlayan hücreye düşen sembol gelir, diğerleri yerinde).</summary>
+        private static int[] GridSonrasiHesapla(int[] onceki, TumbleAdimTanimi tumble)
+        {
+            int[] sonra = (int[])onceki.Clone();
+            if (tumble.patlayanHucreler == null || tumble.yukaridanDusenSemboller == null) return sonra;
+            int n = Mathf.Min(tumble.patlayanHucreler.Count, tumble.yukaridanDusenSemboller.Length);
+            for (int i = 0; i < n; i++)
+            {
+                var p = tumble.patlayanHucreler[i];
+                int idx = p.y * SUTUN + p.x;
+                if (idx >= 0 && idx < sonra.Length)
+                    sonra[idx] = tumble.yukaridanDusenSemboller[i];
+            }
+            return sonra;
+        }
+
+        private static TumbleAdimTanimi[] NoTumble() => System.Array.Empty<TumbleAdimTanimi>();
+
+        /// <summary>Tek cluster'lı basit spin: 8 hücre patlar, dolgu sembolleri düşer (kazançsız son state).</summary>
+        private static ScriptedSpinKaydi TekClusterSpin(int spinNo, int asama, int bahis, long brut, int sym, SpinTipi tip, string modal = null)
+        {
+            int[] all = { sym };
+            int[] ilk = GridIlk(all, Seed(asama, spinNo), (sym, 8));
+            var t1 = TumbleDolguDusen(ilk, all, all);
+            return SpinTanimi(spinNo, asama, bahis, tip, brut, ilk, null, new[] { t1 }, modal);
+        }
+
+        private static ScriptedSpinKaydi SpinTanimi(
+            int spinNo, int asama, int bahis, SpinTipi tip, long brut,
+            int[] ilkGrid, int[] ilkCarpanlar, TumbleAdimTanimi[] tumbleler, string modal = null)
+        {
+            return new ScriptedSpinKaydi
+            {
+                spinSiraNo = spinNo,
+                asamaIndex = asama,
+                bahis = bahis,
+                tip = tip,
+                brutOdeme = brut,
+                ilkGridSemboller = ilkGrid,
+                ilkCarpanDegerleri = ilkCarpanlar ?? new int[HUCRE_SAYISI],
+                tumbleler = new List<TumbleAdimTanimi>(tumbleler),
+                modalMesaji = modal,
+                carpanKactiFlag = false
+            };
+        }
+
+        private static void EnsureKlasor(string yol)
+        {
+            if (Directory.Exists(yol)) return;
+            Directory.CreateDirectory(yol);
+            AssetDatabase.Refresh();
+        }
+    }
+}
+#endif
