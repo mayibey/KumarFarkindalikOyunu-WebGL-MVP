@@ -1,4 +1,6 @@
 {
+  "buildCommand": "cd .. && cd .. && git lfs install && git lfs pull",
+  "installCommand": "echo 'No npm install needed for static WebGL'",
   "headers": [
     {
       "source": "/Build/(.*)\\.br",
