@@ -1,7 +1,21 @@
 {
-  "buildCommand": "cd .. && cd .. && git lfs install && git lfs pull",
-  "installCommand": "echo 'No npm install needed for static WebGL'",
+  "outputDirectory": ".",
   "headers": [
+    {
+      "source": "/Build/(.*)\\.wasm\\.br",
+      "headers": [
+        { "key": "Content-Encoding", "value": "br" },
+        { "key": "Content-Type", "value": "application/wasm" },
+        { "key": "Cache-Control", "value": "public, max-age=31536000" }
+      ]
+    },
+    {
+      "source": "/Build/(.*)\\.wasm\\.gz",
+      "headers": [
+        { "key": "Content-Encoding", "value": "gzip" },
+        { "key": "Content-Type", "value": "application/wasm" }
+      ]
+    },
     {
       "source": "/Build/(.*)\\.br",
       "headers": [
