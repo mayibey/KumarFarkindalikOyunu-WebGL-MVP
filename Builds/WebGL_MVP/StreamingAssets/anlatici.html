@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Anlatici Serit</title>
+<style>
+  body { margin: 0; padding: 0; background: transparent; color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, sans-serif; overflow: hidden; }
+  #anlaticiRoot { padding: 8px; }
+  .panel { background: #0f0a1a; border: 1px solid rgba(212,162,74,0.35);
+    border-radius: 14px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.4); position: relative; }
+  .header { padding: 12px 22px 10px; background: rgba(212,162,74,0.08);
+    border-bottom: 1px solid rgba(212,162,74,0.2); }
+  .header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .nav-btn { width: 26px; height: 26px; background: transparent;
+    border: 1px solid rgba(212,162,74,0.4); border-radius: 4px; color: #d4a24a;
+    font-size: 14px; cursor: pointer; line-height: 1; padding: 0; transition: all 0.15s; font-family: inherit; }
+  .nav-btn:hover { background: rgba(212,162,74,0.15); color: #f0d99a; }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .asama-num { font-size: 12px; letter-spacing: 1.8px; color: rgba(212,162,74,0.85); font-weight: 500; }
+  .asama-baslik { color: #f0d99a; font-size: 20px; font-weight: 500; line-height: 1.3; text-align: center; }
+  .section { padding: 12px 22px 10px; border-top: 1px solid rgba(255,255,255,0.05); }
+  .section-arka { background: rgba(160,50,50,0.08); border-top: none; }
+  .section-kafa { background: rgba(80,60,120,0.08); }
+  .section-label { font-size: 11px; letter-spacing: 1.8px; font-weight: 500; margin-bottom: 6px; }
+  .label-arka { color: #d97070; }
+  .label-kafa { color: #a594c8; }
+  .label-spin { color: rgba(255,255,255,0.55); }
+  .arka-text { color: #e8d4b8; font-size: 15px; line-height: 1.5; margin-bottom: 8px; }
+  .rozetler { border-top: 1px dashed rgba(255,255,255,0.12); padding-top: 6px;
+    display: flex; gap: 5px; flex-wrap: wrap; }
+  .rozet { background: rgba(160,50,50,0.25); border: 1px solid rgba(160,50,50,0.4);
+    border-radius: 4px; padding: 4px 9px; font-size: 12px; color: #ff9999; }
+  .rozet-warn { background: rgba(160,100,50,0.2); border: 1px solid rgba(160,100,50,0.4); color: #ffb380; }
+  .rozet-good { background: rgba(60,140,60,0.2); border: 1px solid rgba(60,140,60,0.4); color: #80e080; }
+  .kafa-text { color: #c8b8e0; font-size: 15px; line-height: 1.5; font-style: italic; margin-bottom: 6px; }
+  .bilim-not { color: rgba(255,255,255,0.45); font-size: 12px; line-height: 1.35; }
+  .spin-bolum { padding: 10px 22px 8px; background: rgba(0,0,0,0.2);
+    border-top: 1px solid rgba(255,255,255,0.05); }
+  .spin-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .spin-sayac { font-size: 14px; color: #d4a24a; font-weight: 500; }
+  .spin-bar { display: flex; gap: 4px; margin-bottom: 6px; }
+  .spin-seg { flex: 1; height: 6px; border-radius: 3px;
+    background: rgba(255,255,255,0.12); transition: background 0.3s, box-shadow 0.3s;
+    cursor: help; position: relative; }
+  .spin-seg.dolu { background: #d4a24a; }
+  .spin-seg.kazanc { background: #5dd55d; box-shadow: 0 0 8px rgba(93,213,93,0.45); }
+  .spin-seg.kayip  { background: #ff5555; box-shadow: 0 0 8px rgba(255,85,85,0.45); }
+  .spin-seg[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute; bottom: calc(100% + 8px); left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.92); color: #fff;
+    padding: 4px 8px; border-radius: 4px;
+    font-size: 11px; font-weight: 500; white-space: nowrap;
+    z-index: 100; pointer-events: none; }
+  .spin-seg[data-tooltip]:hover::before {
+    content: ''; position: absolute; bottom: calc(100% + 4px); left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent; border-top-color: rgba(0,0,0,0.92);
+    z-index: 100; pointer-events: none; }
+  .spin-info { font-size: 12px; color: rgba(255,255,255,0.4); text-align: center; margin-top: 4px; }
+  .hikaye { padding: 8px 22px; background: rgba(0,0,0,0.3);
+    border-top: 1px solid rgba(255,255,255,0.05); }
+  .hikaye-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .hikaye-noktalar { display: flex; gap: 6px; align-items: center; justify-content: center; }
+  .nokta { width: 12px; height: 12px; border-radius: 50%;
+    background: rgba(255,255,255,0.18); transition: all 0.3s; cursor: pointer; }
+  .nokta.gecmis { background: #5d9a5d; }
+  .nokta.aktif { width: 16px; height: 16px; background: #d4a24a;
+    border: 2px solid #f0d99a; box-sizing: border-box; }
+  .bakiye { padding: 12px 22px 14px; background: rgba(120,30,30,0.18);
+    border-top: 1px solid rgba(160,50,50,0.3); }
+  .bakiye-bg-iyi { background: rgba(40,100,40,0.18); border-top: 1px solid rgba(60,140,60,0.3); }
+  .bakiye-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 3px; }
+  .bakiye-meta { font-size: 12px; color: rgba(255,255,255,0.55); }
+  .bakiye-net { font-size: 36px; font-weight: 500; line-height: 1; margin-bottom: 4px; }
+  .bakiye-net.kayip { color: #ff5555; }
+  .bakiye-net.kazanc { color: #5dd55d; }
+  .bakiye-net.notr { color: rgba(255,255,255,0.6); }
+  .bakiye-baglam { font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.4; }
+  .tukenis-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.92); display: none; align-items: center; justify-content: center;
+    z-index: 100; padding: 20px; text-align: center; }
+  .tukenis-overlay.aktif { display: flex; }
+  .tukenis-icerik { color: #fff; }
+  .tukenis-baslik { font-size: 16px; letter-spacing: 2px; color: #ff5555; margin-bottom: 18px; }
+  .tukenis-info { font-size: 14px; color: rgba(255,255,255,0.75); line-height: 1.6; margin-bottom: 14px; }
+  .tukenis-rakam { font-size: 38px; color: #ff5555; font-weight: 500; margin: 14px 0; }
+  .tukenis-yeniden { margin-top: 20px; padding: 12px 28px;
+    background: rgba(212,162,74,0.2); border: 1px solid rgba(212,162,74,0.5);
+    color: #f0d99a; border-radius: 8px; font-size: 14px; cursor: pointer; font-family: inherit; }
+  .tukenis-yeniden:hover { background: rgba(212,162,74,0.35); }
+</style>
+</head>
+<body>
+<div id="anlaticiRoot">
+  <div class="panel">
+    <div class="header">
+      <div class="header-row">
+        <button class="nav-btn" onclick="onceki()">‹</button>
+        <span class="asama-num" id="asamaNum">AŞAMA 1 / 7</span>
+        <button class="nav-btn" onclick="sonraki()">›</button>
+      </div>
+      <div class="asama-baslik" id="asamaBaslik">Isındırma ve Umut</div>
+    </div>
+    <div class="section section-arka">
+      <div class="section-label label-arka">SAHNE ARKASI</div>
+      <div class="arka-text" id="arkaText">—</div>
+      <div class="rozetler" id="rozetler"></div>
+    </div>
+    <div class="section section-kafa">
+      <div class="section-label label-kafa">OYUNCUNUN KAFASI</div>
+      <div class="kafa-text" id="kafaText">—</div>
+      <div class="bilim-not" id="bilimNot">—</div>
+    </div>
+    <div class="spin-bolum">
+      <div class="spin-row">
+        <span class="section-label label-spin" style="margin: 0;">SPİN İLERLEMESİ</span>
+        <span class="spin-sayac" id="spinSayac">0 / 10</span>
+      </div>
+      <div class="spin-bar" id="spinBar"></div>
+      <div class="spin-info" id="spinInfo">10 spin sonra aşama 2 başlayacak</div>
+    </div>
+    <div class="hikaye">
+      <div class="hikaye-row">
+        <span class="section-label label-spin" style="margin: 0;">HİKAYE AKIŞI</span>
+        <span class="bakiye-meta">otomatik</span>
+      </div>
+      <div class="hikaye-noktalar" id="hikayeNoktalar"></div>
+    </div>
+    <div class="bakiye" id="bakiyeBolum">
+      <div class="bakiye-row">
+        <span class="bakiye-meta" id="bakiyeMeta">0 spin</span>
+        <span class="bakiye-meta" style="opacity: 0.7;">net durum</span>
+      </div>
+      <div class="bakiye-net kayip" id="bakiyeNet">0 TL</div>
+      <div class="bakiye-baglam" id="bakiyeBaglam">Simülasyon başlamadı.</div>
+    </div>
+    <div class="tukenis-overlay" id="tukenisOverlay">
+      <div class="tukenis-icerik">
+        <div class="tukenis-baslik">SİMÜLASYON TAMAMLANDI</div>
+        <div class="tukenis-info" id="tukenisSpinDakika">— spin · yaklaşık — dakika</div>
+        <div class="tukenis-rakam" id="tukenisRakam">−34.000 TL</div>
+        <div class="tukenis-info">Bu rakam ortalama bir aile için 2.5 aylık geçim demek. Gerçek hayatta oyuncu burada durmaz — bir sonraki maaş, bir sonraki kredi, bir sonraki dönüş umudu için devam eder.</div>
+        <button class="tukenis-yeniden" onclick="yenidenBaslat()">Yeniden Başlat</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  var ASAMALAR = [
+    { isim: "Isındırma ve Umut",
+      arka: "Sistem yeni gelen oyuncuya bilerek bol kazandırıyor. Bu cömertlik samimi değil — oyuncuyu bağlamak için kurulmuş bir tuzak. İlk dakikalardaki başarı duygusu ileride tüm kayıpların kabulüne dönüşecek.",
+      kafa: "\"Vay be, bu oyun kazandırıyor! Ben bu işi anladım galiba, biraz daha denerim.\"",
+      bilim: "Davranışsal Bağlanma — beyin ilk kazançları \"yetenek\" olarak kodlar.",
+      rozetler: [{text:"Geri ödeme: %~250",tip:"good"},{text:"Tavan: bahsin 5×'i",tip:"good"},{text:"Şans: yapay yüksek",tip:"warn"}],
+      bakiyeRengi: "kazanc", bakiyeBaglam: "Sahte kazanç ileride büyük kayıp için yem olacak." },
+    { isim: "Kontrol Bende Hissi",
+      arka: "Sistem yavaş yavaş normalleşiyor. Hâlâ ara sıra kazandırıyor ama kayıp dönemleri başlıyor. Oyuncu fark etmiyor çünkü kafasında \"bu işi çözdüm\" hissi var. Sistem ona bu yanılgıyı kasıtla bırakıyor.",
+      kafa: "\"Ne zaman basacağımı biliyorum artık. Belli bir patern var, ben bunu yakaladım.\"",
+      bilim: "Kontrol Yanılsaması — rastgele olaylarda örüntü görme eğilimi.",
+      rozetler: [{text:"Geri ödeme: %~200",tip:"good"},{text:"Tavan: bahsin 3.5×'i",tip:"good"},{text:"Şans: yüksek",tip:"warn"}],
+      bakiyeRengi: "kazanc", bakiyeBaglam: "Hâlâ kazançta gibi ama gerçekte kayıp başladı." },
+    { isim: "Kaybettiklerimi Geri Kazanabilirim",
+      arka: "İlk gerçek kayıp dalgası başladı. Sistem oyuncudan aldıklarını geri vermiyor — verecek de değil. Oyuncu \"telafi etmeliyim\" düşüncesiyle bahisleri yükseltiyor. Sistem tam bunu bekliyordu.",
+      kafa: "\"Az önce kaybettiklerimi bir geri kazanayım, çıkayım. Sadece o kadar.\"",
+      bilim: "Kayıp Kovalama — kayıp duygusu kazanç umudundan iki kat güçlüdür.",
+      rozetler: [{text:"Geri ödeme: %~75",tip:"warn"},{text:"Tavan: bahsin 1×'i",tip:"warn"},{text:"Şans: dengeli",tip:"warn"}],
+      bakiyeRengi: "kayip", bakiyeBaglam: "Telafi etmek için bahis 2 katına çıkacak — kayıp da öyle." },
+    { isim: "Şansın Döndü",
+      arka: "Sistem oyuncuyu artık kasıtlı kaybettiriyor. Yatırılan paranın sadece küçük bir kısmı geri dönüyor. Ekrana sürekli \"az kalmıştı\" sembolleri geliyor — ama bu görsel bir tuzak. Hiçbir spin gerçek kazanç vermeyecek.",
+      kafa: "\"Bir tane daha. Az kalmıştı. Bu sefer kesin tutar — şansım dönüyor.\"",
+      bilim: "Yakın Kayıp Yanılgısı — beyin yaklaşan kazançla gerçek kazancı ayırt edemez.",
+      rozetler: [{text:"Geri ödeme: %~40",tip:"kayip"},{text:"Tavan: bahsin 0.6×'i",tip:"kayip"},{text:"Şans: düşük",tip:"warn"}],
+      bakiyeRengi: "kayip", bakiyeBaglam: "Kayıp dakikada hızlandı. Oyuncu fark etmiyor." },
+    { isim: "Sonunu Düşünen Kahraman Olamaz",
+      arka: "Oyuncu mantığı bıraktı. Bahisleri agresifce yükseltiyor, \"bu sefer büyük kazanırım\" diye düşünüyor. Sistem bu davranışı bekliyordu — yüksek bahisli spinlerde kayıp katlanır. Bilinçli karar yok artık, sadece refleks.",
+      kafa: "\"Yarısı gitti zaten, gerisini de koyayım. Geri çıkmazsa bana ne kalır ki?\"",
+      bilim: "Batık Maliyet Yanılgısı — geçmiş kayıp gelecek kararı bozar.",
+      rozetler: [{text:"Geri ödeme: %~20",tip:"kayip"},{text:"Tavan: bahsin 0.4×'i",tip:"kayip"},{text:"Şans: minimal",tip:"kayip"}],
+      bakiyeRengi: "kayip", bakiyeBaglam: "Toplam kayıp birikiyor. Oyuncu hâlâ duramıyor." },
+    { isim: "Başka Bir Yerden Para Bulmalıyım",
+      arka: "Bakiye bitti. Oyuncu \"bonus satın al\" butonuna saldırıyor, kredi kartı ekleyip yeni bakiye alıyor. Borca girdi, eve haber vermiyor, başkalarından para istiyor. Oyun dışı zarar başladı — borç, gizlilik, ilişkilerde çatlak.",
+      kafa: "\"Bir kredi çekersem, son bir hamle yaparım, hem borç biter hem yeniden başlarım.\"",
+      bilim: "Çaresizlik Tepkisi — beyin uzun vadeli sonucu hesaplayamaz hale gelir.",
+      rozetler: [{text:"Geri ödeme: %~15",tip:"kayip"},{text:"Tavan: bahsin 0.3×'i",tip:"kayip"},{text:"Şans: tükenmiş",tip:"kayip"}],
+      bakiyeRengi: "kayip", bakiyeBaglam: "Kart limitine bonus eklendi. Borç başladı." },
+    { isim: "Tükeniş",
+      arka: "Sistem son hamleyi yapıyor. Hiç kazanç vermez oldu, ne yaparsa yapsın oyuncu kaybeder. Para bitti, kredi tükendi, eve borç birikti. Oyuncu artık \"bağımlı\" — dur diyemez, oyun zaten kazanmış durumda.",
+      kafa: "\"Nasıl bu hale geldim? Eve ne diyeceğim? Ama dursam kayıplar kalır... bir spin daha.\"",
+      bilim: "Tükeniş Aşaması — bağımlılık literatüründe son dönemin klinik adı.",
+      rozetler: [{text:"Geri ödeme: %~5",tip:"kayip"},{text:"Tavan: bahsin 0.1×'i",tip:"kayip"},{text:"Şans: yok",tip:"kayip"}],
+      bakiyeRengi: "kayip", bakiyeBaglam: "Bu, ortalama bir maaşın katlarına ulaştı." }
+  ];
+  var aktifAsama = 0, aktifSpin = 0, SPIN_PER_ASAMA = 10, bakiyeNet = 0, toplamSpin = 0;
+  // Aşama spin eşiği (Unity → JSON state.hedefSpin). Aşama 7 = 999 (dinamik tükeniş), görsel max 10.
+  var ASAMA_SPIN_HEDEF = [10, 10, 8, 8, 10, 10, 999];
+  var hedefSpin = 10;
+  var ASAMA7_GORSEL_MAX = 10;
+  var spinNetleri = []; // mevcut aşamadaki spin başına net (+/-) TL
+
+  function bildirBoyut() {
+    var root = document.getElementById('anlaticiRoot'); if (!root) return;
+    var h = root.getBoundingClientRect().height;
+    try { window.parent.postMessage({source:'anlaticiHtml', type:'resize', height: Math.ceil(h)}, '*'); } catch(e) {}
+  }
+
+  function formatTL(n) {
+    var sign = n < 0 ? '−' : (n > 0 ? '+' : '');
+    return sign + Math.abs(Math.round(n)).toLocaleString('tr-TR') + ' TL';
+  }
+
+  function render() {
+    var a = ASAMALAR[aktifAsama]; if (!a) return;
+    document.getElementById('asamaNum').textContent = 'AŞAMA ' + (aktifAsama+1) + ' / 7';
+    document.getElementById('asamaBaslik').textContent = a.isim;
+    document.getElementById('arkaText').textContent = a.arka;
+    document.getElementById('kafaText').textContent = a.kafa;
+    document.getElementById('bilimNot').textContent = a.bilim;
+    var rozHtml = '';
+    a.rozetler.forEach(function(r) {
+      var cls = 'rozet'; if (r.tip === 'warn') cls += ' rozet-warn';
+      else if (r.tip === 'good') cls += ' rozet-good';
+      rozHtml += '<span class="' + cls + '">' + r.text + '</span>';
+    });
+    document.getElementById('rozetler').innerHTML = rozHtml;
+    // hedefSpin lokal aktif aşamadan array ile (manuel atla'da Unity onayını beklemez). Aşama 7 (999) → görsel max 10 çubuk.
+    var asamaIdx = Math.max(0, Math.min(6, aktifAsama));
+    var asamaHedef = ASAMA_SPIN_HEDEF[asamaIdx] || 10;
+    var gorselHedef = asamaHedef > 20 ? ASAMA7_GORSEL_MAX : asamaHedef;
+    var sayacText = (asamaHedef > 20) ? (aktifSpin + ' / ∞') : (aktifSpin + ' / ' + asamaHedef);
+    document.getElementById('spinSayac').textContent = sayacText;
+    var barHtml = '';
+    for (var i = 0; i < gorselHedef; i++) {
+      var segCls = 'spin-seg', segTip = '';
+      if (i < spinNetleri.length) {
+        var net = spinNetleri[i];
+        if (net > 0) { segCls += ' kazanc'; segTip = ' data-tooltip="+' + net.toLocaleString('tr-TR') + ' TL"'; }
+        else         { segCls += ' kayip';  segTip = ' data-tooltip="' + net.toLocaleString('tr-TR') + ' TL"'; }
+      }
+      barHtml += '<div class="' + segCls + '"' + segTip + '></div>';
+    }
+    document.getElementById('spinBar').innerHTML = barHtml;
+    var kalan = Math.max(0, asamaHedef - aktifSpin);
+    document.getElementById('spinInfo').textContent = aktifAsama < 6
+      ? kalan + ' spin sonra aşama ' + (aktifAsama+2) + ' başlayacak'
+      : (asamaHedef > 20 ? 'Bakiye tükenince simülasyon biter' : kalan + ' spin sonra simülasyon biter');
+    var noktaHtml = '';
+    for (var j = 0; j < 7; j++) {
+      var nCls = 'nokta';
+      if (j < aktifAsama) nCls += ' gecmis';
+      else if (j === aktifAsama) nCls += ' aktif';
+      noktaHtml += '<div class="' + nCls + '" onclick="atla(' + j + ')"></div>';
+    }
+    document.getElementById('hikayeNoktalar').innerHTML = noktaHtml;
+    var bb = document.getElementById('bakiyeBolum');
+    var bn = document.getElementById('bakiyeNet');
+    // Bakiye renk MANTIGI gerçeklikten gelir (aşama profilinden bağımsız)
+    var renkSinif, bgSinif = '';
+    if (bakiyeNet < 0) { renkSinif = 'kayip'; }
+    else if (bakiyeNet > 0) { renkSinif = 'kazanc'; bgSinif = ' bakiye-bg-iyi'; }
+    else { renkSinif = 'notr'; }
+    bn.className = 'bakiye-net ' + renkSinif;
+    bb.className = 'bakiye' + bgSinif;
+    bn.textContent = formatTL(bakiyeNet);
+    document.getElementById('bakiyeMeta').textContent = toplamSpin + ' spin';
+    document.getElementById('bakiyeBaglam').textContent = a.bakiyeBaglam;
+    setTimeout(bildirBoyut, 50);
+  }
+
+  function unityeGonder(key, value) {
+    try { window.parent.postMessage({source:'yoneticiPanel', key:key, value:value}, '*'); } catch(e) {}
+  }
+
+  function onceki() { if (aktifAsama > 0) { aktifAsama--; aktifSpin = 0; spinNetleri = []; unityeGonder('anlaticiAsamaDegis', aktifAsama); render(); } }
+  function sonraki() { if (aktifAsama < 6) { aktifAsama++; aktifSpin = 0; spinNetleri = []; unityeGonder('anlaticiAsamaDegis', aktifAsama); render(); } }
+  function atla(idx) { if (idx >= 0 && idx < 7) { aktifAsama = idx; aktifSpin = 0; spinNetleri = []; unityeGonder('anlaticiAsamaDegis', aktifAsama); render(); } }
+  function yenidenBaslat() {
+    aktifAsama = 0; aktifSpin = 0; bakiyeNet = 0; toplamSpin = 0; spinNetleri = [];
+    document.getElementById('tukenisOverlay').classList.remove('aktif');
+    unityeGonder('anlaticiYenidenBaslat', true); render();
+  }
+  function tukenisGoster() {
+    document.getElementById('tukenisRakam').textContent = formatTL(bakiyeNet);
+    var spinSayi = toplamSpin || 0;
+    var dakika = Math.max(1, Math.ceil(spinSayi)); // ~1 spin / dakika
+    var spinDakikaEl = document.getElementById('tukenisSpinDakika');
+    if (spinDakikaEl) spinDakikaEl.textContent = spinSayi + ' spin · yaklaşık ' + dakika + ' dakika';
+    document.getElementById('tukenisOverlay').classList.add('aktif');
+    setTimeout(bildirBoyut, 100);
+  }
+
+  window.addEventListener('message', function(e) {
+    var d = e.data; if (!d) return;
+    if (d.source === 'unityToAnlatici') {
+      if (typeof d.asama === 'number' && d.asama >= 0 && d.asama < 7) aktifAsama = d.asama;
+      if (typeof d.spin === 'number') aktifSpin = d.spin;
+      if (typeof d.hedefSpin === 'number' && d.hedefSpin > 0) hedefSpin = d.hedefSpin;
+      if (typeof d.bakiyeNet === 'number') bakiyeNet = d.bakiyeNet;
+      if (typeof d.toplamSpin === 'number') toplamSpin = d.toplamSpin;
+      if (Array.isArray(d.spinNetleri)) spinNetleri = d.spinNetleri;
+      if (d.tukenisKapat === true) {
+        document.getElementById('tukenisOverlay').classList.remove('aktif');
+      }
+      if (d.tukenis === true) { tukenisGoster(); return; }
+      render();
+    }
+  });
+
+  window.addEventListener('load', function() {
+    render(); bildirBoyut();
+    try { window.parent.postMessage({source:'anlaticiHtml', type:'ready'}, '*'); } catch(e) {}
+  });
+
+  if (typeof ResizeObserver !== 'undefined') {
+    var ro = new ResizeObserver(function() { bildirBoyut(); });
+    setTimeout(function() { var root = document.getElementById('anlaticiRoot'); if (root) ro.observe(root); }, 100);
+  }
+</script>
+</body>
+</html>

@@ -10,20 +10,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <style>
       html, body {
-        width: 100%;
-        height: 100%;
         margin: 0;
         padding: 0;
+        width: 100%;
+        height: 100%;
         overflow: hidden;
+        min-height: -webkit-fill-available;
+        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        background: #000;
         box-sizing: border-box;
       }
       *, *::before, *::after { box-sizing: inherit; }
-      #unity-container.unity-desktop {
+
+      #unity-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+      }
+      #unity-canvas {
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: none !important;
+        max-height: none !important;
+        aspect-ratio: unset !important;
+        background: #000;
+        display: block;
+      }
+
+      .unity-desktop, .unity-mobile {
+        width: 100vw !important;
+        height: 100vh !important;
+      }
+
+      #unity-container.unity-desktop,
+      #unity-container.unity-mobile {
         position: fixed !important;
         left: 0 !important;
         top: 0 !important;
-        width: 100vw !important;
-        height: 100vh !important;
         max-width: none !important;
         max-height: none !important;
         transform: none !important;
@@ -31,19 +56,21 @@
         display: flex !important;
         flex-direction: column !important;
       }
-      #unity-container.unity-desktop #unity-canvas {
+      #unity-container.unity-desktop #unity-canvas,
+      #unity-container.unity-mobile #unity-canvas {
         flex: 1 1 0;
         align-self: stretch;
-        width: 100% !important;
-        height: 100% !important;
         min-height: 0;
-        display: block;
       }
-      #unity-container.unity-desktop #unity-footer {
-        flex: 0 0 auto;
+
+      #unity-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        z-index: 100;
       }
     </style>
-
   <script src="TemplateData/profiler.js"></script>
   </head>
   <body>
@@ -63,14 +90,22 @@
       </div>
     </div>
     <script>
+      console.log('[index.html] SCRIPT YUKLENDI: ' + new Date().toISOString());
+      // === PANEL KÖPRÜsü: Unity yüklenmeden önce listener'ı kur ===
+      var _panelUnityInst = null;
+      window.addEventListener('message', function(e) {
+        console.log('[index.html] RAW message:', typeof e.data, JSON.stringify(e.data).substring(0, 150));
+        var d = e.data;
+        if (!d || d.source !== 'yoneticiPanel') return;
+        if (!_panelUnityInst) { console.warn('[index.html] Unity henüz hazır değil'); return; }
+        var json = JSON.stringify({ source: d.source, key: d.key, value: String(d.value) });
+        console.log('[index.html] Unity SendMessage:', json);
+        _panelUnityInst.SendMessage('PanelKopru', 'AyarAl', json);
+      }, false);
+      // === Panel Köprüsü Sonu ===
+
       var canvas = document.querySelector("#unity-canvas");
 
-      // Shows a temporary message banner/ribbon for a few seconds, or
-      // a permanent error message on top of the canvas if type=='error'.
-      // If type=='warning', a yellow highlight color is used.
-      // Modify or remove this function to customize the visually presented
-      // way that non-critical warnings and error messages are presented to the
-      // user.
       function unityShowBanner(msg, type) {
         var warningBanner = document.querySelector("#unity-warning");
         function updateBannerVisibility() {
@@ -102,42 +137,17 @@
         productName: "KumarFarkindalikOyunu",
         productVersion: "1.0",
         showBanner: unityShowBanner,
-        // errorHandler: function(err, url, line) {
-        //    alert("error " + err + " occurred at line " + line);
-        //    // Return 'true' if you handled this error and don't want Unity
-        //    // to process it further, 'false' otherwise.
-        //    return true;
-        // },
       };
 
-      // By default, Unity keeps WebGL canvas render target size matched with
-      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-      // Set this to false if you want to decouple this synchronization from
-      // happening inside the engine, and you would instead like to size up
-      // the canvas DOM size and WebGL render target sizes yourself.
-      // config.matchWebGLToCanvasSize = false;
-
-      // If you would like all file writes inside Unity Application.persistentDataPath
-      // directory to automatically persist so that the contents are remembered when
-      // the user revisits the site the next time, uncomment the following line:
-      // config.autoSyncPersistentDataPath = true;
-      // This autosyncing is currently not the default behavior to avoid regressing
-      // existing user projects that might rely on the earlier manual
-      // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
-      // expected to change.
-
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
-
         document.querySelector("#unity-container").className = "unity-mobile";
         canvas.className = "unity-mobile";
 
-        // To lower canvas resolution on mobile devices to gain some
-        // performance, uncomment the following line:
-        // config.devicePixelRatio = 1;
 
-
-      } else { /* tam ekran: canvas CSS */ }
+      } else {
+        canvas.style.width = "1920px";
+        canvas.style.height = "1080px";
+      }
 
       document.querySelector("#unity-loading-bar").style.display = "block";
 
@@ -147,6 +157,11 @@
         createUnityInstance(canvas, config, (progress) => {
           document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
               }).then((unityInstance) => {
+                // Panel köprüsü: global değişkene ata (listener sayfanın başında kayıtlı)
+                _panelUnityInst = unityInstance;
+                window.unityInstance = unityInstance;
+                console.log('[index.html] Unity hazır, _panelUnityInst SET:', !!_panelUnityInst);
+
                 document.querySelector("#unity-loading-bar").style.display = "none";
                 document.querySelector("#unity-fullscreen-button").onclick = () => {
                   unityInstance.SetFullscreen(1);
@@ -156,32 +171,15 @@
                 profile.style.marginLeft = '5px';
                 document.querySelector("#unity-build-title").appendChild(profile);
 
-                // Unloading web content from DOM so that browser GC can run can be tricky to get right.
-                // This code snippet shows how to correctly implement a Unity content Unload mechanism to a web page.
-
-                // Unloading Unity content enables a web page to reclaim the memory used by Unity, e.g. for
-                // the purpose of later loading another Unity content instance on the _same_ web page.
-
-                // When using this functionality, take caution to carefully make sure to clear all JavaScript code,
-                // DOM element and event handler references to the old content you may have retained, or
-                // otherwise the browser's garbage collector will be unable to reclaim the old page.
-
-                // N.b. Unity content does _not_ need to be manually unloaded when the user is navigating away from
-                // the current page to another web page. The browser will take care to clear memory of old visited
-                // pages automatically. This functionality is only needed if you want to switch between loading
-                // multiple Unity builds on a single web page.
                 var quit = document.createElement("button");
                 quit.style = "margin-left: 5px; background-color: lightgray; border: none; padding: 5px; cursor: pointer";
                 quit.innerHTML = "Unload";
                 document.querySelector("#unity-build-title").appendChild(quit);
                 quit.onclick = () => {
-                  // Quit Unity application execution
                   unityInstance.Quit().then(() => {
                     unityProfiler.shutDown();
-                    // Remove DOM elements from the page so GC can run
                     document.querySelector("#unity-container").remove();
                     canvas = null;
-                    // Remover script elements from the page so GC can run
                     script.remove();
                     script = null;
                   });
@@ -193,6 +191,33 @@
 
       document.body.appendChild(script);
 
+    </script>
+
+    <!-- WEBGL_FULLSCREEN_PATCH_FS3: Aggressive canvas resize override -->
+    <script>
+      (function() {
+        function forceFullscreen() {
+          var c = document.querySelector("#unity-canvas");
+          if (c) {
+            c.style.width  = window.innerWidth  + "px";
+            c.style.height = window.innerHeight + "px";
+          }
+          var ct = document.querySelector("#unity-container");
+          if (ct) {
+            ct.style.width  = window.innerWidth  + "px";
+            ct.style.height = window.innerHeight + "px";
+          }
+        }
+        window.addEventListener("resize", forceFullscreen);
+        window.addEventListener("orientationchange", forceFullscreen);
+        window.addEventListener("load", function() {
+          forceFullscreen();
+          setTimeout(forceFullscreen, 100);
+          setTimeout(forceFullscreen, 500);
+          setTimeout(forceFullscreen, 1500);
+          setTimeout(forceFullscreen, 3000);
+        });
+      })();
     </script>
   </body>
 </html>

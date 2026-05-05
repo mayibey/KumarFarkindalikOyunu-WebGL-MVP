@@ -1714,6 +1714,248 @@ function dbg(text) {
       }
     }
 
+  var PanelBridge = {listenerKuruldu:false,mesajListenerKur:function() {
+              if (PanelBridge.listenerKuruldu) return;
+              PanelBridge.listenerKuruldu = true;
+  
+              // 1. Yönetici Panel mesajları (admin panel.html'den)
+              window.addEventListener('message', function(e) {
+                  var msg = e.data;
+                  if (!msg || msg.source !== 'yoneticiPanel') return;
+                  var json = JSON.stringify({
+                      source: msg.source,
+                      key:    msg.key,
+                      value:  String(msg.value)
+                  });
+                  if (typeof unityInstance !== 'undefined' && unityInstance.SendMessage) {
+                      unityInstance.SendMessage('PanelKopru', 'AyarAl', json);
+                  }
+                  if (msg.key === 'paneliKapat') {
+                      var ov = document.getElementById('panelOverlay');
+                      if (ov) ov.remove();
+                      var bo = document.getElementById('bahisPanelOverlay');
+                      if (bo) bo.remove();
+                  }
+              }, false);
+  
+              // 2. Bahis Sec HTML'den gelen resize/ready mesajları
+              window.addEventListener('message', function(e) {
+                  var msg = e.data;
+                  if (!msg || msg.source !== 'bahisSecHtml') return;
+                  var iframe = document.getElementById('bahisPanelIframe');
+                  if (!iframe) return;
+  
+                  if (msg.type === 'resize' && msg.height) {
+                      iframe.style.height = (msg.height + 8) + 'px'; // 8px tampon
+                  }
+  
+                  if (msg.type === 'ready') {
+                      if (typeof window._sonBahisBakiye !== 'undefined' && iframe.contentWindow) {
+                          iframe.contentWindow.postMessage({
+                              source: 'unityToBahis',
+                              bakiye: window._sonBahisBakiye
+                          }, '*');
+                      }
+                  }
+              }, false);
+  
+              // 3. Anlatıcı Şerit HTML'den gelen resize/ready mesajları
+              window.addEventListener('message', function(e) {
+                  var msg = e.data;
+                  if (!msg || msg.source !== 'anlaticiHtml') return;
+                  var iframe = document.getElementById('anlaticiPanelIframe');
+                  if (!iframe) return;
+  
+                  if (msg.type === 'resize' && msg.height) {
+                      iframe.style.height = (msg.height + 8) + 'px';
+                  }
+                  if (msg.type === 'ready') {
+                      if (typeof window._sonAnlaticiState !== 'undefined' && iframe.contentWindow) {
+                          var st = window._sonAnlaticiState;
+                          st.source = 'unityToAnlatici';
+                          iframe.contentWindow.postMessage(st, '*');
+                      }
+                  }
+              }, false);
+          }};
+  
+  function _AnlaticiPaneliAc(urlPtr) {
+          PanelBridge.mesajListenerKur();
+          var url = UTF8ToString(urlPtr);
+  
+          var existing = document.getElementById('anlaticiPanelContainer');
+          if (existing) existing.remove();
+  
+          var container = document.createElement('div');
+          container.id = 'anlaticiPanelContainer';
+          container.style.cssText = 'position:fixed;top:200px;left:12px;width:460px;max-height:calc(100vh - 360px);overflow-y:auto;z-index:5000;pointer-events:auto;';
+  
+          var iframe = document.createElement('iframe');
+          iframe.id = 'anlaticiPanelIframe';
+          iframe.src = url;
+          iframe.style.cssText = 'width:100%;height:600px;border:none;background:transparent;';
+          iframe.setAttribute('allowtransparency', 'true');
+  
+          container.appendChild(iframe);
+          document.body.appendChild(container);
+      }
+
+  function _AnlaticiPaneliGuncelle(jsonPtr) {
+          var json = UTF8ToString(jsonPtr);
+          try {
+              var data = JSON.parse(json);
+              window._sonAnlaticiState = data;
+              var iframe = document.getElementById('anlaticiPanelIframe');
+              if (iframe && iframe.contentWindow) {
+                  data.source = 'unityToAnlatici';
+                  iframe.contentWindow.postMessage(data, '*');
+              }
+          } catch(e) {
+              console.warn('[AnlaticiPaneliGuncelle] JSON parse hatasi:', e);
+          }
+      }
+
+  function _AnlaticiPaneliKapat() {
+          var c = document.getElementById('anlaticiPanelContainer');
+          if (c) c.remove();
+          window._sonAnlaticiState = undefined;
+      }
+
+  function _AyarlariPanelleGonder(jsonPtr) {
+          var json = UTF8ToString(jsonPtr);
+          var iframe = document.getElementById('panelIframe');
+          if (iframe && iframe.contentWindow) {
+              iframe.contentWindow.postMessage({
+                  source: 'unityToPanel',
+                  key:    'mevcutAyarlar',
+                  value:  json
+              }, '*');
+          } else {
+              console.warn('[PanelBridge] AyarlariPanelleGonder: panelIframe bulunamadi');
+          }
+      }
+
+  
+  function _BahisPaneliAc(urlPtr) {
+          PanelBridge.mesajListenerKur();
+          var url = UTF8ToString(urlPtr);
+  
+          var existing = document.getElementById('bahisPanelOverlay');
+          if (existing) existing.remove();
+  
+          var overlay = document.createElement('div');
+          overlay.id = 'bahisPanelOverlay';
+          // align-items:flex-end + padding-bottom:140px — popup viewport altına yaslanır,
+          // SPIN butonu ve alt UI şeridinin azıcık üstünde durur (slot ekran üst kısmı serbest kalır)
+          overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:flex-end;justify-content:center;padding-bottom:140px;';
+  
+          var iframe = document.createElement('iframe');
+          iframe.id = 'bahisPanelIframe';
+          iframe.src = url;
+          // Başlangıç height 480px; resize mesajı geldiğinde gerçek içerik boyutuna ayarlanır.
+          iframe.style.cssText = 'width:min(540px, calc(100vw - 32px));height:480px;max-height:90vh;border:none;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.6);background:transparent;z-index:10001;';
+          iframe.setAttribute('allowtransparency', 'true');
+  
+          overlay.appendChild(iframe);
+          document.body.appendChild(overlay);
+  
+          overlay.addEventListener('click', function(e) {
+              if (e.target === overlay) overlay.remove();
+          });
+      }
+
+  function _BahisPaneliBakiyeGonder(bakiye) {
+          window._sonBahisBakiye = bakiye;
+          var iframe = document.getElementById('bahisPanelIframe');
+          if (iframe && iframe.contentWindow) {
+              iframe.contentWindow.postMessage({
+                  source: 'unityToBahis',
+                  bakiye: bakiye
+              }, '*');
+          }
+      }
+
+  function _BahisPaneliKapat() {
+          var ov = document.getElementById('bahisPanelOverlay');
+          if (ov) ov.remove();
+          // Cached bakiyeyi temizle (sonraki açılışta stale değer kalmasın)
+          window._sonBahisBakiye = undefined;
+      }
+
+  function _BonusHUDGizle() {
+          var hud = document.getElementById('scriptedBonusHud');
+          if (hud) {
+              hud.style.transition = 'transform 0.3s ease-in, opacity 0.3s ease-in';
+              hud.style.transform = 'translateX(120%)';
+              hud.style.opacity = '0';
+              setTimeout(function() { if (hud.parentNode) hud.parentNode.removeChild(hud); }, 350);
+          }
+      }
+
+  function _BonusHUDGoster() {
+          // Mevcut HUD'u kaldır (idempotent)
+          var existing = document.getElementById('scriptedBonusHud');
+          if (existing) existing.remove();
+  
+          var hud = document.createElement('div');
+          hud.id = 'scriptedBonusHud';
+          hud.style.cssText =
+              'position:fixed;top:20px;right:20px;width:280px;padding:16px;' +
+              'background:rgba(26,26,46,0.85);border:2px solid #ffd700;border-radius:12px;' +
+              'font-family:Arial,sans-serif;color:white;' +
+              'box-shadow:0 0 20px rgba(255,215,0,0.4);z-index:9999;' +
+              'animation:scriptedBonusHudSlideIn 0.4s ease-out;';
+  
+          // CSS keyframes (eğer henüz tanımlı değilse)
+          if (!document.getElementById('scriptedBonusHudStyles')) {
+              var style = document.createElement('style');
+              style.id = 'scriptedBonusHudStyles';
+              style.textContent =
+                  '@keyframes scriptedBonusHudSlideIn {' +
+                  '  from { transform: translateX(120%); opacity: 0; }' +
+                  '  to { transform: translateX(0); opacity: 1; }' +
+                  '}' +
+                  '@keyframes scriptedBonusHudKazancParla {' +
+                  '  0%,100% { color: #ffd700; }' +
+                  '  50% { color: #fff8a0; text-shadow: 0 0 8px rgba(255,215,0,0.8); }' +
+                  '}' +
+                  '#scriptedBonusHud .kazancParla {' +
+                  '  animation: scriptedBonusHudKazancParla 0.6s ease-out;' +
+                  '}';
+              document.head.appendChild(style);
+          }
+  
+          hud.innerHTML =
+              '<div style="font-size:16px;margin-bottom:8px;">' +
+              '  🎰 KALAN SPİN: <span id="scriptedBonusHudSpin">10</span> / 10' +
+              '</div>' +
+              '<div style="font-size:14px;color:#ffd700;">' +
+              '  💰 OTURUM KAZANCI: <span id="scriptedBonusHudKazanc">0</span> TL' +
+              '</div>';
+          document.body.appendChild(hud);
+      }
+
+  function _BonusHUDGuncelle(spin, kazanc) {
+          var spinEl = document.getElementById('scriptedBonusHudSpin');
+          var kazancEl = document.getElementById('scriptedBonusHudKazanc');
+          if (spinEl) spinEl.textContent = spin;
+          if (kazancEl) {
+              // Format TL: 1234 → "1.234"
+              var formatted = kazanc.toString();
+              if (kazanc >= 1000) {
+                  formatted = kazanc.toLocaleString('tr-TR');
+              }
+              // Eğer değer değiştiyse parlama animasyonu tetikle
+              if (kazancEl.textContent !== formatted) {
+                  kazancEl.textContent = formatted;
+                  kazancEl.classList.remove('kazancParla');
+                  // Reflow ile re-trigger
+                  void kazancEl.offsetWidth;
+                  kazancEl.classList.add('kazancParla');
+              }
+          }
+      }
+
   function _GetJSLoadTimeInfo(loadTimePtr) {
     loadTimePtr = (loadTimePtr >> 2);
     HEAPU32[loadTimePtr] = Module.pageStartupTime || 0;
@@ -7590,6 +7832,15 @@ function dbg(text) {
   		return lengthBytesUTF8(gpuinfo);
   	}
 
+  
+  function _JS_SystemInfo_GetLanguage(buffer, bufferSize)
+  	{
+  		var language = Module.SystemInfo.language;
+  		if (buffer)
+  			stringToUTF8(language, buffer, bufferSize);
+  		return lengthBytesUTF8(language);
+  	}
+
   function _JS_SystemInfo_GetMatchWebGLToCanvasSize()
   	{
   		// If matchWebGLToCanvasSize is not present, it is
@@ -7653,13 +7904,687 @@ function dbg(text) {
   	return !!Module.shouldQuit;
   }
 
+  var videoInstances = {};
+  var jsSupportedVideoFormats = [];
+  
+  var jsUnsupportedVideoFormats = [];
+  
+  
+  
+  function _JS_Video_CanPlayFormat(format)
+  {
+  	format = UTF8ToString(format);
+  	if (jsSupportedVideoFormats.indexOf(format) != -1) return true;
+  	if (jsUnsupportedVideoFormats.indexOf(format) != -1) return false;
+  	var video = document.createElement('video');
+  	var canPlay = video.canPlayType(format);
+  	if (canPlay) jsSupportedVideoFormats.push(format);
+  	else jsUnsupportedVideoFormats.push(format);
+  	return !!canPlay;
+  }
+
+  
+  var videoInstanceIdCounter = 0;
+  
+  function jsVideoEnded() {
+  	var cb = this.onendedCallback;
+  	if (cb) ((a1) => dynCall_vi.apply(null, [cb, a1]))(this.onendedRef);
+  }
+  
+  var hasSRGBATextures = null;
+  
+  
+  function jsIsWebkit() {
+  	if (Module.SystemInfo.os == "iPhoneOS" || Module.SystemInfo.os == "iPadOS")
+  		return true;
+  
+      if (!navigator.userAgent.includes("AppleWebKit"))
+  		return false;
+  
+  	return Module.SystemInfo.browser === "Safari";
+  }
+  
+  
+  function _JS_Video_Create(url)
+  {
+  	var str = UTF8ToString(url);
+  	var video = document.createElement('video');
+  	video.style.display = 'none';
+  
+  	// Some browsers signal readiness by emitting the 'loaddata' event (Safari), others with
+  	// the video frame callback (Chrome). Supporting both.
+  	function loadedDataListener()
+  	{
+  		video.removeEventListener('loadeddata', loadedDataListener);
+  		video.isLoaded = true;
+  	}
+  	video.addEventListener('loadeddata', loadedDataListener);
+  
+  	if (/Chrome/i.test(navigator.userAgent) && typeof video.requestVideoFrameCallback === 'function')
+  	{
+  		// Chromium-based browsers have a hiccup early on in playback, between .5 and 1s after
+  		// start, that causes them to report frame updates without actually updating pixels (see
+  		// UUM-111608). Installing a recurring video frame callback influences the browser's
+  		// rendering/compositing scheduling in a way that eliminates the issue on all tested
+  		// browsers as of this writing (e.g.: version 139.0.7258.67 on Mac/Intel macOS 15.5).
+  		function updateHiccupWorkaround(now, metadata)
+  		{
+  			video.requestVideoFrameCallback(updateHiccupWorkaround);
+  		}
+  
+  		// We manage the "loaded" state explicitly via this initial callback for Chromium-based
+  		// browsers, or else the first frame never shows up after calling Pause(). But it causes
+  		// Safari to report the first frame of webms as loaded even if it isn't, so this really
+          // is a Chromium-specific quirk.
+  		video.requestVideoFrameCallback(function() {
+  			video.isLoaded = true;
+  		    video.requestVideoFrameCallback(updateHiccupWorkaround);
+  		});
+  	}
+  
+  	video.src = str;
+  	video.muted = true;
+  	// Fix for iOS: Set muted and playsinline attribute to disable fullscreen playback
+  	video.setAttribute("muted", "");
+  	video.setAttribute("playsinline", "");
+  
+  	// Enable CORS on the request fetching the video so the browser accepts
+  	// playing it.  This is needed since the data is fetched and used
+  	// programmatically - rendering into a canvas - and not displayed normally.
+  	video.crossOrigin = "anonymous";
+  
+  	videoInstances[++videoInstanceIdCounter] = video;
+  
+  	// Firefox (older than ver. 108) and Webkit have a bug that makes GLctx.SRGB8_ALPHA8 not work consistently.
+  	// This means linearized video textures will not have an alpha channel until we can get
+  	// that format working consistently.
+  	// https://bugzilla.mozilla.org/show_bug.cgi?id=1696693
+  	// https://bugs.webkit.org/show_bug.cgi?id=222822
+  	if (hasSRGBATextures == null)
+  	{
+  		hasSRGBATextures = true;
+  
+  		if (Module.SystemInfo.browser == "Firefox" && Module.SystemInfo.browserVersion < 108)
+  			hasSRGBATextures = false;
+  
+  		if (jsIsWebkit())
+  			hasSRGBATextures = false;
+  	}
+  
+  	return videoInstanceIdCounter;
+  }
+
+  var jsVideoPendingBlockedVideos = {};
+  
+  
+  
+  
+  
+  function jsVideoPlayPendingBlockedVideo(video) {
+  	jsVideoPendingBlockedVideos[video].play().then(function() {
+  		var v = jsVideoPendingBlockedVideos[video];
+  		jsVideoRemovePendingBlockedVideo(video);
+  		// WebGPU can't import the video frame until it has been completely loaded, as notified by
+  		// requestVideoFrameCallback
+  		if (typeof v.requestVideoFrameCallback === 'function')
+  			v.requestVideoFrameCallback(function() {
+  				v.isLoaded = true;
+  			});
+  	});
+  }
+  
+  
+  function jsVideoAttemptToPlayBlockedVideos() {
+  	for (var i in jsVideoPendingBlockedVideos) {
+  		if (jsVideoPendingBlockedVideos.hasOwnProperty(i)) jsVideoPlayPendingBlockedVideo(i);
+  	}
+  }
+  
+  function jsVideoRemovePendingBlockedVideo(video) {
+  	delete jsVideoPendingBlockedVideos[video];
+  	if (Object.keys(jsVideoPendingBlockedVideos).length == 0) {
+  		window.removeEventListener('mousedown', jsVideoAttemptToPlayBlockedVideos);
+  		window.removeEventListener('touchstart', jsVideoAttemptToPlayBlockedVideos);
+  	}
+  }
+  
+  function _JS_Video_Destroy(video)
+  {
+  	var v = videoInstances[video];
+  	if (v.loopEndPollInterval) {
+  		clearInterval(v.loopEndPollInterval);
+  	}
+  	jsVideoRemovePendingBlockedVideo(video);
+  	// Reset video source to cancel download of video file
+  	v.src = "";
+  	// Clear the registered event handlers so that we won't get any events from phantom videos.
+  	delete v.onendedCallback;
+  	v.onended = v.onerror = v.oncanplay = v.onseeked = null;
+  	// And let browser GC the video object itself.
+  	delete videoInstances[video];
+  }
+
+  function _JS_Video_Duration(video)
+  {
+  	return videoInstances[video].duration;
+  }
+
+  function _JS_Video_EnableAudioTrack(video, trackIndex, enabled)
+  {
+  	var v = videoInstances[video];
+  
+  	// Keep a manual track of enabled audio tracks for browsers that
+  	// do not support the <video>.audioTracks property
+  	if (!v.enabledTracks) v.enabledTracks = [];
+  	while (v.enabledTracks.length <= trackIndex) v.enabledTracks.push(true);
+  	v.enabledTracks[trackIndex] = enabled;
+  
+  	// Apply the enabled state to the audio track if browser supports it.
+  	var tracks = v.audioTracks;
+  	if (!tracks)
+  		return;
+  	var track = tracks[trackIndex];
+  	if (track)
+  		track.enabled = enabled ? true : false;
+  }
+
+  function _JS_Video_GetAudioLanguageCode(video, trackIndex, buffer, bufferSize)
+  {
+  	// See note in JS_Video_GetNumAudioTracks about the presence of 'audioTracks' property.
+  	var tracks = videoInstances[video].audioTracks;
+  	if (!tracks)
+  		return 0;
+  
+  	// Language may not be set in the track, but the web browser may also not be supporting
+  	// track language for some formats.
+  	var track = tracks[trackIndex];
+  	if (!track || !track.language)
+  		return 0;
+  
+  	if (buffer)
+  		stringToUTF8(track.language, buffer, bufferSize);
+  
+  	return lengthBytesUTF8(track.language);
+  }
+
+  function _JS_Video_GetNumAudioTracks(video)
+  {
+  	// For browsers that don't support the audioTracks property, let's assume
+  	// there is a single audio track.
+  	// As of this writing, 'audioTracks' property is not supported across the board. See
+  	//
+  	// https://caniuse.com/mdn-api_htmlmediaelement_audiotracks
+  	//
+  	// It can be enabled through experimental browser flags, but even there may not properly
+  	// reveal the number of tracks in the source.
+  	var tracks = videoInstances[video].audioTracks;
+  	return tracks ? tracks.length : 1;
+  }
+
+  function _JS_Video_GetPlaybackRate(video)
+  {
+  	return videoInstances[video].playbackRate;
+  }
+
+  function _JS_Video_Height(video)
+  {
+  	return videoInstances[video].videoHeight;
+  }
+
+  function _JS_Video_IsPlaying(video)
+  {
+  	var v = videoInstances[video];
+  	return !v.paused && !v.ended;
+  }
+
+  function _JS_Video_IsReady(video)
+  {
+  	var v = videoInstances[video];
+  	// Fix for iOS: readyState is only set to have HAVE_METADATA
+  	// until video.play() is called.
+  	// Fix for Firefox: when the network bandwidth is low, after multiple video.play() calls, the video readyState changes to HAVE_FUTURE_DATA.
+  	// Firefox bug: https://bugzilla.mozilla.org/show_bug.cgi?id=1927698
+  	// Wait for HAVE_ENOUGH_DATA on other platforms.
+  	var targetReadyState = /(iPhone|iPad)/i.test(navigator.userAgent) ? v.HAVE_METADATA : /(Firefox)/i.test(navigator.userAgent) ? v.HAVE_FUTURE_DATA : v.HAVE_ENOUGH_DATA;
+  
+  	if (!v.isReady &&
+  		v.readyState >= targetReadyState)
+  		v.isReady = true;
+  	return v.isReady;
+  }
+
+  function _JS_Video_IsSeeking(video)
+  {
+  	var v = videoInstances[video];
+  	return v.seeking;
+  }
+
+  function _JS_Video_LastUpdateTime(video)
+  {
+  	return videoInstances[video].lastUpdateTextureTime;
+  }
+
+  
+  function _JS_Video_Pause(video)
+  {
+  	var v = videoInstances[video];
+  	v.pause();
+  
+  	jsVideoRemovePendingBlockedVideo(video);
+  
+  	// Clear loop end polling, if one is in effect, to conserve performance.
+  	if (v.loopEndPollInterval) {
+  		clearInterval(v.loopEndPollInterval);
+  	}
+  }
+
+  
+  function _JS_Video_SetLoop(video, loop)
+  {
+  	var v = videoInstances[video];
+  	if (v.loopEndPollInterval) {
+  		clearInterval(v.loopEndPollInterval);
+  	}
+  
+  	v.loop = loop;
+  	if (loop) {
+  		// When video is looping, we must manually poll to observe the completion
+  		// of a loop iteration. See https://bugzilla.mozilla.org/show_bug.cgi?id=1668591
+  		v.loopEndPollInterval = setInterval(function() {
+  			var cur = v.currentTime;
+  			var last = v.lastSeenPlaybackTime;
+  			if (cur < last) {
+  				// If time rewinds, we need to make sure it rewinds "enough" because
+  				// time sometimes rewinds "just a bit" while we're adjusting playback
+  				// speed to help keeping up with the clock source.
+  				var dur = v.duration;
+  				var margin = 0.2;
+  				var closeToBegin = margin * dur;
+  				var closeToEnd = dur - closeToBegin;
+  				if (cur < closeToBegin && last > closeToEnd)
+  					jsVideoEnded.apply(v);
+  			}
+  			v.lastSeenPlaybackTime = v.currentTime;
+  		}, 1000/30); // Poll loop completion at at 30fps
+  		v.lastSeenPlaybackTime = v.currentTime;
+  		v.onended = null;
+  	} else {
+  		// When video is not looping, we can use the usual onended handler.
+  		v.onended = jsVideoEnded;
+  	}
+  }
+  
+  function jsVideoAllAudioTracksAreDisabled(v) {
+  
+  	if (!v.enabledTracks)
+  	{
+  		// If we have not yet configured audio tracks, default to assuming we have one enabled track
+  		// unless we can see the number of audio tracks in the (optional)
+  		// HTMLMediaElement.audioTracks member.
+  		if (!v.audioTracks)
+  			return false;
+  
+  		return v.audioTracks.length == 0;
+  	}
+  
+  	// Check if none of the audio tracks are currenly enabled.
+  	for (var i = 0; i < v.enabledTracks.length; ++i) {
+  		if (v.enabledTracks[i])
+  			return false;
+  	}
+  	return true;
+  }
+  
+  
+  
+  function jsVideoAddPendingBlockedVideo(video, v) {
+  	if (Object.keys(jsVideoPendingBlockedVideos).length == 0) {
+  		window.addEventListener('mousedown', jsVideoAttemptToPlayBlockedVideos, true);
+  		window.addEventListener('touchstart', jsVideoAttemptToPlayBlockedVideos, true);
+  	}
+  
+  	jsVideoPendingBlockedVideos[video] = v;
+  }
+  
+  function _JS_Video_Play(video, muted)
+  {
+  	var v = videoInstances[video];
+  	v.muted = muted || jsVideoAllAudioTracksAreDisabled(v);
+  	var promise = v.play();
+  	if (promise) promise.catch(function(e) {
+  		if (e.name == 'NotAllowedError') jsVideoAddPendingBlockedVideo(video, v);
+  	});
+  	// WebGPU can't import the video frame until it has been completely loaded, as notified by requestVideoFrameCallback
+  	if (typeof v.requestVideoFrameCallback === 'function')
+  		v.requestVideoFrameCallback(function() {
+  			v.isLoaded = true;
+  		});
+  
+  	// Set up the loop ended handler.
+  	_JS_Video_SetLoop(video, v.loop);
+  }
+
+  function _JS_Video_Seek(video, time)
+  {
+  	var v = videoInstances[video];
+  	v.lastSeenPlaybackTime = v.currentTime = time;
+  }
+
+  function _JS_Video_SetEndedHandler(video, ref, onended)
+  {
+  	var v = videoInstances[video];
+  	v.onendedCallback = onended;
+  	v.onendedRef = ref;
+  }
+
+  function _JS_Video_SetErrorHandler(video, ref, onerror)
+  {
+  	videoInstances[video].onerror = function(evt) {
+  		((a1, a2) => dynCall_vii.apply(null, [onerror, a1, a2]))(ref, evt.target.error.code);
+  	};
+  }
+
+
+  
+  function _JS_Video_SetMute(video, muted)
+  {
+  	var v = videoInstances[video];
+  	v.muted = muted || jsVideoAllAudioTracksAreDisabled(v);
+  }
+
+  function _JS_Video_SetPlaybackRate(video, rate)
+  {
+  	videoInstances[video].playbackRate = rate;
+  }
+
+  function _JS_Video_SetReadyHandler(video, ref, onready)
+  {
+  	videoInstances[video].oncanplay = function() {
+  		((a1) => dynCall_vi.apply(null, [onready, a1]))(ref);
+  	};
+  }
+
+  function _JS_Video_SetSeekedHandler(video, ref, onseeked)
+  {
+  	videoInstances[video].onseeked = function() {
+  		var v = videoInstances[video];
+  		// Clear the last update time so that the next texture update is not ignored.
+  		// The seek is triggered by setting currentTime, so when it settles, there will
+  		// not necessarily be a change of currentTime (e.g.: Safari does nudge the time
+  		// value a bit if needed to be perfectly aligned on frame boundary, but not
+  		// Chrome/macOS).
+  		v.lastUpdateTextureTime = null;
+  		((a1) => dynCall_vi.apply(null, [onseeked, a1]))(ref);
+  	}
+  }
+
+  function _JS_Video_SetVolume(video, volume)
+  {
+  	videoInstances[video].volume = volume;
+  }
+
+  function _JS_Video_Time(video)
+  {
+  	return videoInstances[video].currentTime;
+  }
+
+  function jsVideoCreateTexture2D() {
+          var t = GLctx.createTexture();
+          GLctx.bindTexture(GLctx.TEXTURE_2D, t);
+          GLctx.texParameteri(GLctx.TEXTURE_2D, GLctx.TEXTURE_WRAP_S, GLctx.CLAMP_TO_EDGE);
+          GLctx.texParameteri(GLctx.TEXTURE_2D, GLctx.TEXTURE_WRAP_T, GLctx.CLAMP_TO_EDGE);
+          GLctx.texParameteri(GLctx.TEXTURE_2D, GLctx.TEXTURE_MIN_FILTER, GLctx.LINEAR);
+          return t;
+  }
+  
+  
+  var s2lTexture = null;
+  
+  var s2lFBO = null;
+  
+  var s2lVBO = null;
+  
+  var s2lProgram = null;
+  
+  var s2lVertexPositionNDC = null;
+  
+  function _JS_Video_UpdateToTexture(video, tex, adjustToLinearspace)
+  {
+  	var v = videoInstances[video];
+  
+  	// Some browsers (Fireforx)	do not support the requestVideoFrameCallback API, so we cannot use v.isLoaded
+  	if (typeof v.requestVideoFrameCallback === 'function')
+  	{
+  		if (!v.isLoaded)
+  			return false;
+  	}
+  	else
+  	{
+  		if (!v.isReady)
+  			return false;
+  	}
+  
+  	// If the source video has not yet loaded (size is reported as 0), ignore uploading
+  	// The videoReady property is set when the play promise resolves. The video isn't truly
+  	// ready, even if its resolution properties have been updated, until that promise resolves.
+  	if (!(v.videoWidth > 0 && v.videoHeight > 0))
+  		return false;
+  
+  	// If video is still going on the same video frame as before, ignore reuploading as well
+  	if (v.lastUpdateTextureTime === v.currentTime)
+  		return false;
+  
+  	// While seeking, currentTime will already have the new destination time, but the onseeked
+  	// callback has not been invoked yet, meaning the returned image is not updated (or at least,
+  	// this is undefined). So we avoid updating the texture during seek so that our frameReady
+  	// callbacks won't become ambiguous.
+  	if (v.seeking)
+  		return false;
+  
+  	v.lastUpdateTextureTime = v.currentTime;
+  
+  	GLctx.pixelStorei(GLctx.UNPACK_FLIP_Y_WEBGL, true);
+  
+  	// Instead of using GLcx.SRGB8_ALPHA8 or GLctx.SRGB8 for the internal format when linearizing
+  	// (and let the driver deal with the conversion) we perform the conversion to linear using a
+  	// shader to bypass performance issues observed on many browsers (Safari, Chrome/Win, Chrome/Mac,
+  	// Edge).
+  	//
+  	// For example, the frame rate drop when converting a 1080p clip to linear on these browsers
+  	// on Windows was from ~30fps (without linearization) to 17fps with linearization, and from 60
+  	// fps to 38 on Mac (test systems differed, but the relative fps drop is what matters).
+  	var internalFormat = adjustToLinearspace ? (hasSRGBATextures ? GLctx.RGBA : GLctx.RGB) : GLctx.RGBA;
+  	var format = adjustToLinearspace ? (hasSRGBATextures ? GLctx.RGBA : GLctx.RGB) : GLctx.RGBA;
+  
+  	// It is not possible to get the source pixel aspect ratio of the video from
+  	// HTMLViewElement, which is problematic when we get anamorphic content. The videoWidth &
+  	// videoHeight properties report the frame size _after_ the pixel aspect ratio stretch has
+  	// been applied, but without this ratio ever being exposed. The caller has presumably
+  	// created the destination texture using the width/height advertized with the
+  	// post-pixel-aspect-ratio info (from JS_Video_Width and JS_Video_Height), which means it
+  	// may be incorrectly sized. As a workaround, we re-create the texture _without_
+  	// initializing its storage. The call to texImage2D ends up creating the appropriately-sized
+  	// storage. This may break the caller's assumption if the texture was created with properties
+  	// other than what is selected below. But for the specific (and currently dominant) case of
+  	// using Video.js with the VideoPlayer, this provides a workable solution.
+  	//
+  	// We do this texture re-creation every time we notice the videoWidth/Height has changed in
+  	// case the stream changes resolution.
+  	//
+  	// We could constantly call texImage2D instead of using texSubImage2D on subsequent calls,
+  	// but texSubImage2D has less overhead because it does not reallocate the storage.
+  	if (v.previousUploadedWidth != v.videoWidth || v.previousUploadedHeight != v.videoHeight) {
+  		GLctx.deleteTexture(GL.textures[tex]);
+  		var t = jsVideoCreateTexture2D();
+  		t.name = tex;
+  		GL.textures[tex] = t;
+  
+  		v.previousUploadedWidth = v.videoWidth;
+  		v.previousUploadedHeight = v.videoHeight;
+  
+  		if (adjustToLinearspace) {
+  			GLctx.texImage2D(GLctx.TEXTURE_2D, 0, internalFormat, v.videoWidth, v.videoHeight, 0, format, GLctx.UNSIGNED_BYTE, null);
+  			if (!s2lTexture) {
+  				s2lTexture = jsVideoCreateTexture2D();
+  			} else {
+  				GLctx.bindTexture(GLctx.TEXTURE_2D, s2lTexture);
+  			}
+  		}
+  
+  		GLctx.texImage2D(GLctx.TEXTURE_2D, 0, internalFormat, format, GLctx.UNSIGNED_BYTE, v);
+  	} else {
+  		if (adjustToLinearspace) {
+  			if (!s2lTexture) {
+  				s2lTexture = jsVideoCreateTexture2D();
+  			} else {
+  				GLctx.bindTexture(GLctx.TEXTURE_2D, s2lTexture);
+  			}
+  		} else {
+  			GLctx.bindTexture(GLctx.TEXTURE_2D, GL.textures[tex]);
+  		}
+  		// Using texSubImage2D here would seem like the right thing to do for better
+  		// performance. However, this produces errors on (at least) Chrome/Mac, Chrome/Win
+  		// and Edge. The error is
+  		//
+  		//     GL_INVALID_OPERATION: The destination level of the destination texture must be defined.
+  		//
+  		// texSubImage2D does work on Firefox/Mac and Safari so we could enable this better
+  		// path on these browsers for better performance (at the cost of having more
+  		// complexity for browsers that are far from the majority).
+  		GLctx.texImage2D(GLctx.TEXTURE_2D, 0, internalFormat, format, GLctx.UNSIGNED_BYTE, v);
+  	}
+  
+  	GLctx.pixelStorei(GLctx.UNPACK_FLIP_Y_WEBGL, false);
+  
+  	if (adjustToLinearspace) {
+  		if (s2lProgram == null) {
+  			var vertexShaderCode = `precision lowp float;
+  				attribute vec2 vertexPositionNDC;
+  				varying vec2 vTexCoords;
+  				const vec2 scale = vec2(0.5, 0.5);
+  				void main() {
+  				    vTexCoords = vertexPositionNDC * scale + scale; // scale vertex attribute to [0,1] range
+  				    gl_Position = vec4(vertexPositionNDC, 0.0, 1.0);
+  				}`;
+  
+  			var fragmentShaderCode = `precision mediump float;
+  				uniform sampler2D colorMap;
+  				varying vec2 vTexCoords;
+  				vec4 toLinear(vec4 sRGB) {
+  				    vec3 c = sRGB.rgb;
+  				    return vec4(c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878), sRGB.a);
+  				}
+  				void main() {
+  				    gl_FragColor = toLinear(texture2D(colorMap, vTexCoords));
+  				}`;
+  
+  			var vertexShader = GLctx.createShader(GLctx.VERTEX_SHADER);
+  			GLctx.shaderSource(vertexShader, vertexShaderCode);
+  			GLctx.compileShader(vertexShader);
+  
+  			var fragmentShader = GLctx.createShader(GLctx.FRAGMENT_SHADER);
+  			GLctx.shaderSource(fragmentShader, fragmentShaderCode);
+  			GLctx.compileShader(fragmentShader);
+  
+  			s2lProgram = GLctx.createProgram();
+  			GLctx.attachShader(s2lProgram, vertexShader);
+  			GLctx.attachShader(s2lProgram, fragmentShader);
+  			GLctx.linkProgram(s2lProgram);
+  
+  			s2lVertexPositionNDC = GLctx.getAttribLocation(s2lProgram, "vertexPositionNDC");
+  		}
+  
+  		if (s2lVBO == null) {
+  			s2lVBO = GLctx.createBuffer();
+  			GLctx.bindBuffer(GLctx.ARRAY_BUFFER, s2lVBO);
+  
+  			var verts = [
+  				// First triangle
+  				1.0,  1.0,
+  				-1.0,  1.0,
+  				-1.0, -1.0,
+  				// Second triangle
+  				-1.0, -1.0,
+  				1.0, -1.0,
+  				1.0,  1.0
+  			];
+  			GLctx.bufferData(GLctx.ARRAY_BUFFER, new Float32Array(verts), GLctx.STATIC_DRAW);
+  		}
+  
+  		if (!s2lFBO) {
+  			s2lFBO = GLctx.createFramebuffer();
+  		}
+  
+  		GLctx.bindFramebuffer(GLctx.FRAMEBUFFER, s2lFBO);
+  		GLctx.framebufferTexture2D(GLctx.FRAMEBUFFER, GLctx.COLOR_ATTACHMENT0, GLctx.TEXTURE_2D, GL.textures[tex], 0);
+  		GLctx.bindTexture(GLctx.TEXTURE_2D, s2lTexture);
+  
+  		GLctx.viewport(0, 0, v.videoWidth, v.videoHeight);
+  		GLctx.useProgram(s2lProgram);
+  		GLctx.bindBuffer(GLctx.ARRAY_BUFFER, s2lVBO);
+  		GLctx.enableVertexAttribArray(s2lVertexPositionNDC);
+  		GLctx.vertexAttribPointer(s2lVertexPositionNDC, 2, GLctx.FLOAT, false, 0, 0);
+  		GLctx.disable(GLctx.CULL_FACE);
+  		GLctx.drawArrays(GLctx.TRIANGLES, 0, 6);
+  
+  		// Have to reset the viewport rect ourselves, otherwise further drawing in
+  		// the scene will use the wrong viewport.
+  		GLctx.viewport(0, 0, GLctx.canvas.width, GLctx.canvas.height);
+  		GLctx.bindFramebuffer(GLctx.FRAMEBUFFER, null);
+  	}
+  
+  	return true;
+  }
+
+  function _JS_Video_Width(video)
+  {
+  	return videoInstances[video].videoWidth;
+  }
+
   var activeWebCams = {};
+  function _JS_WebCamVideo_CanPlay(deviceId) {
+  		var webcam = activeWebCams[deviceId];
+  		return webcam && webcam.video.videoWidth > 0 && webcam.video.videoHeight > 0;
+  	}
+
+  
+  function _JS_WebCamVideo_GetDeviceName(deviceId, buffer, bufferSize) {
+  		var webcam = videoInputDevices[deviceId];
+  		var name = webcam ? webcam.name : '(disconnected input #' + (deviceId + 1) + ')';
+  		if (buffer) stringToUTF8(name, buffer, bufferSize);
+  		return lengthBytesUTF8(name);
+  	}
+
   function _JS_WebCamVideo_GetNativeHeight(deviceId) {
   		return activeWebCams[deviceId] && activeWebCams[deviceId].video.videoHeight;
   	}
 
   function _JS_WebCamVideo_GetNativeWidth(deviceId) {
   		return activeWebCams[deviceId] && activeWebCams[deviceId].video.videoWidth;
+  	}
+
+  function _JS_WebCamVideo_GetNumDevices() {
+  		var numDevices = 0;
+  		if (!videoInputDevicesSuccessfullyEnumerated) {
+  			console.warn(
+  							'WebCam devices were used before being enumerated by the browser. The browser is likely ' +
+  							'pausing WebCam device enumeration due to the page being out of focus while the Unity ' +
+  							'application is being loaded in the background.\n' +
+  							'If you are a developer, you can ensure WebCam devices are enumerated by first requiring ' +
+  							'user interaction.\n' +
+  							'See https://github.com/w3c/mediacapture-main/issues/905 for details.'
+  						);
+  			return numDevices;
+  		}
+  
+  		// If a WebCam is disconnected in the middle of the list,
+  		// we keep reporting that index as (disconnected), so
+  		// find the max ID of devices as the device count.
+  		Object.keys(videoInputDevices).forEach(function(i) {
+  			numDevices = Math.max(numDevices, videoInputDevices[i].id+1);
+  		});
+  
+  		return numDevices;
   	}
 
   function _JS_WebCamVideo_GrabFrame(deviceId, buffer, destWidth, destHeight) {
@@ -7692,10 +8617,127 @@ function dbg(text) {
   		return 1; // Managed to capture a frame
   	}
 
-  function _JS_WebGPU_SetCommandEncoder(encoder)
-      {
-          Module["WebGPU"].commandEncoder = encoder;
-      }
+  function _JS_WebCamVideo_IsFrontFacing(deviceId) {
+  		return videoInputDevices[deviceId].isFrontFacing;
+  	}
+
+  function _JS_WebCamVideo_Start(deviceId, requestedWidth, requestedHeight) {
+  		// Is the given WebCam device already enabled?
+  		if (activeWebCams[deviceId]) {
+  			++activeWebCams[deviceId].refCount;
+  			return;
+  		}
+  
+  		// No webcam exists with given ID?
+  		if (!videoInputDevices[deviceId]) {
+  			console.error('Cannot start video input with ID ' + deviceId + '. No such ID exists! Existing video inputs are:');
+  			console.dir(videoInputDevices);
+  			return;
+  		}
+  
+  		const videoConstraints = (
+  			!videoInputDevices[deviceId].deviceId
+  			? true
+  			: (
+  				requestedWidth <= 0 || requestedHeight <= 0
+  				? {
+  					deviceId: { exact: videoInputDevices[deviceId].deviceId }
+  					// use default camera resolution
+  				}
+  				: {
+  					deviceId: { exact: videoInputDevices[deviceId].deviceId },
+  					width: requestedWidth,
+  					height: requestedHeight,
+  					aspectRatio: requestedWidth / requestedHeight,
+  				}
+  			)
+  		);
+  
+  		navigator.mediaDevices.getUserMedia({
+  			audio: false,
+  			video: videoConstraints,
+  		}).then(function(stream) {
+  			var video = document.createElement('video');
+  			video.srcObject = stream;
+  
+  			if (/(iPhone|iPad|iPod)/.test(navigator.userAgent)) {
+  				warnOnce('Applying iOS Safari specific workaround to video playback: https://bugs.webkit.org/show_bug.cgi?id=217578');
+  				video.setAttribute('playsinline', '');
+  			}
+  
+  			video.play();
+  			activeWebCams[deviceId] = {
+  				video: video,
+  				canvas: document.createElement('canvas'),
+  				stream: stream,
+  				// Webcams will likely operate on a lower framerate than 60fps, i.e. 30/25/24/15 or something like that. We will be polling
+  				// every frame to grab a new video frame, so obtain the actual frame rate of the video device so that we can avoid capturing
+  				// the same video frame multiple times, when we know that a new video frame cannot yet have been produced.
+  				frameLengthInMsecs: 1000 / stream.getVideoTracks()[0].getSettings().frameRate,
+  				nextFrameAvailableTime: 0,
+  				refCount: 1
+  			};
+  		}).catch(function(e) {
+  			console.error('Unable to start video input! ' + e);
+  		});
+  	}
+
+  function _JS_WebCamVideo_Stop(deviceId) {
+  		var webcam = activeWebCams[deviceId];
+  		if (!webcam) return;
+  
+  		if (--webcam.refCount <= 0) {
+  			webcam.video.pause();
+  			webcam.video.srcObject = null;
+  			webcam.stream.getVideoTracks().forEach(function(track) {
+  				track.stop();
+  			});
+  			delete activeWebCams[deviceId];
+  		}
+  	}
+
+  function _JS_WebCamVideo_Update(deviceId, textureId, destWidth, destHeight) {
+  		var webcam = activeWebCams[deviceId];
+  		if (!webcam) return;
+  
+  		//HTML images have the opposite Y direction as GL, so we're telling WebGL to flip the Y of the texture image
+  		GLctx.pixelStorei(GLctx.UNPACK_FLIP_Y_WEBGL, true);
+  
+  		var webCamTexture = webcam.video;
+  
+  		// If we need to do texture resizing, we'll use the canvas to accomplish that, otherwise, we'll upload the video directly,
+  		// if this becomes a performance problem at some point, we can do it using a framebuffer instead
+  		if (webcam.video.videoWidth != destWidth || webcam.video.videoHeight != destHeight)
+  		{
+  			if (!webcam.canvas)
+  			{
+  				webcam.canvas = document.createElement('canvas');
+  			}
+  			var canvas = webcam.canvas;
+  			if (canvas.width != destWidth || canvas.height != destHeight || !webcam.context2d)
+  			{
+  				canvas.width = destWidth;
+  				canvas.height = destHeight;
+  				// Chrome and Firefox bug? After resizing the canvas, the 2D context
+  				// needs to be reacquired or the resize does not apply.
+  				webcam.context2d = canvas.getContext('2d');
+  			}
+  			var context = webcam.context2d;
+              context.drawImage(webcam.video, 0, 0, webcam.video.videoWidth, webcam.video.videoHeight, 0, 0, destWidth, destHeight);
+              webCamTexture = canvas;
+  		}
+  		GLctx.bindTexture(GLctx.TEXTURE_2D, GL.textures[textureId]);
+  
+  		// In Chrome, using a non-standard resolution (e.g. 1000x500) causes the following line to show a warning in the JavaScript console:
+  		// GL_INVALID_VALUE: Offset overflows texture dimensions.
+  		// See: https://issues.chromium.org/issues/382703192
+  		GLctx.texSubImage2D(GLctx.TEXTURE_2D, 0/*mipLevel*/, 0, 0, GLctx.RGBA, GLctx.UNSIGNED_BYTE, webCamTexture);
+  		GLctx.pixelStorei(GLctx.UNPACK_FLIP_Y_WEBGL, false);
+  	}
+
+  function _JS_WebCam_IsSupported() {
+  		return !!navigator.mediaDevices;
+  	}
 
   function utf8(ptr) {
       return UTF8ToString(ptr);
@@ -7706,6 +8748,62 @@ function dbg(text) {
       return ptr >>> shift;
     }
   var wgpu = {};
+  
+  
+  var wgpuIdCounter = 2;
+  function wgpuStore(object) {
+      if (object) {
+        // WebGPU renderer usage can burn through a lot of object IDs each rendered frame
+        // (a number of GPUCommandEncoder, GPUTexture, GPUTextureView, GPURenderPassEncoder,
+        // GPUCommandBuffer objects are created each application frame)
+        // If we assume an upper bound of 1000 object IDs created per rendered frame, and a
+        // new mobile device with 120hz display, a signed int32 state space is exhausted in
+        // 2147483646 / 1000 / 120 / 60 / 60 = 4.97 hours, which is realistic for a page to
+        // stay open for that long. Therefore handle wraparound of the ID counter generation,
+        // and find free gaps in the object IDs for new objects.
+        while(wgpu[wgpuIdCounter]) wgpuIdCounter = wgpuIdCounter < 2147483647 ? wgpuIdCounter + 1 : 2;
+  
+        wgpu[wgpuIdCounter] = object;
+  
+        // Each persisted objects gets a custom 'wid' field (wasm ID) which stores the ID that
+        // this object is known by on Wasm side.
+        object.wid = wgpuIdCounter;
+  
+        ;
+  
+        return wgpuIdCounter++;
+      }
+      // Implicit return undefined to marshal ID 0 over to Wasm.
+    }
+  function _JS_WebGPU_ImportVideoTexture(device, video, colorSpace)
+      {
+          let videoSource = videoInstances[video];
+          // WebGPU only allows video to be used if it's loaded and playing.
+          if (videoSource.readyState != 4 || !videoSource.isLoaded)
+              return 0;
+          device = wgpu[device];
+          let externalTexture = device.importExternalTexture({source: videoSource});
+          return wgpuStore(externalTexture);
+      }
+
+  
+  function _JS_WebGPU_ImportWebCamTexture(device, webcamId)
+      {
+          let webcam = activeWebCams[webcamId];
+          let videoSource = webcam ?  webcam.video : null;
+          // WebGPU only allows video to be used if it's loaded and playing.
+          if (!videoSource || videoSource.readyState != 4)
+              return 0;
+          device = wgpu[device];
+          let externalTexture = device.importExternalTexture({source: videoSource});
+          return wgpuStore(externalTexture);
+      }
+
+  function _JS_WebGPU_SetCommandEncoder(encoder)
+      {
+          Module["WebGPU"].commandEncoder = encoder;
+      }
+
   function _JS_WebGPU_Setup(adapter, device)
       {
           Module["WebGPU"] = {};
@@ -7716,6 +8814,328 @@ function dbg(text) {
   function _JS_WebPlayer_FinishInitialization() {
   		Module.WebPlayer.PlayerIsInitialized();
   	}
+
+  var wr = {requests:{},responses:{},abortControllers:{},timer:{},nextRequestId:1};
+  function _JS_WebRequest_Abort(requestId)
+  	{
+  		var abortController = wr.abortControllers[requestId];
+          if (!abortController || abortController.signal.aborted) {
+              return;
+          }
+  
+          abortController.abort();
+  	}
+
+  
+  
+  function _JS_WebRequest_Create(url, method)
+  	{
+  		var _url = UTF8ToString(url);
+  		var _method = UTF8ToString(method);
+  		var abortController = new AbortController();
+  		var requestOptions = {
+  			url: _url,
+  			init: {
+  				method: _method,
+  				signal: abortController.signal,
+  				headers: {},
+  				enableStreamingDownload: true
+  			},
+  			tempBuffer: null,
+  			tempBufferSize: 0
+  		};
+  
+  		wr.abortControllers[wr.nextRequestId] = abortController;
+  		wr.requests[wr.nextRequestId] = requestOptions;
+  
+  		return wr.nextRequestId++;
+  	}
+
+  
+  function jsWebRequestGetResponseHeaderString(requestId) {
+  		var response = wr.responses[requestId];
+  		if (!response) {
+            return "";
+          }
+  
+  		// Use cached value of response header string if present
+  		if (response.headerString) {
+  			return response.headerString;
+  		}
+  
+  		// Create response header string from headers object
+  		var headers = "";
+          var entries = response.headers.entries();
+          for (var result = entries.next(); !result.done; result = entries.next()) {
+              headers += result.value[0] + ": " + result.value[1] + "\r\n"; 
+          }
+  		response.headerString = headers;
+  
+  		return headers;
+  	}
+  
+  
+  function _JS_WebRequest_GetResponseMetaData(requestId, headerBuffer, headerSize, responseUrlBuffer, responseUrlSize)
+  	{
+  		var response = wr.responses[requestId];
+  		if (!response) {
+  		  stringToUTF8("", headerBuffer, headerSize);
+  		  stringToUTF8("", responseUrlBuffer, responseUrlSize);
+            return;
+          }
+  
+  		if (headerBuffer) {
+  			var headers = jsWebRequestGetResponseHeaderString(requestId);
+  			stringToUTF8(headers, headerBuffer, headerSize);
+  		}
+  
+  		if (responseUrlBuffer) {
+  			stringToUTF8(response.url, responseUrlBuffer, responseUrlSize);
+  		}
+  	}
+
+  
+  function _JS_WebRequest_GetResponseMetaDataLengths(requestId, buffer)
+  	{
+  		buffer = (buffer >> 2);
+  		var response = wr.responses[requestId];
+  		if (!response) {
+  		  HEAPU32[buffer] = 0;
+  		  HEAPU32[buffer + 1] = 0;
+            return;
+          }
+  
+  		var headers = jsWebRequestGetResponseHeaderString(requestId);
+         
+  		// Set length of header and response url to output buffer
+  		HEAPU32[buffer] = lengthBytesUTF8(headers);
+  		HEAPU32[buffer + 1] = lengthBytesUTF8(response.url);
+  	}
+
+  function _JS_WebRequest_Release(requestId)
+  	{
+          // Clear timeout
+  		if (wr.timer[requestId]) {
+  			clearTimeout(wr.timer[requestId]);
+  		}
+  
+  		// Remove all resources for request
+  		delete wr.requests[requestId];
+  		delete wr.responses[requestId];
+  		delete wr.abortControllers[requestId];
+  		delete wr.timer[requestId];
+  	}
+
+  
+  
+  function _JS_WebRequest_Send(requestId, ptr, length, arg, onresponse, onprogress)
+  	{	
+  		ptr = ptr;
+  		var requestOptions = wr.requests[requestId];
+          var abortController = wr.abortControllers[requestId];
+  
+  		function getTempBuffer(size) {
+  			// Allocate new temp buffer if none has been allocated
+  			if (!requestOptions.tempBuffer) {
+  				const initialSize = Math.max(size, 1024); // Use 1 kB as minimal temp buffer size to prevent too many reallocations
+  				requestOptions.tempBuffer = _malloc(initialSize);
+  				requestOptions.tempBufferSize = initialSize;
+  			}
+  
+  			// Increase size of temp buffer if necessary
+  			if (requestOptions.tempBufferSize < size) {
+  				_free(requestOptions.tempBuffer);
+  				requestOptions.tempBuffer =  _malloc(size);
+  				requestOptions.tempBufferSize = size;
+  			}
+  
+  			return requestOptions.tempBuffer;
+  		}
+  
+          function ClearTimeout() {
+  			if (wr.timer[requestId]) {
+  				clearTimeout(wr.timer[requestId]);
+                  delete wr.timer[requestId];
+  			}
+          }
+  
+  		function HandleSuccess(response, body) {
+              ClearTimeout();
+  
+  			if (!onresponse) {
+  				return;
+  			}
+  
+  			var kWebRequestOK = 0;
+  			// 200 is successful http request, 0 is returned by non-http requests (file:).
+  			if (requestOptions.init.enableStreamingDownload) {
+  				// Body was streamed only send final body length
+  				((a1, a2, a3, a4, a5, a6) => dynCall_viiiiii.apply(null, [onresponse, a1, a2, a3, a4, a5, a6]))(arg, response.status, 0, body.length, 0, kWebRequestOK);
+  			} else if (body.length != 0) {
+  				// Send whole body at once
+  				var buffer = _malloc(body.length);
+  				HEAPU8.set(body, buffer);
+  				((a1, a2, a3, a4, a5, a6) => dynCall_viiiiii.apply(null, [onresponse, a1, a2, a3, a4, a5, a6]))(arg, response.status, buffer, body.length, 0, kWebRequestOK);
+  				_free(buffer);
+  			} else {
+  				((a1, a2, a3, a4, a5, a6) => dynCall_viiiiii.apply(null, [onresponse, a1, a2, a3, a4, a5, a6]))(arg, response.status, 0, 0, 0, kWebRequestOK);
+  			}
+  
+  			// Cleanup temp buffer
+  			if (requestOptions.tempBuffer) {
+  				_free(requestOptions.tempBuffer);
+  			}
+  		}
+  
+  		function HandleError(err, code) {
+  			ClearTimeout();
+  
+              if (!onresponse) {
+  				return;
+  			}
+  
+  			var len = lengthBytesUTF8(err) + 1;
+  			var buffer = _malloc(len);
+  			stringToUTF8(err, buffer, len);
+  			((a1, a2, a3, a4, a5, a6) => dynCall_viiiiii.apply(null, [onresponse, a1, a2, a3, a4, a5, a6]))(arg, 500, 0, 0, buffer, code);
+              _free(buffer);
+  
+  			// Clean up temp buffer
+  			if (requestOptions.tempBuffer) {
+  				_free(requestOptions.tempBuffer);
+  			}
+  		}
+  
+  		function HandleProgress(e) {
+  			if (!onprogress || !e.lengthComputable) {
+  				return;
+  			}
+  
+  			var response = e.response;
+  			wr.responses[requestId] = response;
+  
+  			if (e.chunk) {
+  				// Response body streaming is enabled copy data to new buffer
+  				var buffer = getTempBuffer(e.chunk.length);
+  				HEAPU8.set(e.chunk, buffer);
+  				((a1, a2, a3, a4, a5, a6) => dynCall_viiiiii.apply(null, [onprogress, a1, a2, a3, a4, a5, a6]))(arg, response.status, e.loaded, e.total, buffer, e.chunk.length);
+  			} else {
+  				// no response body streaming
+  				((a1, a2, a3, a4, a5, a6) => dynCall_viiiiii.apply(null, [onprogress, a1, a2, a3, a4, a5, a6]))(arg, response.status, e.loaded, e.total, 0, 0);
+  			}
+  		}
+  
+  		try {
+  			if (length > 0) {
+  				var postData = HEAPU8.subarray(ptr, ptr+length);
+  				requestOptions.init.body = new Blob([postData]);
+  			}
+  
+  			// Add timeout handler if timeout is set
+  			if (requestOptions.timeout) {
+  				wr.timer[requestId] = setTimeout(function () {
+  					requestOptions.isTimedOut = true;
+  					abortController.abort();
+  				}, requestOptions.timeout);
+  			}
+  
+  			var fetchImpl = Module.fetchWithProgress;
+  			requestOptions.init.onProgress = HandleProgress;
+  			if (Module.companyName && Module.productName && Module.cachedFetch) {
+  				fetchImpl = Module.cachedFetch;
+  				requestOptions.init.companyName = Module.companyName;
+  				requestOptions.init.productName = Module.productName;
+  				requestOptions.init.productVersion = Module.productVersion;
+  				requestOptions.init.control = Module.cacheControl(requestOptions.url);
+  			}
+  
+  			fetchImpl(requestOptions.url, requestOptions.init).then(function (response) {
+  				wr.responses[requestId] = response;
+  
+                  HandleSuccess(response, response.parsedBody);
+  			}).catch(function (error) {
+  				var kWebErrorUnknown = 2;
+                  var kWebErrorAborted = 17;
+                  var kWebErrorTimeout = 14;
+  
+                  if (requestOptions.isTimedOut) {
+  					HandleError("Connection timed out.", kWebErrorTimeout);
+                  } else if (abortController.signal.aborted) {
+                      HandleError("Aborted.", kWebErrorAborted);
+                  } else {
+                      HandleError(error.message, kWebErrorUnknown);
+                  }
+  			});
+  		} catch(error) {
+  			var kWebErrorUnknown = 2;
+              HandleError(error.message, kWebErrorUnknown);
+  		}
+  	}
+
+  function _JS_WebRequest_SetRedirectLimit(request, redirectLimit)
+  	{
+  		var requestOptions = wr.requests[request];
+  		if (!requestOptions) {
+              return;
+  		}
+  
+  		// Disable redirects if redirectLimit == 0 otherwise use browser defined redirect limit
+  		requestOptions.init.redirect = redirectLimit === 0 ? "error" : "follow";
+  	}
+
+  
+  
+  function _JS_WebRequest_SetRequestHeader(requestId, header, value)
+  	{
+  		var requestOptions = wr.requests[requestId];
+  		if (!requestOptions) {
+              return;
+  		}
+  
+  		var _header = UTF8ToString(header);
+  		var _value = UTF8ToString(value);
+  		requestOptions.init.headers[_header] = _value;
+  	}
+
+  function _JS_WebRequest_SetTimeout(requestId, timeout)
+  	{
+          var requestOptions = wr.requests[requestId];
+  		if (!requestOptions) {
+              return;
+  		}
+  
+          requestOptions.timeout = timeout;
+  	}
+
+  
+  function _PaneliAc(urlPtr) {
+          PanelBridge.mesajListenerKur();
+  
+          var url = UTF8ToString(urlPtr);
+          if (document.getElementById('panelIframe')) return;
+  
+          var overlay = document.createElement('div');
+          overlay.id = 'panelOverlay';
+          overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9998;display:flex;align-items:center;justify-content:center;';
+  
+          var iframe = document.createElement('iframe');
+          iframe.id = 'panelIframe';
+          iframe.src = url;
+          iframe.style.cssText = 'border:none;width:98%;max-width:1850px;height:92vh;max-height:1000px;border-radius:12px;background:transparent;z-index:9999;';
+          iframe.setAttribute('allowtransparency', 'true');
+  
+          overlay.appendChild(iframe);
+          document.body.appendChild(overlay);
+  
+          overlay.addEventListener('click', function(e) {
+              if (e.target === overlay) overlay.remove();
+          });
+      }
+
+  function _PaneliKapat() {
+          var overlay = document.getElementById('panelOverlay');
+          if (overlay) overlay.remove();
+      }
 
   function ___assert_fail(condition, filename, line, func) {
       abort(`Assertion failed: ${UTF8ToString(condition)}, at: ` + [filename ? UTF8ToString(filename) : 'unknown filename', line, func ? UTF8ToString(func) : 'unknown function']);
@@ -14425,32 +15845,6 @@ function dbg(text) {
     }
 
   
-  var wgpuIdCounter = 2;
-  function wgpuStore(object) {
-      if (object) {
-        // WebGPU renderer usage can burn through a lot of object IDs each rendered frame
-        // (a number of GPUCommandEncoder, GPUTexture, GPUTextureView, GPURenderPassEncoder,
-        // GPUCommandBuffer objects are created each application frame)
-        // If we assume an upper bound of 1000 object IDs created per rendered frame, and a
-        // new mobile device with 120hz display, a signed int32 state space is exhausted in
-        // 2147483646 / 1000 / 120 / 60 / 60 = 4.97 hours, which is realistic for a page to
-        // stay open for that long. Therefore handle wraparound of the ID counter generation,
-        // and find free gaps in the object IDs for new objects.
-        while(wgpu[wgpuIdCounter]) wgpuIdCounter = wgpuIdCounter < 2147483647 ? wgpuIdCounter + 1 : 2;
-  
-        wgpu[wgpuIdCounter] = object;
-  
-        // Each persisted objects gets a custom 'wid' field (wasm ID) which stores the ID that
-        // this object is known by on Wasm side.
-        object.wid = wgpuIdCounter;
-  
-        ;
-  
-        return wgpuIdCounter++;
-      }
-      // Implicit return undefined to marshal ID 0 over to Wasm.
-    }
-  
   function _wgpuMuteJsExceptions(fn) {
       return (p) => { // only support one argument to function fn (we could do ...params, but we only ever need one arg so that's fine)
         try {
@@ -16455,6 +17849,16 @@ function checkIncomingModuleAPI() {
   ignoredModuleProp('fetchSettings');
 }
 var wasmImports = {
+  "AnlaticiPaneliAc": _AnlaticiPaneliAc,
+  "AnlaticiPaneliGuncelle": _AnlaticiPaneliGuncelle,
+  "AnlaticiPaneliKapat": _AnlaticiPaneliKapat,
+  "AyarlariPanelleGonder": _AyarlariPanelleGonder,
+  "BahisPaneliAc": _BahisPaneliAc,
+  "BahisPaneliBakiyeGonder": _BahisPaneliBakiyeGonder,
+  "BahisPaneliKapat": _BahisPaneliKapat,
+  "BonusHUDGizle": _BonusHUDGizle,
+  "BonusHUDGoster": _BonusHUDGoster,
+  "BonusHUDGuncelle": _BonusHUDGuncelle,
   "GetJSLoadTimeInfo": _GetJSLoadTimeInfo,
   "GetJSMemoryInfo": _GetJSMemoryInfo,
   "JS_Accelerometer_IsRunning": _JS_Accelerometer_IsRunning,
@@ -16532,6 +17936,7 @@ var wasmImports = {
   "JS_SystemInfo_GetCanvasClientSize": _JS_SystemInfo_GetCanvasClientSize,
   "JS_SystemInfo_GetDocumentURL": _JS_SystemInfo_GetDocumentURL,
   "JS_SystemInfo_GetGPUInfo": _JS_SystemInfo_GetGPUInfo,
+  "JS_SystemInfo_GetLanguage": _JS_SystemInfo_GetLanguage,
   "JS_SystemInfo_GetMatchWebGLToCanvasSize": _JS_SystemInfo_GetMatchWebGLToCanvasSize,
   "JS_SystemInfo_GetOS": _JS_SystemInfo_GetOS,
   "JS_SystemInfo_GetPreferredDevicePixelRatio": _JS_SystemInfo_GetPreferredDevicePixelRatio,
@@ -16542,12 +17947,60 @@ var wasmImports = {
   "JS_SystemInfo_HasWebGL": _JS_SystemInfo_HasWebGL,
   "JS_SystemInfo_HasWebGPU": _JS_SystemInfo_HasWebGPU,
   "JS_UnityEngineShouldQuit": _JS_UnityEngineShouldQuit,
+  "JS_Video_CanPlayFormat": _JS_Video_CanPlayFormat,
+  "JS_Video_Create": _JS_Video_Create,
+  "JS_Video_Destroy": _JS_Video_Destroy,
+  "JS_Video_Duration": _JS_Video_Duration,
+  "JS_Video_EnableAudioTrack": _JS_Video_EnableAudioTrack,
+  "JS_Video_GetAudioLanguageCode": _JS_Video_GetAudioLanguageCode,
+  "JS_Video_GetNumAudioTracks": _JS_Video_GetNumAudioTracks,
+  "JS_Video_GetPlaybackRate": _JS_Video_GetPlaybackRate,
+  "JS_Video_Height": _JS_Video_Height,
+  "JS_Video_IsPlaying": _JS_Video_IsPlaying,
+  "JS_Video_IsReady": _JS_Video_IsReady,
+  "JS_Video_IsSeeking": _JS_Video_IsSeeking,
+  "JS_Video_LastUpdateTime": _JS_Video_LastUpdateTime,
+  "JS_Video_Pause": _JS_Video_Pause,
+  "JS_Video_Play": _JS_Video_Play,
+  "JS_Video_Seek": _JS_Video_Seek,
+  "JS_Video_SetEndedHandler": _JS_Video_SetEndedHandler,
+  "JS_Video_SetErrorHandler": _JS_Video_SetErrorHandler,
+  "JS_Video_SetLoop": _JS_Video_SetLoop,
+  "JS_Video_SetMute": _JS_Video_SetMute,
+  "JS_Video_SetPlaybackRate": _JS_Video_SetPlaybackRate,
+  "JS_Video_SetReadyHandler": _JS_Video_SetReadyHandler,
+  "JS_Video_SetSeekedHandler": _JS_Video_SetSeekedHandler,
+  "JS_Video_SetVolume": _JS_Video_SetVolume,
+  "JS_Video_Time": _JS_Video_Time,
+  "JS_Video_UpdateToTexture": _JS_Video_UpdateToTexture,
+  "JS_Video_Width": _JS_Video_Width,
+  "JS_WebCamVideo_CanPlay": _JS_WebCamVideo_CanPlay,
+  "JS_WebCamVideo_GetDeviceName": _JS_WebCamVideo_GetDeviceName,
   "JS_WebCamVideo_GetNativeHeight": _JS_WebCamVideo_GetNativeHeight,
   "JS_WebCamVideo_GetNativeWidth": _JS_WebCamVideo_GetNativeWidth,
+  "JS_WebCamVideo_GetNumDevices": _JS_WebCamVideo_GetNumDevices,
   "JS_WebCamVideo_GrabFrame": _JS_WebCamVideo_GrabFrame,
+  "JS_WebCamVideo_IsFrontFacing": _JS_WebCamVideo_IsFrontFacing,
+  "JS_WebCamVideo_Start": _JS_WebCamVideo_Start,
+  "JS_WebCamVideo_Stop": _JS_WebCamVideo_Stop,
+  "JS_WebCamVideo_Update": _JS_WebCamVideo_Update,
+  "JS_WebCam_IsSupported": _JS_WebCam_IsSupported,
+  "JS_WebGPU_ImportVideoTexture": _JS_WebGPU_ImportVideoTexture,
+  "JS_WebGPU_ImportWebCamTexture": _JS_WebGPU_ImportWebCamTexture,
   "JS_WebGPU_SetCommandEncoder": _JS_WebGPU_SetCommandEncoder,
   "JS_WebGPU_Setup": _JS_WebGPU_Setup,
   "JS_WebPlayer_FinishInitialization": _JS_WebPlayer_FinishInitialization,
+  "JS_WebRequest_Abort": _JS_WebRequest_Abort,
+  "JS_WebRequest_Create": _JS_WebRequest_Create,
+  "JS_WebRequest_GetResponseMetaData": _JS_WebRequest_GetResponseMetaData,
+  "JS_WebRequest_GetResponseMetaDataLengths": _JS_WebRequest_GetResponseMetaDataLengths,
+  "JS_WebRequest_Release": _JS_WebRequest_Release,
+  "JS_WebRequest_Send": _JS_WebRequest_Send,
+  "JS_WebRequest_SetRedirectLimit": _JS_WebRequest_SetRedirectLimit,
+  "JS_WebRequest_SetRequestHeader": _JS_WebRequest_SetRequestHeader,
+  "JS_WebRequest_SetTimeout": _JS_WebRequest_SetTimeout,
+  "PaneliAc": _PaneliAc,
+  "PaneliKapat": _PaneliKapat,
   "__assert_fail": ___assert_fail,
   "__cxa_begin_catch": ___cxa_begin_catch,
   "__cxa_end_catch": ___cxa_end_catch,
@@ -16815,15 +18268,18 @@ var wasmImports = {
   "invoke_di": invoke_di,
   "invoke_dii": invoke_dii,
   "invoke_diii": invoke_diii,
+  "invoke_diiii": invoke_diiii,
   "invoke_fffi": invoke_fffi,
   "invoke_fi": invoke_fi,
   "invoke_fiffi": invoke_fiffi,
   "invoke_fii": invoke_fii,
   "invoke_fiiffi": invoke_fiiffi,
   "invoke_fiii": invoke_fiii,
+  "invoke_fiiii": invoke_fiiii,
   "invoke_fiiiii": invoke_fiiiii,
   "invoke_i": invoke_i,
   "invoke_ii": invoke_ii,
+  "invoke_iifi": invoke_iifi,
   "invoke_iii": invoke_iii,
   "invoke_iiifi": invoke_iiifi,
   "invoke_iiifii": invoke_iiifii,
@@ -16866,6 +18322,7 @@ var wasmImports = {
   "invoke_vfffi": invoke_vfffi,
   "invoke_vffi": invoke_vffi,
   "invoke_vi": invoke_vi,
+  "invoke_vidd": invoke_vidd,
   "invoke_vidi": invoke_vidi,
   "invoke_viffffffi": invoke_viffffffi,
   "invoke_viffi": invoke_viffi,
@@ -16882,6 +18339,7 @@ var wasmImports = {
   "invoke_viii": invoke_viii,
   "invoke_viiidi": invoke_viiidi,
   "invoke_viiififiii": invoke_viiififiii,
+  "invoke_viiifii": invoke_viiifii,
   "invoke_viiii": invoke_viiii,
   "invoke_viiiifi": invoke_viiiifi,
   "invoke_viiiii": invoke_viiiii,
@@ -17100,73 +18558,69 @@ var dynCall_viiiii = Module["dynCall_viiiii"] = createExportWrapper("dynCall_vii
 /** @type {function(...*):?} */
 var dynCall_viiiiii = Module["dynCall_viiiiii"] = createExportWrapper("dynCall_viiiiii");
 /** @type {function(...*):?} */
-var dynCall_iiiifii = Module["dynCall_iiiifii"] = createExportWrapper("dynCall_iiiifii");
+var dynCall_jiii = Module["dynCall_jiii"] = createExportWrapper("dynCall_jiii");
 /** @type {function(...*):?} */
-var dynCall_iiiijii = Module["dynCall_iiiijii"] = createExportWrapper("dynCall_iiiijii");
-/** @type {function(...*):?} */
-var dynCall_viiiiiii = Module["dynCall_viiiiiii"] = createExportWrapper("dynCall_viiiiiii");
-/** @type {function(...*):?} */
-var dynCall_iiiidii = Module["dynCall_iiiidii"] = createExportWrapper("dynCall_iiiidii");
-/** @type {function(...*):?} */
-var dynCall_viiji = Module["dynCall_viiji"] = createExportWrapper("dynCall_viiji");
-/** @type {function(...*):?} */
-var dynCall_iiijii = Module["dynCall_iiijii"] = createExportWrapper("dynCall_iiijii");
-/** @type {function(...*):?} */
-var dynCall_iji = Module["dynCall_iji"] = createExportWrapper("dynCall_iji");
-/** @type {function(...*):?} */
-var dynCall_viifi = Module["dynCall_viifi"] = createExportWrapper("dynCall_viifi");
-/** @type {function(...*):?} */
-var dynCall_viffffi = Module["dynCall_viffffi"] = createExportWrapper("dynCall_viffffi");
-/** @type {function(...*):?} */
-var dynCall_viiiiiiiiii = Module["dynCall_viiiiiiiiii"] = createExportWrapper("dynCall_viiiiiiiiii");
-/** @type {function(...*):?} */
-var dynCall_vidi = Module["dynCall_vidi"] = createExportWrapper("dynCall_vidi");
-/** @type {function(...*):?} */
-var dynCall_viidi = Module["dynCall_viidi"] = createExportWrapper("dynCall_viidi");
-/** @type {function(...*):?} */
-var dynCall_vifi = Module["dynCall_vifi"] = createExportWrapper("dynCall_vifi");
-/** @type {function(...*):?} */
-var dynCall_iiifii = Module["dynCall_iiifii"] = createExportWrapper("dynCall_iiifii");
-/** @type {function(...*):?} */
-var dynCall_viiififiii = Module["dynCall_viiififiii"] = createExportWrapper("dynCall_viiififiii");
-/** @type {function(...*):?} */
-var dynCall_fiiffi = Module["dynCall_fiiffi"] = createExportWrapper("dynCall_fiiffi");
-/** @type {function(...*):?} */
-var dynCall_viififiiii = Module["dynCall_viififiiii"] = createExportWrapper("dynCall_viififiiii");
-/** @type {function(...*):?} */
-var dynCall_vififiiii = Module["dynCall_vififiiii"] = createExportWrapper("dynCall_vififiiii");
-/** @type {function(...*):?} */
-var dynCall_fiffi = Module["dynCall_fiffi"] = createExportWrapper("dynCall_fiffi");
-/** @type {function(...*):?} */
-var dynCall_vifii = Module["dynCall_vifii"] = createExportWrapper("dynCall_vifii");
-/** @type {function(...*):?} */
-var dynCall_viiffi = Module["dynCall_viiffi"] = createExportWrapper("dynCall_viiffi");
+var dynCall_diii = Module["dynCall_diii"] = createExportWrapper("dynCall_diii");
 /** @type {function(...*):?} */
 var dynCall_fiii = Module["dynCall_fiii"] = createExportWrapper("dynCall_fiii");
 /** @type {function(...*):?} */
-var dynCall_fffi = Module["dynCall_fffi"] = createExportWrapper("dynCall_fffi");
+var dynCall_vifi = Module["dynCall_vifi"] = createExportWrapper("dynCall_vifi");
 /** @type {function(...*):?} */
-var dynCall_viifii = Module["dynCall_viifii"] = createExportWrapper("dynCall_viifii");
+var dynCall_viifi = Module["dynCall_viifi"] = createExportWrapper("dynCall_viifi");
 /** @type {function(...*):?} */
 var dynCall_iidi = Module["dynCall_iidi"] = createExportWrapper("dynCall_iidi");
 /** @type {function(...*):?} */
 var dynCall_iifi = Module["dynCall_iifi"] = createExportWrapper("dynCall_iifi");
 /** @type {function(...*):?} */
+var dynCall_vijii = Module["dynCall_vijii"] = createExportWrapper("dynCall_vijii");
+/** @type {function(...*):?} */
+var dynCall_iijiii = Module["dynCall_iijiii"] = createExportWrapper("dynCall_iijiii");
+/** @type {function(...*):?} */
+var dynCall_iji = Module["dynCall_iji"] = createExportWrapper("dynCall_iji");
+/** @type {function(...*):?} */
+var dynCall_viiji = Module["dynCall_viiji"] = createExportWrapper("dynCall_viiji");
+/** @type {function(...*):?} */
+var dynCall_iiijii = Module["dynCall_iiijii"] = createExportWrapper("dynCall_iiijii");
+/** @type {function(...*):?} */
+var dynCall_vifii = Module["dynCall_vifii"] = createExportWrapper("dynCall_vifii");
+/** @type {function(...*):?} */
+var dynCall_viffffi = Module["dynCall_viffffi"] = createExportWrapper("dynCall_viffffi");
+/** @type {function(...*):?} */
+var dynCall_viiiiiiiiii = Module["dynCall_viiiiiiiiii"] = createExportWrapper("dynCall_viiiiiiiiii");
+/** @type {function(...*):?} */
 var dynCall_viiidi = Module["dynCall_viiidi"] = createExportWrapper("dynCall_viiidi");
+/** @type {function(...*):?} */
+var dynCall_viiiiiii = Module["dynCall_viiiiiii"] = createExportWrapper("dynCall_viiiiiii");
+/** @type {function(...*):?} */
+var dynCall_iiji = Module["dynCall_iiji"] = createExportWrapper("dynCall_iiji");
+/** @type {function(...*):?} */
+var dynCall_iiiidii = Module["dynCall_iiiidii"] = createExportWrapper("dynCall_iiiidii");
 /** @type {function(...*):?} */
 var dynCall_fiiiii = Module["dynCall_fiiiii"] = createExportWrapper("dynCall_fiiiii");
 /** @type {function(...*):?} */
 var dynCall_iiifi = Module["dynCall_iiifi"] = createExportWrapper("dynCall_iiifi");
 /** @type {function(...*):?} */
-var dynCall_iiji = Module["dynCall_iiji"] = createExportWrapper("dynCall_iiji");
+var dynCall_fii = Module["dynCall_fii"] = createExportWrapper("dynCall_fii");
+/** @type {function(...*):?} */
+var dynCall_jiiii = Module["dynCall_jiiii"] = createExportWrapper("dynCall_jiiii");
+/** @type {function(...*):?} */
+var dynCall_fiiii = Module["dynCall_fiiii"] = createExportWrapper("dynCall_fiiii");
+/** @type {function(...*):?} */
+var dynCall_diiii = Module["dynCall_diiii"] = createExportWrapper("dynCall_diiii");
+/** @type {function(...*):?} */
+var dynCall_dii = Module["dynCall_dii"] = createExportWrapper("dynCall_dii");
+/** @type {function(...*):?} */
+var dynCall_vidi = Module["dynCall_vidi"] = createExportWrapper("dynCall_vidi");
+/** @type {function(...*):?} */
+var dynCall_viji = Module["dynCall_viji"] = createExportWrapper("dynCall_viji");
+/** @type {function(...*):?} */
+var dynCall_fffi = Module["dynCall_fffi"] = createExportWrapper("dynCall_fffi");
+/** @type {function(...*):?} */
+var dynCall_viifii = Module["dynCall_viifii"] = createExportWrapper("dynCall_viifii");
 /** @type {function(...*):?} */
 var dynCall_iiiifiiiiiii = Module["dynCall_iiiifiiiiiii"] = createExportWrapper("dynCall_iiiifiiiiiii");
 /** @type {function(...*):?} */
 var dynCall_viiiiiiiii = Module["dynCall_viiiiiiiii"] = createExportWrapper("dynCall_viiiiiiiii");
-/** @type {function(...*):?} */
-var dynCall_dii = Module["dynCall_dii"] = createExportWrapper("dynCall_dii");
-/** @type {function(...*):?} */
-var dynCall_viji = Module["dynCall_viji"] = createExportWrapper("dynCall_viji");
 /** @type {function(...*):?} */
 var dynCall_iiiifi = Module["dynCall_iiiifi"] = createExportWrapper("dynCall_iiiifi");
 /** @type {function(...*):?} */
@@ -17178,33 +18632,35 @@ var dynCall_viffi = Module["dynCall_viffi"] = createExportWrapper("dynCall_viffi
 /** @type {function(...*):?} */
 var dynCall_vfffi = Module["dynCall_vfffi"] = createExportWrapper("dynCall_vfffi");
 /** @type {function(...*):?} */
-var dynCall_ji = Module["dynCall_ji"] = createExportWrapper("dynCall_ji");
+var dynCall_viiififiii = Module["dynCall_viiififiii"] = createExportWrapper("dynCall_viiififiii");
 /** @type {function(...*):?} */
-var dynCall_diii = Module["dynCall_diii"] = createExportWrapper("dynCall_diii");
+var dynCall_fiiffi = Module["dynCall_fiiffi"] = createExportWrapper("dynCall_fiiffi");
 /** @type {function(...*):?} */
-var dynCall_jiii = Module["dynCall_jiii"] = createExportWrapper("dynCall_jiii");
+var dynCall_viififiiii = Module["dynCall_viififiiii"] = createExportWrapper("dynCall_viififiiii");
 /** @type {function(...*):?} */
-var dynCall_di = Module["dynCall_di"] = createExportWrapper("dynCall_di");
+var dynCall_vififiiii = Module["dynCall_vififiiii"] = createExportWrapper("dynCall_vififiiii");
+/** @type {function(...*):?} */
+var dynCall_fiffi = Module["dynCall_fiffi"] = createExportWrapper("dynCall_fiffi");
+/** @type {function(...*):?} */
+var dynCall_iiiifii = Module["dynCall_iiiifii"] = createExportWrapper("dynCall_iiiifii");
+/** @type {function(...*):?} */
+var dynCall_iiiijii = Module["dynCall_iiiijii"] = createExportWrapper("dynCall_iiiijii");
 /** @type {function(...*):?} */
 var dynCall_iiiiiiiiii = Module["dynCall_iiiiiiiiii"] = createExportWrapper("dynCall_iiiiiiiiii");
 /** @type {function(...*):?} */
-var dynCall_vijii = Module["dynCall_vijii"] = createExportWrapper("dynCall_vijii");
+var dynCall_ji = Module["dynCall_ji"] = createExportWrapper("dynCall_ji");
 /** @type {function(...*):?} */
-var dynCall_iijiii = Module["dynCall_iijiii"] = createExportWrapper("dynCall_iijiii");
+var dynCall_di = Module["dynCall_di"] = createExportWrapper("dynCall_di");
+/** @type {function(...*):?} */
+var dynCall_iiifii = Module["dynCall_iiifii"] = createExportWrapper("dynCall_iiifii");
+/** @type {function(...*):?} */
+var dynCall_viiffi = Module["dynCall_viiffi"] = createExportWrapper("dynCall_viiffi");
+/** @type {function(...*):?} */
+var dynCall_viidi = Module["dynCall_viidi"] = createExportWrapper("dynCall_viidi");
 /** @type {function(...*):?} */
 var dynCall_ddiii = Module["dynCall_ddiii"] = createExportWrapper("dynCall_ddiii");
 /** @type {function(...*):?} */
 var dynCall_viiiifi = Module["dynCall_viiiifi"] = createExportWrapper("dynCall_viiiifi");
-/** @type {function(...*):?} */
-var dynCall_iiddi = Module["dynCall_iiddi"] = createExportWrapper("dynCall_iiddi");
-/** @type {function(...*):?} */
-var dynCall_iiffi = Module["dynCall_iiffi"] = createExportWrapper("dynCall_iiffi");
-/** @type {function(...*):?} */
-var dynCall_iijji = Module["dynCall_iijji"] = createExportWrapper("dynCall_iijji");
-/** @type {function(...*):?} */
-var dynCall_iiiiiiiii = Module["dynCall_iiiiiiiii"] = createExportWrapper("dynCall_iiiiiiiii");
-/** @type {function(...*):?} */
-var dynCall_fii = Module["dynCall_fii"] = createExportWrapper("dynCall_fii");
 /** @type {function(...*):?} */
 var dynCall_didi = Module["dynCall_didi"] = createExportWrapper("dynCall_didi");
 /** @type {function(...*):?} */
@@ -17216,45 +18672,79 @@ var dynCall_jiiji = Module["dynCall_jiiji"] = createExportWrapper("dynCall_jiiji
 /** @type {function(...*):?} */
 var dynCall_fiifi = Module["dynCall_fiifi"] = createExportWrapper("dynCall_fiifi");
 /** @type {function(...*):?} */
-var dynCall_vijiii = Module["dynCall_vijiii"] = createExportWrapper("dynCall_vijiii");
-/** @type {function(...*):?} */
-var dynCall_ijji = Module["dynCall_ijji"] = createExportWrapper("dynCall_ijji");
-/** @type {function(...*):?} */
-var dynCall_vjjjiiii = Module["dynCall_vjjjiiii"] = createExportWrapper("dynCall_vjjjiiii");
-/** @type {function(...*):?} */
-var dynCall_vjiiiii = Module["dynCall_vjiiiii"] = createExportWrapper("dynCall_vjiiiii");
-/** @type {function(...*):?} */
-var dynCall_jjji = Module["dynCall_jjji"] = createExportWrapper("dynCall_jjji");
-/** @type {function(...*):?} */
-var dynCall_jiiiii = Module["dynCall_jiiiii"] = createExportWrapper("dynCall_jiiiii");
+var dynCall_iiffi = Module["dynCall_iiffi"] = createExportWrapper("dynCall_iiffi");
 /** @type {function(...*):?} */
 var dynCall_iiiiiiiiiji = Module["dynCall_iiiiiiiiiji"] = createExportWrapper("dynCall_iiiiiiiiiji");
 /** @type {function(...*):?} */
 var dynCall_vji = Module["dynCall_vji"] = createExportWrapper("dynCall_vji");
 /** @type {function(...*):?} */
+var dynCall_jjji = Module["dynCall_jjji"] = createExportWrapper("dynCall_jjji");
+/** @type {function(...*):?} */
+var dynCall_jiiiii = Module["dynCall_jiiiii"] = createExportWrapper("dynCall_jiiiii");
+/** @type {function(...*):?} */
+var dynCall_ijji = Module["dynCall_ijji"] = createExportWrapper("dynCall_ijji");
+/** @type {function(...*):?} */
+var dynCall_iijji = Module["dynCall_iijji"] = createExportWrapper("dynCall_iijji");
+/** @type {function(...*):?} */
+var dynCall_iiddi = Module["dynCall_iiddi"] = createExportWrapper("dynCall_iiddi");
+/** @type {function(...*):?} */
+var dynCall_iiiiiiiii = Module["dynCall_iiiiiiiii"] = createExportWrapper("dynCall_iiiiiiiii");
+/** @type {function(...*):?} */
 var dynCall_j = Module["dynCall_j"] = createExportWrapper("dynCall_j");
 /** @type {function(...*):?} */
 var dynCall_iijii = Module["dynCall_iijii"] = createExportWrapper("dynCall_iijii");
+/** @type {function(...*):?} */
+var dynCall_vijiii = Module["dynCall_vijiii"] = createExportWrapper("dynCall_vijiii");
+/** @type {function(...*):?} */
+var dynCall_vjjjiiii = Module["dynCall_vjjjiiii"] = createExportWrapper("dynCall_vjjjiiii");
+/** @type {function(...*):?} */
+var dynCall_vjiiiii = Module["dynCall_vjiiiii"] = createExportWrapper("dynCall_vjiiiii");
 /** @type {function(...*):?} */
 var dynCall_jijii = Module["dynCall_jijii"] = createExportWrapper("dynCall_jijii");
 /** @type {function(...*):?} */
 var dynCall_viiiifii = Module["dynCall_viiiifii"] = createExportWrapper("dynCall_viiiifii");
 /** @type {function(...*):?} */
+var dynCall_fi = Module["dynCall_fi"] = createExportWrapper("dynCall_fi");
+/** @type {function(...*):?} */
+var dynCall_iiiffii = Module["dynCall_iiiffii"] = createExportWrapper("dynCall_iiiffii");
+/** @type {function(...*):?} */
 var dynCall_viddiiii = Module["dynCall_viddiiii"] = createExportWrapper("dynCall_viddiiii");
 /** @type {function(...*):?} */
 var dynCall_fijji = Module["dynCall_fijji"] = createExportWrapper("dynCall_fijji");
+/** @type {function(...*):?} */
+var dynCall_viiifi = Module["dynCall_viiifi"] = createExportWrapper("dynCall_viiifi");
+/** @type {function(...*):?} */
+var dynCall_viiiiffiii = Module["dynCall_viiiiffiii"] = createExportWrapper("dynCall_viiiiffiii");
+/** @type {function(...*):?} */
+var dynCall_viifiiffi = Module["dynCall_viifiiffi"] = createExportWrapper("dynCall_viifiiffi");
+/** @type {function(...*):?} */
+var dynCall_iiifiifi = Module["dynCall_iiifiifi"] = createExportWrapper("dynCall_iiifiifi");
 /** @type {function(...*):?} */
 var dynCall_viiiiiifi = Module["dynCall_viiiiiifi"] = createExportWrapper("dynCall_viiiiiifi");
 /** @type {function(...*):?} */
 var dynCall_iiifiii = Module["dynCall_iiifiii"] = createExportWrapper("dynCall_iiifiii");
 /** @type {function(...*):?} */
+var dynCall_iifffi = Module["dynCall_iifffi"] = createExportWrapper("dynCall_iifffi");
+/** @type {function(...*):?} */
 var dynCall_iiiji = Module["dynCall_iiiji"] = createExportWrapper("dynCall_iiiji");
+/** @type {function(...*):?} */
+var dynCall_iiiiiiiiiiii = Module["dynCall_iiiiiiiiiiii"] = createExportWrapper("dynCall_iiiiiiiiiiii");
+/** @type {function(...*):?} */
+var dynCall_iiiiiiiiiii = Module["dynCall_iiiiiiiiiii"] = createExportWrapper("dynCall_iiiiiiiiiii");
 /** @type {function(...*):?} */
 var dynCall_viddiiidiii = Module["dynCall_viddiiidiii"] = createExportWrapper("dynCall_viddiiidiii");
 /** @type {function(...*):?} */
+var dynCall_iiiiiiiiiiiii = Module["dynCall_iiiiiiiiiiiii"] = createExportWrapper("dynCall_iiiiiiiiiiiii");
+/** @type {function(...*):?} */
+var dynCall_iiiiiiiiiiiiiiii = Module["dynCall_iiiiiiiiiiiiiiii"] = createExportWrapper("dynCall_iiiiiiiiiiiiiiii");
+/** @type {function(...*):?} */
 var dynCall_viiiiiiiiiii = Module["dynCall_viiiiiiiiiii"] = createExportWrapper("dynCall_viiiiiiiiiii");
 /** @type {function(...*):?} */
-var dynCall_viiiiffiiiiiiiiiii = Module["dynCall_viiiiffiiiiiiiiiii"] = createExportWrapper("dynCall_viiiiffiiiiiiiiiii");
+var dynCall_viiiiiffiii = Module["dynCall_viiiiiffiii"] = createExportWrapper("dynCall_viiiiiffiii");
+/** @type {function(...*):?} */
+var dynCall_iiiiiffii = Module["dynCall_iiiiiffii"] = createExportWrapper("dynCall_iiiiiffii");
+/** @type {function(...*):?} */
+var dynCall_iiiiiifi = Module["dynCall_iiiiiifi"] = createExportWrapper("dynCall_iiiiiifi");
 /** @type {function(...*):?} */
 var dynCall_viiiiifi = Module["dynCall_viiiiifi"] = createExportWrapper("dynCall_viiiiifi");
 /** @type {function(...*):?} */
@@ -17264,17 +18754,21 @@ var dynCall_ffi = Module["dynCall_ffi"] = createExportWrapper("dynCall_ffi");
 /** @type {function(...*):?} */
 var dynCall_ffiiiii = Module["dynCall_ffiiiii"] = createExportWrapper("dynCall_ffiiiii");
 /** @type {function(...*):?} */
-var dynCall_viiiffi = Module["dynCall_viiiffi"] = createExportWrapper("dynCall_viiiffi");
+var dynCall_viiifffi = Module["dynCall_viiifffi"] = createExportWrapper("dynCall_viiifffi");
 /** @type {function(...*):?} */
-var dynCall_fiiii = Module["dynCall_fiiii"] = createExportWrapper("dynCall_fiiii");
+var dynCall_viiiffffi = Module["dynCall_viiiffffi"] = createExportWrapper("dynCall_viiiffffi");
+/** @type {function(...*):?} */
+var dynCall_iiiiifii = Module["dynCall_iiiiifii"] = createExportWrapper("dynCall_iiiiifii");
+/** @type {function(...*):?} */
+var dynCall_iiiiifiiii = Module["dynCall_iiiiifiiii"] = createExportWrapper("dynCall_iiiiifiiii");
 /** @type {function(...*):?} */
 var dynCall_viiffiii = Module["dynCall_viiffiii"] = createExportWrapper("dynCall_viiffiii");
 /** @type {function(...*):?} */
+var dynCall_viiffii = Module["dynCall_viiffii"] = createExportWrapper("dynCall_viiffii");
+/** @type {function(...*):?} */
+var dynCall_iiiiffi = Module["dynCall_iiiiffi"] = createExportWrapper("dynCall_iiiiffi");
+/** @type {function(...*):?} */
 var dynCall_viiiiiiiiiiiiii = Module["dynCall_viiiiiiiiiiiiii"] = createExportWrapper("dynCall_viiiiiiiiiiiiii");
-/** @type {function(...*):?} */
-var dynCall_iiiiiiiiiii = Module["dynCall_iiiiiiiiiii"] = createExportWrapper("dynCall_iiiiiiiiiii");
-/** @type {function(...*):?} */
-var dynCall_iiiiiiiiiiiii = Module["dynCall_iiiiiiiiiiiii"] = createExportWrapper("dynCall_iiiiiiiiiiiii");
 /** @type {function(...*):?} */
 var dynCall_iiiiji = Module["dynCall_iiiiji"] = createExportWrapper("dynCall_iiiiji");
 /** @type {function(...*):?} */
@@ -17283,6 +18777,20 @@ var dynCall_iiiiiji = Module["dynCall_iiiiiji"] = createExportWrapper("dynCall_i
 var dynCall_viiijii = Module["dynCall_viiijii"] = createExportWrapper("dynCall_viiijii");
 /** @type {function(...*):?} */
 var dynCall_viiiji = Module["dynCall_viiiji"] = createExportWrapper("dynCall_viiiji");
+/** @type {function(...*):?} */
+var dynCall_iffi = Module["dynCall_iffi"] = createExportWrapper("dynCall_iffi");
+/** @type {function(...*):?} */
+var dynCall_vfi = Module["dynCall_vfi"] = createExportWrapper("dynCall_vfi");
+/** @type {function(...*):?} */
+var dynCall_iiffii = Module["dynCall_iiffii"] = createExportWrapper("dynCall_iiffii");
+/** @type {function(...*):?} */
+var dynCall_iffii = Module["dynCall_iffii"] = createExportWrapper("dynCall_iffii");
+/** @type {function(...*):?} */
+var dynCall_iiffffi = Module["dynCall_iiffffi"] = createExportWrapper("dynCall_iiffffi");
+/** @type {function(...*):?} */
+var dynCall_ifffi = Module["dynCall_ifffi"] = createExportWrapper("dynCall_ifffi");
+/** @type {function(...*):?} */
+var dynCall_viffifi = Module["dynCall_viffifi"] = createExportWrapper("dynCall_viffifi");
 /** @type {function(...*):?} */
 var dynCall_jji = Module["dynCall_jji"] = createExportWrapper("dynCall_jji");
 /** @type {function(...*):?} */
@@ -17310,21 +18818,13 @@ var dynCall_diiiii = Module["dynCall_diiiii"] = createExportWrapper("dynCall_dii
 /** @type {function(...*):?} */
 var dynCall_vijji = Module["dynCall_vijji"] = createExportWrapper("dynCall_vijji");
 /** @type {function(...*):?} */
-var dynCall_fi = Module["dynCall_fi"] = createExportWrapper("dynCall_fi");
-/** @type {function(...*):?} */
 var dynCall_vifffi = Module["dynCall_vifffi"] = createExportWrapper("dynCall_vifffi");
 /** @type {function(...*):?} */
 var dynCall_vffffi = Module["dynCall_vffffi"] = createExportWrapper("dynCall_vffffi");
 /** @type {function(...*):?} */
-var dynCall_viiifi = Module["dynCall_viiifi"] = createExportWrapper("dynCall_viiifi");
-/** @type {function(...*):?} */
-var dynCall_iiiiiiiiiiii = Module["dynCall_iiiiiiiiiiii"] = createExportWrapper("dynCall_iiiiiiiiiiii");
-/** @type {function(...*):?} */
 var dynCall_viiiiffi = Module["dynCall_viiiiffi"] = createExportWrapper("dynCall_viiiiffi");
 /** @type {function(...*):?} */
 var dynCall_viiiffii = Module["dynCall_viiiffii"] = createExportWrapper("dynCall_viiiffii");
-/** @type {function(...*):?} */
-var dynCall_vifffii = Module["dynCall_vifffii"] = createExportWrapper("dynCall_vifffii");
 /** @type {function(...*):?} */
 var dynCall_viiiifffi = Module["dynCall_viiiifffi"] = createExportWrapper("dynCall_viiiifffi");
 /** @type {function(...*):?} */
@@ -17333,8 +18833,6 @@ var dynCall_ifi = Module["dynCall_ifi"] = createExportWrapper("dynCall_ifi");
 var dynCall_vfiii = Module["dynCall_vfiii"] = createExportWrapper("dynCall_vfiii");
 /** @type {function(...*):?} */
 var dynCall_ffffi = Module["dynCall_ffffi"] = createExportWrapper("dynCall_ffffi");
-/** @type {function(...*):?} */
-var dynCall_iffi = Module["dynCall_iffi"] = createExportWrapper("dynCall_iffi");
 /** @type {function(...*):?} */
 var dynCall_fffifffi = Module["dynCall_fffifffi"] = createExportWrapper("dynCall_fffifffi");
 /** @type {function(...*):?} */
@@ -17360,19 +18858,33 @@ var dynCall_viiiiiiiijijiiiii = Module["dynCall_viiiiiiiijijiiiii"] = createExpo
 /** @type {function(...*):?} */
 var dynCall_viiiiiffii = Module["dynCall_viiiiiffii"] = createExportWrapper("dynCall_viiiiiffii");
 /** @type {function(...*):?} */
-var dynCall_vfi = Module["dynCall_vfi"] = createExportWrapper("dynCall_vfi");
-/** @type {function(...*):?} */
-var dynCall_ifffi = Module["dynCall_ifffi"] = createExportWrapper("dynCall_ifffi");
-/** @type {function(...*):?} */
 var dynCall_viffffii = Module["dynCall_viffffii"] = createExportWrapper("dynCall_viffffii");
 /** @type {function(...*):?} */
 var dynCall_viijii = Module["dynCall_viijii"] = createExportWrapper("dynCall_viijii");
 /** @type {function(...*):?} */
 var dynCall_vijiiii = Module["dynCall_vijiiii"] = createExportWrapper("dynCall_vijiiii");
 /** @type {function(...*):?} */
-var dynCall_iifiii = Module["dynCall_iifiii"] = createExportWrapper("dynCall_iifiii");
+var dynCall_viiifiii = Module["dynCall_viiifiii"] = createExportWrapper("dynCall_viiifiii");
+/** @type {function(...*):?} */
+var dynCall_viiifii = Module["dynCall_viiifii"] = createExportWrapper("dynCall_viiifii");
+/** @type {function(...*):?} */
+var dynCall_viiififi = Module["dynCall_viiififi"] = createExportWrapper("dynCall_viiififi");
+/** @type {function(...*):?} */
+var dynCall_viiififfi = Module["dynCall_viiififfi"] = createExportWrapper("dynCall_viiififfi");
+/** @type {function(...*):?} */
+var dynCall_iiiiifi = Module["dynCall_iiiiifi"] = createExportWrapper("dynCall_iiiiifi");
 /** @type {function(...*):?} */
 var dynCall_iifii = Module["dynCall_iifii"] = createExportWrapper("dynCall_iifii");
+/** @type {function(...*):?} */
+var dynCall_viffii = Module["dynCall_viffii"] = createExportWrapper("dynCall_viffii");
+/** @type {function(...*):?} */
+var dynCall_vifiii = Module["dynCall_vifiii"] = createExportWrapper("dynCall_vifiii");
+/** @type {function(...*):?} */
+var dynCall_vidfiiii = Module["dynCall_vidfiiii"] = createExportWrapper("dynCall_vidfiiii");
+/** @type {function(...*):?} */
+var dynCall_viiiffiii = Module["dynCall_viiiffiii"] = createExportWrapper("dynCall_viiiffiii");
+/** @type {function(...*):?} */
+var dynCall_iifiii = Module["dynCall_iifiii"] = createExportWrapper("dynCall_iifiii");
 /** @type {function(...*):?} */
 var dynCall_viifiiii = Module["dynCall_viifiiii"] = createExportWrapper("dynCall_viifiiii");
 /** @type {function(...*):?} */
@@ -17381,10 +18893,6 @@ var dynCall_iiiiifiii = Module["dynCall_iiiiifiii"] = createExportWrapper("dynCa
 var dynCall_iiifiiii = Module["dynCall_iiifiiii"] = createExportWrapper("dynCall_iiifiiii");
 /** @type {function(...*):?} */
 var dynCall_vifffffi = Module["dynCall_vifffffi"] = createExportWrapper("dynCall_vifffffi");
-/** @type {function(...*):?} */
-var dynCall_viiifii = Module["dynCall_viiifii"] = createExportWrapper("dynCall_viiifii");
-/** @type {function(...*):?} */
-var dynCall_vifiii = Module["dynCall_vifiii"] = createExportWrapper("dynCall_vifiii");
 /** @type {function(...*):?} */
 var dynCall_viffiiii = Module["dynCall_viffiiii"] = createExportWrapper("dynCall_viffiiii");
 /** @type {function(...*):?} */
@@ -17420,8 +18928,6 @@ var dynCall_fffffffi = Module["dynCall_fffffffi"] = createExportWrapper("dynCall
 /** @type {function(...*):?} */
 var dynCall_viffiii = Module["dynCall_viffiii"] = createExportWrapper("dynCall_viffiii");
 /** @type {function(...*):?} */
-var dynCall_viffifi = Module["dynCall_viffifi"] = createExportWrapper("dynCall_viffifi");
-/** @type {function(...*):?} */
 var dynCall_viiffifi = Module["dynCall_viiffifi"] = createExportWrapper("dynCall_viiffifi");
 /** @type {function(...*):?} */
 var dynCall_viifiiiiii = Module["dynCall_viifiiiiii"] = createExportWrapper("dynCall_viifiiiiii");
@@ -17448,10 +18954,6 @@ var dynCall_viiififii = Module["dynCall_viiififii"] = createExportWrapper("dynCa
 /** @type {function(...*):?} */
 var dynCall_viiifififi = Module["dynCall_viiifififi"] = createExportWrapper("dynCall_viiifififi");
 /** @type {function(...*):?} */
-var dynCall_diiii = Module["dynCall_diiii"] = createExportWrapper("dynCall_diiii");
-/** @type {function(...*):?} */
-var dynCall_jiiii = Module["dynCall_jiiii"] = createExportWrapper("dynCall_jiiii");
-/** @type {function(...*):?} */
 var dynCall_ijii = Module["dynCall_ijii"] = createExportWrapper("dynCall_ijii");
 /** @type {function(...*):?} */
 var dynCall_vjii = Module["dynCall_vjii"] = createExportWrapper("dynCall_vjii");
@@ -17459,8 +18961,6 @@ var dynCall_vjii = Module["dynCall_vjii"] = createExportWrapper("dynCall_vjii");
 var dynCall_viiiiiffi = Module["dynCall_viiiiiffi"] = createExportWrapper("dynCall_viiiiiffi");
 /** @type {function(...*):?} */
 var dynCall_viffffiii = Module["dynCall_viffffiii"] = createExportWrapper("dynCall_viffffiii");
-/** @type {function(...*):?} */
-var dynCall_viiifiii = Module["dynCall_viiifiii"] = createExportWrapper("dynCall_viiifiii");
 /** @type {function(...*):?} */
 var dynCall_viiiiiiiiiiii = Module["dynCall_viiiiiiiiiiii"] = createExportWrapper("dynCall_viiiiiiiiiiii");
 /** @type {function(...*):?} */
@@ -17470,19 +18970,17 @@ var dynCall_viiffiiiii = Module["dynCall_viiffiiiii"] = createExportWrapper("dyn
 /** @type {function(...*):?} */
 var dynCall_viiiiiifiiiii = Module["dynCall_viiiiiifiiiii"] = createExportWrapper("dynCall_viiiiiifiiiii");
 /** @type {function(...*):?} */
-var dynCall_viffii = Module["dynCall_viffii"] = createExportWrapper("dynCall_viffii");
-/** @type {function(...*):?} */
 var dynCall_iijjjiii = Module["dynCall_iijjjiii"] = createExportWrapper("dynCall_iijjjiii");
-/** @type {function(...*):?} */
-var dynCall_viiffii = Module["dynCall_viiffii"] = createExportWrapper("dynCall_viiffii");
 /** @type {function(...*):?} */
 var dynCall_viifiii = Module["dynCall_viifiii"] = createExportWrapper("dynCall_viifiii");
 /** @type {function(...*):?} */
 var dynCall_fifii = Module["dynCall_fifii"] = createExportWrapper("dynCall_fifii");
 /** @type {function(...*):?} */
-var dynCall_viiifffi = Module["dynCall_viiifffi"] = createExportWrapper("dynCall_viiifffi");
+var dynCall_vifffii = Module["dynCall_vifffii"] = createExportWrapper("dynCall_vifffii");
 /** @type {function(...*):?} */
-var dynCall_iifffi = Module["dynCall_iifffi"] = createExportWrapper("dynCall_iifffi");
+var dynCall_viiiffi = Module["dynCall_viiiffi"] = createExportWrapper("dynCall_viiiffi");
+/** @type {function(...*):?} */
+var dynCall_viijjii = Module["dynCall_viijjii"] = createExportWrapper("dynCall_viijjii");
 /** @type {function(...*):?} */
 var dynCall_viifffi = Module["dynCall_viifffi"] = createExportWrapper("dynCall_viifffi");
 /** @type {function(...*):?} */
@@ -17582,6 +19080,12 @@ var dynCall_vdiii = Module["dynCall_vdiii"] = createExportWrapper("dynCall_vdiii
 /** @type {function(...*):?} */
 var dynCall_jdii = Module["dynCall_jdii"] = createExportWrapper("dynCall_jdii");
 /** @type {function(...*):?} */
+var dynCall_vijijji = Module["dynCall_vijijji"] = createExportWrapper("dynCall_vijijji");
+/** @type {function(...*):?} */
+var dynCall_iijjji = Module["dynCall_iijjji"] = createExportWrapper("dynCall_iijjji");
+/** @type {function(...*):?} */
+var dynCall_viijjji = Module["dynCall_viijjji"] = createExportWrapper("dynCall_viijjji");
+/** @type {function(...*):?} */
 var dynCall_vdii = Module["dynCall_vdii"] = createExportWrapper("dynCall_vdii");
 /** @type {function(...*):?} */
 var dynCall_diddi = Module["dynCall_diddi"] = createExportWrapper("dynCall_diddi");
@@ -17614,8 +19118,6 @@ var dynCall_vififiii = Module["dynCall_vififiii"] = createExportWrapper("dynCall
 /** @type {function(...*):?} */
 var dynCall_iiiiidii = Module["dynCall_iiiiidii"] = createExportWrapper("dynCall_iiiiidii");
 /** @type {function(...*):?} */
-var dynCall_iiiiifii = Module["dynCall_iiiiifii"] = createExportWrapper("dynCall_iiiiifii");
-/** @type {function(...*):?} */
 var dynCall_iiiiijii = Module["dynCall_iiiiijii"] = createExportWrapper("dynCall_iiiiijii");
 /** @type {function(...*):?} */
 var dynCall_iddi = Module["dynCall_iddi"] = createExportWrapper("dynCall_iddi");
@@ -17635,8 +19137,6 @@ var dynCall_iiiiffffidi = Module["dynCall_iiiiffffidi"] = createExportWrapper("d
 var dynCall_iiiiiidi = Module["dynCall_iiiiiidi"] = createExportWrapper("dynCall_iiiiiidi");
 /** @type {function(...*):?} */
 var dynCall_iiiiiiji = Module["dynCall_iiiiiiji"] = createExportWrapper("dynCall_iiiiiiji");
-/** @type {function(...*):?} */
-var dynCall_iiiiiifi = Module["dynCall_iiiiiifi"] = createExportWrapper("dynCall_iiiiiifi");
 /** @type {function(...*):?} */
 var dynCall_viifiiiii = Module["dynCall_viifiiiii"] = createExportWrapper("dynCall_viifiiiii");
 /** @type {function(...*):?} */
@@ -17720,9 +19220,27 @@ var dynCall_iiif = Module["dynCall_iiif"] = createExportWrapper("dynCall_iiif");
 /** @type {function(...*):?} */
 var dynCall_fif = Module["dynCall_fif"] = createExportWrapper("dynCall_fif");
 /** @type {function(...*):?} */
+var dynCall_iif = Module["dynCall_iif"] = createExportWrapper("dynCall_iif");
+/** @type {function(...*):?} */
+var dynCall_viiiij = Module["dynCall_viiiij"] = createExportWrapper("dynCall_viiiij");
+/** @type {function(...*):?} */
+var dynCall_iiijji = Module["dynCall_iiijji"] = createExportWrapper("dynCall_iiijji");
+/** @type {function(...*):?} */
+var dynCall_ijjiiiii = Module["dynCall_ijjiiiii"] = createExportWrapper("dynCall_ijjiiiii");
+/** @type {function(...*):?} */
 var dynCall_iiiiiifffiiifiii = Module["dynCall_iiiiiifffiiifiii"] = createExportWrapper("dynCall_iiiiiifffiiifiii");
 /** @type {function(...*):?} */
+var dynCall_vidd = Module["dynCall_vidd"] = createExportWrapper("dynCall_vidd");
+/** @type {function(...*):?} */
+var dynCall_viid = Module["dynCall_viid"] = createExportWrapper("dynCall_viid");
+/** @type {function(...*):?} */
+var dynCall_viidii = Module["dynCall_viidii"] = createExportWrapper("dynCall_viidii");
+/** @type {function(...*):?} */
 var dynCall_viiif = Module["dynCall_viiif"] = createExportWrapper("dynCall_viiif");
+/** @type {function(...*):?} */
+var dynCall_fiiiif = Module["dynCall_fiiiif"] = createExportWrapper("dynCall_fiiiif");
+/** @type {function(...*):?} */
+var dynCall_ffjfj = Module["dynCall_ffjfj"] = createExportWrapper("dynCall_ffjfj");
 /** @type {function(...*):?} */
 var dynCall_iiiiiifff = Module["dynCall_iiiiiifff"] = createExportWrapper("dynCall_iiiiiifff");
 /** @type {function(...*):?} */
@@ -17770,13 +19288,17 @@ var dynCall_viijijj = Module["dynCall_viijijj"] = createExportWrapper("dynCall_v
 /** @type {function(...*):?} */
 var dynCall_viijj = Module["dynCall_viijj"] = createExportWrapper("dynCall_viijj");
 /** @type {function(...*):?} */
-var dynCall_viiiij = Module["dynCall_viiiij"] = createExportWrapper("dynCall_viiiij");
-/** @type {function(...*):?} */
 var dynCall_viffffffffffffiiii = Module["dynCall_viffffffffffffiiii"] = createExportWrapper("dynCall_viffffffffffffiiii");
 /** @type {function(...*):?} */
-var dynCall_iif = Module["dynCall_iif"] = createExportWrapper("dynCall_iif");
+var dynCall_viiij = Module["dynCall_viiij"] = createExportWrapper("dynCall_viiij");
 /** @type {function(...*):?} */
-var dynCall_viiiffffi = Module["dynCall_viiiffffi"] = createExportWrapper("dynCall_viiiffffi");
+var dynCall_vijd = Module["dynCall_vijd"] = createExportWrapper("dynCall_vijd");
+/** @type {function(...*):?} */
+var dynCall_vifiiifi = Module["dynCall_vifiiifi"] = createExportWrapper("dynCall_vifiiifi");
+/** @type {function(...*):?} */
+var dynCall_viififi = Module["dynCall_viififi"] = createExportWrapper("dynCall_viififi");
+/** @type {function(...*):?} */
+var dynCall_viiffiiii = Module["dynCall_viiffiiii"] = createExportWrapper("dynCall_viiffiiii");
 /** @type {function(...*):?} */
 var dynCall_viiiffffffi = Module["dynCall_viiiffffffi"] = createExportWrapper("dynCall_viiiffffffi");
 /** @type {function(...*):?} */
@@ -17786,15 +19308,23 @@ var dynCall_iijjiii = Module["dynCall_iijjiii"] = createExportWrapper("dynCall_i
 /** @type {function(...*):?} */
 var dynCall_vijjjii = Module["dynCall_vijjjii"] = createExportWrapper("dynCall_vijjjii");
 /** @type {function(...*):?} */
+var dynCall_ff = Module["dynCall_ff"] = createExportWrapper("dynCall_ff");
+/** @type {function(...*):?} */
+var dynCall_iiiiiff = Module["dynCall_iiiiiff"] = createExportWrapper("dynCall_iiiiiff");
+/** @type {function(...*):?} */
+var dynCall_iiij = Module["dynCall_iiij"] = createExportWrapper("dynCall_iiij");
+/** @type {function(...*):?} */
+var dynCall_vd = Module["dynCall_vd"] = createExportWrapper("dynCall_vd");
+/** @type {function(...*):?} */
+var dynCall_iid = Module["dynCall_iid"] = createExportWrapper("dynCall_iid");
+/** @type {function(...*):?} */
+var dynCall_vidii = Module["dynCall_vidii"] = createExportWrapper("dynCall_vidii");
+/** @type {function(...*):?} */
 var dynCall_vf = Module["dynCall_vf"] = createExportWrapper("dynCall_vf");
 /** @type {function(...*):?} */
 var dynCall_vff = Module["dynCall_vff"] = createExportWrapper("dynCall_vff");
 /** @type {function(...*):?} */
-var dynCall_iiij = Module["dynCall_iiij"] = createExportWrapper("dynCall_iiij");
-/** @type {function(...*):?} */
 var dynCall_f = Module["dynCall_f"] = createExportWrapper("dynCall_f");
-/** @type {function(...*):?} */
-var dynCall_ff = Module["dynCall_ff"] = createExportWrapper("dynCall_ff");
 /** @type {function(...*):?} */
 var dynCall_d = Module["dynCall_d"] = createExportWrapper("dynCall_d");
 /** @type {function(...*):?} */
@@ -17998,171 +19528,6 @@ function invoke_viiiii(index,a1,a2,a3,a4,a5) {
   }
 }
 
-function invoke_iiiiiiiii(index,a1,a2,a3,a4,a5,a6,a7,a8) {
-  var sp = stackSave();
-  try {
-    return dynCall_iiiiiiiii(index,a1,a2,a3,a4,a5,a6,a7,a8);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_iiiifii(index,a1,a2,a3,a4,a5,a6) {
-  var sp = stackSave();
-  try {
-    return dynCall_iiiifii(index,a1,a2,a3,a4,a5,a6);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_iiiidii(index,a1,a2,a3,a4,a5,a6) {
-  var sp = stackSave();
-  try {
-    return dynCall_iiiidii(index,a1,a2,a3,a4,a5,a6);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_iiiiiiffiiiiiiiiiffffiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20,a21,a22,a23) {
-  var sp = stackSave();
-  try {
-    return dynCall_iiiiiiffiiiiiiiiiffffiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20,a21,a22,a23);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_viffi(index,a1,a2,a3,a4) {
-  var sp = stackSave();
-  try {
-    dynCall_viffi(index,a1,a2,a3,a4);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_fi(index,a1) {
-  var sp = stackSave();
-  try {
-    return dynCall_fi(index,a1);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_fii(index,a1,a2) {
-  var sp = stackSave();
-  try {
-    return dynCall_fii(index,a1,a2);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_vifi(index,a1,a2,a3) {
-  var sp = stackSave();
-  try {
-    dynCall_vifi(index,a1,a2,a3);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_vidi(index,a1,a2,a3) {
-  var sp = stackSave();
-  try {
-    dynCall_vidi(index,a1,a2,a3);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_dii(index,a1,a2) {
-  var sp = stackSave();
-  try {
-    return dynCall_dii(index,a1,a2);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_viidi(index,a1,a2,a3,a4) {
-  var sp = stackSave();
-  try {
-    dynCall_viidi(index,a1,a2,a3,a4);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_vififiiii(index,a1,a2,a3,a4,a5,a6,a7,a8) {
-  var sp = stackSave();
-  try {
-    dynCall_vififiiii(index,a1,a2,a3,a4,a5,a6,a7,a8);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_viiififiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9) {
-  var sp = stackSave();
-  try {
-    dynCall_viiififiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_fiffi(index,a1,a2,a3,a4) {
-  var sp = stackSave();
-  try {
-    return dynCall_fiffi(index,a1,a2,a3,a4);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_fiiffi(index,a1,a2,a3,a4,a5) {
-  var sp = stackSave();
-  try {
-    return dynCall_fiiffi(index,a1,a2,a3,a4,a5);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
 function invoke_viifi(index,a1,a2,a3,a4) {
   var sp = stackSave();
   try {
@@ -18185,10 +19550,98 @@ function invoke_iiifii(index,a1,a2,a3,a4,a5) {
   }
 }
 
+function invoke_vifi(index,a1,a2,a3) {
+  var sp = stackSave();
+  try {
+    dynCall_vifi(index,a1,a2,a3);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_fii(index,a1,a2) {
+  var sp = stackSave();
+  try {
+    return dynCall_fii(index,a1,a2);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_vidi(index,a1,a2,a3) {
+  var sp = stackSave();
+  try {
+    dynCall_vidi(index,a1,a2,a3);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
 function invoke_vifii(index,a1,a2,a3,a4) {
   var sp = stackSave();
   try {
     dynCall_vifii(index,a1,a2,a3,a4);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_iiiifii(index,a1,a2,a3,a4,a5,a6) {
+  var sp = stackSave();
+  try {
+    return dynCall_iiiifii(index,a1,a2,a3,a4,a5,a6);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_viiifii(index,a1,a2,a3,a4,a5,a6) {
+  var sp = stackSave();
+  try {
+    dynCall_viiifii(index,a1,a2,a3,a4,a5,a6);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_viiidi(index,a1,a2,a3,a4,a5) {
+  var sp = stackSave();
+  try {
+    dynCall_viiidi(index,a1,a2,a3,a4,a5);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_viiiiiii(index,a1,a2,a3,a4,a5,a6,a7) {
+  var sp = stackSave();
+  try {
+    dynCall_viiiiiii(index,a1,a2,a3,a4,a5,a6,a7);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_fi(index,a1) {
+  var sp = stackSave();
+  try {
+    return dynCall_fi(index,a1);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -18207,43 +19660,10 @@ function invoke_viifiii(index,a1,a2,a3,a4,a5,a6) {
   }
 }
 
-function invoke_viiffi(index,a1,a2,a3,a4,a5) {
+function invoke_iiiiiiffiiiiiiiiiffffiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20,a21,a22,a23) {
   var sp = stackSave();
   try {
-    dynCall_viiffi(index,a1,a2,a3,a4,a5);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_fffi(index,a1,a2,a3) {
-  var sp = stackSave();
-  try {
-    return dynCall_fffi(index,a1,a2,a3);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_viifii(index,a1,a2,a3,a4,a5) {
-  var sp = stackSave();
-  try {
-    dynCall_viifii(index,a1,a2,a3,a4,a5);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_viiidi(index,a1,a2,a3,a4,a5) {
-  var sp = stackSave();
-  try {
-    dynCall_viiidi(index,a1,a2,a3,a4,a5);
+    return dynCall_iiiiiiffiiiiiiiiiffffiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20,a21,a22,a23);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -18273,10 +19693,65 @@ function invoke_iiifi(index,a1,a2,a3,a4) {
   }
 }
 
-function invoke_viiiiiii(index,a1,a2,a3,a4,a5,a6,a7) {
+function invoke_iiiidii(index,a1,a2,a3,a4,a5,a6) {
   var sp = stackSave();
   try {
-    dynCall_viiiiiii(index,a1,a2,a3,a4,a5,a6,a7);
+    return dynCall_iiiidii(index,a1,a2,a3,a4,a5,a6);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_fiiii(index,a1,a2,a3,a4) {
+  var sp = stackSave();
+  try {
+    return dynCall_fiiii(index,a1,a2,a3,a4);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_diiii(index,a1,a2,a3,a4) {
+  var sp = stackSave();
+  try {
+    return dynCall_diiii(index,a1,a2,a3,a4);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_dii(index,a1,a2) {
+  var sp = stackSave();
+  try {
+    return dynCall_dii(index,a1,a2);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_fffi(index,a1,a2,a3) {
+  var sp = stackSave();
+  try {
+    return dynCall_fffi(index,a1,a2,a3);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_viifii(index,a1,a2,a3,a4,a5) {
+  var sp = stackSave();
+  try {
+    dynCall_viifii(index,a1,a2,a3,a4,a5);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -18328,6 +19803,17 @@ function invoke_vffi(index,a1,a2,a3) {
   }
 }
 
+function invoke_viffi(index,a1,a2,a3,a4) {
+  var sp = stackSave();
+  try {
+    dynCall_viffi(index,a1,a2,a3,a4);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
 function invoke_vfffi(index,a1,a2,a3,a4) {
   var sp = stackSave();
   try {
@@ -18339,10 +19825,43 @@ function invoke_vfffi(index,a1,a2,a3,a4) {
   }
 }
 
-function invoke_di(index,a1) {
+function invoke_vififiiii(index,a1,a2,a3,a4,a5,a6,a7,a8) {
   var sp = stackSave();
   try {
-    return dynCall_di(index,a1);
+    dynCall_vififiiii(index,a1,a2,a3,a4,a5,a6,a7,a8);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_viiififiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9) {
+  var sp = stackSave();
+  try {
+    dynCall_viiififiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_fiffi(index,a1,a2,a3,a4) {
+  var sp = stackSave();
+  try {
+    return dynCall_fiffi(index,a1,a2,a3,a4);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_fiiffi(index,a1,a2,a3,a4,a5) {
+  var sp = stackSave();
+  try {
+    return dynCall_fiiffi(index,a1,a2,a3,a4,a5);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -18383,10 +19902,10 @@ function invoke_iiiiiiiiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9) {
   }
 }
 
-function invoke_ddiii(index,a1,a2,a3,a4) {
+function invoke_di(index,a1) {
   var sp = stackSave();
   try {
-    return dynCall_ddiii(index,a1,a2,a3,a4);
+    return dynCall_di(index,a1);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -18394,10 +19913,43 @@ function invoke_ddiii(index,a1,a2,a3,a4) {
   }
 }
 
-function invoke_viiff(index,a1,a2,a3,a4) {
+function invoke_viiffi(index,a1,a2,a3,a4,a5) {
   var sp = stackSave();
   try {
-    dynCall_viiff(index,a1,a2,a3,a4);
+    dynCall_viiffi(index,a1,a2,a3,a4,a5);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_viidi(index,a1,a2,a3,a4) {
+  var sp = stackSave();
+  try {
+    dynCall_viidi(index,a1,a2,a3,a4);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_iifi(index,a1,a2,a3) {
+  var sp = stackSave();
+  try {
+    return dynCall_iifi(index,a1,a2,a3);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_ddiii(index,a1,a2,a3,a4) {
+  var sp = stackSave();
+  try {
+    return dynCall_ddiii(index,a1,a2,a3,a4);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -18416,10 +19968,32 @@ function invoke_viiiifi(index,a1,a2,a3,a4,a5,a6) {
   }
 }
 
+function invoke_viiff(index,a1,a2,a3,a4) {
+  var sp = stackSave();
+  try {
+    dynCall_viiff(index,a1,a2,a3,a4);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
 function invoke_viiiiiiiiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10) {
   var sp = stackSave();
   try {
     dynCall_viiiiiiiiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_iiiiiiiii(index,a1,a2,a3,a4,a5,a6,a7,a8) {
+  var sp = stackSave();
+  try {
+    return dynCall_iiiiiiiii(index,a1,a2,a3,a4,a5,a6,a7,a8);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -18442,6 +20016,17 @@ function invoke_viiiiiiiiiiiiiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a1
   var sp = stackSave();
   try {
     dynCall_viiiiiiiiiiiiiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_vidd(index,a1,a2,a3) {
+  var sp = stackSave();
+  try {
+    dynCall_vidd(index,a1,a2,a3);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -18526,32 +20111,10 @@ function invoke_iji(index,a1,a2,a3) {
   }
 }
 
-function invoke_iiiijii(index,a1,a2,a3,a4,a5,a6,a7) {
+function invoke_jjji(index,a1,a2,a3,a4,a5) {
   var sp = stackSave();
   try {
-    return dynCall_iiiijii(index,a1,a2,a3,a4,a5,a6,a7);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_viiji(index,a1,a2,a3,a4,a5) {
-  var sp = stackSave();
-  try {
-    dynCall_viiji(index,a1,a2,a3,a4,a5);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_iiijii(index,a1,a2,a3,a4,a5,a6) {
-  var sp = stackSave();
-  try {
-    return dynCall_iiijii(index,a1,a2,a3,a4,a5,a6);
+    return dynCall_jjji(index,a1,a2,a3,a4,a5);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -18581,28 +20144,6 @@ function invoke_jiii(index,a1,a2,a3) {
   }
 }
 
-function invoke_jiiiiiiiiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10) {
-  var sp = stackSave();
-  try {
-    return dynCall_jiiiiiiiiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_iiji(index,a1,a2,a3,a4) {
-  var sp = stackSave();
-  try {
-    return dynCall_iiji(index,a1,a2,a3,a4);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
 function invoke_vijii(index,a1,a2,a3,a4,a5) {
   var sp = stackSave();
   try {
@@ -18625,10 +20166,10 @@ function invoke_iijiii(index,a1,a2,a3,a4,a5,a6) {
   }
 }
 
-function invoke_ijji(index,a1,a2,a3,a4,a5) {
+function invoke_viiji(index,a1,a2,a3,a4,a5) {
   var sp = stackSave();
   try {
-    return dynCall_ijji(index,a1,a2,a3,a4,a5);
+    dynCall_viiji(index,a1,a2,a3,a4,a5);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -18636,10 +20177,10 @@ function invoke_ijji(index,a1,a2,a3,a4,a5) {
   }
 }
 
-function invoke_vijiii(index,a1,a2,a3,a4,a5,a6) {
+function invoke_iiijii(index,a1,a2,a3,a4,a5,a6) {
   var sp = stackSave();
   try {
-    dynCall_vijiii(index,a1,a2,a3,a4,a5,a6);
+    return dynCall_iiijii(index,a1,a2,a3,a4,a5,a6);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -18647,10 +20188,10 @@ function invoke_vijiii(index,a1,a2,a3,a4,a5,a6) {
   }
 }
 
-function invoke_vjjjiiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10) {
+function invoke_iiji(index,a1,a2,a3,a4) {
   var sp = stackSave();
   try {
-    dynCall_vjjjiiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10);
+    return dynCall_iiji(index,a1,a2,a3,a4);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -18658,32 +20199,10 @@ function invoke_vjjjiiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10) {
   }
 }
 
-function invoke_vjiiiii(index,a1,a2,a3,a4,a5,a6,a7) {
+function invoke_iiiijii(index,a1,a2,a3,a4,a5,a6,a7) {
   var sp = stackSave();
   try {
-    dynCall_vjiiiii(index,a1,a2,a3,a4,a5,a6,a7);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_jjji(index,a1,a2,a3,a4,a5) {
-  var sp = stackSave();
-  try {
-    return dynCall_jjji(index,a1,a2,a3,a4,a5);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_jiiiii(index,a1,a2,a3,a4,a5) {
-  var sp = stackSave();
-  try {
-    return dynCall_jiiiii(index,a1,a2,a3,a4,a5);
+    return dynCall_iiiijii(index,a1,a2,a3,a4,a5,a6,a7);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -18713,10 +20232,32 @@ function invoke_vji(index,a1,a2,a3) {
   }
 }
 
-function invoke_iijii(index,a1,a2,a3,a4,a5) {
+function invoke_jiiiii(index,a1,a2,a3,a4,a5) {
   var sp = stackSave();
   try {
-    return dynCall_iijii(index,a1,a2,a3,a4,a5);
+    return dynCall_jiiiii(index,a1,a2,a3,a4,a5);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_jiiiiiiiiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10) {
+  var sp = stackSave();
+  try {
+    return dynCall_jiiiiiiiiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_ijji(index,a1,a2,a3,a4,a5) {
+  var sp = stackSave();
+  try {
+    return dynCall_ijji(index,a1,a2,a3,a4,a5);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -18750,6 +20291,50 @@ function invoke_jijii(index,a1,a2,a3,a4,a5) {
   var sp = stackSave();
   try {
     return dynCall_jijii(index,a1,a2,a3,a4,a5);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_iijii(index,a1,a2,a3,a4,a5) {
+  var sp = stackSave();
+  try {
+    return dynCall_iijii(index,a1,a2,a3,a4,a5);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_vijiii(index,a1,a2,a3,a4,a5,a6) {
+  var sp = stackSave();
+  try {
+    dynCall_vijiii(index,a1,a2,a3,a4,a5,a6);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_vjjjiiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10) {
+  var sp = stackSave();
+  try {
+    dynCall_vjjjiiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_vjiiiii(index,a1,a2,a3,a4,a5,a6,a7) {
+  var sp = stackSave();
+  try {
+    dynCall_vjiiiii(index,a1,a2,a3,a4,a5,a6,a7);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -18854,20 +20439,10 @@ var missingLibrarySymbols = [
   'JS_CalculateHeading',
   'JS_OrientationEventHandler',
   'JS_RegisterCompass',
-  'videoInstanceIdCounter',
-  'jsVideoEnded',
-  'jsVideoAllAudioTracksAreDisabled',
-  'jsVideoAddPendingBlockedVideo',
-  'jsVideoPlayPendingBlockedVideo',
-  'jsVideoRemovePendingBlockedVideo',
-  'jsVideoAttemptToPlayBlockedVideos',
-  'jsVideoCreateTexture2D',
-  'jsIsWebkit',
   'cameraAccess',
   'webgpu_LoadCache',
   'getStringHash',
   'storeWebGPUObjectCache',
-  'jsWebRequestGetResponseHeaderString',
 ];
 missingLibrarySymbols.forEach(missingLibrarySymbol)
 
@@ -19189,13 +20764,22 @@ var unexportedSymbols = [
   'computeUnpackAlignedImageSize3D',
   'emscriptenWebGLGetTexPixelData3D',
   'videoInstances',
+  'videoInstanceIdCounter',
   'hasSRGBATextures',
   's2lTexture',
   's2lFBO',
   's2lVBO',
   's2lProgram',
   's2lVertexPositionNDC',
+  'jsVideoEnded',
+  'jsVideoAllAudioTracksAreDisabled',
   'jsVideoPendingBlockedVideos',
+  'jsVideoAddPendingBlockedVideo',
+  'jsVideoPlayPendingBlockedVideo',
+  'jsVideoRemovePendingBlockedVideo',
+  'jsVideoAttemptToPlayBlockedVideos',
+  'jsVideoCreateTexture2D',
+  'jsIsWebkit',
   'jsSupportedVideoFormats',
   'jsUnsupportedVideoFormats',
   'activeWebCams',
@@ -19203,7 +20787,9 @@ var unexportedSymbols = [
   'webgpu_cache',
   'webgpu_buildID',
   'wr',
+  'jsWebRequestGetResponseHeaderString',
   'IDBFS',
+  'PanelBridge',
 ];
 unexportedSymbols.forEach(unexportedRuntimeSymbol);
 
