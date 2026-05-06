@@ -192,11 +192,16 @@ public class AnlaticiSeritKopru : MonoBehaviour
         }
 
         // Bakiye yetersizse Aşama 7 (Tükeniş) zorla atlanır veya doğrudan Tukenis tetiklenir.
+        // İSTİSNA — A6 ilk spin'i (Borç Al paneli): A5 → A6 geçişinin hemen ardından bu kontrol
+        // _aktifSpin=0 ile çalışır; bakiye yetersiz olsa BİLE A7'ye atlamamalıyız çünkü
+        // ScriptedYuklemePaneli devreye girip "BORÇ AL — 50.000 TL" ile bakiyeyi yükleyecek.
+        // A6'nın diğer spin'lerinde (_aktifSpin > 0) bakiye yetersizse A7'ye atlama doğal.
         if (_oy != null)
         {
             int simdiBakiye = (int)_oy.BahisPanelMevcutBakiye();
             int sonrakiBahis = _onerilenBahisler[Mathf.Clamp(_aktifAsama, 0, _onerilenBahisler.Length - 1)];
-            if (simdiBakiye < sonrakiBahis)
+            bool a6BorcAlinmadi = (_aktifAsama == 5 && _aktifSpin == 0);
+            if (simdiBakiye < sonrakiBahis && !a6BorcAlinmadi)
             {
                 if (_aktifAsama < 6)
                 {
@@ -216,6 +221,10 @@ public class AnlaticiSeritKopru : MonoBehaviour
                     Tukenis();
                     return;
                 }
+            }
+            else if (simdiBakiye < sonrakiBahis && a6BorcAlinmadi)
+            {
+                Debug.Log($"[Anlatici] A6 girişi — bakiye yetersiz ({simdiBakiye} < {sonrakiBahis}) ama Borç Al paneli devreye girecek; A7'ye atlama atlanıyor.");
             }
         }
 
