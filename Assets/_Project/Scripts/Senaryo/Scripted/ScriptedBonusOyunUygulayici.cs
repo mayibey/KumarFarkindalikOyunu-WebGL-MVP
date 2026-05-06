@@ -30,6 +30,12 @@ namespace Senaryo.Scripted
         public static bool IsAcik => Ornek != null && Ornek._aktifMi;
         private bool _aktifMi;
 
+        /// <summary>A5 Spin 4 cazip pop-up onayı sonrası bakiyenin tamamı bonus oyuna yatırıldı (TL).
+        /// Final ekran ve A5_S5 dinamik modal yüzde hesabı için referans.</summary>
+        public static int BonusYatirim = 0;
+        /// <summary>Bonus oyun bittiğinde toplam ödenen miktar (TL). A5_S5 dinamik modal yüzde hesabı için.</summary>
+        public static int BonusKazanc = 0;
+
         // Polling güvenlik sınırları
         private const int BONUS_BASLAMA_BEKLEME_MAX_FRAME = 60;       // ~1 sn @60 fps
         private const float BONUS_BITIS_BEKLEME_MAX_SN = 120f;        // 2 dk üst sınır
@@ -92,6 +98,11 @@ namespace Senaryo.Scripted
             }
 
             _aktifMi = true;
+            // A5_S5 dinamik modal + final ekran istatistik için yatırım kaydı (oyuncu pop-up sonrası
+            // bakiyesini sıfırlamıştı; oy.OturumKazanc'tan önce bakiyenin önceki değeri yatırım idi).
+            // Pop-up onayında bakiye 0'a düşürülüyor → buradaki yatırım = `yatirim` parametresi yerine
+            // pop-up'tan gelen değer; defansif olarak parametreyi kabul et.
+            BonusYatirim = Mathf.Max(BonusYatirim, yatirim);
             // Anlatici HTML iframe'i gizle (bonus oyun ekranı + HUD üzerinde kalmasın)
             AnlaticiSeritKopru.Ornek?.Gizle();
             try
@@ -151,7 +162,23 @@ namespace Senaryo.Scripted
                 // 6) Bahis override'ı kapat — oyuncunun gerçek bahisine geri yükle
                 oy.ScriptedBonusBahisOverrideKapat();
 
-                Debug.Log($"[ScriptedBonusOyun] Bonus tamamlandı. Motor doğal RTP ile {oy.OturumKazanc} TL ödedi.");
+                // 7) Bonus kazancını kaydet (final ekran + A5_S5 dinamik modal yüzde hesabı için)
+                BonusKazanc = oy.OturumKazanc;
+                Debug.Log($"[ScriptedBonusOyun] Bonus tamamlandı. Motor doğal RTP ile {BonusKazanc} TL ödedi (yatırım {BonusYatirim} TL).");
+
+                // 8) A5_S5 dinamik modal: gerçek yatırım/kazanç yüzdesini hesaplayıp pedagojik metin oynat.
+                // Asset'teki M_A5_S5 statik string'i kaldırıldı; modal SADECE buradan tetiklenir.
+                float yuzde = BonusYatirim > 0 ? (BonusKazanc / (float)BonusYatirim) * 100f : 0f;
+                string mesaj =
+                    $"Oyuncu tüm bakiyesi olan <b>{BonusYatirim:N0} TL</b>'yi bonus oyuna yatırdı. " +
+                    $"Geri aldığı <b>{BonusKazanc:N0} TL</b> — yatırdığının <b>%{yuzde:F1}</b>'i.\n\n" +
+                    "Bu sömürünün adı <i>'değişken oranlı pekiştireç'</i> — beyin bu kayıba rağmen " +
+                    "<i>'belki bir dahaki sefere'</i> diyerek devam etmeye programlanır.";
+                var modal = UnityEngine.Object.FindObjectOfType<ScriptedModalKopru>();
+                if (modal != null)
+                    yield return modal.ModalGoster(mesaj);
+                else
+                    Debug.LogWarning("[ScriptedBonusOyun] A5_S5 dinamik modal — ScriptedModalKopru bulunamadı.");
             }
             finally
             {

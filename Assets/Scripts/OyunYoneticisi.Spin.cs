@@ -169,6 +169,12 @@ public partial class OyunYoneticisi
     public int BotIcinBahis => _ekonomiServisi != null ? _ekonomiServisi.Bahis : 0;
 
 
+    // ÖNCE-modal mekanizması: belirli (asama, spin) kombinasyonlarında SPIN tıklamasında ÖNCE
+    // pedagojik modal açılır, kullanıcı TAMAM'a basınca asıl spin atılır. Tek seferlik flag'ler
+    // (sahne reset → yeni instance, otomatik sıfır).
+    private bool _onceModalA1S7Gosterildi = false;
+    private bool _onceModalA2S4Gosterildi = false;
+
     private void SpinButonImpl()
     {
         if (bonusAktif) return;
@@ -179,10 +185,39 @@ public partial class OyunYoneticisi
         // - ScriptedFinalEkrani (A7 cutscene; "Yeniden başla" butonuyla sahne resetlenir)
         // - ScriptedBonusTuzagiPopup (A5 Spin 4 — cazip tuzak pop-up, kullanıcı onayı bekler)
         // - ScriptedBonusOyunUygulayici (A5 Spin 4 — bonus oyun panel + animasyon)
+        // - ScriptedModalKopru (eğitmen modal — sahne reload sonrası Pre-A1 + ÖNCE modallar)
+        // - ScriptedDusunceBalonu (A5 sonu düşünce balonu)
         if (ScriptedYuklemePaneli.IsAcik) return;
         if (ScriptedFinalEkrani.IsAcik) return;
         if (ScriptedBonusTuzagiPopup.IsAcik) return;
         if (ScriptedBonusOyunUygulayici.IsAcik) return;
+
+        // ÖNCE-modal kontrolü: A1 Spin 7 (idx 6) ve A2 Spin 4 (idx 3) tıklandığında önce pedagojik
+        // modal açılır, bittiğinde SpinButon tekrar çağrılır → bu sefer flag set olduğu için asıl spin atılır.
+        var anlatici = AnlaticiSeritKopru.Ornek;
+        if (anlatici != null)
+        {
+            int asama = anlatici.AktifAsama;
+            int spinIdx = anlatici.AsamadakiSpinSayaci;
+            if (asama == 0 && spinIdx == 6 && !_onceModalA1S7Gosterildi)
+            {
+                _onceModalA1S7Gosterildi = true;
+                StartCoroutine(OnceModalGosterVeSpin(
+                    "Şimdi büyük bir kazanç gelecek. Bu kasıtlı — algoritma seni 'şanslıyım' hissine kaptırmak istiyor. " +
+                    "Kazanç sonrası ne hissedeceğine dikkat et: <b>'Ben kazanırım'</b> duygusu yerleşecek."
+                ));
+                return;
+            }
+            if (asama == 1 && spinIdx == 3 && !_onceModalA2S4Gosterildi)
+            {
+                _onceModalA2S4Gosterildi = true;
+                StartCoroutine(OnceModalGosterVeSpin(
+                    "Şu an oyuncu bahisini değiştirecek (yükseltecek). Bu bahisin ardından algoritma <b>kasıtlı olarak</b> kazanç yaşatacak. " +
+                    "Amaç: oyuncuya <i>'doğru zamanda doğru bahis'</i> duygusu vermek. Böylece oyuncu kontrolün kendinde olduğuna inanır."
+                ));
+                return;
+            }
+        }
 
         if (_ekonomiServisi.Bakiye < _ekonomiServisi.Bahis)
         {
@@ -867,5 +902,18 @@ public partial class OyunYoneticisi
         }
         if (bakiye50KteTumbleKapamaAktif && sonKayit != null && !bonusSpin && _bakiye50KUstundeTumbleKapaliKalanSpin > 0) _bakiye50KUstundeTumbleKapaliKalanSpin--;
         return sonKayit;
+    }
+
+    /// <summary>ÖNCE-modal helper: pedagojik modal'ı oynatır, modal kapanınca asıl SpinButonImpl
+    /// çağrılır → flag artık set olduğu için ÖNCE bloğu atlanır, asıl spin atılır.</summary>
+    private System.Collections.IEnumerator OnceModalGosterVeSpin(string mesaj)
+    {
+        var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
+        if (modal != null)
+            yield return modal.ModalGoster(mesaj);
+        else
+            Debug.LogWarning("[ÖNCE Modal] ScriptedModalKopru bulunamadı, modal atlanıyor.");
+        // Modal kapandı — asıl spin akışını başlat (flag set olduğu için ÖNCE bloğu atlanır)
+        SpinButonImpl();
     }
 }

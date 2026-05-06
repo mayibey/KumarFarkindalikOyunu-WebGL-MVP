@@ -46,27 +46,42 @@ namespace Senaryo.Scripted.Editor
         private const string ASSET_KLASOR = "Assets/_Project/Resources";
         private const string ASSET_YOL = ASSET_KLASOR + "/ScriptedSenaryo.asset";
 
-        // === Modal mesajları (Bölüm 4 plan tablosu) ===
-        private const string M_A1_S4 = "Oyuncu ilk kazançları yaşıyor. Beyninde dopamin salgılanıyor. Bu his, sonraki saatlerce oyun oynamanın yakıtı olacak.";
-        private const string M_A1_S7 = "Sistem büyük bir kazanç yaşatmak üzere. Geçmiş kayıpları unutturacak bir an gelecek.";
-        private const string M_A1_S8 = "İlk kazanç en tehlikeli başlangıçtır.";
+        // === Modal mesajları (Bölüm 4 plan tablosu, A1+A2 revizyon) ===
+        // A1 Spin 1: ilk kazanç sonrası — saatlerce oynamanın hatırası
+        private const string M_A1_S1 = "İlk kazanç en tehlikeli başlangıçtır. Beynin bunu unutmayacak — saatlerce oyun başında kalmanın sebebi bu kısa anın hatırasıdır.";
+        // A1 Spin 4: dopamin yakıtı (eski "sonraki" kelimesi çıkarıldı)
+        private const string M_A1_S4 = "Oyuncu ilk kazançları yaşıyor. Beyninde dopamin salgılanıyor. Bu his, saatlerce oyun oynamanın yakıtı olacak.";
+        // A1 Spin 7 ve Spin 8 SONRA modal'ları KALDIRILDI:
+        //   - Spin 7 ÖNCE modal OyunYoneticisi.Spin.cs hook'unda gösteriliyor (kasıtlı kazanç önceden uyarı).
+        //   - Spin 8 modal yok, sade akış.
 
-        private const string M_A2_S3 = "Oyuncu artık 'oyunun mantığını çözdüğünü' düşünmeye başlıyor. Aslında kazançların ne zaman geleceğini sistem belirliyor.";
-        private const string M_A2_S6 = "Kontrol yanılsaması — oyuncu kendini şanslı hissediyor, kaybetme ihtimalini küçümsüyor.";
-        private const string M_A2_S8 = "Sen oyunu yönettiğini düşünürken, oyun seni adım adım içine çekiyor.";
+        // A2 Spin 3: 3 scatter near-miss — "Az Daha Tutuyordu" yanılsaması
+        private const string M_A2_S3 = "Az önce 3 scatter düştü, bir tane daha gelseydi bonus tetiklenecekti. Bu 'Az Daha Tutuyordu' yanılsamasıdır — beynin bu kıl payı kaçırışı, kazanmış gibi algılar. Oyuncu 'çok yaklaştım' diye düşünüp daha fazla oynar.";
+        // A2 Spin 4 SONRA modal — kasıtlı kazanç sonrası kontrol yanılsaması vurgusu
+        private const string M_A2_S4 = "Sen oyunu yönettiğini düşünürken, oyun seni adım adım içine çekiyor.";
+        // A2 Spin 6: 7 üzüm + 7 elma kıl payı kaçırma — kontrol yanılsaması pekişmesi
+        private const string M_A2_S6 = "Hem üzüm hem elma 1 sembol eksikti. İkisi birden kıl payı kaçtı. Şu an 'çok yakındım, bir daha denesem' hissi yaşıyorsun. Bu his manipülasyon — algoritma bunu kasıtlı yarattı. Kontrol yanılsaması böyle pekişiyor.";
+        // A2 Spin 8 modal KALDIRILDI (sade akış, A2 sonu modal yok).
 
+        // A3 modal mesajları (revize)
         private const string M_A3_S3 = "İlk ciddi kayıplar yaşanıyor. Amaç para kazanmaktan çıktı, kayıpları telafi etmeye dönüştü.";
-        private const string M_A3_S6 = "Oyuncu kayıpları geri kazanmak için daha fazla risk alıyor. Mantıklı düşünme yetisini kaybediyor.";
-        private const string M_A3_S8 = "Bir tur daha = bir kayıp daha.";
+        // A3 Spin 6: kayıp kovalama + bahis 2500'e otomatik yükseltme uyarısı
+        private const string M_A3_S6 = "Oyuncu kayıpları geri kazanmak için daha fazla risk alıyor. Mantıklı düşünme yetisini kaybediyor.\n\n⚠️ Şimdi bahisini 2.500 TL'ye yükseltecek — <i>'daha yüksek bahis daha hızlı kurtarır'</i> yanılgısıyla. Bu da algoritmanın istediği şey.";
+        // A3 Spin 7: eski A3 Spin 8 metni buraya taşındı
+        private const string M_A3_S7 = "Bir tur daha = bir kayıp daha.";
+        // A3 Spin 8 modali KALDIRILDI
 
-        private const string M_A4_S2 = "Üst üste kayıplar oyuncuyu yıpratıyor. Sistem şimdi büyük bir vuruş hazırlıyor.";
-        private const string M_A4_S4 = "Oyuncu pes etmek üzere. Tam bu noktada büyük kazanç gelecek — bu kasıtlı bir manipülasyon.";
-        private const string M_A4_S5 = "Bir büyük kazanç tüm geçmiş kayıpları gölgeliyor. Oyuncu 'şansının döndüğüne' inanıyor. Bu büyük kazancın amacı yeni bahisleri tetiklemek.";
+        // A4 modal mesajları (revize)
+        private const string M_A4_S2 = "Üst üste kayıplar oyuncuyu yıpratıyor. Algoritma birkaç spin sonra büyük bir vuruş hazırlıyor — ama önce pes etme eşiğine kadar getirecek.";
+        private const string M_A4_S4 = "Oyuncu pes etmek üzere. Tam bu noktada büyük bir kazanç düşürülecek. Bu kasıtlı manipülasyondur — pes etmeyi engellemek için tasarlanan bir kurtarma.";
+        // A4 Spin 5 modali asset'ten kaldırıldı — AnlaticiSeritKopru.A4S5CarpanModalAkisi runtime'da çağırır.
 
+        // A5 modal mesajları (revize)
         private const string M_A5_S1 = "Bahis arttı, beklenti arttı. Adrenalin salgılanıyor.";
-        private const string M_A5_S3 = "x500 çarpan ekrana düştü ama eşleşme olmadı. Oyuncuda 'bir daha denemek' arzusu yaratıldı. Sistem fırsat sunmak üzere.";
+        // A5 Spin 3: ×500 çarpan kaçtı + sabırsızlık silahı
+        private const string M_A5_S3 = "Ekrana ×500 çarpanı düştü ama eşleşme olmadı. Bu kasıtlı bir tasarım — beynin <i>'çok yaklaştım, bir daha denesem belki tutar'</i> diye düşünüyor. Bu hisle bir sonraki bahsi atmak için sabırsızlanıyorsun. İşte tam bu sabırsızlık, algoritmanın kullandığı silahtır.";
         private const string M_A5_S4_BONUS = "🎰 ŞANSLI SAATİNDESİN! Bonus oyun aktif edildi. Bakiyenin tamamını yatır, x10000 kazanma şansını kaçırma. SINIRLI TEKLİF.";
-        private const string M_A5_S5 = "Oyuncu tüm bakiyesini bonus oyuna yatırdı. Geri aldığı miktar yatırdığının %1'i. Bu sömürünün adı 'değişken oranlı pekiştireç'.";
+        // A5 Spin 5 modali asset'ten kaldırıldı — ScriptedBonusOyunUygulayici dinamik yüzde ile runtime'da modal oynatır.
 
         // === Bahis sabitleri (Bölüm 2 + AnlaticiSeritKopru._onerilenBahisler) ===
         private const int BAHIS_A1 = 500;
@@ -214,7 +229,7 @@ namespace Senaryo.Scripted.Editor
         // ============================================================
         private static void DoldurAsama1(List<ScriptedSpinKaydi> liste)
         {
-            // Spin 1: 3 tumble {hindistan→elma→üzüm} = 1500
+            // Spin 1: 3 tumble {hindistan→elma→üzüm} = 1500 | modal A1_S1 (ilk kazanç sonrası)
             {
                 int[] all = { SYM_HINDISTAN, SYM_ELMA, SYM_UZUM };
                 int[] ilk = GridIlk(all, Seed(0, 1), (SYM_HINDISTAN, 8));
@@ -223,10 +238,10 @@ namespace Senaryo.Scripted.Editor
                 var t2 = TumbleTekDusen(g1, new[] { SYM_ELMA }, SYM_UZUM);
                 int[] g2 = GridSonrasiHesapla(g1, t2);
                 var t3 = TumbleDolguDusen(g2, new[] { SYM_UZUM }, all);
-                liste.Add(SpinTanimi(1, 0, BAHIS_A1, SpinTipi.Kazanc, 1500, ilk, null, new[] { t1, t2, t3 }));
+                liste.Add(SpinTanimi(1, 0, BAHIS_A1, SpinTipi.Kazanc, 1500, ilk, null, new[] { t1, t2, t3 }, M_A1_S1));
             }
-            // Spin 2: saf rastgele sıfır
-            liste.Add(SpinTanimi(2, 0, BAHIS_A1, SpinTipi.Sifir, 0, GridSifir(Seed(0, 2)), null, NoTumble()));
+            // Spin 2: tek cluster üzüm = 750 (revize: eski sıfır → küçük kazanç)
+            liste.Add(TekClusterSpin(2, 0, BAHIS_A1, 750, SYM_UZUM, SpinTipi.Kazanc));
             // Spin 3: 8 elma + 8 üzüm + ilk grid x2 çarpan, tek tumble = 2500
             {
                 int[] all = { SYM_ELMA, SYM_UZUM };
@@ -248,19 +263,19 @@ namespace Senaryo.Scripted.Editor
             // Spin 6: 7 üzüm near-miss
             liste.Add(SpinTanimi(6, 0, BAHIS_A1, SpinTipi.NearMiss, 0,
                 GridIlk(null, Seed(0, 6), (SYM_UZUM, 7)), null, NoTumble()));
-            // Spin 7: 8 üzüm + 8 elma + x5 çarpan (MEGA) = 6250 | modal A1_S7
+            // Spin 7: 8 üzüm + 8 elma + x5 çarpan (MEGA) = 6250 — SONRA modal YOK (ÖNCE modal SpinButonImpl hook'unda)
             {
                 int[] all = { SYM_UZUM, SYM_ELMA };
                 var (g, c) = GridIlkCarpanli(all, Seed(0, 7), 5, (SYM_UZUM, 8), (SYM_ELMA, 8));
                 var t1 = TumbleDolguDusen(g, new[] { SYM_UZUM, SYM_ELMA }, all);
-                liste.Add(SpinTanimi(7, 0, BAHIS_A1, SpinTipi.MegaWin, 6250, g, c, new[] { t1 }, M_A1_S7));
+                liste.Add(SpinTanimi(7, 0, BAHIS_A1, SpinTipi.MegaWin, 6250, g, c, new[] { t1 }));
             }
-            // Spin 8: 10 elma + 8 hindistan tek tumble = 1750 | modal A1_S8
+            // Spin 8: 10 elma + 8 hindistan tek tumble = 1750 — modal kaldırıldı (sade akış)
             {
                 int[] all = { SYM_ELMA, SYM_HINDISTAN };
                 int[] ilk = GridIlk(all, Seed(0, 8), (SYM_ELMA, 10), (SYM_HINDISTAN, 8));
                 var t1 = TumbleDolguDusen(ilk, new[] { SYM_ELMA, SYM_HINDISTAN }, all);
-                liste.Add(SpinTanimi(8, 0, BAHIS_A1, SpinTipi.Kazanc, 1750, ilk, null, new[] { t1 }, M_A1_S8));
+                liste.Add(SpinTanimi(8, 0, BAHIS_A1, SpinTipi.Kazanc, 1750, ilk, null, new[] { t1 }));
             }
         }
 
@@ -271,12 +286,23 @@ namespace Senaryo.Scripted.Editor
         {
             liste.Add(TekClusterSpin(1, 1, BAHIS_A2, 1000, SYM_ELMA, SpinTipi.Kazanc));
             liste.Add(TekClusterSpin(2, 1, BAHIS_A2, 500, SYM_HINDISTAN, SpinTipi.Kazanc));
+            // Spin 3: 3 scatter near-miss (revize: görsel scatter NearMiss, modal "Az Daha Tutuyordu") — bonus kıl payı kaçtı
             liste.Add(SpinTanimi(3, 1, BAHIS_A2, SpinTipi.NearMiss, 0,
-                GridIlk(null, Seed(1, 3), (SYM_UZUM, 7), (SYM_ELMA, 7)), null, NoTumble(), M_A2_S3));
-            liste.Add(TekClusterSpin(4, 1, BAHIS_A2, 1500, SYM_UZUM, SpinTipi.Kazanc));
-            liste.Add(SpinTanimi(5, 1, BAHIS_A2, SpinTipi.Sifir, 0, GridSifir(Seed(1, 5)), null, NoTumble()));
+                GridIlk(null, Seed(1, 3), (SYM_SCATTER, 3)), null, NoTumble(), M_A2_S3));
+            // Spin 4: tek cluster üzüm = 1500 (kasıtlı kazanç) | SONRA modal A2_S4 (kontrol yanılsaması pekişmesi)
+            liste.Add(TekClusterSpin(4, 1, BAHIS_A2, 1500, SYM_UZUM, SpinTipi.Kazanc, M_A2_S4));
+            // Spin 5: 2 tumble hindistan→muz = 750 (revize: eski sıfır → tatlı minik kazanç)
+            {
+                int[] all = { SYM_HINDISTAN, SYM_MUZ };
+                int[] ilk = GridIlk(all, Seed(1, 5), (SYM_HINDISTAN, 8));
+                var t1 = TumbleTekDusen(ilk, new[] { SYM_HINDISTAN }, SYM_MUZ);
+                int[] g1 = GridSonrasiHesapla(ilk, t1);
+                var t2 = TumbleDolguDusen(g1, new[] { SYM_MUZ }, all);
+                liste.Add(SpinTanimi(5, 1, BAHIS_A2, SpinTipi.Kazanc, 750, ilk, null, new[] { t1, t2 }));
+            }
+            // Spin 6: 7 üzüm + 7 elma near-miss (revize: görsel takas, modal "kıl payı kaçtı" pekişme)
             liste.Add(SpinTanimi(6, 1, BAHIS_A2, SpinTipi.NearMiss, 0,
-                GridIlk(null, Seed(1, 6), (SYM_SCATTER, 3)), null, NoTumble(), M_A2_S6));
+                GridIlk(null, Seed(1, 6), (SYM_UZUM, 7), (SYM_ELMA, 7)), null, NoTumble(), M_A2_S6));
             // Spin 7: 2 tumble (elma → hindistan); paytable hesabı 1500 (plana sadık değil — A2 Spin 7 plan brüt 750 typo)
             {
                 int[] all = { SYM_ELMA, SYM_HINDISTAN };
@@ -286,7 +312,8 @@ namespace Senaryo.Scripted.Editor
                 var t2 = TumbleDolguDusen(g1, new[] { SYM_HINDISTAN }, all);
                 liste.Add(SpinTanimi(7, 1, BAHIS_A2, SpinTipi.Kazanc, 750, ilk, null, new[] { t1, t2 }));
             }
-            liste.Add(SpinTanimi(8, 1, BAHIS_A2, SpinTipi.Sifir, 0, GridSifir(Seed(1, 8)), null, NoTumble(), M_A2_S8));
+            // Spin 8: sıfır cluster, modal kaldırıldı (sade akış)
+            liste.Add(SpinTanimi(8, 1, BAHIS_A2, SpinTipi.Sifir, 0, GridSifir(Seed(1, 8)), null, NoTumble()));
         }
 
         // ============================================================
@@ -304,9 +331,13 @@ namespace Senaryo.Scripted.Editor
             liste.Add(TekClusterSpin(5, 2, BAHIS_A3, 750, SYM_HINDISTAN, SpinTipi.BahisIadesi));
             liste.Add(SpinTanimi(6, 2, BAHIS_A3, SpinTipi.NearMiss, 0,
                 GridIlk(null, Seed(2, 6), (SYM_SCATTER, 3)), null, NoTumble(), M_A3_S6));
-            liste.Add(SpinTanimi(7, 2, BAHIS_A3, SpinTipi.Sifir, 0, GridSifir(Seed(2, 7)), null, NoTumble()));
+            // Spin 7: bahis A3 Spin 6 sonu otomatik 2500'e yükseltildi → bu spin 2500 TL ile oynanır
+            // (AnlaticiSeritKopru runtime'da AnlaticiSetBahis(2500) çağırıyor; asset bahis sabiti A3=1500 kayıt
+            // amaçlı kalır, motor anlatici bahisini kullanır).
+            liste.Add(SpinTanimi(7, 2, BAHIS_A3, SpinTipi.Sifir, 0, GridSifir(Seed(2, 7)), null, NoTumble(), M_A3_S7));
+            // Spin 8: NearMiss, modal kaldırıldı (sade akış)
             liste.Add(SpinTanimi(8, 2, BAHIS_A3, SpinTipi.NearMiss, 0,
-                GridIlk(null, Seed(2, 8), (SYM_UZUM, 7), (SYM_ELMA, 7), (SYM_SCATTER, 3)), null, NoTumble(), M_A3_S8));
+                GridIlk(null, Seed(2, 8), (SYM_UZUM, 7), (SYM_ELMA, 7), (SYM_SCATTER, 3)), null, NoTumble()));
         }
 
         // ============================================================
@@ -320,12 +351,13 @@ namespace Senaryo.Scripted.Editor
             liste.Add(SpinTanimi(3, 3, BAHIS_A4, SpinTipi.NearMiss, 0,
                 GridIlk(null, Seed(3, 3), (SYM_UZUM, 7), (SYM_ELMA, 7)), null, NoTumble()));
             liste.Add(SpinTanimi(4, 3, BAHIS_A4, SpinTipi.Sifir, 0, GridSifir(Seed(3, 4)), null, NoTumble(), M_A4_S4));
-            // Spin 5: 8 ARMUT + ilk grid x100 çarpan (MEGA WIN) = 20000 | modal A4_S5
+            // Spin 5: 8 ARMUT + ilk grid x100 çarpan (MEGA WIN) = 20000 — modal asset'ten kaldırıldı,
+            // AnlaticiSeritKopru.A4S5CarpanModalAkisi spin sonu 2 sn pause + dinamik modal oynatır.
             {
                 int[] all = { SYM_ARMUT };
                 var (g, c) = GridIlkCarpanli(all, Seed(3, 5), 100, (SYM_ARMUT, 8));
                 var t1 = TumbleDolguDusen(g, new[] { SYM_ARMUT }, all);
-                liste.Add(SpinTanimi(5, 3, BAHIS_A4, SpinTipi.MegaWin, 20000, g, c, new[] { t1 }, M_A4_S5));
+                liste.Add(SpinTanimi(5, 3, BAHIS_A4, SpinTipi.MegaWin, 20000, g, c, new[] { t1 }));
             }
         }
 
@@ -357,8 +389,10 @@ namespace Senaryo.Scripted.Editor
                 spin4.bonusGetirisi = 0; // Yatırılanın tamamı kaybolur — pedagojik vuruş.
                 liste.Add(spin4);
             }
-            // Spin 5: bonus oyun cüzi ödeme = 800 (Aşama 5 bonus uygulayıcı tüketir) | modal A5_S5
-            liste.Add(SpinTanimi(5, 4, BAHIS_A5, SpinTipi.Kazanc, 800, GridSifir(Seed(4, 5)), null, NoTumble(), M_A5_S5));
+            // Spin 5: bonus oyun cüzi ödeme = 800 (Aşama 5 bonus uygulayıcı tüketir).
+            // Asset modali kaldırıldı — A5_S5 dinamik modal ScriptedBonusOyunUygulayici.BonusOyunuOynat
+            // sonu yatırım/kazanç yüzdesini hesaplayıp gerçek metni oynatır.
+            liste.Add(SpinTanimi(5, 4, BAHIS_A5, SpinTipi.Kazanc, 800, GridSifir(Seed(4, 5)), null, NoTumble()));
         }
 
         // ============================================================

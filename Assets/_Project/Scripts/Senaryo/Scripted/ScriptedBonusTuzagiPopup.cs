@@ -113,7 +113,9 @@ namespace Senaryo.Scripted
                     int eski = oy.BahisPanelMevcutBakiye();
                     int yeni = Mathf.Max(0, eski - bakiye);
                     oy.AnlaticiBakiyeyiSifirla(yeni);
-                    Debug.Log($"[ScriptedBonusTuzagiPopup] Onay → bakiye {eski} → {yeni} (yatırım {bakiye} TL).");
+                    // A5_S5 dinamik modal + final ekran için: bakiyenin tamamı bonus oyuna yatırıldı.
+                    ScriptedBonusOyunUygulayici.BonusYatirim = bakiye;
+                    Debug.Log($"[ScriptedBonusTuzagiPopup] Onay → bakiye {eski} → {yeni} (yatırım {bakiye} TL kaydedildi).");
                 }
             }
             catch (System.Exception e)

@@ -302,9 +302,11 @@ namespace Senaryo.Scripted
             balonGo.transform.SetParent(_root.transform, false);
             _balonRt = balonGo.GetComponent<RectTransform>();
             _balonRt.anchorMin = _balonRt.anchorMax = _balonRt.pivot = new Vector2(0f, 0f);
-            _balonRt.sizeDelta = new Vector2(680f, 170f);
+            // Balon yüksekliği 170→420: pre-A1 ve uzun pedagojik metinler taşmasın.
+            // Mesaj alanı + başlık + TAMAM butonu hepsi sığsın.
+            _balonRt.sizeDelta = new Vector2(680f, 420f);
             _balonAcikPos = new Vector2(280f, 90f);   // karakter sağ tarafında
-            _balonKapaliPos = new Vector2(280f, -200f);
+            _balonKapaliPos = new Vector2(280f, -460f); // ekran altında gizli (yükseklik artışına uyum)
             _balonRt.anchoredPosition = _balonKapaliPos;
             var balonImg = balonGo.GetComponent<Image>();
             balonImg.color = new Color(0.10f, 0.16f, 0.23f, 0.95f); // dark navy

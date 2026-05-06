@@ -27,6 +27,22 @@ public class AnlaticiSeritKopru : MonoBehaviour
     private bool _yuklemePaneliAcildiBuOturum = false;
     /// <summary>A6 sonu döngü modal'ı bir kez tetiklendi mi (modal sonu Tukenis çağrılır).</summary>
     private bool _donguModalGosterildi = false;
+    /// <summary>Pre-A1 karşılama modal'ı bir kez gösterildi mi (sahne girişinde).</summary>
+    private bool _preA1ModalGosterildi = false;
+    /// <summary>A1 → A2 geçiş modal'ı bir kez gösterildi mi.</summary>
+    private bool _a2GecisModalGosterildi = false;
+    /// <summary>A2 → A3 geçiş modal'ı bir kez gösterildi mi.</summary>
+    private bool _a3GecisModalGosterildi = false;
+    /// <summary>A3 → A4 geçiş modal'ı bir kez gösterildi mi.</summary>
+    private bool _a4GecisModalGosterildi = false;
+    /// <summary>A4 → A5 geçiş modal'ı bir kez gösterildi mi.</summary>
+    private bool _a5GecisModalGosterildi = false;
+    /// <summary>A3 Spin 6 sonu bahis 2500'e bir kez yükseltildi mi.</summary>
+    private bool _a3BahisYukseltildi = false;
+    /// <summary>A4 Spin 5 ×100 çarpan modal'ı bir kez gösterildi mi.</summary>
+    private bool _a4S5CarpanModalGosterildi = false;
+    /// <summary>OyunYoneticisi.Spin.cs ÖNCE modal kontrolü için: aktif spin index'i (0-indexed).</summary>
+    public int AktifSpin => _aktifSpin;
     private long _baslangicBakiye = 0;
     private int _sonUygulananAsama = -1; // YENI: aşama değişimi tespiti için
     private long _sonBakiye = 50000; // bir önceki spin sonu bakiye — spin başına net delta için
@@ -137,7 +153,16 @@ public class AnlaticiSeritKopru : MonoBehaviour
         _sonUygulananAsama = -1;
         _yuklemePaneliAcildiBuOturum = false;
         _donguModalGosterildi = false;
+        _preA1ModalGosterildi = false;
+        _a2GecisModalGosterildi = false;
+        _a3GecisModalGosterildi = false;
+        _a4GecisModalGosterildi = false;
+        _a5GecisModalGosterildi = false;
+        _a3BahisYukseltildi = false;
+        _a4S5CarpanModalGosterildi = false;
         Senaryo.Scripted.ScriptedYuklemePaneli.BorcAlindiSifirla();
+        Senaryo.Scripted.ScriptedBonusOyunUygulayici.BonusYatirim = 0;
+        Senaryo.Scripted.ScriptedBonusOyunUygulayici.BonusKazanc = 0;
 
         // Bakiye 50.000 TL'ye reset
         _oy.AnlaticiBakiyeyiSifirla(BASLANGIC_BAKIYE);
@@ -146,6 +171,13 @@ public class AnlaticiSeritKopru : MonoBehaviour
         _asamaSpinNet.Clear();
 
         AsamayiUygula(0);
+
+        // Pre-A1 karşılama modal — sahne girişinde otomatik (tek seferlik flag)
+        if (!_preA1ModalGosterildi)
+        {
+            _preA1ModalGosterildi = true;
+            StartCoroutine(PreA1KarsilamaAkisi());
+        }
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         AnlaticiPaneliAc("StreamingAssets/anlatici.html");
@@ -190,6 +222,35 @@ public class AnlaticiSeritKopru : MonoBehaviour
                 _aktifSpin = 0;
                 _asamaSpinNet.Clear(); // yeni aşama, çubuklar sıfırlansın
                 AsamayiUygula(_aktifAsama);
+
+                // A1 → A2 geçişi: pedagojik modal "Birinci aşama tamamlandı, kontrol yanılsaması başlıyor"
+                if (_aktifAsama == 1 && !_a2GecisModalGosterildi)
+                {
+                    _a2GecisModalGosterildi = true;
+                    Debug.Log("[Anlatici] A1→A2 geçişi — A2GecisAkisi tetikleniyor.");
+                    StartCoroutine(A2GecisAkisi());
+                }
+                // A2 → A3 geçişi: kayıp kovalama tuzağı uyarısı
+                if (_aktifAsama == 2 && !_a3GecisModalGosterildi)
+                {
+                    _a3GecisModalGosterildi = true;
+                    Debug.Log("[Anlatici] A2→A3 geçişi — A3GecisAkisi tetikleniyor.");
+                    StartCoroutine(A3GecisAkisi());
+                }
+                // A3 → A4 geçişi: pes etme eşiği + manipülasyon vuruşu uyarısı
+                if (_aktifAsama == 3 && !_a4GecisModalGosterildi)
+                {
+                    _a4GecisModalGosterildi = true;
+                    Debug.Log("[Anlatici] A3→A4 geçişi — A4GecisAkisi tetikleniyor.");
+                    StartCoroutine(A4GecisAkisi());
+                }
+                // A4 → A5 geçişi: bonus tuzağı uyarısı
+                if (_aktifAsama == 4 && !_a5GecisModalGosterildi)
+                {
+                    _a5GecisModalGosterildi = true;
+                    Debug.Log("[Anlatici] A4→A5 geçişi — A5GecisAkisi tetikleniyor.");
+                    StartCoroutine(A5GecisAkisi());
+                }
 
                 // A5 → A6 geçişi (hedefSpin tamamlandı yolu): eğitmen "para arayışı" modal +
                 // ScriptedYuklemePaneli akışını başlat. Bakiye yolu ile aynı pedagojik geçişi paylaşır.
@@ -272,6 +333,23 @@ public class AnlaticiSeritKopru : MonoBehaviour
                     return;
                 }
             }
+        }
+
+        // SPIN-NO ÖZEL HOOK'lar (asama içinde belirli spin sonrası tetiklenen aksiyonlar):
+        //   - A3 Spin 6 sonu: bahis otomatik 2500'e yükselt (kayıp kovalama tuzağı pekişir).
+        //   - A4 Spin 5 sonu: ×100 çarpan modali (manipülasyon vuruşu pedagojik vurgu).
+        if (_aktifAsama == 2 && _aktifSpin == 6 && !_a3BahisYukseltildi)
+        {
+            _a3BahisYukseltildi = true;
+            Debug.Log("[Anlatici] A3 Spin 6 sonu — bahis 2500'e otomatik yükseltildi.");
+            try { _oy?.AnlaticiSetBahis(2500); }
+            catch (System.Exception e) { Debug.LogWarning("[Anlatici] A3 bahis yükseltme hata: " + e.Message); }
+        }
+        if (_aktifAsama == 3 && _aktifSpin == 5 && !_a4S5CarpanModalGosterildi)
+        {
+            _a4S5CarpanModalGosterildi = true;
+            Debug.Log("[Anlatici] A4 Spin 5 sonu — ×100 çarpan modali tetikleniyor.");
+            StartCoroutine(A4S5CarpanModalAkisi());
         }
 
         Guncelle();
@@ -436,6 +514,87 @@ public class AnlaticiSeritKopru : MonoBehaviour
     // ──────────────────────────────────────────────────────────────────
     //  PEDAGOJİK GEÇİŞ COROUTINE'LARI — eğitmen modalı + sonraki adım
     // ──────────────────────────────────────────────────────────────────
+
+    /// <summary>Sahne girişinde otomatik: oyuncuyu simülasyona hazırlayan karşılama modalı.</summary>
+    private System.Collections.IEnumerator PreA1KarsilamaAkisi()
+    {
+        // ScriptedModalKopru'nun spawn olmasını bekle (RuntimeInitializeOnLoadMethod ardından bir frame)
+        yield return null;
+        var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
+        if (modal == null)
+        {
+            Debug.LogWarning("[Anlatici] PreA1 — ScriptedModalKopru bulunamadı, karşılama atlanıyor.");
+            yield break;
+        }
+        string mesaj =
+            "Hoş geldin. Bu simülasyonda online kumar oyunlarının insanları nasıl etkilediğini birlikte göreceğiz.\n\n" +
+            "Şu an karşında popüler bir slot oyunu var. Sen bahis koyacaksın, meyveler dönecek, bazen kazanacak bazen kaybedeceksin.\n\n" +
+            "Ama bu oyunun her adımı önceden tasarlandı. Algoritmanın oyuncuyu nasıl bağladığını, nasıl daha fazla bahse ittiğini ve sonunda nasıl tükettiğini birlikte yaşayacağız.\n\n" +
+            "Hadi başlayalım.";
+        yield return modal.ModalGoster(mesaj);
+    }
+
+    /// <summary>A1 son spini sonrası A2'ye geçiş anında: kontrol yanılsamasının başladığını anlatan modal.</summary>
+    private System.Collections.IEnumerator A2GecisAkisi()
+    {
+        var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
+        if (modal == null) yield break;
+        string mesaj =
+            "Birinci aşama tamamlandı. Şu an artıdasın, kendini iyi hissediyorsun.\n\n" +
+            "Sırada 'Kontrol Bende Hissi' aşaması var. Bu aşamada algoritma sana üst üste kayıplar yaşatacak. Ama yine de hâlâ bakiyen pozitif olduğu için <i>'kontrol bende, ben isteyince çıkabilirim, bahis değişiklikleriyle kazanırım'</i> düşüneceksin.\n\n" +
+            "İşte bu yanılsamayı birlikte göreceğiz.";
+        yield return modal.ModalGoster(mesaj);
+    }
+
+    /// <summary>A2 son spini sonrası A3'e geçiş: kayıp kovalama tuzağı uyarısı.</summary>
+    private System.Collections.IEnumerator A3GecisAkisi()
+    {
+        var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
+        if (modal == null) yield break;
+        string mesaj =
+            "İkinci aşama tamamlandı. Şu an küçük kayıplar yaşadın ama hâlâ artıdasın. <i>'Kontrol bende'</i> hissin yerleşti.\n\n" +
+            "Sırada <b>'Geri Kazanabilirim'</b> aşaması var. Bu aşamada algoritma kayıpları katlayacak. Sen <i>'azıcık daha bahis koyarsam telafi ederim'</i> düşüneceksin. Bu <b>'Kayıp Kovalama'</b> denilen psikolojik tuzak — bir kez bu tuzağa girilirse çıkmak çok zor.\n\n" +
+            "Birlikte göreceğiz.";
+        yield return modal.ModalGoster(mesaj);
+    }
+
+    /// <summary>A3 son spini sonrası A4'e geçiş: pes etme eşiği + manipülasyon vuruşu uyarısı.</summary>
+    private System.Collections.IEnumerator A4GecisAkisi()
+    {
+        var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
+        if (modal == null) yield break;
+        string mesaj =
+            "Üçüncü aşamayı gördün — kayıp kovalama tuzağı. Oyuncu bahsi yükselterek kurtulmaya çalıştı, daha çok kaybetti.\n\n" +
+            "Sırada <b>'Şansım Döndü'</b> aşaması var. Bu aşamada algoritma oyuncuyu pes etme eşiğine getirecek — üst üste sert kayıplar. Tam pes etmek üzereyken büyük bir kazanç düşürecek. Bu büyük kazanç tesadüf değil, <b>kasıtlı bir manipülasyon vuruşu</b> olacak.\n\n" +
+            "Amaç: oyuncuyu tekrar oyuna bağlamak.";
+        yield return modal.ModalGoster(mesaj);
+    }
+
+    /// <summary>A4 son spini sonrası A5'e geçiş: bonus tuzağı uyarısı.</summary>
+    private System.Collections.IEnumerator A5GecisAkisi()
+    {
+        var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
+        if (modal == null) yield break;
+        string mesaj =
+            "Büyük kazancı yaşadın. Şu an <i>'şansım döndü, daha kazanırım'</i> hissindesin. İşte tam bu duygu, sıradaki aşamanın yakıtıdır.\n\n" +
+            "Sırada <b>'Sonunu Düşünen Kahraman Olamaz'</b> aşaması var. Bu aşamada algoritma sana cazip bir <b>'bonus oyun tuzağı'</b> kuracak — tüm bakiyeni yatırma karşılığında büyük kazanç vaat edilecek. Yatırırsan, çok azını geri alacaksın.\n\n" +
+            "Bu, sömürünün doruk noktasıdır. Birlikte göreceğiz.";
+        yield return modal.ModalGoster(mesaj);
+    }
+
+    /// <summary>A4 Spin 5 sonu ×100 çarpan: manipülasyon vuruşunun pedagojik açıklaması.</summary>
+    private System.Collections.IEnumerator A4S5CarpanModalAkisi()
+    {
+        // Kullanıcı çarpanı + büyük kazancı görsün, tumble + ödeme animasyonları otursun
+        yield return new WaitForSeconds(2.0f);
+        var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
+        if (modal == null) yield break;
+        string mesaj =
+            "⚡ Ekrana ×100 çarpan düştü! Az önce pes etmek üzereydin, şimdi büyük kazanç. " +
+            "Bu rastlantı değil — algoritma seni tam bu duygusal anda yakaladı. <i>'Şansım döndü'</i> diyeceksin. " +
+            "Aslında manipülasyon başarılı oldu.";
+        yield return modal.ModalGoster(mesaj);
+    }
 
     /// <summary>
     /// A5 sonu bakiye yetersiz → eğitmen "para arayışı" modalı çalar; modal kapanınca
