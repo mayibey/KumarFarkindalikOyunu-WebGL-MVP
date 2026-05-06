@@ -30,7 +30,8 @@ namespace Senaryo.Scripted
         private CanvasGroup _balonCanvasGroup;
         private TextMeshProUGUI _mesajText;
         private TextMeshProUGUI _baslikText;
-        private TextMeshProUGUI _devamIkonText;
+        // TAMAM butonunun fade-in alpha kontrolü (Image+Button GameObject'in CanvasGroup'u).
+        private CanvasGroup _tamamCanvasGroup;
         private Button _balonButton;
 
         // === Animasyon parametreleri ===
@@ -113,9 +114,11 @@ namespace Senaryo.Scripted
             _yazmaTamamlandi = false;
             _kullaniciDevamEtti = false;
             _mesajText.text = "";
-            if (_devamIkonText != null)
+            if (_tamamCanvasGroup != null)
             {
-                var c = _devamIkonText.color; c.a = 0f; _devamIkonText.color = c;
+                _tamamCanvasGroup.alpha = 0f;
+                _tamamCanvasGroup.interactable = false;
+                _tamamCanvasGroup.blocksRaycasts = false;
             }
 
             _root.SetActive(true);
@@ -212,17 +215,19 @@ namespace Senaryo.Scripted
 
         private IEnumerator DevamIkonuFadeIn()
         {
-            if (_devamIkonText == null) yield break;
+            if (_tamamCanvasGroup == null) yield break;
             float t = 0f;
-            Color c = _devamIkonText.color; c.a = 0f; _devamIkonText.color = c;
+            _tamamCanvasGroup.alpha = 0f;
             while (t < DEVAM_FADE_SURE)
             {
                 t += Time.unscaledDeltaTime;
                 float u = Mathf.Clamp01(t / DEVAM_FADE_SURE);
-                c.a = u; _devamIkonText.color = c;
+                _tamamCanvasGroup.alpha = u;
                 yield return null;
             }
-            c.a = 1f; _devamIkonText.color = c;
+            _tamamCanvasGroup.alpha = 1f;
+            _tamamCanvasGroup.interactable = true;
+            _tamamCanvasGroup.blocksRaycasts = true;
         }
 
         // ──────────────────────────────────────────────────────────────────────
@@ -265,13 +270,13 @@ namespace Senaryo.Scripted
             karakterGo.transform.SetParent(_root.transform, false);
             _karakterRt = karakterGo.GetComponent<RectTransform>();
             _karakterRt.anchorMin = _karakterRt.anchorMax = _karakterRt.pivot = new Vector2(0f, 0f);
-            _karakterRt.sizeDelta = new Vector2(180f, 230f);
+            _karakterRt.sizeDelta = new Vector2(220f, 280f);
             // Açık pozisyon: sol-alt köşede 60 px boşlukla
             _karakterAcikPos = new Vector2(80f, 60f);
             _karakterKapaliPos = new Vector2(80f, -260f); // ekran altında gizli
             _karakterRt.anchoredPosition = _karakterKapaliPos;
             var karakterImg = karakterGo.GetComponent<Image>();
-            karakterImg.sprite = JandarmaSiluetiUret();
+            karakterImg.sprite = EgitmenGorseliniAl();
             karakterImg.preserveAspect = true;
             karakterImg.raycastTarget = true; // tıklama silüete de düşsün
 
@@ -313,7 +318,7 @@ namespace Senaryo.Scripted
             okImg.color = new Color(0.10f, 0.16f, 0.23f, 0.95f);
             okImg.raycastTarget = false;
 
-            // Başlık: "EĞİTMEN"
+            // Başlık: "BİLGİLENDİRİCİ ASİSTAN"
             var basGo = new GameObject("Baslik",
                 typeof(RectTransform), typeof(CanvasRenderer));
             basGo.transform.SetParent(balonGo.transform, false);
@@ -328,7 +333,7 @@ namespace Senaryo.Scripted
             _baslikText.fontSize = 18f;
             _baslikText.fontStyle = FontStyles.Bold;
             _baslikText.color = new Color(0.83f, 0.69f, 0.22f, 1f); // altın
-            _baslikText.text = "EĞİTMEN";
+            _baslikText.text = "BİLGİLENDİRİCİ ASİSTAN";
             _baslikText.raycastTarget = false;
 
             // Mesaj text (typewriter target)
@@ -349,22 +354,45 @@ namespace Senaryo.Scripted
             _mesajText.text = "";
             _mesajText.raycastTarget = false;
 
-            // Devam ikonu [→] — sadece TMP, alpha animasyonu typewriter bittikten sonra fade-in
-            var ikonGo = new GameObject("DevamIkon",
-                typeof(RectTransform), typeof(CanvasRenderer));
-            ikonGo.transform.SetParent(balonGo.transform, false);
-            var ikonRt = ikonGo.GetComponent<RectTransform>();
-            ikonRt.anchorMin = ikonRt.anchorMax = new Vector2(1f, 0f);
-            ikonRt.pivot = new Vector2(1f, 0f);
-            ikonRt.sizeDelta = new Vector2(40f, 40f);
-            ikonRt.anchoredPosition = new Vector2(-12f, 12f);
-            _devamIkonText = ikonGo.AddComponent<TextMeshProUGUI>();
-            _devamIkonText.alignment = TextAlignmentOptions.Center;
-            _devamIkonText.fontSize = 28f;
-            _devamIkonText.fontStyle = FontStyles.Bold;
-            _devamIkonText.color = new Color(0.83f, 0.69f, 0.22f, 0f); // başta görünmez (alpha=0)
-            _devamIkonText.text = "→";
-            _devamIkonText.raycastTarget = false;
+            // TAMAM butonu — sağ alt köşe; typewriter sonu fade-in olur, click → modal kapanır.
+            // Image + Button + CanvasGroup; CanvasGroup ile alpha + interactable kontrolü.
+            var tamamGo = new GameObject("TamamButon",
+                typeof(RectTransform), typeof(CanvasRenderer), typeof(Image),
+                typeof(Button), typeof(CanvasGroup));
+            tamamGo.transform.SetParent(balonGo.transform, false);
+            var tamamRt = tamamGo.GetComponent<RectTransform>();
+            tamamRt.anchorMin = tamamRt.anchorMax = new Vector2(1f, 0f);
+            tamamRt.pivot = new Vector2(1f, 0f);
+            tamamRt.sizeDelta = new Vector2(100f, 40f);
+            tamamRt.anchoredPosition = new Vector2(-12f, 12f);
+            var tamamImg = tamamGo.GetComponent<Image>();
+            tamamImg.color = new Color(0.12f, 0.12f, 0.12f, 0.75f); // koyu yarı saydam
+            // 1.5px sarı border (#FAC775)
+            BorderEkle(tamamGo.transform, tamamRt.sizeDelta, 1.5f, new Color(0.98f, 0.78f, 0.46f, 1f));
+            var tamamBtn = tamamGo.GetComponent<Button>();
+            tamamBtn.transition = Selectable.Transition.None;
+            tamamBtn.onClick.AddListener(OnBalonTiklandi);
+            _tamamCanvasGroup = tamamGo.GetComponent<CanvasGroup>();
+            _tamamCanvasGroup.alpha = 0f;
+            _tamamCanvasGroup.interactable = false;
+            _tamamCanvasGroup.blocksRaycasts = false;
+
+            // "TAMAM" yazısı
+            var ttxtGo = new GameObject("TamamTxt", typeof(RectTransform), typeof(CanvasRenderer));
+            ttxtGo.transform.SetParent(tamamGo.transform, false);
+            var ttxtRt = ttxtGo.GetComponent<RectTransform>();
+            ttxtRt.anchorMin = Vector2.zero; ttxtRt.anchorMax = Vector2.one;
+            ttxtRt.offsetMin = ttxtRt.offsetMax = Vector2.zero;
+            var ttxt = ttxtGo.AddComponent<TextMeshProUGUI>();
+            ttxt.alignment = TextAlignmentOptions.Center;
+            ttxt.fontSize = 18f;
+            ttxt.fontStyle = FontStyles.Bold;
+            ttxt.color = Color.white;
+            ttxt.text = "TAMAM";
+            ttxt.raycastTarget = false;
+
+            // Karakter görseli render order: en sona al ki balon/mesaj kutusu üstüne çıkmasın.
+            karakterGo.transform.SetAsLastSibling();
         }
 
         // ──────────────────────────────────────────────────────────────────────
@@ -396,10 +424,31 @@ namespace Senaryo.Scripted
         }
 
         // ──────────────────────────────────────────────────────────────────────
-        // Procedural karakter silüeti — Texture2D + Sprite (Vector Graphics paketi gerekmez)
+        // Karakter görseli — Resources/egitmenyuz.png (kullanıcı PNG'si) veya procedural fallback
         // ──────────────────────────────────────────────────────────────────────
 
         private static Sprite _cachedSprite;
+
+        /// <summary>
+        /// Eğitmen karakter sprite kaynağını döndürür. Önce Resources/egitmenyuz.png yüklenir
+        /// (kullanıcının görseli, Sprite olarak import edilmiş olmalı); bulunmazsa procedural
+        /// jandarma silueti fallback olarak kullanılır.
+        /// </summary>
+        private static Sprite EgitmenGorseliniAl()
+        {
+            if (_cachedSprite != null) return _cachedSprite;
+
+            var sprite = Resources.Load<Sprite>("egitmenyuz");
+            if (sprite != null)
+            {
+                Debug.Log("[ScriptedModalKopru] Resources/egitmenyuz.png yüklendi.");
+                _cachedSprite = sprite;
+                return sprite;
+            }
+
+            Debug.LogWarning("[ScriptedModalKopru] Resources/egitmenyuz.png bulunamadı (Sprite import edilmemiş olabilir) — procedural eğitmen silueti kullanılıyor.");
+            return JandarmaSiluetiUret();
+        }
 
         private static Sprite JandarmaSiluetiUret()
         {

@@ -92,12 +92,18 @@ namespace Senaryo.Scripted
         public void GosterFinalEkrani()
         {
             if (_root == null) return;
-            // İstatistikler runtime'da hesaplanır
+            // İstatistikler runtime'da hesaplanır.
             var oy = UnityEngine.Object.FindObjectOfType<OyunYoneticisi>();
             int sonBakiye = oy != null ? oy.BahisPanelMevcutBakiye() : 0;
-            int toplamYatirim = BASLANGIC_BAKIYE + BORC_MIKTARI; // 100.000 (plana sadık)
+            // GERÇEK yatırım: borç alındıysa 100K, alınmadıysa 50K. ScriptedYuklemePaneli.BorcAlindi flag'i
+            // butona fiilen tıklandığında set edilir.
+            int toplamYatirim = BASLANGIC_BAKIYE;
+            if (Senaryo.Scripted.ScriptedYuklemePaneli.BorcAlindi)
+                toplamYatirim += BORC_MIKTARI;
             int toplamKayip = toplamYatirim - sonBakiye;
-            int toplamSpin = SenaryoYoneticisi.I != null ? SenaryoYoneticisi.I.toplamSpin : 0;
+            // SenaryoYoneticisi anlatici sahnesinde devre dışı (Asama7_Finale forced) → toplamSpin 0 dönüyordu.
+            // Doğru kaynak AnlaticiSeritKopru.ToplamSpin (her SpinTamamlandi'da artırılır).
+            int toplamSpin = AnlaticiSeritKopru.Ornek != null ? AnlaticiSeritKopru.Ornek.ToplamSpin : 0;
 
             if (_istatistikText != null)
             {
@@ -116,6 +122,8 @@ namespace Senaryo.Scripted
         {
             Debug.Log("[ScriptedFinalEkrani] Yeniden başla — sahne reset.");
             IsAcik = false;
+            // Static flag'leri sıfırla (sahne reload yeni instance yaratır ama static state taşır).
+            ScriptedYuklemePaneli.BorcAlindiSifirla();
             // Sahne yeniden yüklenince ScriptedSpinYoneticisi/_yuklemePaneliGosterildi/_gosterildi resetlenir
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }

@@ -24,6 +24,11 @@ namespace Senaryo.Scripted
         public static ScriptedYuklemePaneli Ornek { get; private set; }
         /// <summary>Panel açıkken true; SpinButonImpl bunu kontrol edip spin atımını bloke eder.</summary>
         public static bool IsAcik { get; private set; }
+        /// <summary>BORÇ AL butonuna fiilen tıklandı mı (A7 final ekranı gerçek yatırım hesabı için).</summary>
+        public static bool BorcAlindi { get; private set; }
+
+        /// <summary>Sahne reset (Yeniden Başla) sırasında çağrılır — borç alındı flag'ini sıfırlar.</summary>
+        public static void BorcAlindiSifirla() => BorcAlindi = false;
 
         private GameObject _root;
         private Button _borcAlButton;
@@ -42,21 +47,34 @@ namespace Senaryo.Scripted
         [Preserve]
         private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            if (scene.buildIndex != ANLATICI_SAHNE_BUILD_INDEX) return;
-            if (Ornek != null) return;
+            Debug.Log($"[YuklemePaneliTANI] OnSceneLoaded — idx={scene.buildIndex}, ad={scene.name}, beklenen={ANLATICI_SAHNE_BUILD_INDEX}");
+            if (scene.buildIndex != ANLATICI_SAHNE_BUILD_INDEX)
+            {
+                Debug.Log($"[YuklemePaneliTANI] Sahne uyumsuz, return.");
+                return;
+            }
+            if (Ornek != null)
+            {
+                Debug.Log("[YuklemePaneliTANI] Ornek zaten var, return.");
+                return;
+            }
+            Debug.Log("[YuklemePaneliTANI] Sahne eşleşti, GameObject yaratılıyor + AddComponent...");
             var go = new GameObject(nameof(ScriptedYuklemePaneli));
             go.AddComponent<ScriptedYuklemePaneli>();
         }
 
         private void Awake()
         {
+            Debug.Log($"[YuklemePaneliTANI] Awake() ÇAĞRILDI — sahne idx={SceneManager.GetActiveScene().buildIndex}, beklenen={ANLATICI_SAHNE_BUILD_INDEX}");
             if (SceneManager.GetActiveScene().buildIndex != ANLATICI_SAHNE_BUILD_INDEX)
             {
+                Debug.Log("[YuklemePaneliTANI] Awake — sahne uyumsuz, SetActive(false).");
                 gameObject.SetActive(false);
                 return;
             }
-            if (Ornek != null && Ornek != this) { Destroy(gameObject); return; }
+            if (Ornek != null && Ornek != this) { Debug.Log("[YuklemePaneliTANI] Awake — Ornek başkası, Destroy."); Destroy(gameObject); return; }
             Ornek = this;
+            Debug.Log("[YuklemePaneliTANI] Awake — Ornek atandı, UI yaratılacak.");
 
             // EventSystem güvencesi (idempotent; ScriptedModalKopru daha önce yaratmış olabilir).
             if (UnityEngine.Object.FindObjectOfType<UnityEngine.EventSystems.EventSystem>() == null)
@@ -80,9 +98,15 @@ namespace Senaryo.Scripted
         /// <summary>Paneli açar (fire-and-forget). SpinButonImpl IsAcik kontrolüyle bloke eder.</summary>
         public void PaneliGoster()
         {
-            if (_root == null) return;
+            Debug.Log($"[YuklemePaneliTANI] PaneliGoster ÇAĞRILDI — _root null mu? {(_root == null)}, IsAcik={IsAcik}");
+            if (_root == null)
+            {
+                Debug.LogError("[YuklemePaneliTANI] _root NULL → UIYarat çalışmamış olabilir, panel açılamadı!");
+                return;
+            }
             _root.SetActive(true);
             IsAcik = true;
+            Debug.Log("[YuklemePaneliTANI] Panel SetActive(true) — görünür olmalı.");
         }
 
         private void OnBorcAlTiklandi()
@@ -94,7 +118,8 @@ namespace Senaryo.Scripted
                 {
                     int yeniBakiye = oy.BahisPanelMevcutBakiye() + BORC_MIKTARI;
                     oy.AnlaticiBakiyeyiSifirla(yeniBakiye);
-                    Debug.Log($"[ScriptedYuklemePaneli] Borç alındı: +{BORC_MIKTARI} TL → yeni bakiye {yeniBakiye} TL.");
+                    BorcAlindi = true;
+                    Debug.Log($"[ScriptedYuklemePaneli] Borç alındı: +{BORC_MIKTARI} TL → yeni bakiye {yeniBakiye} TL. BorcAlindi=true.");
                 }
                 else
                 {

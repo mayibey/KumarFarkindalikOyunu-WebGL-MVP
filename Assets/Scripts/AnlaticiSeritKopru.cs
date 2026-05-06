@@ -19,6 +19,12 @@ public class AnlaticiSeritKopru : MonoBehaviour
     private int _aktifAsama = 0;
     private int _aktifSpin = 0;
     private int _toplamSpin = 0;
+    /// <summary>A7 final ekranı toplam spin istatistiği için public erişim.</summary>
+    public int ToplamSpin => _toplamSpin;
+    /// <summary>A6 girişi sırasında ScriptedYuklemePaneli'i bir defalık otomatik açma flag'i.</summary>
+    private bool _yuklemePaneliAcildiBuOturum = false;
+    /// <summary>A6 sonu döngü modal'ı bir kez tetiklendi mi (modal sonu Tukenis çağrılır).</summary>
+    private bool _donguModalGosterildi = false;
     private long _baslangicBakiye = 0;
     private int _sonUygulananAsama = -1; // YENI: aşama değişimi tespiti için
     private long _sonBakiye = 50000; // bir önceki spin sonu bakiye — spin başına net delta için
@@ -127,6 +133,9 @@ public class AnlaticiSeritKopru : MonoBehaviour
         _aktifSpin = 0;
         _toplamSpin = 0;
         _sonUygulananAsama = -1;
+        _yuklemePaneliAcildiBuOturum = false;
+        _donguModalGosterildi = false;
+        Senaryo.Scripted.ScriptedYuklemePaneli.BorcAlindiSifirla();
 
         // Bakiye 50.000 TL'ye reset
         _oy.AnlaticiBakiyeyiSifirla(BASLANGIC_BAKIYE);
@@ -166,16 +175,31 @@ public class AnlaticiSeritKopru : MonoBehaviour
         // Aşama başına spin eşiği array'den okunur (Asama 3-4 = 8 spin, diğerleri 10, Asama 7 = 999 dinamik).
         int hedefSpin = _asamaSpinSayisi[Mathf.Clamp(_aktifAsama, 0, _asamaSpinSayisi.Length - 1)];
 
+        Debug.Log($"[AnlaticiTANI] SpinTamamlandi sonu — _aktifSpin={_aktifSpin}, hedefSpin={hedefSpin}, _aktifAsama={_aktifAsama}");
         if (_aktifSpin >= hedefSpin)
         {
+            Debug.Log($"[AnlaticiTANI] hedefSpin'e ulaşıldı, _aktifAsama < 6 mı? {_aktifAsama < 6}");
             if (_aktifAsama < 6)
             {
                 // Önce son spin çubuğunu rengiyle göster (HTML render)
                 Guncelle();
                 _aktifAsama++;
+                Debug.Log($"[AnlaticiTANI] _aktifAsama++ → {_aktifAsama} (yeni asama)");
                 _aktifSpin = 0;
                 _asamaSpinNet.Clear(); // yeni aşama, çubuklar sıfırlansın
                 AsamayiUygula(_aktifAsama);
+
+                // A5 → A6 geçişi (hedefSpin tamamlandı yolu): eğitmen "para arayışı" modal +
+                // ScriptedYuklemePaneli akışını başlat. Bakiye yolu ile aynı pedagojik geçişi paylaşır.
+                if (_aktifAsama == 5 && !_yuklemePaneliAcildiBuOturum)
+                {
+                    Debug.Log("[AnlaticiTANI] A5→A6 hedefSpin yolu — BasaArayisAkisi (modal + panel) tetikleniyor.");
+                    StartCoroutine(BasaArayisAkisi());
+                }
+                else if (_aktifAsama == 5 && _yuklemePaneliAcildiBuOturum)
+                {
+                    Debug.Log("[AnlaticiTANI] A6'dayız ama panel zaten açılmış (flag true), atla.");
+                }
             }
             else
             {
@@ -191,21 +215,45 @@ public class AnlaticiSeritKopru : MonoBehaviour
             AsamayiUygula(_aktifAsama);
         }
 
-        // Bakiye yetersizse Aşama 7 (Tükeniş) zorla atlanır veya doğrudan Tukenis tetiklenir.
-        // İSTİSNA — A6 ilk spin'i (Borç Al paneli): A5 → A6 geçişinin hemen ardından bu kontrol
-        // _aktifSpin=0 ile çalışır; bakiye yetersiz olsa BİLE A7'ye atlamamalıyız çünkü
-        // ScriptedYuklemePaneli devreye girip "BORÇ AL — 50.000 TL" ile bakiyeyi yükleyecek.
-        // A6'nın diğer spin'lerinde (_aktifSpin > 0) bakiye yetersizse A7'ye atlama doğal.
+        // BAKIYE YETERSİZLİĞİ — aşama bağlamına göre 4 farklı dal:
+        //   A1-A4 erken kayıp (asama < 4)            → direkt A7 (uçurum)
+        //   A5 sonu (asama == 4)                     → eğitmen "para arayışı" modal → Borç Al paneli
+        //   A6 spin sırası (asama == 5 && spin > 0)  → eğitmen "döngü başa sardı" modal → Tukenis
+        //   A6 girişi (asama == 5 && spin == 0)      → A7'ye atlama; panel zaten asama geçişinde açıldı
+        //   A7 (asama == 6)                          → Tukenis dinamik
         if (_oy != null)
         {
             int simdiBakiye = (int)_oy.BahisPanelMevcutBakiye();
             int sonrakiBahis = _onerilenBahisler[Mathf.Clamp(_aktifAsama, 0, _onerilenBahisler.Length - 1)];
-            bool a6BorcAlinmadi = (_aktifAsama == 5 && _aktifSpin == 0);
-            if (simdiBakiye < sonrakiBahis && !a6BorcAlinmadi)
+            if (simdiBakiye < sonrakiBahis)
             {
-                if (_aktifAsama < 6)
+                if (_aktifAsama == 4)
                 {
-                    Debug.Log($"[Anlatici] Bakiye yetersiz ({simdiBakiye} < {sonrakiBahis}), Aşama 7 (Tükeniş) zorla atlanıyor.");
+                    // A5 sonu yumuşak geçiş: önce eğitmen modal "para arayışı", ardından yükleme paneli
+                    Debug.Log($"[Anlatici] A5 sonu bakiye yetersiz ({simdiBakiye} < {sonrakiBahis}) → A6 yumuşak geçiş + para arayışı modal.");
+                    _aktifAsama = 5;
+                    _aktifSpin = 0;
+                    _asamaSpinNet.Clear();
+                    AsamayiUygula(_aktifAsama);
+                    StartCoroutine(BasaArayisAkisi());
+                    return;
+                }
+                else if (_aktifAsama == 5 && _aktifSpin == 0)
+                {
+                    // A6 girişi (henüz spin atılmadı): yükleme paneli zaten asama geçişinde açıldı,
+                    // Tukenis'e atlama. Spin başlamadığı için bu daldan zaten geçilmemeli ama defansif log.
+                    Debug.Log($"[Anlatici] A6 girişi — bakiye yetersiz ({simdiBakiye} < {sonrakiBahis}) ama Borç Al paneli devreye girecek; A7'ye atlama atlanıyor.");
+                }
+                else if (_aktifAsama == 5 && _aktifSpin > 0)
+                {
+                    // A6 spin sırası — borç sonrası bakiye yine bitti → eğitmen "döngü" modal → Tukenis
+                    Debug.Log($"[Anlatici] A6 sonu bakiye yine bitti ({simdiBakiye} < {sonrakiBahis}) → döngü modal + final ekran.");
+                    StartCoroutine(DonguAkisi());
+                    return;
+                }
+                else if (_aktifAsama < 4)
+                {
+                    Debug.Log($"[Anlatici] A1-A4 erken bakiye tükendi ({simdiBakiye} < {sonrakiBahis}), Aşama 7 (Tükeniş) zorla atlanıyor.");
                     _aktifAsama = 6;
                     _aktifSpin = 0;
                     _sonUygulananAsama = -1;
@@ -221,10 +269,6 @@ public class AnlaticiSeritKopru : MonoBehaviour
                     Tukenis();
                     return;
                 }
-            }
-            else if (simdiBakiye < sonrakiBahis && a6BorcAlinmadi)
-            {
-                Debug.Log($"[Anlatici] A6 girişi — bakiye yetersiz ({simdiBakiye} < {sonrakiBahis}) ama Borç Al paneli devreye girecek; A7'ye atlama atlanıyor.");
             }
         }
 
@@ -348,5 +392,79 @@ public class AnlaticiSeritKopru : MonoBehaviour
 #endif
 
         Debug.Log("[Anlatici] Reset tamam: bakiye=" + BASLANGIC_BAKIYE + ", asama=0, bahis=100");
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    //  PEDAGOJİK GEÇİŞ COROUTINE'LARI — eğitmen modalı + sonraki adım
+    // ──────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// A5 sonu bakiye yetersiz → eğitmen "para arayışı" modalı çalar; modal kapanınca
+    /// ScriptedYuklemePaneli "BORÇ AL — 50.000 TL" açılır.
+    /// </summary>
+    private System.Collections.IEnumerator BasaArayisAkisi()
+    {
+        // 1) Eğitmen modal — anlatıcı pedagojik açıklama (sol-alt karakter dialog)
+        var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
+        string mesaj =
+            "Oyuncu artık paranın bittiğini fark etti.\n\n" +
+            "Şimdi başka yerden para bulma arayışında. Yalan söylemeye başlıyor — " +
+            "yakınlarına, akrabalarına, arkadaşlarına...\n\n" +
+            "Bu, kumar bağımlılığının yıkıcı evresidir. Bir sonraki ekran o anı temsil ediyor.";
+        if (modal != null)
+            yield return modal.ModalGoster(mesaj);
+        else
+            Debug.LogWarning("[Anlatici] BasaArayisAkisi — ScriptedModalKopru bulunamadı, modal atlanıyor.");
+
+        // 2) Düşünce balonu — karakter ortada, 4 yalan ayrı bulutlarda (klasik çizgi roman)
+        var balon = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedDusunceBalonu>();
+        if (balon != null)
+        {
+            Debug.Log("[Anlatici] Düşünce balonu açılıyor...");
+            yield return balon.BaloniGoster();
+        }
+        else
+        {
+            Debug.LogWarning("[Anlatici] BasaArayisAkisi — ScriptedDusunceBalonu bulunamadı, balon atlanıyor.");
+        }
+
+        // 3) Yükleme paneli — "BORÇ AL — 50.000 TL"
+        var panel = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedYuklemePaneli>();
+        if (panel != null)
+        {
+            panel.PaneliGoster();
+            _yuklemePaneliAcildiBuOturum = true;
+            Debug.Log("[Anlatici] BasaArayisAkisi tamamlandı — Yükleme paneli açıldı.");
+        }
+        else
+        {
+            Debug.LogError("[Anlatici] BasaArayisAkisi — ScriptedYuklemePaneli bulunamadı!");
+        }
+    }
+
+    /// <summary>
+    /// A6 sonu bakiye yine bitti → eğitmen "döngü başa sardı" modalı çalar; modal kapanınca
+    /// klasik A7 final ekranı (Tukenis) tetiklenir. Tek seferlik.
+    /// </summary>
+    private System.Collections.IEnumerator DonguAkisi()
+    {
+        if (_donguModalGosterildi) { Tukenis(); yield break; }
+        _donguModalGosterildi = true;
+
+        var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
+        string mesaj =
+            "Bakiye yine bitti.\n\n" +
+            "Bu oyuncu şimdi <b>A1'e geri dönecek</b>. <i>'Belki bu sefer şanslıyım'</i> diye düşünüyor. " +
+            "<i>'Bir kerelik daha denersem...'</i> diyerek kendini kandırıyor.\n\n" +
+            "İşte bağımlılığın özü budur: <b>KAYIP → BORÇ → KAYIP → BORÇ</b>. Sonsuz döngü.\n\n" +
+            "Gerçek hayatta bu döngü ailelerin yıkımıyla, evlerin satılmasıyla, hayatların mahvolmasıyla biter.\n\n" +
+            "Sonraki ekranda yaşanan toplam kayıp gösteriliyor.";
+        if (modal != null)
+            yield return modal.ModalGoster(mesaj);
+        else
+            Debug.LogWarning("[Anlatici] DonguAkisi — ScriptedModalKopru bulunamadı, modal atlanıyor.");
+
+        Debug.Log("[Anlatici] DonguAkisi tamamlandı — Tukenis çağrılıyor.");
+        Tukenis();
     }
 }
