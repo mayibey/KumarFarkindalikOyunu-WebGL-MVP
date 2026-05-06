@@ -110,6 +110,24 @@ namespace Senaryo.Scripted
             _atlandi = false;
             _root.SetActive(true);
 
+            // 1) Anlatici HTML iframe'i gizle — sol panel Unity Canvas'in üstünde kalmasın.
+            //    (z-index 100 olsa bile WebGL Unity canvas DOM stacking'inde kayboluyor.)
+            AnlaticiSeritKopru.Ornek?.Gizle();
+
+            // 2) Sol-altta paralel asistan modal başlat (fire-and-forget). Balon animasyonuyla
+            //    eş zamanlı gözükür; kullanıcı modaldaki TAMAM'a bağımsız basabilir.
+            var asistanModal = UnityEngine.Object.FindObjectOfType<ScriptedModalKopru>();
+            if (asistanModal != null)
+            {
+                StartCoroutine(asistanModal.ModalGoster(
+                    "Bu aşamada oyuncu çevresindeki kişilere yalan söyleyerek " +
+                    "veya bankalardan kredi çekerek para bulmaya çalışır.\n\n" +
+                    "Burada amaç eski kayıpların telafisidir. Ancak bu, " +
+                    "kumar bağımlılığının en yıkıcı evresidir — borç katlanarak " +
+                    "büyür, ilişkiler bozulur, hayatlar mahvolur."
+                ));
+            }
+
             // 4 yalan tanımı: konum (karakter merkezinden offset) + metin. Geniş yerleşim, balonlar
             // karakteri çevreler ama üst üste gelmez (balon boyutu 480x170).
             var yalanlar = new (Vector2 konum, string yazi)[]
@@ -158,6 +176,8 @@ namespace Senaryo.Scripted
                 // Aktif balonları temizle (sonraki açılışta yeniden oluşacak)
                 foreach (var b in aktifBalonlar)
                     if (b != null) Destroy(b.gameObject);
+                // Anlatici HTML iframe'i geri aç
+                AnlaticiSeritKopru.Ornek?.Goster();
             }
         }
 
@@ -334,6 +354,26 @@ namespace Senaryo.Scripted
             dim.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.75f);
             _dimCanvasGroup = dim.GetComponent<CanvasGroup>();
             _dimCanvasGroup.alpha = 0f;
+
+            // Sol-üstte aşama başlığı — gizlenen anlatici iframe'in yerine geçer.
+            // "BAŞKA YERDEN PARA BULMA ARAYIŞI" — geçiş evresinin pedagojik etiketi.
+            var asamaGo = new GameObject("AsamaBasligi", typeof(RectTransform), typeof(CanvasRenderer));
+            asamaGo.transform.SetParent(_root.transform, false);
+            var asamaRt = asamaGo.GetComponent<RectTransform>();
+            asamaRt.anchorMin = new Vector2(0f, 1f);
+            asamaRt.anchorMax = new Vector2(0f, 1f);
+            asamaRt.pivot = new Vector2(0f, 1f);
+            asamaRt.sizeDelta = new Vector2(420f, 100f);
+            asamaRt.anchoredPosition = new Vector2(30f, -30f);
+            var asamaTxt = asamaGo.AddComponent<TextMeshProUGUI>();
+            asamaTxt.alignment = TextAlignmentOptions.TopLeft;
+            asamaTxt.fontSize = 26f;
+            asamaTxt.fontStyle = FontStyles.Bold;
+            asamaTxt.color = new Color(0.98f, 0.78f, 0.46f, 1f); // sarı
+            asamaTxt.enableWordWrapping = true;
+            asamaTxt.lineSpacing = 6f;
+            asamaTxt.text = "BAŞKA YERDEN\nPARA BULMA ARAYIŞI";
+            asamaTxt.raycastTarget = false;
 
             // Karakter (ekran ortası, büyük dramatik) — Resources/yuzkafa.png veya procedural fallback
             var karakter = new GameObject("Karakter", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(CanvasGroup));

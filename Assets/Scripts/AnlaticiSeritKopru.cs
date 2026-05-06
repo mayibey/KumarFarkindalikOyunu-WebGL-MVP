@@ -14,6 +14,8 @@ public class AnlaticiSeritKopru : MonoBehaviour
     [DllImport("__Internal")] private static extern void AnlaticiPaneliAc(string url);
     [DllImport("__Internal")] private static extern void AnlaticiPaneliKapat();
     [DllImport("__Internal")] private static extern void AnlaticiPaneliGuncelle(string json);
+    [DllImport("__Internal")] private static extern void AnlaticiPaneliGizle();
+    [DllImport("__Internal")] private static extern void AnlaticiPaneliGoster();
 
     private OyunYoneticisi _oy;
     private int _aktifAsama = 0;
@@ -392,6 +394,33 @@ public class AnlaticiSeritKopru : MonoBehaviour
 #endif
 
         Debug.Log("[Anlatici] Reset tamam: bakiye=" + BASLANGIC_BAKIYE + ", asama=0, bahis=100");
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    //  HTML PANEL TOGGLE — modal/balon/yükleme açılırken anlatici iframe'i gizler
+    //  (sol panel WebGL'de DOM iframe; Unity Canvas overlay'lerinin altında kalmaz, gizlenir).
+    // ──────────────────────────────────────────────────────────────────
+
+    /// <summary>Sol anlatici HTML iframe'ini gizler (display:none). Modal/balon/yükleme açılırken çağrılır.</summary>
+    public void Gizle()
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        try { AnlaticiPaneliGizle(); }
+        catch (System.Exception e) { Debug.LogWarning("[Anlatici] Gizle hata: " + e.Message); }
+#else
+        Debug.Log("[Anlatici] Gizle (Editor fallback — sadece WebGL'de etkili).");
+#endif
+    }
+
+    /// <summary>Gizlenen anlatici HTML iframe'ini geri açar.</summary>
+    public void Goster()
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        try { AnlaticiPaneliGoster(); }
+        catch (System.Exception e) { Debug.LogWarning("[Anlatici] Goster hata: " + e.Message); }
+#else
+        Debug.Log("[Anlatici] Goster (Editor fallback — sadece WebGL'de etkili).");
+#endif
     }
 
     // ──────────────────────────────────────────────────────────────────

@@ -1788,16 +1788,29 @@ function dbg(text) {
   
           var container = document.createElement('div');
           container.id = 'anlaticiPanelContainer';
-          container.style.cssText = 'position:fixed;top:200px;left:12px;width:460px;max-height:calc(100vh - 360px);overflow-y:auto;z-index:5000;pointer-events:auto;';
+          // Sabit konum + boyut: sol-orta, 360x700. z-index 100 = Unity canvas üstünde ama Unity Canvas
+          // overlay'lerinin (modal 9998+, balon, yükleme) altında kalması için Gizle/Goster API ile
+          // toggle edilir (display:none ↔ block) — modal/balon açılınca gizlenip kapanınca geri açılır.
+          container.style.cssText = 'position:fixed;top:50%;left:20px;transform:translateY(-50%);width:360px;height:700px;max-height:calc(100vh - 40px);overflow-y:auto;z-index:100;pointer-events:auto;';
   
           var iframe = document.createElement('iframe');
           iframe.id = 'anlaticiPanelIframe';
           iframe.src = url;
-          iframe.style.cssText = 'width:100%;height:600px;border:none;background:transparent;';
+          iframe.style.cssText = 'width:100%;height:700px;border:none;background:transparent;';
           iframe.setAttribute('allowtransparency', 'true');
   
           container.appendChild(iframe);
           document.body.appendChild(container);
+      }
+
+  function _AnlaticiPaneliGizle() {
+          var c = document.getElementById('anlaticiPanelContainer');
+          if (c) c.style.display = 'none';
+      }
+
+  function _AnlaticiPaneliGoster() {
+          var c = document.getElementById('anlaticiPanelContainer');
+          if (c) c.style.display = 'block';
       }
 
   function _AnlaticiPaneliGuncelle(jsonPtr) {
@@ -17850,6 +17863,8 @@ function checkIncomingModuleAPI() {
 }
 var wasmImports = {
   "AnlaticiPaneliAc": _AnlaticiPaneliAc,
+  "AnlaticiPaneliGizle": _AnlaticiPaneliGizle,
+  "AnlaticiPaneliGoster": _AnlaticiPaneliGoster,
   "AnlaticiPaneliGuncelle": _AnlaticiPaneliGuncelle,
   "AnlaticiPaneliKapat": _AnlaticiPaneliKapat,
   "AyarlariPanelleGonder": _AyarlariPanelleGonder,
