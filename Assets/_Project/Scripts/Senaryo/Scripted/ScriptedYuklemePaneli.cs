@@ -138,6 +138,9 @@ namespace Senaryo.Scripted
                 IsAcik = false;
                 // Anlatici iframe'i geri aç (referans counter)
                 AnlaticiSeritKopru.Ornek?.Goster();
+                // Borç sonrası 2 modal + A6 bahis animasyonu (AnlaticiSeritKopru.BorcSonrasiModalAkisi)
+                if (AnlaticiSeritKopru.Ornek != null)
+                    AnlaticiSeritKopru.Ornek.StartCoroutine(AnlaticiSeritKopru.Ornek.BorcSonrasiModalAkisi());
             }
         }
 

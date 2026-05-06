@@ -53,10 +53,10 @@ public class AnlaticiSeritKopru : MonoBehaviour
 
     /// <summary>Aşama bazlı önerilen bahis (yeniAsama geçişinde set edilir, kullanıcı sonra manuel değiştirebilir).
     /// Pedagojik eğri: 50K → 60K → 75K → 70K → 55K → 30K → 10K → 0 (~61 spin).</summary>
-    private static readonly int[] _onerilenBahisler = new int[] { 500, 1000, 1500, 2500, 4000, 2500, 1500 };
+    private static readonly int[] _onerilenBahisler = new int[] { 500, 1000, 1500, 2500, 4000, 10000, 1500 };
 
-    /// <summary>Aşama başına spin eşiği. Aşama 7 = 999 (dinamik, bakiye yetince Tukenis guard'i tetikler).</summary>
-    private static readonly int[] _asamaSpinSayisi = new int[] { 10, 10, 8, 8, 10, 10, 999 };
+    /// <summary>Aşama başına spin eşiği. A6 hızlı yıkım: 5 spin × 10K bahis = 50K borç tükenir. Aşama 7 = 999 (dinamik).</summary>
+    private static readonly int[] _asamaSpinSayisi = new int[] { 10, 10, 8, 8, 10, 5, 999 };
 
     [System.Serializable]
     public class AsamaAyari
@@ -528,9 +528,18 @@ public class AnlaticiSeritKopru : MonoBehaviour
         }
         string mesaj =
             "Hoş geldin. Bu simülasyonda online kumar oyunlarının insanları nasıl etkilediğini birlikte göreceğiz.\n\n" +
-            "Şu an karşında popüler bir slot oyunu var. Sen bahis koyacaksın, meyveler dönecek, bazen kazanacak bazen kaybedeceksin.\n\n" +
-            "Ama bu oyunun her adımı önceden tasarlandı. Algoritmanın oyuncuyu nasıl bağladığını, nasıl daha fazla bahse ittiğini ve sonunda nasıl tükettiğini birlikte yaşayacağız.\n\n" +
-            "Hadi başlayalım.";
+            "<b>Önce oyunu tanıyalım:</b>\n" +
+            "• Karşında 6×5'lik meyve makinesi var. SPIN tuşuna basınca meyveler döner.\n" +
+            "• Aynı meyveden <b>8 veya daha fazlası</b> bir araya gelirse kazanç verir.\n" +
+            "• Bazı turlarda <b>ÇARPAN</b> düşer (×2, ×5, ×100 vs.) — kazancı katlar.\n" +
+            "• Kazanan meyveler patlar, üstten yenileri düşer (<b>TUMBLE</b>) — zincir kazançlar olur.\n" +
+            "• 4 SCATTER (yıldız) gelirse <b>BONUS</b> oyun açılır.\n\n" +
+            "<b>Ekrandaki diğer öğeler:</b>\n" +
+            "• <b>Sol panel:</b> hangi aşamadasın, sahne arkası ne oluyor — birlikte görelim diye buradan takip edeceğiz.\n" +
+            "• <b>Bakiye:</b> oyuna ayrılan paran (50.000 TL ile başlıyorsun).\n" +
+            "• <b>Bahis:</b> her spinde harcayacağın miktar — + ve − tuşlarıyla değişir.\n" +
+            "• <b>KAZANÇ:</b> o spin'de kazandığın miktar.\n\n" +
+            "Hadi başlayalım — ilk aşama <i>'Isındırma ve Umut'</i>.";
         yield return modal.ModalGoster(mesaj);
     }
 
@@ -580,6 +589,55 @@ public class AnlaticiSeritKopru : MonoBehaviour
             "Sırada <b>'Sonunu Düşünen Kahraman Olamaz'</b> aşaması var. Bu aşamada algoritma sana cazip bir <b>'bonus oyun tuzağı'</b> kuracak — tüm bakiyeni yatırma karşılığında büyük kazanç vaat edilecek. Yatırırsan, çok azını geri alacaksın.\n\n" +
             "Bu, sömürünün doruk noktasıdır. Birlikte göreceğiz.";
         yield return modal.ModalGoster(mesaj);
+    }
+
+    /// <summary>
+    /// Borç Al onayı sonrası iki aşamalı asistan modal + bahis animasyonu (A6 girişi):
+    ///   1) "Borç alındı, döngü başlıyor" pedagojik mesaj
+    ///   2) "Bahis 10K'ya çıkacak" bilgilendirmesi + bahis animasyonu (mevcut → 10000)
+    /// ScriptedYuklemePaneli.OnBorcAlTiklandi tarafından çağrılır.
+    /// </summary>
+    public System.Collections.IEnumerator BorcSonrasiModalAkisi()
+    {
+        yield return new WaitForSecondsRealtime(0.5f); // Yükleme paneli kapanma animasyonu
+
+        var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
+        if (modal == null) yield break;
+
+        // 1) Döngü başlangıcı pedagojik mesaj
+        yield return modal.ModalGoster(
+            "İşte oyuncu borç aldı, bakiyesi yenilendi. Şimdi tekrar oynamaya devam edecek.\n\n" +
+            "Kumar sitelerinde yeniden bakiye yükleyenlere bilinçli olarak ilk başlarda yine kazandırılır — bu <i>'Isındırma ve Umut'</i> aşamasına benzer.\n\n" +
+            "Bu sayede oyuncu tekrar döngüye girer: <i>'şansım yine açıldı, kayıplarımı telafi ederim'</i> düşünür. Ama er ya da geç sistem kazanır, oyuncu kaybeder.\n\n" +
+            "Şimdi bu döngüyü hızlıca göreceğiz."
+        );
+
+        // 2) A6 bahis bilgilendirme
+        yield return modal.ModalGoster(
+            "Bu kez oyuncu kayıplarını HIZLI telafi etmek istiyor. Bahsi <b>10.000 TL</b>'ye çıkardı.\n\n" +
+            "Sadece 5 spin yetecek — algoritma sömürünün son evresinde tüm bakiyeyi alacak. " +
+            "Bu hızlı bitiş, gerçek hayattaki <i>'son kez deneme'</i> bahanesinin sonucudur."
+        );
+
+        // 3) Bahis animasyonu: mevcut bahis → 10000 (kademeli artış, "+ tuşu" hissi)
+        yield return BahisAnimasyonu(_oy != null ? _oy.AnlaticiMevcutBahis() : 4000, 10000);
+    }
+
+    /// <summary>Bahis kademeli artış animasyon helper (1000 TL/0.10 sn).</summary>
+    private System.Collections.IEnumerator BahisAnimasyonu(int eski, int yeni)
+    {
+        if (_oy == null) yield break;
+        const int ADIM = 1000;
+        const float SURE_PER_ADIM = 0.10f;
+        int simdi = Mathf.Max(eski, _oy.AnlaticiMevcutBahis());
+        while (simdi < yeni)
+        {
+            simdi = Mathf.Min(yeni, simdi + ADIM);
+            try { _oy.AnlaticiSetBahis(simdi); }
+            catch (System.Exception e) { Debug.LogWarning("[BahisAnim] hata: " + e.Message); break; }
+            yield return new WaitForSecondsRealtime(SURE_PER_ADIM);
+        }
+        Debug.Log($"[Anlatici] Bahis animasyonu {eski} → {yeni} TL tamamlandı.");
     }
 
     /// <summary>A4 Spin 5 sonu ×100 çarpan: manipülasyon vuruşunun pedagojik açıklaması.</summary>
@@ -651,11 +709,10 @@ public class AnlaticiSeritKopru : MonoBehaviour
 
         var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
         string mesaj =
-            "Bakiye yine bitti.\n\n" +
-            "Bu oyuncu şimdi <b>A1'e geri dönecek</b>. <i>'Belki bu sefer şanslıyım'</i> diye düşünüyor. " +
-            "<i>'Bir kerelik daha denersem...'</i> diyerek kendini kandırıyor.\n\n" +
+            "Bakın, para tamamen bitti.\n\n" +
+            "<b>5 spin'de 50.000 TL borç eridi.</b> Bu, gerçek hayatta <i>'hızlı kurtulma'</i> bahanesiyle yatırılan paraların kaderidir.\n\n" +
+            "Şimdi oyuncu A1'e geri dönmek isteyecek. <i>'Belki bu sefer şanslıyım'</i> diye düşünüyor. <i>'Bir kerelik daha denersem...'</i> diyerek kendini kandırıyor.\n\n" +
             "İşte bağımlılığın özü budur: <b>KAYIP → BORÇ → KAYIP → BORÇ</b>. Sonsuz döngü.\n\n" +
-            "Gerçek hayatta bu döngü ailelerin yıkımıyla, evlerin satılmasıyla, hayatların mahvolmasıyla biter.\n\n" +
             "Sonraki ekranda yaşanan toplam kayıp gösteriliyor.";
         if (modal != null)
             yield return modal.ModalGoster(mesaj);

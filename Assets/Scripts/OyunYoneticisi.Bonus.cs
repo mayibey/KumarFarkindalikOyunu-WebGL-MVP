@@ -55,8 +55,7 @@ public partial class OyunYoneticisi
 
 if (spinIcon != null) spinIcon.SetRotate(false);
 
-        if (normalOyunMusic != null && normalOyunMusic.isPlaying)
-            normalOyunMusic.Pause();
+        // Ana müzik bonus boyunca kesintisiz çalmalı; Pause kaldırıldı (bonus bitişinde UnPause/Play yine güvenli).
 
         if (bonusAktif) return;
 

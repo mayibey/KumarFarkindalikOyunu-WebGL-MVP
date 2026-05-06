@@ -47,8 +47,16 @@ namespace Senaryo.Scripted.Editor
         private const string ASSET_YOL = ASSET_KLASOR + "/ScriptedSenaryo.asset";
 
         // === Modal mesajları (Bölüm 4 plan tablosu, A1+A2 revizyon) ===
-        // A1 Spin 1: ilk kazanç sonrası — saatlerce oynamanın hatırası
-        private const string M_A1_S1 = "İlk kazanç en tehlikeli başlangıçtır. Beynin bunu unutmayacak — saatlerce oyun başında kalmanın sebebi bu kısa anın hatırasıdır.";
+        // A1 Spin 1: ilk kazanç sonrası — saatlerce oynamanın hatırası + manipülasyon farkındalığı
+        // (sadece bir kez, A1 ilk spin sonu; sonraki spinlerde bu modal yok — rahatsız etmesin).
+        private const string M_A1_S1 =
+            "İlk kazanç en tehlikeli başlangıçtır. Beynin bunu unutmayacak — saatlerce oyun başında kalmanın sebebi bu kısa anın hatırasıdır.\n\n" +
+            "<b>⚠️ DİKKAT — manipülasyon farkındalığı:</b>\n" +
+            "Az önce <b>500 TL</b> bahis koydun, ekrana <i>'KAZANÇ 1.500 TL'</i> yazdı, bakiyene <b>+1.000 TL</b> eklendi. " +
+            "Sen <i>'kazandım'</i> hissi yaşıyorsun. AMA bu, sistemin temel manipülasyonu — " +
+            "her spinde paranın bir kısmını alıp kalanını <i>'kazanç'</i> olarak gösterir. " +
+            "Uzun vadede oyuncu daima kayıpta. Algoritma bunu kasıtlı tasarladı: " +
+            "sürekli artıyormuş gibi göstererek seni bağlamak için.";
         // A1 Spin 4: dopamin yakıtı (eski "sonraki" kelimesi çıkarıldı)
         private const string M_A1_S4 = "Oyuncu ilk kazançları yaşıyor. Beyninde dopamin salgılanıyor. Bu his, saatlerce oyun oynamanın yakıtı olacak.";
         // A1 Spin 7 ve Spin 8 SONRA modal'ları KALDIRILDI:
@@ -89,7 +97,7 @@ namespace Senaryo.Scripted.Editor
         private const int BAHIS_A3 = 1500;
         private const int BAHIS_A4 = 1000;
         private const int BAHIS_A5 = 2000;
-        public const int BAHIS_A6 = 2500; // A6 dinamik spinler için (ScriptedSpinYoneticisi okur)
+        public const int BAHIS_A6 = 10000; // A6 hızlı yıkım: 5 spin × 10K = 50K borç tükenir.
 
         [MenuItem("Tools/Kumar/Scripted Senaryo Asset'ini Yeniden Üret")]
         public static void AssetiYenidenUret()
@@ -382,9 +390,10 @@ namespace Senaryo.Scripted.Editor
                 liste.Add(spin);
             }
             // Spin 4: BonusTetik — tüm bakiye otomatik bonus oyuna yatırılır, cüzi getiri (0 TL) döner.
-            // ScriptedBonusOyunUygulayici devreye girer (DonusAkisServisi hook'ta yield ile beklenir).
+            // Modal mesajı (M_A5_S4_BONUS) KALDIRILDI — ScriptedBonusTuzagiPopup zaten "🎰 ŞANSLI ANINDASIN!"
+            // başlığıyla cazip pop-up'ı açıyor; ayrı eğitmen modal redundant ve akışı yavaşlatıyordu.
             {
-                var spin4 = SpinTanimi(4, 4, BAHIS_A5, SpinTipi.BonusTetik, 0, GridSifir(Seed(4, 4)), null, NoTumble(), M_A5_S4_BONUS);
+                var spin4 = SpinTanimi(4, 4, BAHIS_A5, SpinTipi.BonusTetik, 0, GridSifir(Seed(4, 4)), null, NoTumble());
                 spin4.bonusOyunuTetikle = true;
                 spin4.bonusGetirisi = 0; // Yatırılanın tamamı kaybolur — pedagojik vuruş.
                 liste.Add(spin4);

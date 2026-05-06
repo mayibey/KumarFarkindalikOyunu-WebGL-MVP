@@ -338,7 +338,10 @@ namespace Senaryo.Scripted
             _root.transform.SetParent(transform, false);
             var canvas = _root.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 1550; // Modal (1500) ile yükleme paneli (1600) arası
+            // sortingOrder 1450: Modal (1500) ALTINDA. Düşünce balonu sırasında paralel asistan
+            // modal sol-altta net görünür (dim onu kapatmaz). Karakter+balonlar ekran ortasında,
+            // modal sol-altta — çakışma minimum.
+            canvas.sortingOrder = 1450;
 
             var scaler = _root.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;

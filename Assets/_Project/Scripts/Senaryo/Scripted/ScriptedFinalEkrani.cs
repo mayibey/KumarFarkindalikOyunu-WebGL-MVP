@@ -195,12 +195,33 @@ namespace Senaryo.Scripted
             _istatistikText.text = "";
             _istatistikText.raycastTarget = false;
 
-            // Mesaj (orta-alt) — pedagojik metin + Yeşilay
+            // AİLE YAZISI (vurgulu, dikkat çekici) — istatistikler ile pedagojik metin arası.
+            // Net kayıp rakamının somut karşılığını oyuncuya hissettirir.
+            var aileGo = new GameObject("AileYazisi", typeof(RectTransform), typeof(CanvasRenderer));
+            aileGo.transform.SetParent(kutu.transform, false);
+            var aileRt = aileGo.GetComponent<RectTransform>();
+            aileRt.anchorMin = new Vector2(0f, 0.5f); aileRt.anchorMax = new Vector2(1f, 0.5f);
+            aileRt.pivot = new Vector2(0.5f, 0.5f);
+            aileRt.sizeDelta = new Vector2(0f, 110f);
+            aileRt.anchoredPosition = new Vector2(0f, -10f);
+            var aileTxt = aileGo.AddComponent<TextMeshProUGUI>();
+            aileTxt.alignment = TextAlignmentOptions.Center;
+            aileTxt.fontSize = 22f;
+            aileTxt.fontStyle = FontStyles.Bold;
+            aileTxt.color = new Color(1f, 0.65f, 0.20f, 1f); // sıcak turuncu — dramatik vurgu
+            aileTxt.enableWordWrapping = true;
+            aileTxt.lineSpacing = 6f;
+            aileTxt.text =
+                "Bu rakam ortalama bir aile için 2,5 aylık geçim demek.\n" +
+                "<size=18><i>Gerçek hayatta oyuncu burada durmaz — bir sonraki maaş, bir sonraki kredi, bir sonraki dönüş umuduyla devam eder.</i></size>";
+            aileTxt.raycastTarget = false;
+
+            // Mesaj (alt) — pedagojik metin + Yeşilay
             var mesGo = new GameObject("Mesaj", typeof(RectTransform), typeof(CanvasRenderer));
             mesGo.transform.SetParent(kutu.transform, false);
             var mesRt = mesGo.GetComponent<RectTransform>();
             mesRt.anchorMin = new Vector2(0f, 0f); mesRt.anchorMax = new Vector2(1f, 0.5f);
-            mesRt.offsetMin = new Vector2(40f, 130f); mesRt.offsetMax = new Vector2(-40f, -10f);
+            mesRt.offsetMin = new Vector2(40f, 130f); mesRt.offsetMax = new Vector2(-40f, -120f);
             var mesTxt = mesGo.AddComponent<TextMeshProUGUI>();
             mesTxt.alignment = TextAlignmentOptions.Center;
             mesTxt.fontSize = 18f;

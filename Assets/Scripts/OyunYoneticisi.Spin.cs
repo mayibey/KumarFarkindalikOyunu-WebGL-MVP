@@ -913,7 +913,33 @@ public partial class OyunYoneticisi
             yield return modal.ModalGoster(mesaj);
         else
             Debug.LogWarning("[ÖNCE Modal] ScriptedModalKopru bulunamadı, modal atlanıyor.");
+
+        // A2 Spin 4 ÖNCE modal sonrası: bahis 1000 → 2000 görsel animasyonla yükseltilir.
+        // Kullanıcı "+ + + +" tuşlamış gibi görür; modal "bahisini yükseltecek" iddiasını gerçeğe çevirir.
+        var anlatici = AnlaticiSeritKopru.Ornek;
+        if (anlatici != null && anlatici.AktifAsama == 1 && anlatici.AsamadakiSpinSayaci == 3)
+        {
+            yield return BahisYukseltAnimasyonu(1000, 2000);
+        }
+
         // Modal kapandı — asıl spin akışını başlat (flag set olduğu için ÖNCE bloğu atlanır)
         SpinButonImpl();
+    }
+
+    /// <summary>Bahis animasyon helper: eski → yeni değere kademeli artar (görsel feedback, "+ tuşu").</summary>
+    private System.Collections.IEnumerator BahisYukseltAnimasyonu(int eski, int yeni)
+    {
+        if (_ekonomiServisi == null) yield break;
+        const int ADIM = 250;
+        const float SURE_PER_ADIM = 0.10f;
+        int simdi = Mathf.Max(eski, _ekonomiServisi.Bahis);
+        while (simdi < yeni)
+        {
+            simdi = Mathf.Min(yeni, simdi + ADIM);
+            try { AnlaticiSetBahis(simdi); }
+            catch (System.Exception e) { Debug.LogWarning("[BahisYukselt] hata: " + e.Message); break; }
+            yield return new WaitForSecondsRealtime(SURE_PER_ADIM);
+        }
+        Debug.Log($"[BahisYukselt] {eski} → {yeni} TL animasyonu tamamlandı.");
     }
 }

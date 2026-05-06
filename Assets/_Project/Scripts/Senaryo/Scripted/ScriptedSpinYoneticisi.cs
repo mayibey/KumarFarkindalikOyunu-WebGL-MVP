@@ -148,15 +148,9 @@ namespace Senaryo.Scripted
 
         public ScriptedSpinKaydi SonrakiSpiniAl(int asamaIndex, int spinSiraNo)
         {
-            // A6 (idx 5) ilk spin'inde yükleme paneli aç (bir kez); SpinButonImpl bu spin'i ScriptedYuklemePaneli.IsAcik
-            // koşuluyla bloke eder, kullanıcı butona tıklayınca bakiye +50.000 ve panel kapanır.
-            if (asamaIndex == 5 && spinSiraNo == 0 && !_yuklemePaneliGosterildi)
-            {
-                _yuklemePaneliGosterildi = true;
-                var panel = UnityEngine.Object.FindObjectOfType<ScriptedYuklemePaneli>();
-                if (panel != null) panel.PaneliGoster();
-                else Debug.LogWarning("[ScriptedSpinYoneticisi] A6 yükleme paneli bulunamadı (ScriptedYuklemePaneli null).");
-            }
+            // BUG FIX: A6 yükleme paneli açma sorumluluğu AnlaticiSeritKopru.BasaArayisAkisi'na taşındı.
+            // Eskiden buradan da açılıyordu → çift kaynak → A6 ilk spin'de panel TEKRAR açılıyordu.
+            // Tek source of truth: AnlaticiSeritKopru. Bu blok kaldırıldı.
 
             // A6 (idx 5) — runtime dinamik spin üretimi (asset'te boş liste).
             // Plan: bakiye 50.800 → 0, bahis 2500, çoğunlukla brüt 0 (kayıp odaklı kapanış).
@@ -276,7 +270,7 @@ namespace Senaryo.Scripted
         /// </summary>
         private static ScriptedSpinKaydi UretA6DinamikSpin(int spinSiraNo)
         {
-            const int BAHIS_A6 = 2500;
+            const int BAHIS_A6 = 10000; // Hızlı yıkım: 5 spin × 10K = 50K borç tükenir.
             const int SUTUN = 6;
             const int SATIR = 5;
             const int HUCRE = SUTUN * SATIR;

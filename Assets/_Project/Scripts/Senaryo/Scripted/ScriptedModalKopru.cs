@@ -113,6 +113,20 @@ namespace Senaryo.Scripted
 
             try
             {
+                // DİNAMİK YÜKSEKLİK: mesajın TMP-rendered yüksekliğini ölçüp balon kutusunu uyarla.
+                // Genişlik 680 sabit, mesaj iç padding 40 (sol 20+sağ 20), başlık ~45, TAMAM butonu ~60,
+                // alt padding 12 → toplam dikey rezerv ~140 px. Min 200, max 600 clamp.
+                const float BALON_GENISLIK = 680f;
+                const float MESAJ_GENISLIK = BALON_GENISLIK - 40f; // sol+sağ padding
+                const float DIKEY_REZERV = 140f; // başlık + buton + padding
+                const float MIN_YUKSEKLIK = 200f;
+                const float MAX_YUKSEKLIK = 600f;
+                Vector2 prefSize = _mesajText.GetPreferredValues(mesaj, MESAJ_GENISLIK, 0f);
+                float balonYukseklik = Mathf.Clamp(prefSize.y + DIKEY_REZERV, MIN_YUKSEKLIK, MAX_YUKSEKLIK);
+                _balonRt.sizeDelta = new Vector2(BALON_GENISLIK, balonYukseklik);
+                _balonAcikPos = new Vector2(280f, 90f);
+                _balonKapaliPos = new Vector2(280f, -balonYukseklik - 40f); // ekran altı
+
                 // State reset
                 _typewriterCalisiyor = false;
                 _typewriterAtla = false;
