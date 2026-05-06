@@ -90,6 +90,9 @@ namespace Senaryo.Scripted
         {
             if (_root == null || _butonText == null) yield break;
 
+            // Anlatici HTML iframe'i gizle (popup üzerinde kalmasın)
+            AnlaticiSeritKopru.Ornek?.Gizle();
+
             _butonText.text = "BONUS AL — TÜM BAKİYE (" + OyunFormatServisi.FormatTL(bakiye) + ")";
             _butonaTiklandi = false;
             IsAcik = true;
@@ -123,6 +126,9 @@ namespace Senaryo.Scripted
 
             _root.SetActive(false);
             IsAcik = false;
+
+            // Anlatici iframe'i geri aç (bonus oyun başlatılıyor — o da kendi Gizle'sini çağıracak)
+            AnlaticiSeritKopru.Ornek?.Goster();
         }
 
         private void OnBonusAlTiklandi()

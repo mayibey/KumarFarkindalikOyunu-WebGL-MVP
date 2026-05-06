@@ -92,6 +92,9 @@ namespace Senaryo.Scripted
         public void GosterFinalEkrani()
         {
             if (_root == null) return;
+            // Anlatici HTML iframe'i gizle — final cutscene tam ekran dramatik. Gizli kalır;
+            // Yeniden Başla sahne reload yapar, sahne reset Awake'inde anlatici yeniden açılır.
+            AnlaticiSeritKopru.Ornek?.Gizle();
             // İstatistikler runtime'da hesaplanır.
             var oy = UnityEngine.Object.FindObjectOfType<OyunYoneticisi>();
             int sonBakiye = oy != null ? oy.BahisPanelMevcutBakiye() : 0;

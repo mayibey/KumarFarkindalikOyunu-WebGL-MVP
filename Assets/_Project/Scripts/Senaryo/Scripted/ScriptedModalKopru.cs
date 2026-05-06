@@ -108,38 +108,49 @@ namespace Senaryo.Scripted
             if (string.IsNullOrEmpty(mesaj) || _root == null || _mesajText == null)
                 yield break;
 
-            // State reset
-            _typewriterCalisiyor = false;
-            _typewriterAtla = false;
-            _yazmaTamamlandi = false;
-            _kullaniciDevamEtti = false;
-            _mesajText.text = "";
-            if (_tamamCanvasGroup != null)
+            // Anlatici HTML iframe'i gizle (modal'in altında kalmasın)
+            AnlaticiSeritKopru.Ornek?.Gizle();
+
+            try
             {
-                _tamamCanvasGroup.alpha = 0f;
-                _tamamCanvasGroup.interactable = false;
-                _tamamCanvasGroup.blocksRaycasts = false;
+                // State reset
+                _typewriterCalisiyor = false;
+                _typewriterAtla = false;
+                _yazmaTamamlandi = false;
+                _kullaniciDevamEtti = false;
+                _mesajText.text = "";
+                if (_tamamCanvasGroup != null)
+                {
+                    _tamamCanvasGroup.alpha = 0f;
+                    _tamamCanvasGroup.interactable = false;
+                    _tamamCanvasGroup.blocksRaycasts = false;
+                }
+
+                _root.SetActive(true);
+
+                // Slide-in: karakter + balon ekran-altından yukarı kayar
+                yield return KarakterGiris();
+
+                // Typewriter
+                yield return TypewriterYaz(mesaj);
+                _yazmaTamamlandi = true;
+
+                // [→] devam ikonu fade-in
+                yield return DevamIkonuFadeIn();
+
+                // Kullanıcı tıklayana kadar bekle
+                while (!_kullaniciDevamEtti) yield return null;
+
+                // Slide-out
+                yield return KarakterCikis();
+
+                _root.SetActive(false);
             }
-
-            _root.SetActive(true);
-
-            // Slide-in: karakter + balon ekran-altından yukarı kayar
-            yield return KarakterGiris();
-
-            // Typewriter
-            yield return TypewriterYaz(mesaj);
-            _yazmaTamamlandi = true;
-
-            // [→] devam ikonu fade-in
-            yield return DevamIkonuFadeIn();
-
-            // Kullanıcı tıklayana kadar bekle
-            while (!_kullaniciDevamEtti) yield return null;
-
-            // Slide-out
-            yield return KarakterCikis();
-
-            _root.SetActive(false);
+            finally
+            {
+                // Anlatici iframe'i geri aç (referans counter sayaç 0'a düşerse fiili display:block)
+                AnlaticiSeritKopru.Ornek?.Goster();
+            }
         }
 
         // ──────────────────────────────────────────────────────────────────────

@@ -92,6 +92,8 @@ namespace Senaryo.Scripted
             }
 
             _aktifMi = true;
+            // Anlatici HTML iframe'i gizle (bonus oyun ekranı + HUD üzerinde kalmasın)
+            AnlaticiSeritKopru.Ornek?.Gizle();
             try
             {
                 Debug.Log($"[ScriptedBonusOyun] Mevcut bonus oyun mekanizmasına bağlanıyor (yatırım={yatirim}, planlanan getiri={getiri}).");
@@ -154,6 +156,8 @@ namespace Senaryo.Scripted
             finally
             {
                 _aktifMi = false;
+                // Anlatici iframe'i geri aç (referans counter)
+                AnlaticiSeritKopru.Ornek?.Goster();
             }
         }
     }

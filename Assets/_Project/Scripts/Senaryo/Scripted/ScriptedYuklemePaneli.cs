@@ -104,6 +104,8 @@ namespace Senaryo.Scripted
                 Debug.LogError("[YuklemePaneliTANI] _root NULL → UIYarat çalışmamış olabilir, panel açılamadı!");
                 return;
             }
+            // Anlatici HTML iframe'i gizle (yükleme paneli ÜZERİNDE kalmasın)
+            AnlaticiSeritKopru.Ornek?.Gizle();
             _root.SetActive(true);
             IsAcik = true;
             Debug.Log("[YuklemePaneliTANI] Panel SetActive(true) — görünür olmalı.");
@@ -134,6 +136,8 @@ namespace Senaryo.Scripted
             {
                 if (_root != null) _root.SetActive(false);
                 IsAcik = false;
+                // Anlatici iframe'i geri aç (referans counter)
+                AnlaticiSeritKopru.Ornek?.Goster();
             }
         }
 

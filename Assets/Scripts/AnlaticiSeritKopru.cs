@@ -401,9 +401,17 @@ public class AnlaticiSeritKopru : MonoBehaviour
     //  (sol panel WebGL'de DOM iframe; Unity Canvas overlay'lerinin altında kalmaz, gizlenir).
     // ──────────────────────────────────────────────────────────────────
 
-    /// <summary>Sol anlatici HTML iframe'ini gizler (display:none). Modal/balon/yükleme açılırken çağrılır.</summary>
+    // Referans counter: birden fazla modal/panel aynı anda açıkken iç içe Gizle/Goster çağrıları
+    // tutarlı kalır. Her Gizle sayacı artırır; sayaç 1'e ulaştığında iframe display:none yapılır.
+    // Her Goster sayacı azaltır; sayaç 0'a düştüğünde iframe display:block yapılır.
+    private static int _gizliSayac = 0;
+
+    /// <summary>Sol anlatici HTML iframe'ini gizler (display:none). Modal/balon/yükleme açılırken çağrılır.
+    /// Referans-counted: birden fazla overlay aynı anda Gizle çağırırsa hepsi kapanmadan iframe geri açılmaz.</summary>
     public void Gizle()
     {
+        _gizliSayac++;
+        if (_gizliSayac != 1) return; // zaten gizli, ek çağrı yalnızca counter artırır
 #if UNITY_WEBGL && !UNITY_EDITOR
         try { AnlaticiPaneliGizle(); }
         catch (System.Exception e) { Debug.LogWarning("[Anlatici] Gizle hata: " + e.Message); }
@@ -412,9 +420,11 @@ public class AnlaticiSeritKopru : MonoBehaviour
 #endif
     }
 
-    /// <summary>Gizlenen anlatici HTML iframe'ini geri açar.</summary>
+    /// <summary>Gizlenen anlatici HTML iframe'ini geri açar (referans-counted, sayaç 0'da fiili display:block).</summary>
     public void Goster()
     {
+        _gizliSayac = System.Math.Max(0, _gizliSayac - 1);
+        if (_gizliSayac != 0) return; // hâlâ başka overlay açık, iframe gizli kalsın
 #if UNITY_WEBGL && !UNITY_EDITOR
         try { AnlaticiPaneliGoster(); }
         catch (System.Exception e) { Debug.LogWarning("[Anlatici] Goster hata: " + e.Message); }
