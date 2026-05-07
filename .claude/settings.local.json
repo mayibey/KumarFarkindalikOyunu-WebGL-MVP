@@ -17,7 +17,8 @@
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
       "Bash(sed -n '250,265p' Assets/_Project/Scripts/Senaryo/Scripted/ScriptedBonusTuzagiPopup.cs)",
-      "Bash(sed -n '180,215p' Assets/_Project/Scripts/Senaryo/Scripted/ScriptedFinalEkrani.cs)"
+      "Bash(sed -n '180,215p' Assets/_Project/Scripts/Senaryo/Scripted/ScriptedFinalEkrani.cs)",
+      "Bash(grep -v \"//\")"
     ]
   }
 }

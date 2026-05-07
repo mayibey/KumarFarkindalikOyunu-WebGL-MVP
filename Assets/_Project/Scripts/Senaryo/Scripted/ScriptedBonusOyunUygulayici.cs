@@ -171,8 +171,8 @@ namespace Senaryo.Scripted
                 float yuzde = BonusYatirim > 0 ? (BonusKazanc / (float)BonusYatirim) * 100f : 0f;
                 string mesaj =
                     $"Oyuncu tüm bakiyesi olan <b>{BonusYatirim:N0} TL</b>'yi bonus oyuna yatırdı. " +
-                    $"Geri aldığı <b>{BonusKazanc:N0} TL</b> — yatırdığının <b>%{yuzde:F1}</b>'i.\n\n" +
-                    "Bu sömürünün adı <i>'değişken oranlı pekiştireç'</i> — beyin bu kayıba rağmen " +
+                    $"Geri aldığı <b>{BonusKazanc:N0} TL</b>; yatırdığının <b>%{yuzde:F1}</b>'i.\n\n" +
+                    "Bu sömürünün adı <i>'değişken oranlı pekiştireç'</i>: beyin bu kayıba rağmen " +
                     "<i>'belki bir dahaki sefere'</i> diyerek devam etmeye programlanır.";
                 var modal = UnityEngine.Object.FindObjectOfType<ScriptedModalKopru>();
                 if (modal != null)

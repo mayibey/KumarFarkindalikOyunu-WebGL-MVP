@@ -123,7 +123,7 @@ namespace Senaryo.Scripted
                     "Bu aşamada oyuncu çevresindeki kişilere yalan söyleyerek " +
                     "veya bankalardan kredi çekerek para bulmaya çalışır.\n\n" +
                     "Burada amaç eski kayıpların telafisidir. Ancak bu, " +
-                    "kumar bağımlılığının en yıkıcı evresidir — borç katlanarak " +
+                    "kumar bağımlılığının en yıkıcı evresidir: borç katlanarak " +
                     "büyür, ilişkiler bozulur, hayatlar mahvolur."
                 ));
             }

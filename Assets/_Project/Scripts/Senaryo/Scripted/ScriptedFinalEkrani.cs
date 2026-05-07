@@ -213,7 +213,7 @@ namespace Senaryo.Scripted
             aileTxt.lineSpacing = 6f;
             aileTxt.text =
                 "Bu rakam ortalama bir aile için 2,5 aylık geçim demek.\n" +
-                "<size=18><i>Gerçek hayatta oyuncu burada durmaz — bir sonraki maaş, bir sonraki kredi, bir sonraki dönüş umuduyla devam eder.</i></size>";
+                "<size=18><i>Gerçek hayatta oyuncu burada durmaz; bir sonraki maaş, bir sonraki kredi, bir sonraki dönüş umuduyla devam eder.</i></size>";
             aileTxt.raycastTarget = false;
 
             // Mesaj (alt) — pedagojik metin + Yeşilay
@@ -229,7 +229,7 @@ namespace Senaryo.Scripted
             mesTxt.color = new Color(0.85f, 0.85f, 0.85f, 1f);
             mesTxt.enableWordWrapping = true;
             mesTxt.text =
-                "Bu yaşadığın senaryo Türkiye'de her gün binlerce kişinin başına geliyor.\n" +
+                "Bu senaryo Türkiye'de her gün binlerce kişinin başına geliyor.\n" +
                 "Online kumar bağımlılığı bir hastalıktır; yardım almak güçlü bir farkındalıktır.\n\n" +
                 $"<b>Yeşilay Yardım Hattı: {YESILAY_HATTI}</b>";
             mesTxt.raycastTarget = false;

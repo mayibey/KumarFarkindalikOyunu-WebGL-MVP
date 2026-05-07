@@ -46,48 +46,47 @@ namespace Senaryo.Scripted.Editor
         private const string ASSET_KLASOR = "Assets/_Project/Resources";
         private const string ASSET_YOL = ASSET_KLASOR + "/ScriptedSenaryo.asset";
 
-        // === Modal mesajları (Bölüm 4 plan tablosu, A1+A2 revizyon) ===
-        // A1 Spin 1: ilk kazanç sonrası — saatlerce oynamanın hatırası + manipülasyon farkındalığı
-        // (sadece bir kez, A1 ilk spin sonu; sonraki spinlerde bu modal yok — rahatsız etmesin).
+        // === Modal mesajları (3. tekil dış-gözlemci dili — pedagojik distance) ===
+        // A1 Spin 1: ilk kazanç sonrası — saatlerce oynamanın hatırası
+        // (manipülasyon farkındalığı M_A2_S2'ye taşındı çünkü A1 S1'de gerçek net kazanç var,
+        // manipülasyon görünmez. M_A2_S2 = bahisten az ödeme alan kazanç → manipülasyon net.)
         private const string M_A1_S1 =
-            "İlk kazanç en tehlikeli başlangıçtır. Beynin bunu unutmayacak — saatlerce oyun başında kalmanın sebebi bu kısa anın hatırasıdır.\n\n" +
-            "<b>⚠️ DİKKAT — manipülasyon farkındalığı:</b>\n" +
-            "Az önce <b>500 TL</b> bahis koydun, ekrana <i>'KAZANÇ 1.500 TL'</i> yazdı, bakiyene <b>+1.000 TL</b> eklendi. " +
-            "Sen <i>'kazandım'</i> hissi yaşıyorsun. AMA bu, sistemin temel manipülasyonu — " +
-            "her spinde paranın bir kısmını alıp kalanını <i>'kazanç'</i> olarak gösterir. " +
-            "Uzun vadede oyuncu daima kayıpta. Algoritma bunu kasıtlı tasarladı: " +
-            "sürekli artıyormuş gibi göstererek seni bağlamak için.";
-        // A1 Spin 4: dopamin yakıtı (eski "sonraki" kelimesi çıkarıldı)
-        private const string M_A1_S4 = "Oyuncu ilk kazançları yaşıyor. Beyninde dopamin salgılanıyor. Bu his, saatlerce oyun oynamanın yakıtı olacak.";
-        // A1 Spin 7 ve Spin 8 SONRA modal'ları KALDIRILDI:
-        //   - Spin 7 ÖNCE modal OyunYoneticisi.Spin.cs hook'unda gösteriliyor (kasıtlı kazanç önceden uyarı).
-        //   - Spin 8 modal yok, sade akış.
+            "İlk kazanç oyuncu için en tehlikeli başlangıçtır. Oyuncunun beyni bu anı unutmayacak: saatlerce oyun başında kalmasının sebebi bu kısa anın hatırasıdır.";
+        // A1 Spin 4: dopamin yakıtı (3. tekil)
+        private const string M_A1_S4 = "Oyuncu ilk kazançları yaşıyor. Oyuncunun beyninde dopamin salgılanıyor. Bu his, saatlerce oyun oynamasının yakıtı olacak.";
+        // A1 Spin 7 ve Spin 8 SONRA modal'ları KALDIRILDI (sade akış, ÖNCE modal SpinButonImpl hook'unda).
 
-        // A2 Spin 3: 3 scatter near-miss — "Az Daha Tutuyordu" yanılsaması
-        private const string M_A2_S3 = "Az önce <b>3 yıldız (bonus sembolü)</b> düştü, bir tane daha gelseydi BONUS oyun açılacaktı.\n\nBu <b>'Az Daha Tutuyordu'</b> yanılsamasıdır — beynin bu kıl payı kaçırışı, kazanmış gibi algılar. Oyuncu <i>'çok yaklaştım'</i> diye düşünüp daha fazla oynar.";
-        // A2 Spin 4 SONRA modal — kasıtlı kazanç sonrası kontrol yanılsaması vurgusu
-        private const string M_A2_S4 = "Sen oyunu yönettiğini düşünürken, oyun seni adım adım içine çekiyor.";
-        // A2 Spin 6: 7 üzüm + 7 elma kıl payı kaçırma — kontrol yanılsaması pekişmesi
-        private const string M_A2_S6 = "Hem üzüm hem elma 1 sembol eksikti. İkisi birden kıl payı kaçtı. Şu an 'çok yakındım, bir daha denesem' hissi yaşıyorsun. Bu his manipülasyon — algoritma bunu kasıtlı yarattı. Kontrol yanılsaması böyle pekişiyor.";
-        // A2 Spin 8 modal KALDIRILDI (sade akış, A2 sonu modal yok).
+        // A2 Spin 2: bahisten az ödeme alan kazanç — manipülasyon farkındalığı net görünür
+        // (A2 bahis 1000, brüt 500 → ekran "KAZANÇ 500 TL" yazar, bakiyeden 500 düşer).
+        private const string M_A2_S2 =
+            "<b>⚠️ DİKKAT: manipülasyon farkındalığı</b>\n\n" +
+            "Oyuncu az önce <b>1.000 TL</b> bahis koydu, ekrana <i>'KAZANÇ 500 TL'</i> yazdı, bakiyesinden <b>500 TL EKSİLDİ</b> ama oyuncunun zihninde <i>'kazandım'</i> hissi yaşanıyor.\n\n" +
+            "Bu sistemin temel manipülasyonudur: her spinde bahisten az ödeme yaparken büyük yazıyla <i>'KAZANÇ'</i> yazılır. Oyuncuda <i>'kazanıyorum'</i> algısı yaratılır. Uzun vadede oyuncu daima kayıptadır. Algoritma bunu kasıtlı tasarlar: sürekli artıyormuş gibi göstererek oyuncuyu bağlamak için.";
+        // A2 Spin 3: 3 yıldız near-miss — "Az Daha Tutuyordu" yanılsaması + bonus oyun değeri açıklaması
+        private const string M_A2_S3 = "Az önce <b>3 yıldız (bonus sembolü)</b> düştü. Bir tane daha gelseydi, bahis miktarının 100 katı değere sahip 10 ücretsiz spin hakkı veren bir BONUS oyun açılacaktı.\n\nBu <b>'Az Daha Tutuyordu'</b> yanılsamasıdır: oyuncunun beyni bu kıl payı kaçırışı kazanmış gibi algılar. Oyuncu <i>'çok yaklaştım'</i> diye düşünüp daha fazla oynar.";
+        // A2 Spin 4 SONRA modal — kontrol yanılsaması vurgusu (3. tekil)
+        private const string M_A2_S4 = "Oyuncu oyunu yönettiğini düşünürken, oyun onu adım adım içine çekiyor.";
+        // A2 Spin 6: kontrol yanılsaması pekişmesi (3. tekil)
+        private const string M_A2_S6 = "Hem üzüm hem elma 1 sembol eksikti. İkisi birden kıl payı kaçtı. Oyuncu şu an <i>'çok yakındım, bir daha denesem'</i> hissi yaşıyor. Bu his manipülasyon: algoritma bunu kasıtlı yarattı. Kontrol yanılsaması böyle pekişiyor.";
+        // A2 Spin 8 modal KALDIRILDI (sade akış).
 
-        // A3 modal mesajları (revize)
+        // A3 modal mesajları
         private const string M_A3_S3 = "İlk ciddi kayıplar yaşanıyor. Amaç para kazanmaktan çıktı, kayıpları telafi etmeye dönüştü.";
         // A3 Spin 6: kayıp kovalama + bahis 2500'e otomatik yükseltme uyarısı
-        private const string M_A3_S6 = "Oyuncu kayıpları geri kazanmak için daha fazla risk alıyor. Mantıklı düşünme yetisini kaybediyor.\n\n⚠️ Şimdi bahisini 2.500 TL'ye yükseltecek — <i>'daha yüksek bahis daha hızlı kurtarır'</i> yanılgısıyla. Bu da algoritmanın istediği şey.";
-        // A3 Spin 7: eski A3 Spin 8 metni buraya taşındı
+        private const string M_A3_S6 = "Oyuncu kayıpları geri kazanmak için daha fazla risk alıyor, mantıklı düşünme yetisini kaybediyor.\n\n⚠️ Şimdi oyuncu bahsini 2.500 TL'ye yükseltecek; <i>'daha yüksek bahis daha hızlı kurtarır'</i> yanılgısıyla. Bu da algoritmanın istediği şey.";
+        // A3 Spin 7
         private const string M_A3_S7 = "Bir tur daha = bir kayıp daha.";
         // A3 Spin 8 modali KALDIRILDI
 
-        // A4 modal mesajları (revize)
-        private const string M_A4_S2 = "Üst üste kayıplar oyuncuyu yıpratıyor. Algoritma birkaç spin sonra büyük bir vuruş hazırlıyor — ama önce pes etme eşiğine kadar getirecek.";
-        private const string M_A4_S4 = "Oyuncu pes etmek üzere. Tam bu noktada büyük bir kazanç düşürülecek. Bu kasıtlı manipülasyondur — pes etmeyi engellemek için tasarlanan bir kurtarma.";
+        // A4 modal mesajları
+        private const string M_A4_S2 = "Üst üste kayıplar oyuncuyu yıpratıyor. Algoritma birkaç spin sonra büyük bir vuruş hazırlıyor; ama önce pes etme eşiğine kadar getirecek.";
+        private const string M_A4_S4 = "Oyuncu pes etmek üzere. Tam bu noktada büyük bir kazanç düşürülecek. Bu kasıtlı manipülasyondur: pes etmeyi engellemek için tasarlanan bir kurtarma.";
         // A4 Spin 5 modali asset'ten kaldırıldı — AnlaticiSeritKopru.A4S5CarpanModalAkisi runtime'da çağırır.
 
-        // A5 modal mesajları (revize)
-        private const string M_A5_S1 = "Bahis arttı, beklenti arttı. Adrenalin salgılanıyor.";
+        // A5 modal mesajları
+        private const string M_A5_S1 = "Bahis arttı, beklenti arttı. Oyuncuda adrenalin salgılanıyor.";
         // A5 Spin 3: ×500 çarpan kaçtı + sabırsızlık silahı
-        private const string M_A5_S3 = "Ekrana ×500 çarpanı düştü ama eşleşme olmadı. Bu kasıtlı bir tasarım — beynin <i>'çok yaklaştım, bir daha denesem belki tutar'</i> diye düşünüyor. Bu hisle bir sonraki bahsi atmak için sabırsızlanıyorsun. İşte tam bu sabırsızlık, algoritmanın kullandığı silahtır.";
+        private const string M_A5_S3 = "Ekrana ×500 çarpanı düştü ama eşleşme olmadı. Bu kasıtlı bir tasarım: oyuncunun beyni <i>'çok yaklaştım, bir daha denesem belki tutar'</i> diye düşünüyor. Bu hisle oyuncu bir sonraki bahsi atmak için sabırsızlanır. İşte tam bu sabırsızlık, algoritmanın kullandığı silahtır.";
         private const string M_A5_S4_BONUS = "🎰 ŞANSLI SAATİNDESİN! Bonus oyun aktif edildi. Bakiyenin tamamını yatır, x10000 kazanma şansını kaçırma. SINIRLI TEKLİF.";
         // A5 Spin 5 modali asset'ten kaldırıldı — ScriptedBonusOyunUygulayici dinamik yüzde ile runtime'da modal oynatır.
 
@@ -293,10 +292,15 @@ namespace Senaryo.Scripted.Editor
         private static void DoldurAsama2(List<ScriptedSpinKaydi> liste)
         {
             liste.Add(TekClusterSpin(1, 1, BAHIS_A2, 1000, SYM_ELMA, SpinTipi.Kazanc));
-            liste.Add(TekClusterSpin(2, 1, BAHIS_A2, 500, SYM_HINDISTAN, SpinTipi.Kazanc));
-            // Spin 3: 3 scatter near-miss (revize: görsel scatter NearMiss, modal "Az Daha Tutuyordu") — bonus kıl payı kaçtı
+            // Spin 2: tek cluster hindistan, brüt 500 (bahis 1000) — manipülasyon farkındalığı modali
+            // (1000 bahis - 500 brüt = 500 net kayıp ama ekran "KAZANÇ 500 TL" yazar; sömürü görünür).
+            liste.Add(TekClusterSpin(2, 1, BAHIS_A2, 500, SYM_HINDISTAN, SpinTipi.Kazanc, M_A2_S2));
+            // Spin 3: 3 yıldız (scatter) NearMiss — modal sol-altta açıldığında yıldızlar görünür kalsın
+            // diye SABİT KONUM helper kullanılır (üst-sol, üst-sağ, orta-sağ üst).
+            // Modal mesajı asset'ten KALDIRILDI — AnlaticiSeritKopru.A2S3YildizModalAkisi runtime'da
+            // yıldızları döndürürken modal'ı tetikler (M_A2_S3 metni runtime sınıfına kopyalandı).
             liste.Add(SpinTanimi(3, 1, BAHIS_A2, SpinTipi.NearMiss, 0,
-                GridIlk(null, Seed(1, 3), (SYM_SCATTER, 3)), null, NoTumble(), M_A2_S3));
+                GridSabitScatterUstYari(Seed(1, 3)), null, NoTumble()));
             // Spin 4: tek cluster üzüm = 1500 (kasıtlı kazanç) | SONRA modal A2_S4 (kontrol yanılsaması pekişmesi)
             liste.Add(TekClusterSpin(4, 1, BAHIS_A2, 1500, SYM_UZUM, SpinTipi.Kazanc, M_A2_S4));
             // Spin 5: 2 tumble hindistan→muz = 750 (revize: eski sıfır → tatlı minik kazanç)
@@ -470,6 +474,31 @@ namespace Senaryo.Scripted.Editor
         private static int[] GridIlk(int[] allClusters, int seed, params (int sym, int adet)[] kumeler)
         {
             var (g, _) = GridIlkCarpanli(allClusters, seed, 0, kumeler);
+            return g;
+        }
+
+        /// <summary>
+        /// A2 Spin 3 NearMiss için özel grid: 3 SCATTER (yıldız) sembolü grid'in ÜST YARISINDA sabit
+        /// konumlarda yerleşir. Sol-alt modal açılınca yıldızlar arkada kalmasın diye sağ ve üst kısma
+        /// dağıtılmıştır. Geri kalan 27 hücre rastgele dolgu (6 meyve sembolü, hiçbir cluster 8'e ulaşmaz).
+        /// Konumlar (idx = sat × SUTUN + sutun):
+        ///   - (sat 0, sutun 1) = idx 1   — üst-sol
+        ///   - (sat 0, sutun 4) = idx 4   — üst-sağ
+        ///   - (sat 1, sutun 5) = idx 11  — orta-sağ üst
+        /// </summary>
+        private static int[] GridSabitScatterUstYari(int seed)
+        {
+            int[] g = new int[HUCRE_SAYISI];
+            var rng = new System.Random(seed);
+            int[] dolguPool = { SYM_ARMUT, SYM_CILEK, SYM_ERIK, SYM_KARPUZ, SYM_MUZ, SYM_HINDISTAN };
+            // Tüm hücreleri rastgele dolguyla doldur (cluster 8'e ulaşmaması için 6 sembol döngüsü
+            // — paytable konum bağımsız ama yine de yedek olarak dolguPool'dan eşit dağılım).
+            for (int i = 0; i < HUCRE_SAYISI; i++)
+                g[i] = dolguPool[rng.Next(dolguPool.Length)];
+            // 3 scatter sabit konum: üst yarı, modal sol-altta açıldığında hepsi görünür.
+            g[1] = SYM_SCATTER;   // sat 0, sutun 1
+            g[4] = SYM_SCATTER;   // sat 0, sutun 4
+            g[11] = SYM_SCATTER;  // sat 1, sutun 5
             return g;
         }
 

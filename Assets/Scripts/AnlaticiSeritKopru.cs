@@ -41,6 +41,11 @@ public class AnlaticiSeritKopru : MonoBehaviour
     private bool _a3BahisYukseltildi = false;
     /// <summary>A4 Spin 5 ×100 çarpan modal'ı bir kez gösterildi mi.</summary>
     private bool _a4S5CarpanModalGosterildi = false;
+    /// <summary>A2 Spin 3 yıldız döndürme + modal bir kez gösterildi mi.</summary>
+    private bool _a2S3DonmeGosterildi = false;
+    /// <summary>A2 S3 yıldız döndürme: aktif coroutine'ler + GameObject'ler.</summary>
+    private readonly System.Collections.Generic.List<Coroutine> _aktifDansCoroutineleri = new System.Collections.Generic.List<Coroutine>();
+    private readonly System.Collections.Generic.List<GameObject> _aktifYildizlar = new System.Collections.Generic.List<GameObject>();
     /// <summary>OyunYoneticisi.Spin.cs ÖNCE modal kontrolü için: aktif spin index'i (0-indexed).</summary>
     public int AktifSpin => _aktifSpin;
     private long _baslangicBakiye = 0;
@@ -160,6 +165,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
         _a5GecisModalGosterildi = false;
         _a3BahisYukseltildi = false;
         _a4S5CarpanModalGosterildi = false;
+        _a2S3DonmeGosterildi = false;
         Senaryo.Scripted.ScriptedYuklemePaneli.BorcAlindiSifirla();
         Senaryo.Scripted.ScriptedBonusOyunUygulayici.BonusYatirim = 0;
         Senaryo.Scripted.ScriptedBonusOyunUygulayici.BonusKazanc = 0;
@@ -338,6 +344,13 @@ public class AnlaticiSeritKopru : MonoBehaviour
         // SPIN-NO ÖZEL HOOK'lar (asama içinde belirli spin sonrası tetiklenen aksiyonlar):
         //   - A3 Spin 6 sonu: bahis otomatik 2500'e yükselt (kayıp kovalama tuzağı pekişir).
         //   - A4 Spin 5 sonu: ×100 çarpan modali (manipülasyon vuruşu pedagojik vurgu).
+        if (_aktifAsama == 1 && _aktifSpin == 3 && !_a2S3DonmeGosterildi)
+        {
+            // A2 Spin 3 sonu: 3 yıldız NearMiss — yıldızları döndür + modal aç
+            _a2S3DonmeGosterildi = true;
+            Debug.Log("[YildizDans] A2 Spin 3 sonu — yıldız dans + modal akışı başlatılıyor.");
+            StartCoroutine(A2S3YildizModalAkisi());
+        }
         if (_aktifAsama == 2 && _aktifSpin == 6 && !_a3BahisYukseltildi)
         {
             _a3BahisYukseltildi = true;
@@ -528,19 +541,19 @@ public class AnlaticiSeritKopru : MonoBehaviour
             yield break;
         }
         string mesaj =
-            "Hoş geldin. Bu simülasyonda online kumar oyunlarının insanları nasıl etkilediğini birlikte göreceğiz.\n\n" +
+            "Hoş geldiniz. Bu simülasyonda online kumar oyunlarının oyuncuları nasıl etkilediğini birlikte göreceğiz.\n\n" +
             "<b>Önce oyunu tanıyalım:</b>\n" +
-            "• Karşında 6×5'lik meyve makinesi var. SPIN tuşuna basınca meyveler döner.\n" +
+            "• Ekranda 6×5'lik meyve makinesi var. SPIN tuşuna basıldığında meyveler döner.\n" +
             "• Aynı meyveden <b>8 veya daha fazlası</b> bir araya gelirse kazanç verir.\n" +
-            "• Bazı turlarda <b>ÇARPAN</b> düşer (×2, ×5, ×100 vs.) — kazancı katlar.\n" +
-            "• Kazanan meyveler patlar, üstten yenileri düşer (<b>TUMBLE</b>) — zincir kazançlar olur.\n" +
+            "• Bazı turlarda <b>ÇARPAN</b> düşer (×2, ×5, ×100 vs.) ve kazancı katlar.\n" +
+            "• Kazanan meyveler patlar, üstten yenileri düşer (<b>TUMBLE</b>); zincir kazançlar olur.\n" +
             "• 4 Bonus Sembolü (yıldız) gelirse <b>BONUS</b> oyun açılır.\n\n" +
             "<b>Ekrandaki diğer öğeler:</b>\n" +
-            "• <b>Sol panel:</b> hangi aşamadasın, sahne arkası ne oluyor — birlikte görelim diye buradan takip edeceğiz.\n" +
-            "• <b>Bakiye:</b> oyuna ayrılan paran (50.000 TL ile başlıyorsun).\n" +
-            "• <b>Bahis:</b> her spinde harcayacağın miktar, + ve − tuşlarıyla değişir.\n" +
-            "• <b>KAZANÇ:</b> o spin'de kazandığın miktar.\n\n" +
-            "Hadi başlayalım — ilk aşama <i>'Isındırma ve Umut'</i>.";
+            "• <b>Sol panel:</b> oyuncunun hangi aşamada olduğunu, sahne arkasında ne yaşandığını gösterir; birlikte buradan takip edeceğiz.\n" +
+            "• <b>Bakiye:</b> oyuna ayrılan para (oyuncu 50.000 TL ile başlıyor).\n" +
+            "• <b>Bahis:</b> her spinde harcanacak miktar, + ve − tuşlarıyla değişir.\n" +
+            "• <b>KAZANÇ:</b> o spinde kazanılan miktar.\n\n" +
+            "Hadi başlayalım: ilk aşama <i>'Isındırma ve Umut'</i>.";
         yield return modal.ModalGoster(mesaj);
     }
 
@@ -550,9 +563,9 @@ public class AnlaticiSeritKopru : MonoBehaviour
         var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
         if (modal == null) yield break;
         string mesaj =
-            "Birinci aşama tamamlandı. Şu an artıdasın, kendini iyi hissediyorsun.\n\n" +
-            "Sırada 'Kontrol Bende Hissi' aşaması var. Bu aşamada algoritma sana üst üste kayıplar yaşatacak. Ama yine de hâlâ bakiyen pozitif olduğu için <i>'kontrol bende, ben isteyince çıkabilirim, bahis değişiklikleriyle kazanırım'</i> düşüneceksin.\n\n" +
-            "İşte bu yanılsamayı birlikte göreceğiz.";
+            "Birinci aşama tamamlandı. Oyuncu şu an artıda, kendini iyi hissediyor.\n\n" +
+            "Sırada 'Kontrol Bende Hissi' aşaması var. Bu aşamada algoritma oyuncuya üst üste kayıplar yaşatacak. Ama yine de bakiye hâlâ pozitif olduğu için oyuncu <i>'kontrol bende, istediğim zaman çıkarım, bahis değişiklikleriyle kazanırım'</i> gibi düşünceler yaşar.\n\n" +
+            "Bu yanılsamayı birlikte göreceğiz.";
         yield return modal.ModalGoster(mesaj);
     }
 
@@ -562,8 +575,8 @@ public class AnlaticiSeritKopru : MonoBehaviour
         var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
         if (modal == null) yield break;
         string mesaj =
-            "İkinci aşama tamamlandı. Şu an küçük kayıplar yaşadın ama hâlâ artıdasın. <i>'Kontrol bende'</i> hissin yerleşti.\n\n" +
-            "Sırada <b>'Geri Kazanabilirim'</b> aşaması var. Bu aşamada algoritma kayıpları katlayacak. Sen <i>'azıcık daha bahis koyarsam telafi ederim'</i> düşüneceksin. Bu <b>'Kayıp Kovalama'</b> denilen psikolojik tuzak — bir kez bu tuzağa girilirse çıkmak çok zor.\n\n" +
+            "İkinci aşama tamamlandı. Oyuncu şu an küçük kayıplar yaşadı ama hâlâ artıda; <i>'kontrol bende'</i> hissi yerleşti.\n\n" +
+            "Sırada <b>'Geri Kazanabilirim'</b> aşaması var. Bu aşamada algoritma kayıpları katlayacak. Oyuncu <i>'azıcık daha bahis koyarsam telafi ederim'</i> düşünür. Bu <b>'Kayıp Kovalama'</b> denilen psikolojik tuzak: bir kez bu tuzağa girilirse çıkmak çok zor.\n\n" +
             "Birlikte göreceğiz.";
         yield return modal.ModalGoster(mesaj);
     }
@@ -574,8 +587,8 @@ public class AnlaticiSeritKopru : MonoBehaviour
         var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
         if (modal == null) yield break;
         string mesaj =
-            "Üçüncü aşamayı gördün — kayıp kovalama tuzağı. Oyuncu bahsi yükselterek kurtulmaya çalıştı, daha çok kaybetti.\n\n" +
-            "Sırada <b>'Şansım Döndü'</b> aşaması var. Bu aşamada algoritma oyuncuyu pes etme eşiğine getirecek — üst üste sert kayıplar. Tam pes etmek üzereyken büyük bir kazanç düşürecek. Bu büyük kazanç tesadüf değil, <b>kasıtlı bir manipülasyon vuruşu</b> olacak.\n\n" +
+            "Üçüncü aşamayı gördük: kayıp kovalama tuzağı. Oyuncu bahsi yükselterek kurtulmaya çalıştı, daha çok kaybetti.\n\n" +
+            "Sırada <b>'Şansım Döndü'</b> aşaması var. Bu aşamada algoritma oyuncuyu pes etme eşiğine getirecek; üst üste sert kayıplar. Tam pes etmek üzereyken büyük bir kazanç düşürecek. Bu büyük kazanç tesadüf değil, <b>kasıtlı bir manipülasyon vuruşu</b> olacak.\n\n" +
             "Amaç: oyuncuyu tekrar oyuna bağlamak.";
         yield return modal.ModalGoster(mesaj);
     }
@@ -586,8 +599,8 @@ public class AnlaticiSeritKopru : MonoBehaviour
         var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
         if (modal == null) yield break;
         string mesaj =
-            "Büyük kazancı yaşadın. Şu an <i>'şansım döndü, daha kazanırım'</i> hissindesin. İşte tam bu duygu, sıradaki aşamanın yakıtıdır.\n\n" +
-            "Sırada <b>'Sonunu Düşünen Kahraman Olamaz'</b> aşaması var. Bu aşamada algoritma sana cazip bir <b>'bonus oyun tuzağı'</b> kuracak — tüm bakiyeni yatırma karşılığında büyük kazanç vaat edilecek. Yatırırsan, çok azını geri alacaksın.\n\n" +
+            "Büyük kazanç yaşandı. Oyuncu şu an <i>'şansım döndü, daha kazanırım'</i> hissinde. İşte tam bu duygu, sıradaki aşamanın yakıtıdır.\n\n" +
+            "Sırada <b>'Sonunu Düşünen Kahraman Olamaz'</b> aşaması var. Bu aşamada algoritma oyuncuya cazip bir <b>'bonus oyun tuzağı'</b> kuracak: tüm bakiyesini yatırma karşılığında büyük kazanç vaat edilecek. Yatırırsa, çok azını geri alacak.\n\n" +
             "Bu, sömürünün doruk noktasıdır. Birlikte göreceğiz.";
         yield return modal.ModalGoster(mesaj);
     }
@@ -615,8 +628,8 @@ public class AnlaticiSeritKopru : MonoBehaviour
 
         // 2) A6 bahis bilgilendirme
         yield return modal.ModalGoster(
-            "Bu kez oyuncu kayıplarını HIZLI telafi etmek istiyor. Bahsi <b>10.000 TL</b>'ye çıkardı.\n\n" +
-            "Sadece 5 spin yetecek — algoritma sömürünün son evresinde tüm bakiyeyi alacak. " +
+            "Bu kez oyuncu kayıplarını HIZLI telafi etmek istiyor. Bahsini <b>10.000 TL</b>'ye çıkardı.\n\n" +
+            "Sadece 5 spin yetecek; algoritma sömürünün son evresinde tüm bakiyeyi alacak. " +
             "Bu hızlı bitiş, gerçek hayattaki <i>'son kez deneme'</i> bahanesinin sonucudur."
         );
 
@@ -643,6 +656,81 @@ public class AnlaticiSeritKopru : MonoBehaviour
         Debug.Log($"[BahisAnim] {eski} → {yeni} TL animasyonu tamamlandı (adım={adim}).");
     }
 
+    /// <summary>
+    /// A2 Spin 3 NearMiss: 3 yıldız sahnede dönerken (sürekli rotate) modal açılır,
+    /// modal kapanınca dönme durur. Asset üreticide M_A2_S3 kaldırıldı; metin runtime'da burada.
+    /// </summary>
+    private System.Collections.IEnumerator A2S3YildizModalAkisi()
+    {
+        yield return new WaitForSecondsRealtime(0.5f); // Spin animasyonu otursun, yıldızlar yerleşsin
+        YildizDonmeBaslat();
+        yield return new WaitForSecondsRealtime(0.5f); // Kullanıcı dönmeyi fark etsin
+        var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
+        string mesaj =
+            "Az önce <b>3 yıldız (bonus sembolü)</b> düştü. Bir tane daha gelseydi, " +
+            "bahis miktarının 100 katı değere sahip 10 ücretsiz spin hakkı veren bir BONUS oyun açılacaktı.\n\n" +
+            "Bu <b>'Az Daha Tutuyordu'</b> yanılsamasıdır: oyuncunun beyni bu kıl payı kaçırışı kazanmış gibi algılar. " +
+            "Oyuncu <i>'çok yaklaştım'</i> diye düşünüp daha fazla oynar.";
+        if (modal != null)
+            yield return modal.ModalGoster(mesaj);
+        YildizDonmeyiDurdur();
+    }
+
+    /// <summary>Sahnedeki yıldız (scatter) sembol GameObject'lerini bulur — Image sprite name fallback.</summary>
+    private System.Collections.Generic.List<GameObject> YildizlariBul()
+    {
+        var sonuc = new System.Collections.Generic.List<GameObject>();
+        var images = UnityEngine.Object.FindObjectsOfType<UnityEngine.UI.Image>();
+        foreach (var img in images)
+        {
+            if (img == null || img.sprite == null) continue;
+            string ad = img.sprite.name.ToLower();
+            if (ad.Contains("scatter") || ad.Contains("yildiz") || ad.Contains("yıldız") || ad.Contains("star"))
+                sonuc.Add(img.gameObject);
+        }
+        Debug.Log($"[YildizBulucu] {sonuc.Count} yıldız bulundu (sprite name).");
+        return sonuc;
+    }
+
+    private void YildizDonmeBaslat()
+    {
+        _aktifYildizlar.Clear();
+        _aktifDansCoroutineleri.Clear();
+        _aktifYildizlar.AddRange(YildizlariBul());
+        Debug.Log($"[YildizDans] {_aktifYildizlar.Count} yıldız döndürülüyor.");
+        foreach (var y in _aktifYildizlar)
+        {
+            var c = StartCoroutine(YildizDon(y));
+            _aktifDansCoroutineleri.Add(c);
+        }
+    }
+
+    private System.Collections.IEnumerator YildizDon(GameObject yildiz)
+    {
+        if (yildiz == null) yield break;
+        const float DONME_HIZI = 360f / 1.5f; // 1 tam tur 1.5 sn
+        while (yildiz != null)
+        {
+            yildiz.transform.Rotate(0f, 0f, DONME_HIZI * Time.unscaledDeltaTime);
+            yield return null;
+        }
+    }
+
+    private void YildizDonmeyiDurdur()
+    {
+        Debug.Log("[YildizDans] Dönme durduruluyor.");
+        foreach (var c in _aktifDansCoroutineleri)
+        {
+            if (c != null) StopCoroutine(c);
+        }
+        _aktifDansCoroutineleri.Clear();
+        foreach (var y in _aktifYildizlar)
+        {
+            if (y != null) y.transform.localRotation = Quaternion.identity;
+        }
+        _aktifYildizlar.Clear();
+    }
+
     /// <summary>A4 Spin 5 sonu ×100 çarpan: manipülasyon vuruşunun pedagojik açıklaması.</summary>
     private System.Collections.IEnumerator A4S5CarpanModalAkisi()
     {
@@ -651,8 +739,8 @@ public class AnlaticiSeritKopru : MonoBehaviour
         var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
         if (modal == null) yield break;
         string mesaj =
-            "⚡ Ekrana ×100 çarpan düştü! Az önce pes etmek üzereydin, şimdi büyük kazanç. " +
-            "Bu rastlantı değil — algoritma seni tam bu duygusal anda yakaladı. <i>'Şansım döndü'</i> diyeceksin. " +
+            "⚡ Ekrana ×100 çarpan düştü! Oyuncu az önce pes etmek üzereydi, şimdi büyük kazanç. " +
+            "Bu rastlantı değil: algoritma oyuncuyu tam bu duygusal anda yakaladı. <i>'Şansım döndü'</i> diyecek. " +
             "Aslında manipülasyon başarılı oldu.";
         yield return modal.ModalGoster(mesaj);
     }
@@ -667,7 +755,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
         var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
         string mesaj =
             "Oyuncu artık paranın bittiğini fark etti.\n\n" +
-            "Şimdi başka yerden para bulma arayışında. Yalan söylemeye başlıyor — " +
+            "Şimdi başka yerden para bulma arayışında. Yalan söylemeye başlıyor: " +
             "yakınlarına, akrabalarına, arkadaşlarına...\n\n" +
             "Bu, kumar bağımlılığının yıkıcı evresidir. Bir sonraki ekran o anı temsil ediyor.";
         if (modal != null)

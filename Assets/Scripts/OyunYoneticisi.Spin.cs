@@ -203,8 +203,8 @@ public partial class OyunYoneticisi
             {
                 _onceModalA1S7Gosterildi = true;
                 StartCoroutine(OnceModalGosterVeSpin(
-                    "Şimdi büyük bir kazanç gelecek. Bu kasıtlı — algoritma seni 'şanslıyım' hissine kaptırmak istiyor. " +
-                    "Kazanç sonrası ne hissedeceğine dikkat et: <b>'Ben kazanırım'</b> duygusu yerleşecek."
+                    "Şimdi büyük bir kazanç gelecek. Bu kasıtlı: algoritma oyuncuyu <i>'şanslıyım'</i> hissine kaptırmak istiyor. " +
+                    "Kazanç sonrası oyuncunun zihninde <b>'ben kazanırım'</b> duygusu yerleşecek."
                 ));
                 return;
             }
