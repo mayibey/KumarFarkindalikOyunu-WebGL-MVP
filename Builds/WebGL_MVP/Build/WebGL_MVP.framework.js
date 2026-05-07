@@ -1806,8 +1806,9 @@ function dbg(text) {
   function _AnlaticiPaneliArkayaAt() {
           var c = document.getElementById('anlaticiPanelContainer');
           if (c) {
-              c.style.zIndex = '50';
-              console.log('[Panel] zIndex 50 → arka');
+              c.style.opacity = '0.4';
+              c.style.pointerEvents = 'none';
+              console.log('[Panel] arka — opacity 0.4, pointer-events none');
           }
       }
 
@@ -1845,8 +1846,9 @@ function dbg(text) {
   function _AnlaticiPaneliOneAl() {
           var c = document.getElementById('anlaticiPanelContainer');
           if (c) {
-              c.style.zIndex = '100';
-              console.log('[Panel] zIndex 100 → ön');
+              c.style.opacity = '1';
+              c.style.pointerEvents = 'auto';
+              console.log('[Panel] ön — opacity 1, pointer-events auto');
           }
       }
 
@@ -1930,7 +1932,10 @@ function dbg(text) {
       }
     }
 
-  function _HosgeldinKutusunuAc(metinPtr) {
+  function _HosgeldinKutusunuAc(adPtr) {
+          var ad = UTF8ToString(adPtr);
+          if (!ad || ad.trim() === '') ad = 'Misafir';
+  
           var existing = document.getElementById('hosgeldinKutusu');
           if (existing) existing.remove();
   
@@ -1947,7 +1952,7 @@ function dbg(text) {
   
           var baslik = document.createElement('div');
           baslik.style.cssText = 'font-size:20px;font-weight:bold;color:#FFFFFF;padding-right:18px;';
-          baslik.textContent = 'Hoş Geldiniz';
+          baslik.textContent = 'Hoş Geldiniz ' + ad;
   
           box.appendChild(kapat);
           box.appendChild(baslik);
