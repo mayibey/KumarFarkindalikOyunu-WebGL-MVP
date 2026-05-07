@@ -341,9 +341,10 @@ public class AnlaticiSeritKopru : MonoBehaviour
         if (_aktifAsama == 2 && _aktifSpin == 6 && !_a3BahisYukseltildi)
         {
             _a3BahisYukseltildi = true;
-            Debug.Log("[Anlatici] A3 Spin 6 sonu — bahis 2500'e otomatik yükseltildi.");
-            try { _oy?.AnlaticiSetBahis(2500); }
-            catch (System.Exception e) { Debug.LogWarning("[Anlatici] A3 bahis yükseltme hata: " + e.Message); }
+            Debug.Log("[BahisAnim] A3 Spin 6 sonu — bahis 1500 → 2500 animasyonla yükseliyor.");
+            // ANIMASYONLA: 250 TL/0.10 sn kademeli artış (kullanıcı tick tick tick görür)
+            int eski = _oy != null ? _oy.AnlaticiMevcutBahis() : 1500;
+            StartCoroutine(BahisAnimasyonu(eski, 2500));
         }
         if (_aktifAsama == 3 && _aktifSpin == 5 && !_a4S5CarpanModalGosterildi)
         {
@@ -533,11 +534,11 @@ public class AnlaticiSeritKopru : MonoBehaviour
             "• Aynı meyveden <b>8 veya daha fazlası</b> bir araya gelirse kazanç verir.\n" +
             "• Bazı turlarda <b>ÇARPAN</b> düşer (×2, ×5, ×100 vs.) — kazancı katlar.\n" +
             "• Kazanan meyveler patlar, üstten yenileri düşer (<b>TUMBLE</b>) — zincir kazançlar olur.\n" +
-            "• 4 SCATTER (yıldız) gelirse <b>BONUS</b> oyun açılır.\n\n" +
+            "• 4 Bonus Sembolü (yıldız) gelirse <b>BONUS</b> oyun açılır.\n\n" +
             "<b>Ekrandaki diğer öğeler:</b>\n" +
             "• <b>Sol panel:</b> hangi aşamadasın, sahne arkası ne oluyor — birlikte görelim diye buradan takip edeceğiz.\n" +
             "• <b>Bakiye:</b> oyuna ayrılan paran (50.000 TL ile başlıyorsun).\n" +
-            "• <b>Bahis:</b> her spinde harcayacağın miktar — + ve − tuşlarıyla değişir.\n" +
+            "• <b>Bahis:</b> her spinde harcayacağın miktar, + ve − tuşlarıyla değişir.\n" +
             "• <b>KAZANÇ:</b> o spin'de kazandığın miktar.\n\n" +
             "Hadi başlayalım — ilk aşama <i>'Isındırma ve Umut'</i>.";
         yield return modal.ModalGoster(mesaj);
@@ -623,21 +624,23 @@ public class AnlaticiSeritKopru : MonoBehaviour
         yield return BahisAnimasyonu(_oy != null ? _oy.AnlaticiMevcutBahis() : 4000, 10000);
     }
 
-    /// <summary>Bahis kademeli artış animasyon helper (1000 TL/0.10 sn).</summary>
+    /// <summary>Bahis kademeli artış animasyon helper. Adım otomatik hesaplanır:
+    /// fark ≤ 2500 → 250 TL adım, daha büyük → 1000 TL adım. Her adım 0.10 sn (tick hissi).</summary>
     private System.Collections.IEnumerator BahisAnimasyonu(int eski, int yeni)
     {
         if (_oy == null) yield break;
-        const int ADIM = 1000;
+        int fark = yeni - eski;
+        int adim = fark <= 2500 ? 250 : 1000; // küçük fark → küçük adım, büyük fark → hızlı tick
         const float SURE_PER_ADIM = 0.10f;
         int simdi = Mathf.Max(eski, _oy.AnlaticiMevcutBahis());
         while (simdi < yeni)
         {
-            simdi = Mathf.Min(yeni, simdi + ADIM);
+            simdi = Mathf.Min(yeni, simdi + adim);
             try { _oy.AnlaticiSetBahis(simdi); }
             catch (System.Exception e) { Debug.LogWarning("[BahisAnim] hata: " + e.Message); break; }
             yield return new WaitForSecondsRealtime(SURE_PER_ADIM);
         }
-        Debug.Log($"[Anlatici] Bahis animasyonu {eski} → {yeni} TL tamamlandı.");
+        Debug.Log($"[BahisAnim] {eski} → {yeni} TL animasyonu tamamlandı (adım={adim}).");
     }
 
     /// <summary>A4 Spin 5 sonu ×100 çarpan: manipülasyon vuruşunun pedagojik açıklaması.</summary>

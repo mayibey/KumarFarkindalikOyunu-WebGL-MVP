@@ -64,7 +64,7 @@ namespace Senaryo.Scripted.Editor
         //   - Spin 8 modal yok, sade akış.
 
         // A2 Spin 3: 3 scatter near-miss — "Az Daha Tutuyordu" yanılsaması
-        private const string M_A2_S3 = "Az önce 3 scatter düştü, bir tane daha gelseydi bonus tetiklenecekti. Bu 'Az Daha Tutuyordu' yanılsamasıdır — beynin bu kıl payı kaçırışı, kazanmış gibi algılar. Oyuncu 'çok yaklaştım' diye düşünüp daha fazla oynar.";
+        private const string M_A2_S3 = "Az önce <b>3 yıldız (bonus sembolü)</b> düştü, bir tane daha gelseydi BONUS oyun açılacaktı.\n\nBu <b>'Az Daha Tutuyordu'</b> yanılsamasıdır — beynin bu kıl payı kaçırışı, kazanmış gibi algılar. Oyuncu <i>'çok yaklaştım'</i> diye düşünüp daha fazla oynar.";
         // A2 Spin 4 SONRA modal — kasıtlı kazanç sonrası kontrol yanılsaması vurgusu
         private const string M_A2_S4 = "Sen oyunu yönettiğini düşünürken, oyun seni adım adım içine çekiyor.";
         // A2 Spin 6: 7 üzüm + 7 elma kıl payı kaçırma — kontrol yanılsaması pekişmesi

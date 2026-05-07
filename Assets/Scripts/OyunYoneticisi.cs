@@ -178,7 +178,7 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
     IEnumerator IDonusAkisBaglami.ShowBonusEndMessage(int bonusToplamKazanc) => ShowBonusEndMessage(bonusToplamKazanc);
     void IDonusAkisBaglami.SetSpinIconRotate(bool rotate) { if (spinIcon != null) spinIcon.SetRotate(rotate); }
     void IDonusAkisBaglami.SetOturumKazancTextActive(bool active) { if (oturumKazancText != null) oturumKazancText.gameObject.SetActive(active); }
-    void IDonusAkisBaglami.NormalOyunMusicPlay() { if (normalOyunMusic != null && normalOyunMusic.clip != null && !normalOyunMusic.isPlaying) normalOyunMusic.Play(); }
+    void IDonusAkisBaglami.NormalOyunMusicPlay() { if (normalOyunMusic != null && normalOyunMusic.clip != null) { normalOyunMusic.loop = true; if (!normalOyunMusic.isPlaying) normalOyunMusic.Play(); } }
     void IDonusAkisBaglami.NormalOyunMusicUnPause() { if (normalOyunMusic != null) normalOyunMusic.UnPause(); }
     SpinSimulasyonKaydi IDonusAkisBaglami.SimuleEtVeKaydet(int odenebilirLimit, bool bonusSpin) => SimuleEtVeKaydetImpl(odenebilirLimit, bonusSpin);
     bool IDonusAkisBaglami.TryConsumeOncedenHesaplanan(bool forBonusSpin, out SpinSimulasyonKaydi kayit)
@@ -1017,8 +1017,11 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
             bonusSatinAlButon.onClick.AddListener(BonusSatinAl);
         }
 
-        if (normalOyunMusic != null && !normalOyunMusic.isPlaying)
-            normalOyunMusic.Play();
+        if (normalOyunMusic != null)
+        {
+            normalOyunMusic.loop = true; // güvence — Inspector ayarına bağımlı kalmasın, müzik döngü
+            if (!normalOyunMusic.isPlaying) normalOyunMusic.Play();
+        }
 
         _izgaraBaslatmaServisi = new IzgaraBaslatmaServisi();
         _izgaraBaslatmaServisi.SetBaglam(this);

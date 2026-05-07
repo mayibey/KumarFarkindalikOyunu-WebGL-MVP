@@ -40,8 +40,10 @@ namespace Senaryo.Scripted
         private Coroutine _pulseCoroutine;
 
         // === Görsel sabitler ===
-        private const float PANEL_GENISLIK = 600f;
-        private const float PANEL_YUKSEKLIK = 400f;
+        // Yarıya küçültüldü (sağ orta → sol orta). Bonus oyununda anlatici iframe gizli
+        // olduğundan sol orta köşe rahat oturur, dikkat çeker ama dağınık değildir.
+        private const float PANEL_GENISLIK = 300f;
+        private const float PANEL_YUKSEKLIK = 200f;
         private const float PULSE_PERIYOT = 1.0f;
         private const float PULSE_OLCEK = 1.02f;
 
@@ -181,23 +183,23 @@ namespace Senaryo.Scripted
             scaler.matchWidthOrHeight = 0.5f;
             // GraphicRaycaster aktif kalsın ama panel raycastTarget false (tıklamaları yutmasın).
 
-            // Panel — sağ orta dikey ortalı
+            // Panel — SOL orta dikey ortalı (anlatici iframe gizli olduğu için sol köşe boşta)
             var panel = new GameObject("HUDPanel", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(CanvasGroup));
             panel.transform.SetParent(_root.transform, false);
             _panelRt = panel.GetComponent<RectTransform>();
-            _panelRt.anchorMin = new Vector2(1f, 0.5f);
-            _panelRt.anchorMax = new Vector2(1f, 0.5f);
-            _panelRt.pivot = new Vector2(1f, 0.5f);
+            _panelRt.anchorMin = new Vector2(0f, 0.5f);
+            _panelRt.anchorMax = new Vector2(0f, 0.5f);
+            _panelRt.pivot = new Vector2(0f, 0.5f);
             _panelRt.sizeDelta = new Vector2(PANEL_GENISLIK, PANEL_YUKSEKLIK);
-            _panelRt.anchoredPosition = new Vector2(-30f, 0f); // sağdan 30px iç
+            _panelRt.anchoredPosition = new Vector2(30f, 0f); // soldan 30px iç
             var panelImg = panel.GetComponent<Image>();
             panelImg.color = new Color(0.04f, 0.04f, 0.06f, 0.85f); // koyu yarı saydam
             panelImg.raycastTarget = false;
             _panelCg = panel.GetComponent<CanvasGroup>();
             _panelCg.alpha = 1f;
 
-            // Border — kalın altın
-            BorderEkle(panel.transform, _panelRt.sizeDelta, 4f, new Color(1f, 0.84f, 0f, 1f));
+            // Border — orta kalın altın (yarıya küçültülmüş için 3px yeterli)
+            BorderEkle(panel.transform, _panelRt.sizeDelta, 3f, new Color(1f, 0.84f, 0f, 1f));
 
             // Başlık "BONUS OYUN" — üstte, altın renk
             var basGo = new GameObject("Baslik", typeof(RectTransform), typeof(CanvasRenderer));
@@ -206,11 +208,11 @@ namespace Senaryo.Scripted
             basRt.anchorMin = new Vector2(0f, 1f);
             basRt.anchorMax = new Vector2(1f, 1f);
             basRt.pivot = new Vector2(0.5f, 1f);
-            basRt.sizeDelta = new Vector2(0f, 60f);
-            basRt.anchoredPosition = new Vector2(0f, -25f);
+            basRt.sizeDelta = new Vector2(0f, 32f);
+            basRt.anchoredPosition = new Vector2(0f, -12f);
             var basTxt = basGo.AddComponent<TextMeshProUGUI>();
             basTxt.alignment = TextAlignmentOptions.Center;
-            basTxt.fontSize = 36f;
+            basTxt.fontSize = 18f;
             basTxt.fontStyle = FontStyles.Bold;
             basTxt.color = new Color(1f, 0.84f, 0f, 1f); // altın
             basTxt.text = "BONUS OYUN";
@@ -223,23 +225,23 @@ namespace Senaryo.Scripted
             ayirRt.anchorMin = new Vector2(0.1f, 1f);
             ayirRt.anchorMax = new Vector2(0.9f, 1f);
             ayirRt.pivot = new Vector2(0.5f, 1f);
-            ayirRt.sizeDelta = new Vector2(0f, 2f);
-            ayirRt.anchoredPosition = new Vector2(0f, -90f);
+            ayirRt.sizeDelta = new Vector2(0f, 1f);
+            ayirRt.anchoredPosition = new Vector2(0f, -46f);
             var ayirImg = ayirGo.GetComponent<Image>();
             ayirImg.color = new Color(1f, 0.84f, 0f, 0.5f);
             ayirImg.raycastTarget = false;
 
-            // Kalan spin — orta üst, büyük beyaz
+            // Kalan spin — orta üst, beyaz
             var spinGo = new GameObject("KalanSpin", typeof(RectTransform), typeof(CanvasRenderer));
             spinGo.transform.SetParent(panel.transform, false);
             var spinRt = spinGo.GetComponent<RectTransform>();
             spinRt.anchorMin = new Vector2(0f, 0.5f);
             spinRt.anchorMax = new Vector2(1f, 1f);
-            spinRt.offsetMin = new Vector2(20f, 0f);
-            spinRt.offsetMax = new Vector2(-20f, -100f);
+            spinRt.offsetMin = new Vector2(10f, 0f);
+            spinRt.offsetMax = new Vector2(-10f, -50f);
             _kalanSpinText = spinGo.AddComponent<TextMeshProUGUI>();
             _kalanSpinText.alignment = TextAlignmentOptions.Center;
-            _kalanSpinText.fontSize = 60f;
+            _kalanSpinText.fontSize = 30f;
             _kalanSpinText.fontStyle = FontStyles.Bold;
             _kalanSpinText.color = Color.white;
             _kalanSpinText.text = "🎰 10 / 10";
@@ -251,11 +253,11 @@ namespace Senaryo.Scripted
             var kazRt = kazGo.GetComponent<RectTransform>();
             kazRt.anchorMin = new Vector2(0f, 0f);
             kazRt.anchorMax = new Vector2(1f, 0.5f);
-            kazRt.offsetMin = new Vector2(20f, 30f);
-            kazRt.offsetMax = new Vector2(-20f, 0f);
+            kazRt.offsetMin = new Vector2(10f, 15f);
+            kazRt.offsetMax = new Vector2(-10f, 0f);
             _kazancText = kazGo.AddComponent<TextMeshProUGUI>();
             _kazancText.alignment = TextAlignmentOptions.Center;
-            _kazancText.fontSize = 56f;
+            _kazancText.fontSize = 28f;
             _kazancText.fontStyle = FontStyles.Bold;
             _kazancText.color = new Color(0.0f, 1f, 0.5f, 1f); // ışıltılı yeşil
             _kazancText.text = "💰 0 TL";
