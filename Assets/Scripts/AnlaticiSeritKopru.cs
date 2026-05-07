@@ -207,6 +207,11 @@ public class AnlaticiSeritKopru : MonoBehaviour
             "Her aşamada sistemin oyuncuyu nasıl manipüle ettiğini birlikte göreceğiz."
         );
 
+        // Senaryolu eğitim modu: kullanıcı sadece SPIN butonuna basabilir.
+        // Bahis +/-, bonus satın al, bakiye yükle, otomatik spin, ayarlar — hepsi devre dışı.
+        // Borç Al (A6) ve modal TAMAM butonları runtime canvas'larda → bu devre dışı bırakma onları etkilemez.
+        SenaryoluKontrolleriDevreDisiBirak();
+
         StartCoroutine(IlkGuncelleme());
     }
 
@@ -544,6 +549,36 @@ public class AnlaticiSeritKopru : MonoBehaviour
 #endif
     }
 
+    /// <summary>
+    /// Senaryolu eğitim modu: kullanıcı sadece SPIN butonuna basabilir.
+    /// Bahis +/-, bonus satın al, bakiye yükle, otomatik spin ve ayarlar butonları devre dışı.
+    /// Spin butonu (cevirButon) ile borç al ve modal TAMAM butonları (runtime canvas)
+    /// dokunulmaz — onlar senaryo akışının parçası.
+    /// </summary>
+    private void SenaryoluKontrolleriDevreDisiBirak()
+    {
+        if (_oy == null) { Debug.LogWarning("[Anlatici] _oy null, kontroller devre dışı bırakılamadı."); return; }
+
+        int sayac = 0;
+        if (_oy.bahisArttirButon != null)   { _oy.bahisArttirButon.interactable = false;   sayac++; }
+        if (_oy.bahisAzaltButon != null)    { _oy.bahisAzaltButon.interactable = false;    sayac++; }
+        if (_oy.bonusSatinAlButon != null)  { _oy.bonusSatinAlButon.interactable = false;  sayac++; }
+        if (_oy.bakiyeYukleButon != null)   { _oy.bakiyeYukleButon.interactable = false;   sayac++; }
+        if (_oy.otomatikSpinButton != null) { _oy.otomatikSpinButton.interactable = false; sayac++; }
+
+        // Ayarlar butonu OyunYoneticisi field'larında değil — AyarlarButtonAdminPanelAcKapa
+        // component'inin olduğu GameObject'te Button bileşeni var.
+        var ayarKomp = UnityEngine.Object.FindObjectOfType<AyarlarButtonAdminPanelAcKapa>();
+        if (ayarKomp != null)
+        {
+            var btn = ayarKomp.GetComponent<UnityEngine.UI.Button>();
+            if (btn == null) btn = ayarKomp.GetComponentInChildren<UnityEngine.UI.Button>();
+            if (btn != null) { btn.interactable = false; sayac++; }
+        }
+
+        Debug.Log($"[Anlatici] Senaryo eğitim modu: {sayac} kontrol butonu devre dışı bırakıldı.");
+    }
+
     // ──────────────────────────────────────────────────────────────────
     //  PEDAGOJİK GEÇİŞ COROUTINE'LARI — eğitmen modalı + sonraki adım
     // ──────────────────────────────────────────────────────────────────
@@ -568,12 +603,13 @@ public class AnlaticiSeritKopru : MonoBehaviour
             "• Kazanan meyveler patlar, üstten yenileri düşer (<color=#FFD700><b>TUMBLE</b></color>); zincir kazançlar olur.\n" +
             "• <color=#FFD700>4 Bonus Sembolü</color> (yıldız) gelirse <color=#FFD700><b>BONUS</b> oyun</color> açılır.\n\n" +
             "<b>Ekrandaki diğer öğeler:</b>\n" +
-            "• <color=#60A5FA><b>Sol panel:</b></color> oyuncunun hangi aşamada olduğunu, sahne arkasında ne yaşandığını gösterir; birlikte buradan takip edeceğiz.\n" +
-            "• <color=#4ADE80><b>Bakiye:</b></color> oyuna ayrılan para (oyuncu <color=#4ADE80>50.000 TL</color> ile başlıyor).\n" +
-            "• <color=#FB923C><b>Bahis:</b></color> her spinde harcanacak miktar, <color=#FB923C>+ ve − tuşlarıyla</color> değişir.\n" +
-            "• <b>KAZANÇ:</b> o spinde kazanılan miktar.\n\n" +
+            "• <color=#60A5FA><b>Sol panel:</b></color> Oyuncunun hangi aşamada olduğunu, sahne arkasında ne yaşandığını gösterir; birlikte buradan takip edeceğiz.\n" +
+            "• <color=#4ADE80><b>Bakiye:</b></color> Oyuna ayrılan para (oyuncu <color=#4ADE80>50.000 TL</color> ile başlıyor).\n" +
+            "• <color=#FB923C><b>Bahis:</b></color> Her spinde harcanacak miktar, <color=#FB923C>+ ve − tuşlarıyla</color> değişir.\n" +
+            "• <b>KAZANÇ:</b> O spinde kazanılan miktar.\n\n" +
             "Hadi başlayalım: ilk aşama <i>'Isındırma ve Umut'</i>.";
-        yield return modal.ModalGoster(mesaj);
+        // gizleAnlatici: false → modal "Sol panel" anlatırken kullanıcının paneli görmesi gerekiyor.
+        yield return modal.ModalGoster(mesaj, gizleAnlatici: false);
     }
 
     /// <summary>A1 son spini sonrası A2'ye geçiş anında: kontrol yanılsamasının başladığını anlatan modal.</summary>

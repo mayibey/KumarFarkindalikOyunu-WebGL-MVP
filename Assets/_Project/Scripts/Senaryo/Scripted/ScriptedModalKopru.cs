@@ -102,14 +102,17 @@ namespace Senaryo.Scripted
         /// <summary>
         /// Bloke eden karakter dialog: slide-in → typewriter → kullanıcı tıklayana kadar bekle → slide-out.
         /// Boş/null mesaj veya UI hazır değilse anında tamamlanır (defansif).
+        /// <paramref name="gizleAnlatici"/>: false geçilirse sol panel iframe AÇIK kalır (Pre-A1
+        /// karşılama gibi — modal "sol panel" anlatırken paneli kullanıcının görmesi gerekiyor).
         /// </summary>
-        public IEnumerator ModalGoster(string mesaj)
+        public IEnumerator ModalGoster(string mesaj, bool gizleAnlatici = true)
         {
             if (string.IsNullOrEmpty(mesaj) || _root == null || _mesajText == null)
                 yield break;
 
-            // Anlatici HTML iframe'i gizle (modal'in altında kalmasın)
-            AnlaticiSeritKopru.Ornek?.Gizle();
+            // Anlatici HTML iframe'i gizle (modal'in altında kalmasın). Pre-A1 hariç (panel görünür kalmalı).
+            if (gizleAnlatici)
+                AnlaticiSeritKopru.Ornek?.Gizle();
 
             try
             {
@@ -162,8 +165,10 @@ namespace Senaryo.Scripted
             }
             finally
             {
-                // Anlatici iframe'i geri aç (referans counter sayaç 0'a düşerse fiili display:block)
-                AnlaticiSeritKopru.Ornek?.Goster();
+                // Anlatici iframe'i geri aç (referans counter sayaç 0'a düşerse fiili display:block).
+                // Yalnızca girişte Gizle çağırdıysak Goster çağır — sayaç dengesi bozulmasın.
+                if (gizleAnlatici)
+                    AnlaticiSeritKopru.Ornek?.Goster();
             }
         }
 

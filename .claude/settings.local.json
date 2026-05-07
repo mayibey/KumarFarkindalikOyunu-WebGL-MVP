@@ -1,25 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(rm -f .claude/settings.local.json)",
-      "Bash(git checkout *)",
-      "Bash(curl -sI -L https://kumar-farkindalik-oyunu-web-gl-mvp.vercel.app/Build/WebGL_MVP.__TRACKED_VAR__)",
-      "Bash(git ls-tree *)",
-      "Bash(git lfs *)",
-      "Bash(certutil -hashfile /tmp/vercel_framework.js MD5)",
-      "Bash(certutil -hashfile Builds/WebGL_MVP/Build/WebGL_MVP.data MD5)",
-      "Bash(curl -sI -L \"https://kumar-farkindalik-oyunu-web-gl-mvp.vercel.app/Build/WebGL_MVP.data\")",
-      "Bash(certutil -hashfile Builds/WebGL_MVP/Build/WebGL_MVP.wasm MD5)",
-      "Bash(curl -sI -L \"https://kumar-farkindalik-oyunu-web-gl-mvp.vercel.app/Build/WebGL_MVP.wasm\")",
-      "Bash(curl -sL -o /tmp/vercel_index.html \"https://kumar-farkindalik-oyunu-web-gl-mvp.vercel.app/\")",
-      "Read(//tmp/**)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)",
+      "Bash(git commit *)",
       "Bash(git push *)",
-      "Bash(sed -n '250,265p' Assets/_Project/Scripts/Senaryo/Scripted/ScriptedBonusTuzagiPopup.cs)",
-      "Bash(sed -n '180,215p' Assets/_Project/Scripts/Senaryo/Scripted/ScriptedFinalEkrani.cs)",
-      "Bash(grep -v \"//\")",
-      "Bash(git commit *)"
+      "Bash(git checkout *)",
+      "Bash(git ls-tree *)",
+      "Bash(git check-ignore *)",
+      "Bash(git update-index *)"
     ]
   }
 }
