@@ -16,6 +16,16 @@ public class AnlaticiSeritKopru : MonoBehaviour
     [DllImport("__Internal")] private static extern void AnlaticiPaneliGuncelle(string json);
     [DllImport("__Internal")] private static extern void AnlaticiPaneliGizle();
     [DllImport("__Internal")] private static extern void AnlaticiPaneliGoster();
+    [DllImport("__Internal")] private static extern void HosgeldinKutusunuAc(string metin);
+
+    private static void HosgeldinKutusunuAcGuvenli(string metin)
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        HosgeldinKutusunuAc(metin);
+#else
+        Debug.Log("[HosgeldinKutusu] " + metin);
+#endif
+    }
 
     private OyunYoneticisi _oy;
     private int _aktifAsama = 0;
@@ -190,6 +200,13 @@ public class AnlaticiSeritKopru : MonoBehaviour
 #else
         Debug.Log("[AnlaticiSeritKopru] Editor: HTML panel sadece WebGL'de açılır.");
 #endif
+
+        // Sağ üst hoşgeldin kutusu (runtime DOM, kullanıcı × ile kapatabilir)
+        HosgeldinKutusunuAcGuvenli(
+            "Bu simülasyonda online kumar dünyasının kulislerine bakacaksın. " +
+            "Her aşamada sistemin oyuncuyu nasıl manipüle ettiğini birlikte göreceğiz."
+        );
+
         StartCoroutine(IlkGuncelleme());
     }
 
@@ -546,14 +563,14 @@ public class AnlaticiSeritKopru : MonoBehaviour
             "Hoş geldiniz. Bu simülasyonda online kumar oyunlarının oyuncuları nasıl etkilediğini birlikte göreceğiz.\n\n" +
             "<b>Önce oyunu tanıyalım:</b>\n" +
             "• Ekranda 6×5'lik meyve makinesi var. SPIN tuşuna basıldığında meyveler döner.\n" +
-            "• Aynı meyveden <b>8 veya daha fazlası</b> bir araya gelirse kazanç verir.\n" +
-            "• Bazı turlarda <b>ÇARPAN</b> düşer (×2, ×5, ×100 vs.) ve kazancı katlar.\n" +
-            "• Kazanan meyveler patlar, üstten yenileri düşer (<b>TUMBLE</b>); zincir kazançlar olur.\n" +
-            "• 4 Bonus Sembolü (yıldız) gelirse <b>BONUS</b> oyun açılır.\n\n" +
+            "• Aynı meyveden <color=#FFD700><b>8 veya daha fazlası</b></color> bir araya gelirse <color=#4ADE80>kazanç verir</color>.\n" +
+            "• Bazı turlarda <color=#FFD700><b>ÇARPAN</b></color> düşer (<color=#FFD700>×2, ×5, ×100</color> vs.) ve <color=#4ADE80>kazancı katlar</color>.\n" +
+            "• Kazanan meyveler patlar, üstten yenileri düşer (<color=#FFD700><b>TUMBLE</b></color>); zincir kazançlar olur.\n" +
+            "• <color=#FFD700>4 Bonus Sembolü</color> (yıldız) gelirse <color=#FFD700><b>BONUS</b> oyun</color> açılır.\n\n" +
             "<b>Ekrandaki diğer öğeler:</b>\n" +
-            "• <b>Sol panel:</b> oyuncunun hangi aşamada olduğunu, sahne arkasında ne yaşandığını gösterir; birlikte buradan takip edeceğiz.\n" +
-            "• <b>Bakiye:</b> oyuna ayrılan para (oyuncu 50.000 TL ile başlıyor).\n" +
-            "• <b>Bahis:</b> her spinde harcanacak miktar, + ve − tuşlarıyla değişir.\n" +
+            "• <color=#60A5FA><b>Sol panel:</b></color> oyuncunun hangi aşamada olduğunu, sahne arkasında ne yaşandığını gösterir; birlikte buradan takip edeceğiz.\n" +
+            "• <color=#4ADE80><b>Bakiye:</b></color> oyuna ayrılan para (oyuncu <color=#4ADE80>50.000 TL</color> ile başlıyor).\n" +
+            "• <color=#FB923C><b>Bahis:</b></color> her spinde harcanacak miktar, <color=#FB923C>+ ve − tuşlarıyla</color> değişir.\n" +
             "• <b>KAZANÇ:</b> o spinde kazanılan miktar.\n\n" +
             "Hadi başlayalım: ilk aşama <i>'Isındırma ve Umut'</i>.";
         yield return modal.ModalGoster(mesaj);

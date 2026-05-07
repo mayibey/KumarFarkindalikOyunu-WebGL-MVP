@@ -174,12 +174,12 @@ mergeInto(LibraryManager.library, {
         // Sabit konum + boyut: sol-orta, 360x700. z-index 100 = Unity canvas üstünde ama Unity Canvas
         // overlay'lerinin (modal 9998+, balon, yükleme) altında kalması için Gizle/Goster API ile
         // toggle edilir (display:none ↔ block) — modal/balon açılınca gizlenip kapanınca geri açılır.
-        container.style.cssText = 'position:fixed;top:50%;left:20px;transform:translateY(-50%);width:360px;height:700px;max-height:calc(100vh - 40px);overflow-y:auto;z-index:100;pointer-events:auto;';
+        container.style.cssText = 'position:fixed;top:50%;left:20px;transform:translateY(-50%);width:420px;height:auto;min-height:600px;max-height:calc(100vh - 40px);overflow-y:auto;z-index:100;pointer-events:auto;';
 
         var iframe = document.createElement('iframe');
         iframe.id = 'anlaticiPanelIframe';
         iframe.src = url;
-        iframe.style.cssText = 'width:100%;height:700px;border:none;background:transparent;';
+        iframe.style.cssText = 'width:100%;height:auto;min-height:600px;border:none;background:transparent;';
         iframe.setAttribute('allowtransparency', 'true');
 
         container.appendChild(iframe);
@@ -218,6 +218,47 @@ mergeInto(LibraryManager.library, {
     AnlaticiPaneliGoster: function() {
         var c = document.getElementById('anlaticiPanelContainer');
         if (c) c.style.display = 'block';
+    },
+
+    // ========== HOŞGELDİN KUTUSU (sağ üst, sahne girişinde otomatik) ==========
+    HosgeldinKutusunuAc: function(metinPtr) {
+        var metin = UTF8ToString(metinPtr);
+        var existing = document.getElementById('hosgeldinKutusu');
+        if (existing) existing.remove();
+
+        var box = document.createElement('div');
+        box.id = 'hosgeldinKutusu';
+        box.style.cssText = 'position:fixed;top:20px;right:20px;width:360px;padding:16px 20px;background:linear-gradient(135deg,#1a1f3a 0%,#2d3561 100%);border:1px solid #FFD700;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.4);z-index:99;font-family:inherit;color:#FFFFFF;';
+
+        var kapat = document.createElement('div');
+        kapat.style.cssText = 'position:absolute;top:6px;right:10px;font-size:18px;color:#888;cursor:pointer;line-height:1;user-select:none;';
+        kapat.textContent = '×';
+        kapat.onmouseover = function() { kapat.style.color = '#FFFFFF'; };
+        kapat.onmouseout  = function() { kapat.style.color = '#888'; };
+        kapat.onclick     = function() { box.remove(); };
+
+        var etiket = document.createElement('div');
+        etiket.style.cssText = 'font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#FFD700;';
+        etiket.textContent = 'BİLGİLENDİRME';
+
+        var baslik = document.createElement('div');
+        baslik.style.cssText = 'font-size:20px;font-weight:bold;color:#FFFFFF;margin-top:6px;';
+        baslik.textContent = 'Hoş Geldiniz';
+
+        var altMetin = document.createElement('div');
+        altMetin.style.cssText = 'font-size:14px;line-height:1.6;color:#BFBFBF;margin-top:8px;';
+        altMetin.textContent = metin;
+
+        box.appendChild(kapat);
+        box.appendChild(etiket);
+        box.appendChild(baslik);
+        box.appendChild(altMetin);
+        document.body.appendChild(box);
+    },
+
+    HosgeldinKutusunuKapat: function() {
+        var b = document.getElementById('hosgeldinKutusu');
+        if (b) b.remove();
     }
 
 });

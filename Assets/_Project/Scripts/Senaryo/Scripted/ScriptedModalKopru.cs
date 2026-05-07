@@ -373,7 +373,7 @@ namespace Senaryo.Scripted
             mesajRt.offsetMin = new Vector2(20f, 12f);   // alt 12, sol 20
             mesajRt.offsetMax = new Vector2(-50f, -45f); // sağ 50 (devam ikonuna yer), üst 45 (başlık)
             _mesajText = mesajGo.AddComponent<TextMeshProUGUI>();
-            _mesajText.alignment = TextAlignmentOptions.TopLeft;
+            _mesajText.alignment = TextAlignmentOptions.TopJustified;
             _mesajText.fontSize = 19f;
             _mesajText.fontStyle = FontStyles.Normal;
             _mesajText.color = new Color(0.95f, 0.97f, 1f, 1f);
