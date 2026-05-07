@@ -170,10 +170,10 @@ namespace Senaryo.Scripted
                 // Asset'teki M_A5_S5 statik string'i kaldırıldı; modal SADECE buradan tetiklenir.
                 float yuzde = BonusYatirim > 0 ? (BonusKazanc / (float)BonusYatirim) * 100f : 0f;
                 string mesaj =
-                    $"Oyuncu tüm bakiyesi olan <b>{BonusYatirim:N0} TL</b>'yi bonus oyuna yatırdı. " +
-                    $"Geri aldığı <b>{BonusKazanc:N0} TL</b>; yatırdığının <b>%{yuzde:F1}</b>'i.\n\n" +
-                    "Bu sömürünün adı <i>'değişken oranlı pekiştireç'</i>: beyin bu kayıba rağmen " +
-                    "<i>'belki bir dahaki sefere'</i> diyerek devam etmeye programlanır.";
+                    $"Oyuncu tüm <color=#4ADE80>bakiyesi olan {BonusYatirim:N0} TL</color>'yi bonus oyuna yatırdı. " +
+                    $"Geri aldığı <color=#EF4444>{BonusKazanc:N0} TL</color>; yatırdığının <color=#EF4444><b>%{yuzde:F1}</b></color>'i.\n\n" +
+                    "Bu <color=#EF4444>sömürünün</color> adı <color=#60A5FA><i>'değişken oranlı pekiştireç'</i></color>: beyin bu kayba rağmen " +
+                    "<color=#60A5FA><i>'belki bir dahaki sefere'</i></color> diyerek devam etmeye <color=#EF4444>programlanır</color>.";
                 var modal = UnityEngine.Object.FindObjectOfType<ScriptedModalKopru>();
                 if (modal != null)
                     yield return modal.ModalGoster(mesaj);

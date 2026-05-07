@@ -37,7 +37,7 @@ namespace Senaryo.Scripted
         // === Animasyon parametreleri ===
         private const float SLIDE_SURE = 0.4f;
         private const float CIKIS_SURE = 0.3f;
-        private const float TYPEWRITER_HARF_BASINA = 0.030f; // ~30 ms / harf
+        private const float TYPEWRITER_HARF_BASINA = 0.015f; // ~15 ms / harf (yarıya indirildi)
         private const float DEVAM_FADE_SURE = 0.3f;
 
         private Vector2 _karakterAcikPos;

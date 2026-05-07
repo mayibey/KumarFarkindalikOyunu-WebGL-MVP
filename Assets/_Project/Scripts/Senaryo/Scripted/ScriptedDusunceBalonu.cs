@@ -120,10 +120,10 @@ namespace Senaryo.Scripted
             if (asistanModal != null)
             {
                 StartCoroutine(asistanModal.ModalGoster(
-                    "Bu aşamada oyuncu çevresindeki kişilere yalan söyleyerek " +
-                    "veya bankalardan kredi çekerek para bulmaya çalışır.\n\n" +
-                    "Burada amaç eski kayıpların telafisidir. Ancak bu, " +
-                    "kumar bağımlılığının en yıkıcı evresidir: borç katlanarak " +
+                    "Bu aşamada oyuncu çevresindeki kişilere <color=#EF4444>yalan söyleyerek</color> " +
+                    "veya bankalardan <color=#EF4444>kredi çekerek</color> para bulmaya çalışır.\n\n" +
+                    "Burada amaç eski <color=#EF4444>kayıpların telafisidir</color>. Ancak bu, " +
+                    "<color=#EF4444><b>kumar bağımlılığının en yıkıcı evresidir</b></color>: borç katlanarak " +
                     "büyür, ilişkiler bozulur, hayatlar mahvolur."
                 ));
             }
@@ -132,10 +132,10 @@ namespace Senaryo.Scripted
             // karakteri çevreler ama üst üste gelmez (balon boyutu 480x170).
             var yalanlar = new (Vector2 konum, string yazi)[]
             {
-                (new Vector2(-420f, 280f),  "Çocuğum hasta, acil para lazım..."),
-                (new Vector2( 420f, 280f),  "Sadece kısa süre için, hemen ödeyeceğim..."),
-                (new Vector2(-490f,  30f),  "Kız kardeşim borca girdi, yardım etmem gerek..."),
-                (new Vector2( 490f,  30f),  "Bu sefer kazanırsam hepsini öderim, söz veriyorum..."),
+                (new Vector2(-420f, 280f),  "<color=#EF4444><b>Çocuğum hasta</b></color>, acil para lazım..."),
+                (new Vector2( 420f, 280f),  "<color=#60A5FA><i>Sadece kısa süre için</i></color>, hemen ödeyeceğim..."),
+                (new Vector2(-490f,  30f),  "<color=#EF4444><b>Kız kardeşim borca girdi</b></color>, yardım etmem gerek..."),
+                (new Vector2( 490f,  30f),  "<color=#FB923C><i>Bu sefer kazanırsam</i></color> hepsini öderim, söz veriyorum..."),
             };
 
             var aktifBalonlar = new List<RectTransform>();
@@ -302,15 +302,23 @@ namespace Senaryo.Scripted
         private IEnumerator TypewriterEt(TextMeshProUGUI tmp, string mesaj)
         {
             if (tmp == null) yield break;
-            tmp.text = "";
-            for (int i = 0; i < mesaj.Length; i++)
+
+            // Rich-text safe: tüm mesajı bir kerede ata, görünür karakter sayısını 0 → toplamHarf'e
+            // doğru artır. TMP <color>, <b>, <i> tag'lerini maxVisibleCharacters saymaz → tag'ler
+            // raw HTML olarak görünmez (yalanlar renklendirilirken kritik).
+            tmp.text = mesaj;
+            tmp.maxVisibleCharacters = 0;
+            tmp.ForceMeshUpdate();
+            int toplamHarf = tmp.textInfo.characterCount;
+
+            for (int i = 0; i <= toplamHarf; i++)
             {
                 if (_atlandi)
                 {
-                    tmp.text = mesaj;
+                    tmp.maxVisibleCharacters = toplamHarf;
                     yield break;
                 }
-                tmp.text = mesaj.Substring(0, i + 1);
+                tmp.maxVisibleCharacters = i;
                 yield return new WaitForSecondsRealtime(TYPEWRITER_HARF_BASINA);
             }
         }

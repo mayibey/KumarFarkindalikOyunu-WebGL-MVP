@@ -111,9 +111,9 @@ namespace Senaryo.Scripted
             if (_istatistikText != null)
             {
                 _istatistikText.text =
-                    $"Yatırdığın toplam: {OyunFormatServisi.FormatTL(toplamYatirim)}\n" +
-                    $"Geri aldığın: {OyunFormatServisi.FormatTL(sonBakiye)}\n" +
-                    $"Net kayıp: <color=#FF6B6B>{OyunFormatServisi.FormatTL(toplamKayip)}</color>\n" +
+                    $"Yatırdığın toplam: <color=#FB923C>{OyunFormatServisi.FormatTL(toplamYatirim)}</color>\n" +
+                    $"Geri aldığın: <color=#4ADE80>{OyunFormatServisi.FormatTL(sonBakiye)}</color>\n" +
+                    $"Net kayıp: <color=#EF4444><b>{OyunFormatServisi.FormatTL(toplamKayip)}</b></color>\n" +
                     $"Toplam spin: {toplamSpin}";
             }
             _root.SetActive(true);
@@ -178,7 +178,8 @@ namespace Senaryo.Scripted
             basTxt.fontSize = 44f;
             basTxt.fontStyle = FontStyles.Bold;
             basTxt.color = new Color(1f, 0.45f, 0.45f, 1f);
-            basTxt.text = "OYUN BİTTİ";
+            basTxt.richText = true;
+            basTxt.text = "<color=#EF4444><b>OYUN BİTTİ</b></color>";
             basTxt.raycastTarget = false;
 
             // İstatistik metni (orta-üst)
@@ -212,8 +213,8 @@ namespace Senaryo.Scripted
             aileTxt.enableWordWrapping = true;
             aileTxt.lineSpacing = 6f;
             aileTxt.text =
-                "Bu rakam ortalama bir aile için 2,5 aylık geçim demek.\n" +
-                "<size=18><i>Gerçek hayatta oyuncu burada durmaz; bir sonraki maaş, bir sonraki kredi, bir sonraki dönüş umuduyla devam eder.</i></size>";
+                "Bu rakam ortalama bir aile için <color=#EF4444>2,5 aylık geçim</color> demek.\n" +
+                "<size=18><i>Gerçek hayatta oyuncu burada durmaz; bir sonraki maaş, bir sonraki <color=#EF4444>kredi</color>, bir sonraki dönüş umuduyla devam eder.</i></size>";
             aileTxt.raycastTarget = false;
 
             // Mesaj (alt) — pedagojik metin + Yeşilay
@@ -230,8 +231,8 @@ namespace Senaryo.Scripted
             mesTxt.enableWordWrapping = true;
             mesTxt.text =
                 "Bu senaryo Türkiye'de her gün binlerce kişinin başına geliyor.\n" +
-                "Online kumar bağımlılığı bir hastalıktır; yardım almak güçlü bir farkındalıktır.\n\n" +
-                $"<b>Yeşilay Yardım Hattı: {YESILAY_HATTI}</b>";
+                "<color=#EF4444>Online kumar bağımlılığı bir hastalıktır</color>; yardım almak güçlü bir farkındalıktır.\n\n" +
+                $"<color=#4ADE80><b>Yeşilay Yardım Hattı: {YESILAY_HATTI}</b></color>";
             mesTxt.raycastTarget = false;
 
             // Yeniden başla butonu

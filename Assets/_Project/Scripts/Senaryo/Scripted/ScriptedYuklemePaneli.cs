@@ -214,7 +214,8 @@ namespace Senaryo.Scripted
             aciklamaTxt.fontStyle = FontStyles.Italic;
             aciklamaTxt.color = new Color(0.85f, 0.85f, 0.85f, 1f);
             aciklamaTxt.enableWordWrapping = true;
-            aciklamaTxt.text = "Aileden, kredi kartından veya iş arkadaşından borç alarak oyuna devam etmek istiyorsun. Borçla kumar oynamak bağımlılığın klasik göstergelerinden biridir.";
+            aciklamaTxt.richText = true;
+            aciklamaTxt.text = "Aileden, kredi kartından veya iş arkadaşından <color=#EF4444>borç alarak</color> oyuna devam etmek istiyorsun. <color=#EF4444><b>Borçla kumar oynamak</b></color> bağımlılığın klasik göstergelerinden biridir.";
 
             // Borç al butonu
             var btnGo = new GameObject("BorcAlButon",

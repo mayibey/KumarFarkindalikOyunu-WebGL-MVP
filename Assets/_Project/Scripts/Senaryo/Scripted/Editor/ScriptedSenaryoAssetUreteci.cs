@@ -63,6 +63,8 @@ namespace Senaryo.Scripted.Editor
             "Oyuncu az önce <color=#FB923C><b>1.000 TL</b></color> bahis koydu, ekrana <i>'KAZANÇ 500 TL'</i> yazdı, bakiyesinden <color=#EF4444><b>500 TL EKSİLDİ</b></color> ama oyuncunun zihninde <i>'kazandım'</i> hissi yaşanıyor.\n\n" +
             "Bu sistemin temel <color=#EF4444>manipülasyonudur</color>: her spinde bahisten az ödeme yaparken büyük yazıyla <i>'KAZANÇ'</i> yazılır. Oyuncuda <i>'kazanıyorum'</i> algısı yaratılır. Uzun vadede oyuncu daima <color=#EF4444>kayıptadır</color>. Algoritma bunu <color=#EF4444>kasıtlı</color> tasarlar: sürekli artıyormuş gibi göstererek oyuncuyu bağlamak için.";
         // A2 Spin 3: 3 yıldız near-miss — "Az Daha Tutuyordu" yanılsaması + bonus oyun değeri açıklaması
+        // ORPHAN — A4'e taşındı (A4S1YildizModalAkisi).
+        // İleride pop-up benzeri yerde referans için tutuldu.
         private const string M_A2_S3 = "Az önce <color=#FFD700><b>3 yıldız (bonus sembolü)</b></color> düştü. Bir tane daha gelseydi, bahis miktarının <color=#FFD700>100 katı</color> değere sahip <color=#FFD700>10 ücretsiz spin</color> hakkı veren bir <color=#FFD700>BONUS oyun</color> açılacaktı.\n\nBu <color=#60A5FA><b>'Az Daha Tutuyordu'</b></color> yanılsamasıdır: oyuncunun beyni bu kıl payı kaçırışı kazanmış gibi algılar. Oyuncu <i>'çok yaklaştım'</i> diye düşünüp daha fazla oynar.";
         // A2 Spin 4 SONRA modal — kontrol yanılsaması vurgusu (3. tekil)
         private const string M_A2_S4 = "Oyuncu <color=#60A5FA>oyunu yönettiğini</color> düşünürken, oyun onu <color=#EF4444>adım adım içine çekiyor</color>.";
@@ -87,6 +89,8 @@ namespace Senaryo.Scripted.Editor
         private const string M_A5_S1 = "<color=#FB923C>Bahis</color> arttı, beklenti arttı. Oyuncuda <color=#60A5FA>adrenalin</color> salgılanıyor.";
         // A5 Spin 3: ×500 çarpan kaçtı + sabırsızlık silahı
         private const string M_A5_S3 = "Ekrana <color=#FFD700><b>×500 çarpanı</b></color> düştü ama eşleşme olmadı. Bu <color=#EF4444>kasıtlı bir tasarım</color>: oyuncunun beyni <i>'çok yaklaştım, bir daha denesem belki tutar'</i> diye düşünüyor. Bu hisle oyuncu bir sonraki bahsi atmak için <color=#EF4444>sabırsızlanır</color>. İşte tam bu sabırsızlık, <color=#EF4444>algoritmanın kullandığı silahtır</color>.";
+        // ORPHAN — A5 Spin 4 bonusOyunuTetikle parametresiz çağrılıyor, popup runtime'da.
+        // Referans için tutuldu.
         private const string M_A5_S4_BONUS = "🎰 ŞANSLI SAATİNDESİN! Bonus oyun aktif edildi. Bakiyenin tamamını yatır, x10000 kazanma şansını kaçırma. SINIRLI TEKLİF.";
         // A5 Spin 5 modali asset'ten kaldırıldı — ScriptedBonusOyunUygulayici dinamik yüzde ile runtime'da modal oynatır.
 

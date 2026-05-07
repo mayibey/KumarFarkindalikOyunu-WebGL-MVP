@@ -220,30 +220,35 @@ mergeInto(LibraryManager.library, {
         if (c) c.style.display = 'block';
     },
 
-    /// Sol panel iframe'ini Unity Canvas'ın ARKASINA gönderir (z:50). #unity-container z:75
-    /// olduğundan anlatici (z:50) container'ın altında kalır → modal pixels üstte görünür,
-    /// panel arka planda soluk biçimde okunmaya devam eder. Pre-A1 gibi modal "sol panel"
-    /// anlattığı durumlarda Gizle/display:none yerine kullanılır.
+    /// Sol panel iframe'ini yarı saydam yapar (opacity:0.4) + tıklamayı yutmaz (pointer-events:none).
+    /// z-index 100'de kalır — Unity canvas opaque siyah olduğundan alt katmana atmak işe yaramıyor.
+    /// Modal pixels Unity canvas'ta, anlatici üstünde solgun → kullanıcı modal'ı net görür, panel
+    /// arkaplandan okunmaya devam eder. Pre-A1 gibi modal "sol panel" anlattığı durumlarda kullanılır.
     AnlaticiPaneliArkayaAt: function() {
         var c = document.getElementById('anlaticiPanelContainer');
         if (c) {
-            c.style.zIndex = '50';
-            console.log('[Panel] zIndex 50 → arka');
+            c.style.opacity = '0.4';
+            c.style.pointerEvents = 'none';
+            console.log('[Panel] arka — opacity 0.4, pointer-events none');
         }
     },
 
-    /// AnlaticiPaneliArkayaAt ile arkaya alınan paneli normal z:100'e geri döndürür.
+    /// AnlaticiPaneliArkayaAt ile arkaya alınan paneli normal opaklığa geri döndürür.
     AnlaticiPaneliOneAl: function() {
         var c = document.getElementById('anlaticiPanelContainer');
         if (c) {
-            c.style.zIndex = '100';
-            console.log('[Panel] zIndex 100 → ön');
+            c.style.opacity = '1';
+            c.style.pointerEvents = 'auto';
+            console.log('[Panel] ön — opacity 1, pointer-events auto');
         }
     },
 
-    // ========== HOŞGELDİN KUTUSU (sağ üst, sahne girişinde otomatik, sadeleştirilmiş) ==========
-    // İmza geriye uyumlu: metin parametresi alır ama kullanmaz (sadeleşmiş layout: sadece başlık + ×).
-    HosgeldinKutusunuAc: function(metinPtr) {
+    // ========== HOŞGELDİN KUTUSU (sağ üst, sahne girişinde otomatik) ==========
+    // Parametre: kullanıcı adı (KullaniciVerileri.KullaniciAdi). Boş/null gelirse "Misafir" fallback.
+    HosgeldinKutusunuAc: function(adPtr) {
+        var ad = UTF8ToString(adPtr);
+        if (!ad || ad.trim() === '') ad = 'Misafir';
+
         var existing = document.getElementById('hosgeldinKutusu');
         if (existing) existing.remove();
 
@@ -260,7 +265,7 @@ mergeInto(LibraryManager.library, {
 
         var baslik = document.createElement('div');
         baslik.style.cssText = 'font-size:20px;font-weight:bold;color:#FFFFFF;padding-right:18px;';
-        baslik.textContent = 'Hoş Geldiniz';
+        baslik.textContent = 'Hoş Geldiniz ' + ad;
 
         box.appendChild(kapat);
         box.appendChild(baslik);

@@ -203,8 +203,8 @@ public partial class OyunYoneticisi
             {
                 _onceModalA1S7Gosterildi = true;
                 StartCoroutine(OnceModalGosterVeSpin(
-                    "Şimdi büyük bir kazanç gelecek. Bu kasıtlı: algoritma oyuncuyu <i>'şanslıyım'</i> hissine kaptırmak istiyor. " +
-                    "Kazanç sonrası oyuncunun zihninde <b>'ben kazanırım'</b> duygusu yerleşecek."
+                    "Şimdi <color=#4ADE80>büyük bir kazanç</color> gelecek. Bu <color=#EF4444>kasıtlı</color>: algoritma oyuncuyu <color=#60A5FA><i>'şanslıyım'</i></color> hissine kaptırmak istiyor.\n\n" +
+                    "Kazanç sonrası oyuncunun zihninde <color=#60A5FA><i>'ben kazanırım'</i></color> duygusu yerleşecek."
                 ));
                 return;
             }
@@ -212,8 +212,8 @@ public partial class OyunYoneticisi
             {
                 _onceModalA2S4Gosterildi = true;
                 StartCoroutine(OnceModalGosterVeSpin(
-                    "Şu an oyuncu bahisini değiştirecek (yükseltecek). Bu bahisin ardından algoritma <b>kasıtlı olarak</b> kazanç yaşatacak. " +
-                    "Amaç: oyuncuya <i>'doğru zamanda doğru bahis'</i> duygusu vermek. Böylece oyuncu kontrolün kendinde olduğuna inanır."
+                    "Şu an oyuncu <color=#FB923C>bahisini değiştirecek</color> (yükseltecek). Bu bahisin ardından algoritma <color=#EF4444>kasıtlı olarak</color> kazanç yaşatacak.\n\n" +
+                    "Amaç: oyuncuya <color=#60A5FA><i>'doğru zamanda doğru bahis'</i></color> duygusu vermek. Böylece oyuncu <color=#60A5FA>kontrolün kendinde olduğuna</color> inanır."
                 ));
                 return;
             }

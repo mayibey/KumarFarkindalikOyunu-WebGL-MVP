@@ -233,11 +233,11 @@ public class AnlaticiSeritKopru : MonoBehaviour
         Debug.Log("[AnlaticiSeritKopru] Editor: HTML panel sadece WebGL'de açılır.");
 #endif
 
-        // Sağ üst hoşgeldin kutusu (runtime DOM, kullanıcı × ile kapatabilir)
-        HosgeldinKutusunuAcGuvenli(
-            "Bu simülasyonda online kumar dünyasının kulislerine bakacaksın. " +
-            "Her aşamada sistemin oyuncuyu nasıl manipüle ettiğini birlikte göreceğiz."
-        );
+        // Sağ üst hoşgeldin kutusu (runtime DOM, kullanıcı × ile kapatabilir).
+        // KullaniciAdiModal 01_GirisScene'de KullaniciVerileri.KullaniciAdi'yı set ediyor (default "Misafir").
+        string kullaniciAdi = KullaniciVerileri.KullaniciAdi;
+        if (string.IsNullOrWhiteSpace(kullaniciAdi)) kullaniciAdi = "Misafir";
+        HosgeldinKutusunuAcGuvenli(kullaniciAdi);
 
         // Senaryolu eğitim modu: kullanıcı sadece SPIN butonuna basabilir.
         // Bahis +/-, bonus satın al, bakiye yükle, otomatik spin, ayarlar — hepsi devre dışı.
@@ -600,13 +600,12 @@ public class AnlaticiSeritKopru : MonoBehaviour
         if (_oy.otomatikSpinBaslatButon != null) { _oy.otomatikSpinBaslatButon.interactable = false; sayac++; }
         if (_oy.otomatikSpinIptalButon != null)  { _oy.otomatikSpinIptalButon.interactable = false;  sayac++; }
 
-        // Ayarlar butonu OyunYoneticisi field'larında değil — AyarlarButtonAdminPanelAcKapa
-        // component'inin olduğu GameObject'te Button bileşeni var.
-        var ayarKomp = UnityEngine.Object.FindObjectOfType<AyarlarButtonAdminPanelAcKapa>();
-        if (ayarKomp != null)
+        // Ayarlar butonu: sahnede "AyarlarButton" GameObject'te Button bileşeni var.
+        // (AyarlarButtonAdminPanelAcKapa script'i ayrı bir GameObject'te → FindObjectOfType yanlıştı.)
+        var ayarGo = GameObject.Find("AyarlarButton");
+        if (ayarGo != null)
         {
-            var btn = ayarKomp.GetComponent<UnityEngine.UI.Button>();
-            if (btn == null) btn = ayarKomp.GetComponentInChildren<UnityEngine.UI.Button>();
+            var btn = ayarGo.GetComponent<UnityEngine.UI.Button>();
             if (btn != null) { btn.interactable = false; sayac++; }
         }
 
