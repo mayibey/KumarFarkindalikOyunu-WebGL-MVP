@@ -110,9 +110,14 @@ namespace Senaryo.Scripted
             if (string.IsNullOrEmpty(mesaj) || _root == null || _mesajText == null)
                 yield break;
 
-            // Anlatici HTML iframe'i gizle (modal'in altında kalmasın). Pre-A1 hariç (panel görünür kalmalı).
+            // Anlatici HTML iframe yönetimi:
+            //   gizleAnlatici=true  → Gizle/display:none (default — modal'a yer aç).
+            //   gizleAnlatici=false → ArkayaAt/z:50 (Pre-A1 — panel arkada görünür kalır,
+            //                          unity-container z:75 sayesinde modal pixels üstte).
             if (gizleAnlatici)
                 AnlaticiSeritKopru.Ornek?.Gizle();
+            else
+                AnlaticiSeritKopru.Ornek?.ArkayaAt();
 
             try
             {
@@ -136,6 +141,7 @@ namespace Senaryo.Scripted
                 _yazmaTamamlandi = false;
                 _kullaniciDevamEtti = false;
                 _mesajText.text = "";
+                _mesajText.maxVisibleCharacters = 0; // slide-in sırasında metin kazara görünmesin
                 if (_tamamCanvasGroup != null)
                 {
                     _tamamCanvasGroup.alpha = 0f;
@@ -165,10 +171,13 @@ namespace Senaryo.Scripted
             }
             finally
             {
-                // Anlatici iframe'i geri aç (referans counter sayaç 0'a düşerse fiili display:block).
-                // Yalnızca girişte Gizle çağırdıysak Goster çağır — sayaç dengesi bozulmasın.
+                // Anlatici iframe state geri yükleme — girişteki çağrının paritesi:
+                //   gizleAnlatici=true  → Goster (referans counter sayaç 0'a düşerse display:block).
+                //   gizleAnlatici=false → OneAl  (z:50 → z:100, panel tekrar üstte).
                 if (gizleAnlatici)
                     AnlaticiSeritKopru.Ornek?.Goster();
+                else
+                    AnlaticiSeritKopru.Ornek?.OneAl();
             }
         }
 
@@ -222,15 +231,23 @@ namespace Senaryo.Scripted
         {
             _typewriterCalisiyor = true;
             _typewriterAtla = false;
-            int n = mesaj.Length;
-            for (int i = 1; i <= n; i++)
+
+            // Rich-text safe typewriter: tüm metni bir kerede ata, sonra görünür karakter sayısını
+            // 0 → toplamHarf'e doğru artır. TMP <color>, <b>, <i> gibi tag'leri görünür karakter
+            // saymaz → tag'ler asla raw HTML olarak ekrana çıkmaz, sadece harfler kademeli görünür.
+            _mesajText.text = mesaj;
+            _mesajText.maxVisibleCharacters = 0;
+            _mesajText.ForceMeshUpdate();
+            int toplamHarf = _mesajText.textInfo.characterCount;
+
+            for (int i = 0; i <= toplamHarf; i++)
             {
                 if (_typewriterAtla)
                 {
-                    _mesajText.text = mesaj;
+                    _mesajText.maxVisibleCharacters = toplamHarf;
                     break;
                 }
-                _mesajText.text = mesaj.Substring(0, i);
+                _mesajText.maxVisibleCharacters = i;
                 float bekle = TYPEWRITER_HARF_BASINA;
                 float t = 0f;
                 while (t < bekle && !_typewriterAtla)
@@ -239,7 +256,7 @@ namespace Senaryo.Scripted
                     yield return null;
                 }
             }
-            if (_typewriterAtla) _mesajText.text = mesaj;
+            if (_typewriterAtla) _mesajText.maxVisibleCharacters = toplamHarf;
             _typewriterCalisiyor = false;
         }
 

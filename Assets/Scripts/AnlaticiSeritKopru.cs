@@ -16,6 +16,8 @@ public class AnlaticiSeritKopru : MonoBehaviour
     [DllImport("__Internal")] private static extern void AnlaticiPaneliGuncelle(string json);
     [DllImport("__Internal")] private static extern void AnlaticiPaneliGizle();
     [DllImport("__Internal")] private static extern void AnlaticiPaneliGoster();
+    [DllImport("__Internal")] private static extern void AnlaticiPaneliArkayaAt();
+    [DllImport("__Internal")] private static extern void AnlaticiPaneliOneAl();
     [DllImport("__Internal")] private static extern void HosgeldinKutusunuAc(string metin);
 
     private static void HosgeldinKutusunuAcGuvenli(string metin)
@@ -24,6 +26,29 @@ public class AnlaticiSeritKopru : MonoBehaviour
         HosgeldinKutusunuAc(metin);
 #else
         Debug.Log("[HosgeldinKutusu] " + metin);
+#endif
+    }
+
+    /// <summary>Sol panel iframe'ini Unity Canvas'ın ARKASINA gönderir (z:50). Modal'ın "sol panel"
+    /// anlattığı durumlarda kullanılır — Gizle yerine arkada görünür kalsın.</summary>
+    public void ArkayaAt()
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        try { AnlaticiPaneliArkayaAt(); }
+        catch (System.Exception e) { Debug.LogWarning("[Anlatici] ArkayaAt hata: " + e.Message); }
+#else
+        Debug.Log("[Anlatici] ArkayaAt (Editor fallback — sadece WebGL'de etkili).");
+#endif
+    }
+
+    /// <summary>ArkayaAt ile arkaya alınan paneli normal z:100'e geri döndürür.</summary>
+    public void OneAl()
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        try { AnlaticiPaneliOneAl(); }
+        catch (System.Exception e) { Debug.LogWarning("[Anlatici] OneAl hata: " + e.Message); }
+#else
+        Debug.Log("[Anlatici] OneAl (Editor fallback — sadece WebGL'de etkili).");
 #endif
     }
 
@@ -95,6 +120,11 @@ public class AnlaticiSeritKopru : MonoBehaviour
 
     public static AnlaticiSeritKopru Ornek => _ornek;
 
+    /// <summary>Senaryolu eğitim modu aktif mi (03_SenaryoluOyun sahnesinde true). OyunUIGuncellemeServisi
+    /// ve OyunYoneticisi.UI bu flag'e bakıp bakiye yükle / bonus satın al butonlarını re-enable etmeyi
+    /// atlar — kullanıcı senaryo akışında bu butonlara tıklayamaz.</summary>
+    public static bool SenaryoEgitimiAktif { get; private set; }
+
     /// <summary>0-6 (Aşama 1-7). OyunYoneticisi.Admin/Spin tarafından reroll/bant override için okunur.</summary>
     public int AktifAsama => _aktifAsama;
 
@@ -108,12 +138,14 @@ public class AnlaticiSeritKopru : MonoBehaviour
         if (aktifSahne != "03_SenaryoluOyun")
         {
             Debug.Log("[AnlaticiSeritKopru] Aktif sahne " + aktifSahne + ", anlatici devre disi.");
+            SenaryoEgitimiAktif = false;
             gameObject.SetActive(false);
             return;
         }
+        SenaryoEgitimiAktif = true;
         _ornek = this;
     }
-    void OnDestroy() { if (_ornek == this) _ornek = null; }
+    void OnDestroy() { if (_ornek == this) { _ornek = null; SenaryoEgitimiAktif = false; } }
 
     void Start()
     {
@@ -560,11 +592,13 @@ public class AnlaticiSeritKopru : MonoBehaviour
         if (_oy == null) { Debug.LogWarning("[Anlatici] _oy null, kontroller devre dışı bırakılamadı."); return; }
 
         int sayac = 0;
-        if (_oy.bahisArttirButon != null)   { _oy.bahisArttirButon.interactable = false;   sayac++; }
-        if (_oy.bahisAzaltButon != null)    { _oy.bahisAzaltButon.interactable = false;    sayac++; }
-        if (_oy.bonusSatinAlButon != null)  { _oy.bonusSatinAlButon.interactable = false;  sayac++; }
-        if (_oy.bakiyeYukleButon != null)   { _oy.bakiyeYukleButon.interactable = false;   sayac++; }
-        if (_oy.otomatikSpinButton != null) { _oy.otomatikSpinButton.interactable = false; sayac++; }
+        if (_oy.bahisArttirButon != null)        { _oy.bahisArttirButon.interactable = false;        sayac++; }
+        if (_oy.bahisAzaltButon != null)         { _oy.bahisAzaltButon.interactable = false;         sayac++; }
+        if (_oy.bonusSatinAlButon != null)       { _oy.bonusSatinAlButon.interactable = false;       sayac++; }
+        if (_oy.bakiyeYukleButon != null)        { _oy.bakiyeYukleButon.interactable = false;        sayac++; }
+        if (_oy.otomatikSpinButton != null)      { _oy.otomatikSpinButton.interactable = false;      sayac++; }
+        if (_oy.otomatikSpinBaslatButon != null) { _oy.otomatikSpinBaslatButon.interactable = false; sayac++; }
+        if (_oy.otomatikSpinIptalButon != null)  { _oy.otomatikSpinIptalButon.interactable = false;  sayac++; }
 
         // Ayarlar butonu OyunYoneticisi field'larında değil — AyarlarButtonAdminPanelAcKapa
         // component'inin olduğu GameObject'te Button bileşeni var.
@@ -619,8 +653,8 @@ public class AnlaticiSeritKopru : MonoBehaviour
         if (modal == null) yield break;
         string mesaj =
             "Birinci aşama tamamlandı. Oyuncu şu an artıda, kendini iyi hissediyor.\n\n" +
-            "Sırada 'Kontrol Bende Hissi' aşaması var. Bu aşamada algoritma oyuncuya üst üste kayıplar yaşatacak. Ama yine de bakiye hâlâ pozitif olduğu için oyuncu <i>'kontrol bende, istediğim zaman çıkarım, bahis değişiklikleriyle kazanırım'</i> gibi düşünceler yaşar.\n\n" +
-            "Bu yanılsamayı birlikte göreceğiz.";
+            "Sırada <color=#FB923C><b>'Kontrol Bende Hissi'</b></color> aşaması var. Bu aşamada algoritma oyuncuya üst üste <color=#EF4444>kayıplar</color> yaşatacak. Ama yine de <color=#4ADE80>bakiye</color> hâlâ pozitif olduğu için oyuncu <i>'kontrol bende, istediğim zaman çıkarım, bahis değişiklikleriyle kazanırım'</i> gibi düşünceler yaşar.\n\n" +
+            "Bu <color=#60A5FA>yanılsamayı</color> birlikte göreceğiz.";
         yield return modal.ModalGoster(mesaj);
     }
 
@@ -630,8 +664,8 @@ public class AnlaticiSeritKopru : MonoBehaviour
         var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
         if (modal == null) yield break;
         string mesaj =
-            "İkinci aşama tamamlandı. Oyuncu şu an küçük kayıplar yaşadı ama hâlâ artıda; <i>'kontrol bende'</i> hissi iyice yerleşti.\n\n" +
-            "Sırada <b>'Kaybettiklerimi Geri Kazanabilirim'</b> aşaması var. Sistem bu aşamada oyuncuya bilerek kayıp yaşatacak. Oyuncu artık kazanç peşinde değil; <i>'kaybettiklerimi kurtarayım yeter'</i> gibi düşünmeye başlayacak. Bu <b>'Kayıp Kovalama'</b> denilen psikolojik tuzaktır — bir kez girilirse çıkmak çok zor.\n\n" +
+            "İkinci aşama tamamlandı. Oyuncu şu an küçük <color=#EF4444>kayıplar</color> yaşadı ama hâlâ artıda; <color=#60A5FA><i>'kontrol bende'</i></color> hissi iyice yerleşti.\n\n" +
+            "Sırada <color=#FB923C><b>'Kaybettiklerimi Geri Kazanabilirim'</b></color> aşaması var. Sistem bu aşamada oyuncuya <color=#EF4444>bilerek kayıp</color> yaşatacak. Oyuncu artık kazanç peşinde değil; <i>'kaybettiklerimi kurtarayım yeter'</i> gibi düşünmeye başlayacak. Bu <color=#60A5FA><b>'Kayıp Kovalama'</b></color> denilen psikolojik <color=#EF4444>tuzaktır</color> — bir kez girilirse çıkmak çok zor.\n\n" +
             "Birlikte göreceğiz.";
         yield return modal.ModalGoster(mesaj);
     }
@@ -642,8 +676,8 @@ public class AnlaticiSeritKopru : MonoBehaviour
         var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
         if (modal == null) yield break;
         string mesaj =
-            "Üçüncü aşamayı gördük: kayıp kovalama tuzağı. Oyuncu bahsi yükselterek kurtulmaya çalıştı, daha çok kaybetti.\n\n" +
-            "Sırada <b>'Şansım Döndü'</b> aşaması var. Bu aşamada algoritma oyuncuyu pes etme eşiğine getirecek; üst üste sert kayıplar. Tam pes etmek üzereyken büyük bir kazanç düşürecek. Bu büyük kazanç tesadüf değil, <b>kasıtlı bir manipülasyon vuruşu</b> olacak.\n\n" +
+            "Üçüncü aşamayı gördük: <color=#60A5FA>kayıp kovalama tuzağı</color>. Oyuncu <color=#FB923C>bahsi yükselterek</color> kurtulmaya çalıştı, daha çok <color=#EF4444>kaybetti</color>.\n\n" +
+            "Sırada <color=#FB923C><b>'Şansım Döndü'</b></color> aşaması var. Bu aşamada algoritma oyuncuyu pes etme eşiğine getirecek; üst üste sert <color=#EF4444>kayıplar</color>. Tam pes etmek üzereyken <color=#4ADE80>büyük bir kazanç</color> düşürecek. Bu büyük kazanç tesadüf değil, <color=#EF4444><b>kasıtlı bir manipülasyon vuruşu</b></color> olacak.\n\n" +
             "Amaç: oyuncuyu tekrar oyuna bağlamak.";
         yield return modal.ModalGoster(mesaj);
     }
@@ -654,9 +688,9 @@ public class AnlaticiSeritKopru : MonoBehaviour
         var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
         if (modal == null) yield break;
         string mesaj =
-            "Büyük kazanç yaşandı. Oyuncu şu an <i>'şansım döndü, daha kazanırım'</i> hissinde. İşte tam bu duygu, sıradaki aşamanın yakıtıdır.\n\n" +
-            "Sırada <b>'Sonunu Düşünen Kahraman Olamaz'</b> aşaması var. Bu aşamada algoritma oyuncuya cazip bir <b>'bonus oyun tuzağı'</b> kuracak: tüm bakiyesini yatırma karşılığında büyük kazanç vaat edilecek. Yatırırsa, çok azını geri alacak.\n\n" +
-            "Bu, sömürünün doruk noktasıdır. Birlikte göreceğiz.";
+            "<color=#4ADE80>Büyük kazanç</color> yaşandı. Oyuncu şu an <i>'şansım döndü, daha kazanırım'</i> hissinde. İşte tam bu duygu, sıradaki aşamanın yakıtıdır.\n\n" +
+            "Sırada <color=#FB923C><b>'Sonunu Düşünen Kahraman Olamaz'</b></color> aşaması var. Bu aşamada algoritma oyuncuya cazip bir <color=#FFD700><b>'bonus oyun tuzağı'</b></color> kuracak: tüm <color=#4ADE80>bakiyesini</color> yatırma karşılığında büyük kazanç vaat edilecek. Yatırırsa, <color=#EF4444>çok azını geri alacak</color>.\n\n" +
+            "Bu, <color=#EF4444>sömürünün doruk noktasıdır</color>. Birlikte göreceğiz.";
         yield return modal.ModalGoster(mesaj);
     }
 
@@ -675,16 +709,16 @@ public class AnlaticiSeritKopru : MonoBehaviour
 
         // 1) Döngü başlangıcı pedagojik mesaj
         yield return modal.ModalGoster(
-            "İşte oyuncu borç aldı, bakiyesi yenilendi. Şimdi tekrar oynamaya devam edecek.\n\n" +
-            "Kumar sitelerinde yeniden bakiye yükleyenlere bilinçli olarak ilk başlarda yine kazandırılır — bu <i>'Isındırma ve Umut'</i> aşamasına benzer.\n\n" +
-            "Bu sayede oyuncu tekrar döngüye girer: <i>'şansım yine açıldı, kayıplarımı telafi ederim'</i> düşünür. Ama er ya da geç sistem kazanır, oyuncu kaybeder.\n\n" +
+            "İşte oyuncu <color=#EF4444>borç aldı</color>, <color=#4ADE80>bakiyesi yenilendi</color>. Şimdi tekrar oynamaya devam edecek.\n\n" +
+            "Kumar sitelerinde yeniden bakiye yükleyenlere <color=#EF4444>bilinçli olarak</color> ilk başlarda yine <color=#4ADE80>kazandırılır</color> — bu <i>'Isındırma ve Umut'</i> aşamasına benzer.\n\n" +
+            "Bu sayede oyuncu tekrar <color=#EF4444>döngüye girer</color>: <i>'şansım yine açıldı, kayıplarımı telafi ederim'</i> düşünür. Ama er ya da geç sistem kazanır, oyuncu <color=#EF4444>kaybeder</color>.\n\n" +
             "Şimdi bu döngüyü hızlıca göreceğiz."
         );
 
         // 2) A6 bahis bilgilendirme
         yield return modal.ModalGoster(
-            "Bu kez oyuncu kayıplarını HIZLI telafi etmek istiyor. Bahsini <b>10.000 TL</b>'ye çıkardı.\n\n" +
-            "Sadece 5 spin yetecek; algoritma sömürünün son evresinde tüm bakiyeyi alacak. " +
+            "Bu kez oyuncu <color=#EF4444>kayıplarını HIZLI telafi</color> etmek istiyor. <color=#FB923C><b>Bahsini 10.000 TL'ye</b></color> çıkardı.\n\n" +
+            "Sadece <color=#FFD700>5 spin</color> yetecek; algoritma <color=#EF4444>sömürünün son evresinde</color> tüm <color=#4ADE80>bakiyeyi</color> alacak. " +
             "Bu hızlı bitiş, gerçek hayattaki <i>'son kez deneme'</i> bahanesinin sonucudur."
         );
 
@@ -723,10 +757,10 @@ public class AnlaticiSeritKopru : MonoBehaviour
         yield return new WaitForSecondsRealtime(0.5f); // Kullanıcı dönmeyi fark etsin
         var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
         string mesaj =
-            "Üç yıldız (bonus sembolü) yine düştü, dördüncüsü düşmedi. Oyuncu peş peşe bu sahneleri yaşadıkça " +
-            "<i>'neredeyse oluyordu, şansım dönmek üzere'</i> hissine kapılır ve masada kalmaya devam eder. " +
-            "Sistem bu beklentiyi mahsus yaratır — birazdan vereceği büyük tek kazançla bu hissi pekiştirip " +
-            "oyuncuyu kilitleyecek.";
+            "<color=#FFD700><b>Üç yıldız (bonus sembolü)</b></color> yine düştü, dördüncüsü düşmedi. Oyuncu peş peşe bu sahneleri yaşadıkça " +
+            "<color=#60A5FA><i>'neredeyse oluyordu, şansım dönmek üzere'</i></color> hissine kapılır ve masada kalmaya devam eder. " +
+            "Sistem bu beklentiyi <color=#EF4444>mahsus</color> yaratır — birazdan vereceği <color=#4ADE80>büyük tek kazançla</color> bu hissi pekiştirip " +
+            "oyuncuyu <color=#EF4444>kilitleyecek</color>.";
         if (modal != null)
             yield return modal.ModalGoster(mesaj);
         YildizDonmeyiDurdur();
@@ -795,9 +829,9 @@ public class AnlaticiSeritKopru : MonoBehaviour
         var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
         if (modal == null) yield break;
         string mesaj =
-            "⚡ Ekrana ×100 çarpan düştü! Oyuncu az önce pes etmek üzereydi, şimdi büyük kazanç. " +
+            "⚡ Ekrana <color=#FFD700><b>×100 çarpan</b></color> düştü! Oyuncu az önce pes etmek üzereydi, şimdi <color=#4ADE80>büyük kazanç</color>. " +
             "Bu rastlantı değil: algoritma oyuncuyu tam bu duygusal anda yakaladı. <i>'Şansım döndü'</i> diyecek. " +
-            "Aslında manipülasyon başarılı oldu.";
+            "Aslında <color=#EF4444>manipülasyon başarılı oldu</color>.";
         yield return modal.ModalGoster(mesaj);
     }
 
@@ -810,10 +844,10 @@ public class AnlaticiSeritKopru : MonoBehaviour
         // 1) Eğitmen modal — anlatıcı pedagojik açıklama (sol-alt karakter dialog)
         var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
         string mesaj =
-            "Oyuncu artık paranın bittiğini fark etti.\n\n" +
-            "Şimdi başka yerden para bulma arayışında. Yalan söylemeye başlıyor: " +
+            "Oyuncu artık <color=#EF4444>paranın bittiğini</color> fark etti.\n\n" +
+            "Şimdi başka yerden para bulma arayışında. <color=#EF4444>Yalan söylemeye</color> başlıyor: " +
             "yakınlarına, akrabalarına, arkadaşlarına...\n\n" +
-            "Bu, kumar bağımlılığının yıkıcı evresidir. Bir sonraki ekran o anı temsil ediyor.";
+            "Bu, <color=#EF4444>kumar bağımlılığının yıkıcı evresidir</color>. Bir sonraki ekran o anı temsil ediyor.";
         if (modal != null)
             yield return modal.ModalGoster(mesaj);
         else
@@ -856,11 +890,11 @@ public class AnlaticiSeritKopru : MonoBehaviour
 
         var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
         string mesaj =
-            "Bakın, para tamamen bitti.\n\n" +
-            "<b>5 spin'de 50.000 TL borç eridi.</b> Bu, gerçek hayatta <i>'hızlı kurtulma'</i> bahanesiyle yatırılan paraların kaderidir.\n\n" +
+            "Bakın, <color=#EF4444>para tamamen bitti</color>.\n\n" +
+            "<color=#EF4444><b>5 spin'de 50.000 TL borç eridi.</b></color> Bu, gerçek hayatta <i>'hızlı kurtulma'</i> bahanesiyle yatırılan paraların kaderidir.\n\n" +
             "Şimdi oyuncu A1'e geri dönmek isteyecek. <i>'Belki bu sefer şanslıyım'</i> diye düşünüyor. <i>'Bir kerelik daha denersem...'</i> diyerek kendini kandırıyor.\n\n" +
-            "İşte bağımlılığın özü budur: <b>KAYIP → BORÇ → KAYIP → BORÇ</b>. Sonsuz döngü.\n\n" +
-            "Sonraki ekranda yaşanan toplam kayıp gösteriliyor.";
+            "İşte bağımlılığın özü budur: <color=#EF4444><b>KAYIP → BORÇ → KAYIP → BORÇ</b></color>. Sonsuz döngü.\n\n" +
+            "Sonraki ekranda yaşanan toplam <color=#EF4444>kayıp</color> gösteriliyor.";
         if (modal != null)
             yield return modal.ModalGoster(mesaj);
         else

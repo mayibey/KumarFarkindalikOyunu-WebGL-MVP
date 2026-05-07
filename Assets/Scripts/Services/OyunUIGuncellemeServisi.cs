@@ -239,13 +239,16 @@ public class OyunUIGuncellemeServisi
         int bahisMin = _ctx.GetBahisMin();
         int bahisMax = _ctx.GetBahisMax();
 
-        if (_ctx.BahisAzaltButon != null)
+        // Senaryolu eğitim modunda Anlatici bu butonları false bıraktı → re-enable atla.
+        bool senaryoEgitim = AnlaticiSeritKopru.SenaryoEgitimiAktif;
+
+        if (_ctx.BahisAzaltButon != null && !senaryoEgitim)
             _ctx.BahisAzaltButon.interactable = bahisAcik && (bahis > bahisMin);
-        if (_ctx.BahisArttirButon != null)
+        if (_ctx.BahisArttirButon != null && !senaryoEgitim)
             _ctx.BahisArttirButon.interactable = bahisAcik && (bahisMax <= 0 || bahis < bahisMax);
 
         int bonusMaliyeti = _ctx.GetBonusMaliyeti();
-        if (_ctx.BonusSatinAlButon != null)
+        if (_ctx.BonusSatinAlButon != null && !senaryoEgitim)
             _ctx.BonusSatinAlButon.interactable = (_ctx.GetBakiye() >= bonusMaliyeti);
     }
 
@@ -339,11 +342,14 @@ public class OyunUIGuncellemeServisi
         bool bonusButonTemelDurumu =
             (_ctx.GetBakiye() >= _ctx.GetBonusMaliyeti());
 
+        // Senaryolu eğitim modunda BakiyeYukle ve BonusSatinAl false kalmalı (Anlatici disable etti).
+        bool senaryoEgitim2 = AnlaticiSeritKopru.SenaryoEgitimiAktif;
+
         if (_ctx.ParaCekButon != null)
             _ctx.ParaCekButon.interactable = !herhangiPanelAcik;
-        if (_ctx.BakiyeYukleButon != null)
+        if (_ctx.BakiyeYukleButon != null && !senaryoEgitim2)
             _ctx.BakiyeYukleButon.interactable = !herhangiPanelAcik;
-        if (_ctx.BonusSatinAlButon != null)
+        if (_ctx.BonusSatinAlButon != null && !senaryoEgitim2)
             _ctx.BonusSatinAlButon.interactable = !herhangiPanelAcik && bonusButonTemelDurumu;
     }
 }

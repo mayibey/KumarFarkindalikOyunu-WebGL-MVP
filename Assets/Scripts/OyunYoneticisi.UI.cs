@@ -51,8 +51,10 @@ public partial class OyunYoneticisi
         }
         if (bakiyeYukleOnayButon != null && bakiyeYuklePanel != null && bakiyeYuklePanel.activeInHierarchy)
             bakiyeYukleOnayButon.interactable = true;
-        if (bakiyeYukleButon != null)
+        if (bakiyeYukleButon != null && !AnlaticiSeritKopru.SenaryoEgitimiAktif)
             bakiyeYukleButon.interactable = !spinCalisiyor && !bonusAktif;
+        // Senaryolu eğitim modunda bakiyeYukleButon'a dokunmayız → AnlaticiSeritKopru'nun
+        // SenaryoluKontrolleriDevreDisiBirak'ta set ettiği false durumunu koruruz.
     }
 
 
