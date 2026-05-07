@@ -120,13 +120,13 @@ namespace Senaryo.Scripted
         {
             if (!_aktif) return;
             if (_kalanSpinText != null)
-                _kalanSpinText.text = $"🎰 {kalanSpin} / 10";
+                _kalanSpinText.text = $"<size=14><color=#BFBFBF>Kalan Spin Hakkı</color></size>\n<size=30><b>{kalanSpin} / 10</b></size>";
             if (_kazancText != null)
             {
                 string formatlanmis = oturumKazanci >= 1000
                     ? oturumKazanci.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("tr-TR"))
                     : oturumKazanci.ToString();
-                _kazancText.text = $"💰 {formatlanmis} TL";
+                _kazancText.text = $"<size=14><color=#BFBFBF>Oturum Kazancı</color></size>\n<size=28><b>{formatlanmis} TL</b></size>";
             }
         }
 
@@ -242,9 +242,10 @@ namespace Senaryo.Scripted
             _kalanSpinText = spinGo.AddComponent<TextMeshProUGUI>();
             _kalanSpinText.alignment = TextAlignmentOptions.Center;
             _kalanSpinText.fontSize = 30f;
-            _kalanSpinText.fontStyle = FontStyles.Bold;
+            _kalanSpinText.fontStyle = FontStyles.Normal;
+            _kalanSpinText.richText = true;
             _kalanSpinText.color = Color.white;
-            _kalanSpinText.text = "🎰 10 / 10";
+            _kalanSpinText.text = "<size=14><color=#BFBFBF>Kalan Spin Hakkı</color></size>\n<size=30><b>10 / 10</b></size>";
             _kalanSpinText.raycastTarget = false;
 
             // Oturum kazancı — orta alt, parlayan yeşil
@@ -258,9 +259,10 @@ namespace Senaryo.Scripted
             _kazancText = kazGo.AddComponent<TextMeshProUGUI>();
             _kazancText.alignment = TextAlignmentOptions.Center;
             _kazancText.fontSize = 28f;
-            _kazancText.fontStyle = FontStyles.Bold;
+            _kazancText.fontStyle = FontStyles.Normal;
+            _kazancText.richText = true;
             _kazancText.color = new Color(0.0f, 1f, 0.5f, 1f); // ışıltılı yeşil
-            _kazancText.text = "💰 0 TL";
+            _kazancText.text = "<size=14><color=#BFBFBF>Oturum Kazancı</color></size>\n<size=28><b>0 TL</b></size>";
             _kazancText.raycastTarget = false;
         }
 

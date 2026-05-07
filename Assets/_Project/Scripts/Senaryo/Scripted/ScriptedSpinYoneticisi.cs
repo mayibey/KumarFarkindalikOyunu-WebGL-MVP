@@ -265,21 +265,18 @@ namespace Senaryo.Scripted
 
         /// <summary>
         /// A6 runtime dinamik spin üretimi. Plan'a göre A6 baştan tanımlı listeye sahip değil:
-        /// bakiye 50.800'den 0'a düşene kadar küçük kayıp spinleri servis edilir.
-        /// Bahis 2500, brüt çoğunlukla 0 (kayıp); cluster yok, tumble yok, modal yok.
+        /// bakiye 50K → 0'a düşene kadar kayıp spinleri servis edilir (5 spin × 10K = 50K borç).
+        /// Grid <see cref="GridRastgeleKayip"/> ile rastgele dağılmış meyve sembolleriyle dolar
+        /// (deterministik seed: 6001 + spinSiraNo). Brüt=0, cluster/tumble/modal yok.
         /// </summary>
         private static ScriptedSpinKaydi UretA6DinamikSpin(int spinSiraNo)
         {
             const int BAHIS_A6 = 10000; // Hızlı yıkım: 5 spin × 10K = 50K borç tükenir.
-            const int SUTUN = 6;
-            const int SATIR = 5;
-            const int HUCRE = SUTUN * SATIR;
+            const int HUCRE = 30;       // 6 sütun × 5 satır
 
-            // Basit kazançsız grid: 6 sembol × 5'er hücre, hiçbir cluster 8'e ulaşmaz.
-            // (Asset üreticideki GridSifir'in runtime mini-versiyonu; üzüm/çarpan dolguda yok.)
-            int[] dolguPool = { 0, 1, 2, 3, 4, 5 };
-            int[] grid = new int[HUCRE];
-            for (int i = 0; i < HUCRE; i++) grid[i] = dolguPool[i % dolguPool.Length];
+            // Deterministik seed: 6001..6005 (5 spin için), aynı seed → aynı grid.
+            int seed = 6001 + spinSiraNo;
+            int[] grid = GridRastgeleKayip(seed);
 
             return new ScriptedSpinKaydi
             {
@@ -296,6 +293,38 @@ namespace Senaryo.Scripted
                 bonusOyunuTetikle = false,
                 bonusGetirisi = 0
             };
+        }
+
+        /// <summary>
+        /// 6×5 grid'i 0..7 (8=scatter HARİÇ — bonus tetiklenmesin) arası rastgele meyve sembolleriyle
+        /// doldurur. Aynı <paramref name="seed"/> → aynı grid (deterministik test için).
+        ///
+        /// Payline koruması: her satırın ilk 3 reel'inde (sutun 0-1-2) aynı sembol 3 kez peş peşe
+        /// gelirse 3. hücre bir sonraki sembolle değiştirilir — slot win pattern'inden kaçınılır.
+        /// (Cluster pays mantığı konum bağımsız olduğu için bu kontrol görsel-amaçlıdır;
+        /// brutOdeme=0 zaten kayıp spini garanti eder, motor o sayıyı kullanır.)
+        /// </summary>
+        private static int[] GridRastgeleKayip(int seed)
+        {
+            const int SUTUN = 6;
+            const int SATIR = 5;
+            const int HUCRE = SUTUN * SATIR;
+
+            var rng = new System.Random(seed);
+            int[] g = new int[HUCRE];
+            for (int i = 0; i < HUCRE; i++)
+                g[i] = rng.Next(0, 8); // [0,8) → 0..7, scatter (8) hariç
+
+            // Her satırın ilk 3 sütunu için win-pattern temizliği
+            for (int y = 0; y < SATIR; y++)
+            {
+                int i0 = y * SUTUN;
+                int i1 = i0 + 1;
+                int i2 = i0 + 2;
+                if (g[i0] == g[i1] && g[i1] == g[i2])
+                    g[i2] = (g[i2] + 1) % 8; // 3. hücreyi farklı sembolle değiştir
+            }
+            return g;
         }
     }
 }

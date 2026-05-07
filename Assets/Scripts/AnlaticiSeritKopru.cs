@@ -41,9 +41,9 @@ public class AnlaticiSeritKopru : MonoBehaviour
     private bool _a3BahisYukseltildi = false;
     /// <summary>A4 Spin 5 ×100 çarpan modal'ı bir kez gösterildi mi.</summary>
     private bool _a4S5CarpanModalGosterildi = false;
-    /// <summary>A2 Spin 3 yıldız döndürme + modal bir kez gösterildi mi.</summary>
-    private bool _a2S3DonmeGosterildi = false;
-    /// <summary>A2 S3 yıldız döndürme: aktif coroutine'ler + GameObject'ler.</summary>
+    /// <summary>A4 Spin 1 yıldız döndürme + modal bir kez gösterildi mi (eskiden A2 S3'teydi).</summary>
+    private bool _a4S1DonmeGosterildi = false;
+    /// <summary>A4 S1 yıldız döndürme: aktif coroutine'ler + GameObject'ler.</summary>
     private readonly System.Collections.Generic.List<Coroutine> _aktifDansCoroutineleri = new System.Collections.Generic.List<Coroutine>();
     private readonly System.Collections.Generic.List<GameObject> _aktifYildizlar = new System.Collections.Generic.List<GameObject>();
     /// <summary>OyunYoneticisi.Spin.cs ÖNCE modal kontrolü için: aktif spin index'i (0-indexed).</summary>
@@ -165,7 +165,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
         _a5GecisModalGosterildi = false;
         _a3BahisYukseltildi = false;
         _a4S5CarpanModalGosterildi = false;
-        _a2S3DonmeGosterildi = false;
+        _a4S1DonmeGosterildi = false;
         Senaryo.Scripted.ScriptedYuklemePaneli.BorcAlindiSifirla();
         Senaryo.Scripted.ScriptedBonusOyunUygulayici.BonusYatirim = 0;
         Senaryo.Scripted.ScriptedBonusOyunUygulayici.BonusKazanc = 0;
@@ -344,12 +344,14 @@ public class AnlaticiSeritKopru : MonoBehaviour
         // SPIN-NO ÖZEL HOOK'lar (asama içinde belirli spin sonrası tetiklenen aksiyonlar):
         //   - A3 Spin 6 sonu: bahis otomatik 2500'e yükselt (kayıp kovalama tuzağı pekişir).
         //   - A4 Spin 5 sonu: ×100 çarpan modali (manipülasyon vuruşu pedagojik vurgu).
-        if (_aktifAsama == 1 && _aktifSpin == 3 && !_a2S3DonmeGosterildi)
+        if (_aktifAsama == 3 && _aktifSpin == 1 && !_a4S1DonmeGosterildi)
         {
-            // A2 Spin 3 sonu: 3 yıldız NearMiss — yıldızları döndür + modal aç
-            _a2S3DonmeGosterildi = true;
-            Debug.Log("[YildizDans] A2 Spin 3 sonu — yıldız dans + modal akışı başlatılıyor.");
-            StartCoroutine(A2S3YildizModalAkisi());
+            // A4 Spin 1 sonu: 3 yıldız NearMiss — yıldızları döndür + modal aç
+            // (önceden A2 S3'teydi; A4 girişi pedagojik olarak daha güçlü: peş peşe yakın
+            // kayıpların ardından gelen büyük kazanç tuzağına önceden uyarı.)
+            _a4S1DonmeGosterildi = true;
+            Debug.Log("[YildizDans] A4 Spin 1 sonu — yıldız dans + modal akışı başlatılıyor.");
+            StartCoroutine(A4S1YildizModalAkisi());
         }
         if (_aktifAsama == 2 && _aktifSpin == 6 && !_a3BahisYukseltildi)
         {
@@ -575,8 +577,8 @@ public class AnlaticiSeritKopru : MonoBehaviour
         var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
         if (modal == null) yield break;
         string mesaj =
-            "İkinci aşama tamamlandı. Oyuncu şu an küçük kayıplar yaşadı ama hâlâ artıda; <i>'kontrol bende'</i> hissi yerleşti.\n\n" +
-            "Sırada <b>'Geri Kazanabilirim'</b> aşaması var. Bu aşamada algoritma kayıpları katlayacak. Oyuncu <i>'azıcık daha bahis koyarsam telafi ederim'</i> düşünür. Bu <b>'Kayıp Kovalama'</b> denilen psikolojik tuzak: bir kez bu tuzağa girilirse çıkmak çok zor.\n\n" +
+            "İkinci aşama tamamlandı. Oyuncu şu an küçük kayıplar yaşadı ama hâlâ artıda; <i>'kontrol bende'</i> hissi iyice yerleşti.\n\n" +
+            "Sırada <b>'Kaybettiklerimi Geri Kazanabilirim'</b> aşaması var. Sistem bu aşamada oyuncuya bilerek kayıp yaşatacak. Oyuncu artık kazanç peşinde değil; <i>'kaybettiklerimi kurtarayım yeter'</i> gibi düşünmeye başlayacak. Bu <b>'Kayıp Kovalama'</b> denilen psikolojik tuzaktır — bir kez girilirse çıkmak çok zor.\n\n" +
             "Birlikte göreceğiz.";
         yield return modal.ModalGoster(mesaj);
     }
@@ -657,20 +659,21 @@ public class AnlaticiSeritKopru : MonoBehaviour
     }
 
     /// <summary>
-    /// A2 Spin 3 NearMiss: 3 yıldız sahnede dönerken (sürekli rotate) modal açılır,
-    /// modal kapanınca dönme durur. Asset üreticide M_A2_S3 kaldırıldı; metin runtime'da burada.
+    /// A4 Spin 1 NearMiss: 3 yıldız sahnede dönerken (sürekli rotate) modal açılır,
+    /// modal kapanınca dönme durur. Pedagojik konum: A4 girişinde "neredeyse oluyordu" hissinin
+    /// pekişmesi + birazdan gelecek büyük kazanç (A4 S5 ×100) ile tuzağın kapanması bağlantısı.
     /// </summary>
-    private System.Collections.IEnumerator A2S3YildizModalAkisi()
+    private System.Collections.IEnumerator A4S1YildizModalAkisi()
     {
         yield return new WaitForSecondsRealtime(0.5f); // Spin animasyonu otursun, yıldızlar yerleşsin
         YildizDonmeBaslat();
         yield return new WaitForSecondsRealtime(0.5f); // Kullanıcı dönmeyi fark etsin
         var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
         string mesaj =
-            "Az önce <b>3 yıldız (bonus sembolü)</b> düştü. Bir tane daha gelseydi, " +
-            "bahis miktarının 100 katı değere sahip 10 ücretsiz spin hakkı veren bir BONUS oyun açılacaktı.\n\n" +
-            "Bu <b>'Az Daha Tutuyordu'</b> yanılsamasıdır: oyuncunun beyni bu kıl payı kaçırışı kazanmış gibi algılar. " +
-            "Oyuncu <i>'çok yaklaştım'</i> diye düşünüp daha fazla oynar.";
+            "Üç yıldız (bonus sembolü) yine düştü, dördüncüsü düşmedi. Oyuncu peş peşe bu sahneleri yaşadıkça " +
+            "<i>'neredeyse oluyordu, şansım dönmek üzere'</i> hissine kapılır ve masada kalmaya devam eder. " +
+            "Sistem bu beklentiyi mahsus yaratır — birazdan vereceği büyük tek kazançla bu hissi pekiştirip " +
+            "oyuncuyu kilitleyecek.";
         if (modal != null)
             yield return modal.ModalGoster(mesaj);
         YildizDonmeyiDurdur();

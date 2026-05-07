@@ -295,12 +295,10 @@ namespace Senaryo.Scripted.Editor
             // Spin 2: tek cluster hindistan, brüt 500 (bahis 1000) — manipülasyon farkındalığı modali
             // (1000 bahis - 500 brüt = 500 net kayıp ama ekran "KAZANÇ 500 TL" yazar; sömürü görünür).
             liste.Add(TekClusterSpin(2, 1, BAHIS_A2, 500, SYM_HINDISTAN, SpinTipi.Kazanc, M_A2_S2));
-            // Spin 3: 3 yıldız (scatter) NearMiss — modal sol-altta açıldığında yıldızlar görünür kalsın
-            // diye SABİT KONUM helper kullanılır (üst-sol, üst-sağ, orta-sağ üst).
-            // Modal mesajı asset'ten KALDIRILDI — AnlaticiSeritKopru.A2S3YildizModalAkisi runtime'da
-            // yıldızları döndürürken modal'ı tetikler (M_A2_S3 metni runtime sınıfına kopyalandı).
-            liste.Add(SpinTanimi(3, 1, BAHIS_A2, SpinTipi.NearMiss, 0,
-                GridSabitScatterUstYari(Seed(1, 3)), null, NoTumble()));
+            // Spin 3: normal sıfır brüt kayıp spini (3-yıldız sahnesi A4 S1'e taşındı —
+            // A4 girişinde "neredeyse oluyordu" hissi pedagojik olarak daha güçlü).
+            liste.Add(SpinTanimi(3, 1, BAHIS_A2, SpinTipi.Sifir, 0,
+                GridSifir(Seed(1, 3)), null, NoTumble()));
             // Spin 4: tek cluster üzüm = 1500 (kasıtlı kazanç) | SONRA modal A2_S4 (kontrol yanılsaması pekişmesi)
             liste.Add(TekClusterSpin(4, 1, BAHIS_A2, 1500, SYM_UZUM, SpinTipi.Kazanc, M_A2_S4));
             // Spin 5: 2 tumble hindistan→muz = 750 (revize: eski sıfır → tatlı minik kazanç)
@@ -357,7 +355,11 @@ namespace Senaryo.Scripted.Editor
         // ============================================================
         private static void DoldurAsama4(List<ScriptedSpinKaydi> liste)
         {
-            liste.Add(SpinTanimi(1, 3, BAHIS_A4, SpinTipi.Sifir, 0, GridSifir(Seed(3, 1)), null, NoTumble()));
+            // Spin 1: 3 yıldız (scatter) NearMiss — sabit konum (üst yarı), AnlaticiSeritKopru.A4S1YildizModalAkisi
+            // runtime'da yıldızları döndürürken pedagojik modal'ı tetikler. modalMesaji null:
+            // DonusAkisServisi otomatik modal hook'u sessiz atlar (çift modal olmasın).
+            liste.Add(SpinTanimi(1, 3, BAHIS_A4, SpinTipi.NearMiss, 0,
+                GridSabitScatterUstYari(Seed(3, 1)), null, NoTumble()));
             liste.Add(SpinTanimi(2, 3, BAHIS_A4, SpinTipi.NearMiss, 0,
                 GridIlk(null, Seed(3, 2), (SYM_UZUM, 7)), null, NoTumble(), M_A4_S2));
             liste.Add(SpinTanimi(3, 3, BAHIS_A4, SpinTipi.NearMiss, 0,
