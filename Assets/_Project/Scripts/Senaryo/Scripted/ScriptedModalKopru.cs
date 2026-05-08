@@ -116,14 +116,11 @@ namespace Senaryo.Scripted
 
             ModalAcik = true; // Spin butonu bu süre boyunca engellenir
 
-            // Anlatici HTML iframe yönetimi:
-            //   gizleAnlatici=true  → Gizle/display:none (default — modal'a yer aç).
-            //   gizleAnlatici=false → ArkayaAt/z:50 (Pre-A1 — panel arkada görünür kalır,
-            //                          unity-container z:75 sayesinde modal pixels üstte).
-            if (gizleAnlatici)
-                AnlaticiSeritKopru.Ornek?.Gizle();
-            else
-                AnlaticiSeritKopru.Ornek?.ArkayaAt();
+            // Anlatici HTML iframe yönetimi: TÜM modal akışları için ArkayaAt çağrılır
+            // (panel translateX(-100px) + opacity:0.4 + pointer-events:none — display:none yerine).
+            // gizleAnlatici parametresi geriye uyumluluk için signature'da kalır ama davranış birleşti:
+            // Pre-A1 (false) ve diğer modallar (true) artık aynı pattern'de panel'i sola kaydırır.
+            AnlaticiSeritKopru.Ornek?.ArkayaAt();
 
             try
             {
@@ -181,13 +178,10 @@ namespace Senaryo.Scripted
             {
                 ModalAcik = false; // Spin butonu tekrar serbest
 
-                // Anlatici iframe state geri yükleme — girişteki çağrının paritesi:
-                //   gizleAnlatici=true  → Goster (referans counter sayaç 0'a düşerse display:block).
-                //   gizleAnlatici=false → OneAl  (z:50 → z:100, panel tekrar üstte).
-                if (gizleAnlatici)
-                    AnlaticiSeritKopru.Ornek?.Goster();
-                else
-                    AnlaticiSeritKopru.Ornek?.OneAl();
+                // Anlatici iframe state geri yükleme — TÜM modallar için OneAl
+                // (transform:none + opacity:1 + pointer-events:auto). gizleAnlatici parametresi
+                // davranışı etkilemez (geriye uyumluluk için signature korundu).
+                AnlaticiSeritKopru.Ornek?.OneAl();
             }
         }
 
