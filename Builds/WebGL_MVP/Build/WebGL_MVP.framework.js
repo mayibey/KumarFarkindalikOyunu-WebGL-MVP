@@ -1789,12 +1789,11 @@ function dbg(text) {
   
           var container = document.createElement('div');
           container.id = 'anlaticiPanelContainer';
-          // SABİT konum + boyut: sol-orta dikey ortalı, 460×calc(100vh-280px).
-          // Üstten 150px (logo) + alttan 130px (bakiye/spin) = 280px toplam pay,
-          // dikey ortada simetrik 140px boşluk. Aşamadan aşamaya panel yüksekliği DEĞİŞMEZ.
-          // overflow:hidden — iç scroll iframe içinde body tarafından yönetilir.
+          // SABİT konum + boyut: top:200px (logo bandının altı), 460×calc(100vh-340px).
+          // Üstten 200px (logo + nefes) + alttan 140px (bakiye/spin + nefes) = 340px toplam pay.
+          // Aşamadan aşamaya panel yüksekliği DEĞİŞMEZ. overflow:hidden — iç scroll iframe body'sinde.
           // z-index 100 = Unity canvas üstünde; Gizle/Goster API ile modal/balon altında kalır.
-          container.style.cssText = 'position:fixed;top:50%;left:20px;transform:translateY(-50%);width:460px;height:calc(100vh - 280px);overflow:hidden;z-index:100;pointer-events:auto;';
+          container.style.cssText = 'position:fixed;top:200px;left:20px;width:460px;height:calc(100vh - 340px);overflow:hidden;z-index:100;pointer-events:auto;';
   
           var iframe = document.createElement('iframe');
           iframe.id = 'anlaticiPanelIframe';

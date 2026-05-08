@@ -7,7 +7,10 @@
   html, body { height: 100%; }
   body { margin: 0; padding: 0; background: transparent; color: #fff;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, sans-serif;
-    overflow-y: auto; overflow-x: hidden; }
+    overflow-y: auto; overflow-x: hidden;
+    scrollbar-width: none; /* Firefox: scrollbar görünmesin */
+    -ms-overflow-style: none; /* IE/Edge legacy */ }
+  body::-webkit-scrollbar { display: none; /* Chrome/Safari/Opera */ }
   #anlaticiRoot { padding: 8px; }
   .panel { background: #0f0a1a; border: 1px solid rgba(212,162,74,0.35);
     border-radius: 14px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.4); position: relative; }
@@ -159,7 +162,7 @@
       rozetler: [{text:"Geri ödeme: %~250",tip:"good"},{text:"Tavan: bahsin 5×'i",tip:"good"},{text:"Şans: yapay yüksek",tip:"warn"}],
       bakiyeRengi: "kazanc", bakiyeBaglam: "Sahte kazanç ileride büyük kayıp için yem olacak." },
     { isim: "Kontrol Bende Hissi",
-      arka: "Sistem yavaş yavaş normalleşiyor. Hâlâ ara sıra kazandırıyor ama kayıplar başlıyor. Oyuncu bunu fark etmiyor çünkü kafasında \"ben bu işi çözdüm\" var. Bahsi değiştiriyor, şanslı saydığı anlarda spin atıyor, kendine küçük ritüeller buluyor. Sistemin verdiği rastgele sonuçları \"kendi tarzı\" sanıyor. Sistem bu yanılgıyı mahsus besliyor.",
+      arka: "Sistem yavaş yavaş normalleşiyor. Hâlâ ara sıra kazandırıyor ama kayıplar başlıyor. Oyuncu kafasında \"ben bu işi çözdüm\" var; bahsi değiştiriyor, kendine küçük ritüeller buluyor. Sistem bu yanılgıyı mahsus besliyor.",
       kafa: "\"Ne zaman basacağımı biliyorum artık. Belli bir patern var, ben bunu yakaladım.\"",
       bilim: "Slot tamamen şans işi, hiçbir kuralı yok. Ama insan beyni rastgele olaylarda bile düzen arar — bahsi yükseltmek, belli bir tuşa basmak, oturuşunu değiştirmek gibi davranışlar oyuncuya \"kontrol bende\" hissi verir. Oysa hiçbirinin sonuca etkisi yoktur.",
       rozetler: [{text:"Geri ödeme: %~200",tip:"good"},{text:"Tavan: bahsin 3.5×'i",tip:"good"},{text:"Şans: yüksek",tip:"warn"}],
@@ -171,7 +174,7 @@
       rozetler: [{text:"Geri ödeme: %~75",tip:"warn"},{text:"Tavan: bahsin 1×'i",tip:"warn"},{text:"Şans: dengeli",tip:"warn"}],
       bakiyeRengi: "kayip", bakiyeBaglam: "Telafi etmek için bahis 2 katına çıkacak — kayıp da öyle." },
     { isim: "Şansın Döndü",
-      arka: "Sistem önce oyuncuya peş peşe \"neredeyse kazanıyordum\" sahneleri yaşatır — üç bonus sembolü düşürür, dördüncüsünü düşürmez. Oyuncu \"şansım dönmek üzere\" der ve devam eder. Tam o ümitlendiği anda sistem büyük bir kazanç verir, bahsin 100 katı. \"İşte oldu, ben demiştim\" der oyuncu. Ama bu tek atış kasıtlı bir tuzak. O kazançtan sonra sistem hızla tüketir.",
+      arka: "Sistem peş peşe \"neredeyse kazanıyordum\" sahneleri yaşatır. Oyuncu \"şansım dönmek üzere\" der. Tam o ümitlendiği anda sistem büyük bir kazanç verir — bahsin 100 katı. Ama bu tek atış kasıtlı bir tuzak. O kazançtan sonra sistem hızla tüketir.",
       kafa: "\"Bir tane daha. Az kalmıştı. Bu sefer kesin tutar — şansım dönüyor.\"",
       bilim: "\"Neredeyse kazanıyordum\" anları beyni kandırır — sanki gerçekten kazanmaya yakındın gibi gelir. Üstüne büyük tek kazanç gelince beyin \"bu iş yürüyor\" kararı verir. Sonraki kayıpları o tek kazanca sığınarak görmezden gelir oyuncu.",
       rozetler: [{text:"Geri ödeme: %~40",tip:"kayip"},{text:"Tavan: bahsin 0.6×'i",tip:"kayip"},{text:"Şans: düşük",tip:"warn"}],
