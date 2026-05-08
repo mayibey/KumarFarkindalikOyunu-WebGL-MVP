@@ -40,8 +40,8 @@ namespace Senaryo.Scripted
         private const float TYPEWRITER_HARF_BASINA = 0.015f; // ~15 ms / harf (yarıya indirildi)
         private const float DEVAM_FADE_SURE = 0.3f;
 
-        private Vector2 _karakterAcikPos;
-        private Vector2 _karakterKapaliPos;
+        // Karakter balon'un CHILD'ı — local pozisyon sabit, ayrı animate edilmiyor.
+        // Balon Acik/Kapali pos slide-in/out için kullanılır.
         private Vector2 _balonAcikPos;
         private Vector2 _balonKapaliPos;
 
@@ -132,8 +132,10 @@ namespace Senaryo.Scripted
                 Vector2 prefSize = _mesajText.GetPreferredValues(mesaj, MESAJ_GENISLIK, 0f);
                 float balonYukseklik = Mathf.Clamp(prefSize.y + DIKEY_REZERV, MIN_YUKSEKLIK, MAX_YUKSEKLIK);
                 _balonRt.sizeDelta = new Vector2(BALON_GENISLIK, balonYukseklik);
-                _balonAcikPos = new Vector2(280f, 90f);
-                _balonKapaliPos = new Vector2(280f, -balonYukseklik - 40f); // ekran altı
+                // Tam orta yerleşim (anchor 0.5, 0.5). Açık pos (0,0), kapalı pos ekran altı.
+                // Karakter balon CHILD'ı → balon ile birlikte hareket eder, ayrı pos hesabı yok.
+                _balonAcikPos = new Vector2(0f, 0f);
+                _balonKapaliPos = new Vector2(0f, -700f);
 
                 // State reset
                 _typewriterCalisiyor = false;
@@ -188,7 +190,7 @@ namespace Senaryo.Scripted
         private IEnumerator KarakterGiris()
         {
             float t = 0f;
-            _karakterRt.anchoredPosition = _karakterKapaliPos;
+            // Karakter balon CHILD'ı — pozisyonu ayrı animate edilmiyor, balon parent'ı ile birlikte hareket eder.
             _balonRt.anchoredPosition = _balonKapaliPos;
             if (_balonCanvasGroup != null) _balonCanvasGroup.alpha = 1f;
 
@@ -197,11 +199,9 @@ namespace Senaryo.Scripted
                 t += Time.unscaledDeltaTime;
                 float u = Mathf.Clamp01(t / SLIDE_SURE);
                 float eased = 1f - Mathf.Pow(1f - u, 3f); // ease-out cubic
-                _karakterRt.anchoredPosition = Vector2.Lerp(_karakterKapaliPos, _karakterAcikPos, eased);
                 _balonRt.anchoredPosition = Vector2.Lerp(_balonKapaliPos, _balonAcikPos, eased);
                 yield return null;
             }
-            _karakterRt.anchoredPosition = _karakterAcikPos;
             _balonRt.anchoredPosition = _balonAcikPos;
         }
 
@@ -209,7 +209,7 @@ namespace Senaryo.Scripted
         {
             float t = 0f;
             float baslangicAlpha = _balonCanvasGroup != null ? _balonCanvasGroup.alpha : 1f;
-            Vector2 karakterStart = _karakterRt.anchoredPosition;
+            // Karakter balon CHILD'ı — start pozisyonu kaydetmiyoruz, balon ile birlikte gider.
             Vector2 balonStart = _balonRt.anchoredPosition;
             Vector3 balonScaleStart = _balonRt.localScale;
 
@@ -217,7 +217,6 @@ namespace Senaryo.Scripted
             {
                 t += Time.unscaledDeltaTime;
                 float u = Mathf.Clamp01(t / CIKIS_SURE);
-                _karakterRt.anchoredPosition = Vector2.Lerp(karakterStart, _karakterKapaliPos, u);
                 _balonRt.anchoredPosition = Vector2.Lerp(balonStart, _balonKapaliPos, u);
                 _balonRt.localScale = Vector3.Lerp(balonScaleStart, balonScaleStart * 0.95f, u);
                 if (_balonCanvasGroup != null)
@@ -311,39 +310,24 @@ namespace Senaryo.Scripted
             scaler.referenceResolution = new Vector2(1920, 1080);
             scaler.matchWidthOrHeight = 0.5f;
 
-            // === KARAKTER (sol-alt köşe) ===
-            var karakterGo = new GameObject("Karakter",
-                typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
-            karakterGo.transform.SetParent(_root.transform, false);
-            _karakterRt = karakterGo.GetComponent<RectTransform>();
-            _karakterRt.anchorMin = _karakterRt.anchorMax = _karakterRt.pivot = new Vector2(0f, 0f);
-            _karakterRt.sizeDelta = new Vector2(220f, 280f);
-            // Açık pozisyon: sol-alt köşede 60 px boşlukla
-            _karakterAcikPos = new Vector2(80f, 60f);
-            _karakterKapaliPos = new Vector2(80f, -260f); // ekran altında gizli
-            _karakterRt.anchoredPosition = _karakterKapaliPos;
-            var karakterImg = karakterGo.GetComponent<Image>();
-            karakterImg.sprite = EgitmenGorseliniAl();
-            karakterImg.preserveAspect = true;
-            karakterImg.raycastTarget = true; // tıklama silüete de düşsün
-
-            var karakterBtn = karakterGo.AddComponent<Button>();
-            karakterBtn.transition = Selectable.Transition.None;
-            karakterBtn.onClick.AddListener(OnBalonTiklandi);
-
-            // === BALON (karakter sağında) ===
+            // === BALON (ekran tam ortası) ===
+            // Karakter aşağıda balon yaratıldıktan SONRA balon child'ı olarak eklenir
+            // (Browser zoom + Canvas Scaler durumlarında karakter balon'la birlikte scale/move etsin).
+            // Anchor (0.5, 0.5) + pivot (0.5, 0.5) → ekran merkezine yerleşir; reference resolution
+            // 1920×1080 üzerinde balon (680×420) tam ortada. Karakter sol kenarında bitişik.
             var balonGo = new GameObject("Balon",
                 typeof(RectTransform), typeof(CanvasRenderer), typeof(Image),
                 typeof(CanvasGroup), typeof(Button));
             balonGo.transform.SetParent(_root.transform, false);
             _balonRt = balonGo.GetComponent<RectTransform>();
-            _balonRt.anchorMin = _balonRt.anchorMax = _balonRt.pivot = new Vector2(0f, 0f);
+            _balonRt.anchorMin = _balonRt.anchorMax = _balonRt.pivot = new Vector2(0.5f, 0.5f);
             // Balon yüksekliği 170→420: pre-A1 ve uzun pedagojik metinler taşmasın.
             // Mesaj alanı + başlık + TAMAM butonu hepsi sığsın.
             _balonRt.sizeDelta = new Vector2(680f, 420f);
-            _balonAcikPos = new Vector2(280f, 90f);   // karakter sağ tarafında
-            _balonKapaliPos = new Vector2(280f, -460f); // ekran altında gizli (yükseklik artışına uyum)
+            _balonAcikPos = new Vector2(0f, 0f);     // tam orta
+            _balonKapaliPos = new Vector2(0f, -700f); // ekran altında gizli (slide-in için)
             _balonRt.anchoredPosition = _balonKapaliPos;
+            Debug.Log("[Modal] Ortaya konumlandı, anchor=(0.5, 0.5)");
             var balonImg = balonGo.GetComponent<Image>();
             balonImg.color = new Color(0.10f, 0.16f, 0.23f, 0.95f); // dark navy
             _balonCanvasGroup = balonGo.GetComponent<CanvasGroup>();
@@ -366,6 +350,29 @@ namespace Senaryo.Scripted
             var okImg = okGo.GetComponent<Image>();
             okImg.color = new Color(0.10f, 0.16f, 0.23f, 0.95f);
             okImg.raycastTarget = false;
+
+            // === KARAKTER (BALON CHILD'I — sol kenara bitişik) ===
+            // Anchor (0, 0.5) sol-orta + pivot (1, 0.5) sağ-orta → karakter SAĞ kenarı balon
+            // SOL kenarına dayanır. Balon ne yaparsa (genişlik/scale değişimi, browser zoom)
+            // karakter otomatik takip eder — parent transform inheritance ile garantili.
+            var karakterGo = new GameObject("Karakter",
+                typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            karakterGo.transform.SetParent(balonGo.transform, false);
+            _karakterRt = karakterGo.GetComponent<RectTransform>();
+            _karakterRt.anchorMin = _karakterRt.anchorMax = new Vector2(0f, 0.5f);
+            _karakterRt.pivot = new Vector2(1f, 0.5f);
+            _karakterRt.sizeDelta = new Vector2(220f, 280f);
+            _karakterRt.anchoredPosition = new Vector2(-20f, 0f); // balon sol kenarından 20 px dışarı
+            var karakterImg = karakterGo.GetComponent<Image>();
+            karakterImg.sprite = EgitmenGorseliniAl();
+            karakterImg.preserveAspect = true;
+            karakterImg.raycastTarget = true; // tıklama silüete de düşsün
+
+            var karakterBtn = karakterGo.AddComponent<Button>();
+            karakterBtn.transition = Selectable.Transition.None;
+            karakterBtn.onClick.AddListener(OnBalonTiklandi);
+
+            Debug.Log("[Modal] Karakter balon child'ı yapıldı, local pos=(-20, 0)");
 
             // Başlık: "BİLGİLENDİRİCİ ASİSTAN"
             var basGo = new GameObject("Baslik",
@@ -439,9 +446,6 @@ namespace Senaryo.Scripted
             ttxt.color = Color.white;
             ttxt.text = "TAMAM";
             ttxt.raycastTarget = false;
-
-            // Karakter görseli render order: en sona al ki balon/mesaj kutusu üstüne çıkmasın.
-            karakterGo.transform.SetAsLastSibling();
         }
 
         // ──────────────────────────────────────────────────────────────────────
