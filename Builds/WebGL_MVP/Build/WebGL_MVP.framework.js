@@ -1809,9 +1809,10 @@ function dbg(text) {
   function _AnlaticiPaneliArkayaAt() {
           var c = document.getElementById('anlaticiPanelContainer');
           if (c) {
+              c.style.transform = 'translateX(-100px)';
               c.style.opacity = '0.4';
               c.style.pointerEvents = 'none';
-              console.log('[Panel] arka — opacity 0.4, pointer-events none');
+              console.log('[Panel] arka — translateX(-100px), opacity 0.4, pointer-events none');
           }
       }
 
@@ -1849,9 +1850,10 @@ function dbg(text) {
   function _AnlaticiPaneliOneAl() {
           var c = document.getElementById('anlaticiPanelContainer');
           if (c) {
+              c.style.transform = 'none';
               c.style.opacity = '1';
               c.style.pointerEvents = 'auto';
-              console.log('[Panel] ön — opacity 1, pointer-events auto');
+              console.log('[Panel] ön — transform none, opacity 1, pointer-events auto');
           }
       }
 
