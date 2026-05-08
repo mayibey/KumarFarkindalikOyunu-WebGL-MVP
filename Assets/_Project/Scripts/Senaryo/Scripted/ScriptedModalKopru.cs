@@ -23,6 +23,10 @@ namespace Senaryo.Scripted
         public const int ANLATICI_SAHNE_BUILD_INDEX = 2;
         public static ScriptedModalKopru Ornek { get; private set; }
 
+        /// <summary>Modal görünür mü? ModalGoster coroutine süresince true; SpinButonImpl ve
+        /// OyunUIGuncellemeServisi bu flag'e bakıp Spin butonunu engeller.</summary>
+        public static bool ModalAcik { get; private set; }
+
         // === UI referansları ===
         private GameObject _root;
         private RectTransform _karakterRt;
@@ -110,6 +114,8 @@ namespace Senaryo.Scripted
             if (string.IsNullOrEmpty(mesaj) || _root == null || _mesajText == null)
                 yield break;
 
+            ModalAcik = true; // Spin butonu bu süre boyunca engellenir
+
             // Anlatici HTML iframe yönetimi:
             //   gizleAnlatici=true  → Gizle/display:none (default — modal'a yer aç).
             //   gizleAnlatici=false → ArkayaAt/z:50 (Pre-A1 — panel arkada görünür kalır,
@@ -173,6 +179,8 @@ namespace Senaryo.Scripted
             }
             finally
             {
+                ModalAcik = false; // Spin butonu tekrar serbest
+
                 // Anlatici iframe state geri yükleme — girişteki çağrının paritesi:
                 //   gizleAnlatici=true  → Goster (referans counter sayaç 0'a düşerse display:block).
                 //   gizleAnlatici=false → OneAl  (z:50 → z:100, panel tekrar üstte).

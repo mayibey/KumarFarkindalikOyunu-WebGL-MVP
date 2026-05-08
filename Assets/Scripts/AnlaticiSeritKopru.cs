@@ -37,6 +37,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
     public static void BonusBitisGoster(int tutar)
     {
         BonusBitisOnaylandi = false;
+        BonusBitisAcik = true; // Spin butonu bu süre boyunca engellensin
 #if UNITY_WEBGL && !UNITY_EDITOR
         try { BonusBitisPopupAc(tutar); }
         catch (System.Exception e) { Debug.LogWarning("[BonusBitis] hata: " + e.Message); }
@@ -44,6 +45,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
         Debug.Log("[BonusBitis] Tutar: " + tutar);
         // Editor fallback: anında onay (test akışı bloklanmasın)
         BonusBitisOnaylandi = true;
+        BonusBitisAcik = false;
 #endif
     }
 
@@ -59,12 +61,31 @@ public class AnlaticiSeritKopru : MonoBehaviour
     /// <summary>JS tarafında TAMAM tıklandığında SendMessage ile true olur — coroutine devam eder.</summary>
     public static bool BonusBitisOnaylandi { get; private set; }
 
+    /// <summary>Bonus bitiş popup'ı görünür mü? BonusBitisGoster→true, BonusBitisOnayla→false.
+    /// SpinButonImpl ve OyunUIGuncellemeServisi bu flag'e bakıp Spin butonunu engeller.</summary>
+    public static bool BonusBitisAcik { get; private set; }
+
     /// <summary>JS SendMessage handler — GameObject "AnlaticiSeritKopru" üzerinde çağrılır.</summary>
     public void BonusBitisOnayla()
     {
         BonusBitisOnaylandi = true;
+        BonusBitisAcik = false;
         Debug.Log("[BonusBitis] Kullanıcı TAMAM tıkladı, coroutine devam.");
     }
+
+    /// <summary>Senaryolu eğitim modunda herhangi bir overlay (modal/balon/popup/yükleme/final) açık mı?
+    /// SpinButonImpl ve OyunUIGuncellemeServisi tek satırda kontrol eder. Senaryo dışı sahnelerde
+    /// (admin, tutorial) her zaman false → mevcut davranış değişmez.</summary>
+    public static bool HerhangiOverlayAcik =>
+        SenaryoEgitimiAktif && (
+            Senaryo.Scripted.ScriptedYuklemePaneli.IsAcik
+            || Senaryo.Scripted.ScriptedFinalEkrani.IsAcik
+            || Senaryo.Scripted.ScriptedBonusTuzagiPopup.IsAcik
+            || Senaryo.Scripted.ScriptedBonusOyunUygulayici.IsAcik
+            || Senaryo.Scripted.ScriptedModalKopru.ModalAcik
+            || Senaryo.Scripted.ScriptedDusunceBalonu.BalonAcik
+            || BonusBitisAcik
+        );
 
     /// <summary>Sol panel iframe'ini Unity Canvas'ın ARKASINA gönderir (z:50). Modal'ın "sol panel"
     /// anlattığı durumlarda kullanılır — Gizle yerine arkada görünür kalsın.</summary>

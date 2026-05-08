@@ -1972,7 +1972,7 @@ function dbg(text) {
           var aciklama = document.createElement('p');
           aciklama.className = 'aciklama';
           aciklama.textContent = 'Kazandınız!';
-          aciklama.style.cssText = 'font-size:20px;color:#FFFFFF;margin:0 0 28px 0;position:relative;';
+          aciklama.style.cssText = 'font-size:28px;font-weight:700;color:#FFD700;text-shadow:0 0 15px rgba(255,215,0,0.5);letter-spacing:1px;margin:0 0 32px 0;position:relative;';
           popup.appendChild(aciklama);
   
           var btn = document.createElement('button');

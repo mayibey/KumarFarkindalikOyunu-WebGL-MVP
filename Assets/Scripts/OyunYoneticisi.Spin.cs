@@ -191,6 +191,9 @@ public partial class OyunYoneticisi
         if (ScriptedFinalEkrani.IsAcik) return;
         if (ScriptedBonusTuzagiPopup.IsAcik) return;
         if (ScriptedBonusOyunUygulayici.IsAcik) return;
+        if (ScriptedModalKopru.ModalAcik) return;       // Bilgilendirici Asistan modal'ı
+        if (ScriptedDusunceBalonu.BalonAcik) return;    // Düşünce balonu sahnesi
+        if (AnlaticiSeritKopru.BonusBitisAcik) return;  // Modern bonus bitiş DOM popup'ı
 
         // ÖNCE-modal kontrolü: A1 Spin 7 (idx 6) ve A2 Spin 4 (idx 3) tıklandığında önce pedagojik
         // modal açılır, bittiğinde SpinButon tekrar çağrılır → bu sefer flag set olduğu için asıl spin atılır.

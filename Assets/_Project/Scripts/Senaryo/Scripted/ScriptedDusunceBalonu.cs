@@ -21,6 +21,10 @@ namespace Senaryo.Scripted
         public const int ANLATICI_SAHNE_BUILD_INDEX = 2;
         public static ScriptedDusunceBalonu Ornek { get; private set; }
 
+        /// <summary>Balon görünür mü? BaloniGoster coroutine süresince true; SpinButonImpl ve
+        /// OyunUIGuncellemeServisi bu flag'e bakıp Spin butonunu engeller.</summary>
+        public static bool BalonAcik { get; private set; }
+
         // === Animasyon parametreleri ===
         private const float DIM_FADE_SURE = 0.4f;
         private const float KARAKTER_POPIN_SURE = 0.5f;
@@ -107,6 +111,7 @@ namespace Senaryo.Scripted
         {
             if (_root == null) yield break;
             _aktifMi = true;
+            BalonAcik = true; // Spin butonu bu süre boyunca engellenir
             _atlandi = false;
             _root.SetActive(true);
 
@@ -171,6 +176,7 @@ namespace Senaryo.Scripted
             finally
             {
                 _aktifMi = false;
+                BalonAcik = false; // Spin butonu tekrar serbest
                 _atlandi = false;
                 if (_root != null) _root.SetActive(false);
                 // Aktif balonları temizle (sonraki açılışta yeniden oluşacak)

@@ -231,8 +231,11 @@ public class OyunUIGuncellemeServisi
         if (_ctx == null) return;
 
         // İstek: oyun sırasında butonlar kilitlenmesin.
+        // Senaryolu eğitim modunda herhangi modal/balon/popup açıkken Spin butonu görsel olarak
+        // disable olur (Unity default disabled tint → gri). Modal kapanınca gerçek zamanlı aktif.
+        // Senaryo dışı sahnelerde HerhangiOverlayAcik her zaman false → mevcut davranış aynı.
         if (_ctx.CevirButon != null)
-            _ctx.CevirButon.interactable = true;
+            _ctx.CevirButon.interactable = !AnlaticiSeritKopru.HerhangiOverlayAcik;
 
         bool bahisAcik = true;
         int bahis = _ctx.GetBahis();
