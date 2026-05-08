@@ -820,7 +820,8 @@ public class AnlaticiSeritKopru : MonoBehaviour
         _aktifYildizlar.Clear();
     }
 
-    /// <summary>A4 Spin 5 sonu ×100 çarpan: manipülasyon vuruşunun pedagojik açıklaması.</summary>
+    /// <summary>A4 Spin 5 sonu ×100 çarpan: manipülasyon vuruşunun pedagojik açıklaması +
+    /// "çekim şartı tuzağı" ikinci modal'ı (büyük kazanç sonrası "çekip çıkayım" düşüncesini söndürür).</summary>
     private System.Collections.IEnumerator A4S5CarpanModalAkisi()
     {
         // Kullanıcı çarpanı + büyük kazancı görsün, tumble + ödeme animasyonları otursun
@@ -832,6 +833,16 @@ public class AnlaticiSeritKopru : MonoBehaviour
             "Bu rastlantı değil: algoritma oyuncuyu tam bu duygusal anda yakaladı. <i>'Şansım döndü'</i> diyecek. " +
             "Aslında <color=#EF4444>manipülasyon başarılı oldu</color>.";
         yield return modal.ModalGoster(mesaj);
+
+        // Çekim Şartı Tuzağı — büyük kazanç sonrası "çekip çıkayım" düşüncesini söndüren ikinci modal.
+        string cekimSartiMesaji =
+            "İşte bu noktada gerçek hayatta oyuncunun aklına şu gelir: <color=#60A5FA><i>'Şu an kazançtayım, parayı çekip çıkayım.'</i></color> Mantıklı düşünce. Ama kumar siteleri bunun olmasına izin vermez.\n\n" +
+            "<color=#EF4444><b>Çekim şartı tuzağı:</b></color> Site, oyuncunun kazandığı parayı çekebilmesi için bir <color=#EF4444><b>\"çevrim şartı\"</b></color> koyar. Bu şart genelde iki şekilde olur:\n\n" +
+            "- <color=#FB923C><b>Bahis çevrim şartı:</b></color> Oyuncu, kazandığı paranın belirli bir katı kadar tutarda bahis atmadan parasını çekemez.\n\n" +
+            "- <color=#FB923C><b>Spin sayısı şartı:</b></color> Oyuncunun belirli bir spin sayısına ulaşması gerekir, <b>örneğin 1000 spin atma şartı gibi</b>. Bu sayıya ulaşmadan çekim yapmasına izin verilmez.\n\n" +
+            "Sonuç değişmez: Oyuncu bu şartları tamamlamaya çalışırken sistem <color=#EF4444>kazandığı parayı yavaş yavaş geri alır</color>, üstüne <color=#EF4444>kendi parasını da kaybeder</color>. Çekim şartı <color=#EF4444>sağlanamadan</color> oyuncu zaten masada tüketilmiş olur.\n\n" +
+            "Yani <color=#EF4444><b>\"çekip çıkma\" seçeneği aslında yok</b></color> — sadece var gibi görünür. Kumar sitesinin tek gerçek amacı oyuncuyu masada tutmaktır.";
+        yield return modal.ModalGoster(cekimSartiMesaji);
     }
 
     /// <summary>
