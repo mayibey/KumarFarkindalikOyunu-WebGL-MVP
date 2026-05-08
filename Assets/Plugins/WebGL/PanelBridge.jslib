@@ -223,26 +223,28 @@ mergeInto(LibraryManager.library, {
         if (c) c.style.display = 'block';
     },
 
-    /// Sol panel iframe'ini yarı saydam yapar (opacity:0.4) + tıklamayı yutmaz (pointer-events:none).
-    /// z-index 100'de kalır — Unity canvas opaque siyah olduğundan alt katmana atmak işe yaramıyor.
-    /// Modal pixels Unity canvas'ta, anlatici üstünde solgun → kullanıcı modal'ı net görür, panel
-    /// arkaplandan okunmaya devam eder. Pre-A1 gibi modal "sol panel" anlattığı durumlarda kullanılır.
+    /// Sol panel iframe'i ARKAYA ALIR: transform:translateX(-100px) + opacity:0.4 + pointer-events:none.
+    /// Panel 100 piksel sola kayar → karakter alanı (380-600 piksel) açılır, çakışma sıfır.
+    /// Panel sol 100 piksel ekran dışı (body overflow:hidden ile clip — Pre-A1'de saydam, dikkat çekmez).
+    /// z-index dokunulmaz (Unity 6'da Transparent Canvas yok, alttan render güvenilmez).
     AnlaticiPaneliArkayaAt: function() {
         var c = document.getElementById('anlaticiPanelContainer');
         if (c) {
+            c.style.transform = 'translateX(-100px)';
             c.style.opacity = '0.4';
             c.style.pointerEvents = 'none';
-            console.log('[Panel] arka — opacity 0.4, pointer-events none');
+            console.log('[Panel] arka — translateX(-100px), opacity 0.4, pointer-events none');
         }
     },
 
-    /// AnlaticiPaneliArkayaAt ile arkaya alınan paneli normal opaklığa geri döndürür.
+    /// AnlaticiPaneliArkayaAt ile arkaya alınan paneli normal pozisyon + opaklığa geri döndürür.
     AnlaticiPaneliOneAl: function() {
         var c = document.getElementById('anlaticiPanelContainer');
         if (c) {
+            c.style.transform = 'none';
             c.style.opacity = '1';
             c.style.pointerEvents = 'auto';
-            console.log('[Panel] ön — opacity 1, pointer-events auto');
+            console.log('[Panel] ön — transform none, opacity 1, pointer-events auto');
         }
     },
 

@@ -77,13 +77,12 @@
   .bakiye { padding: 12px 22px 14px; background: rgba(120,30,30,0.18);
     border-top: 1px solid rgba(160,50,50,0.3); }
   .bakiye-bg-iyi { background: rgba(40,100,40,0.18); border-top: 1px solid rgba(60,140,60,0.3); }
-  .bakiye-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 3px; }
-  .bakiye-meta { font-size: 14px; color: rgba(255,255,255,0.55); }
-  .bakiye-net { font-size: 38px; font-weight: 500; line-height: 1; margin-bottom: 4px; }
+  .bakiye-tek-satir { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .bakiye-prefix { font-size: 14px; color: rgba(255,255,255,0.55); white-space: nowrap; }
+  .bakiye-net { font-size: 22px; font-weight: 600; line-height: 1; }
   .bakiye-net.kayip { color: #ff5555; }
   .bakiye-net.kazanc { color: #5dd55d; }
   .bakiye-net.notr { color: rgba(255,255,255,0.6); }
-  .bakiye-baglam { font-size: 15px; color: rgba(255,255,255,0.55); line-height: 1.4; }
   .tukenis-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0,0,0,0.92); display: none; align-items: center; justify-content: center;
     z-index: 100; padding: 20px; text-align: center; }
@@ -112,7 +111,6 @@
     <div class="section section-arka">
       <div class="section-label label-arka">SAHNE ARKASI</div>
       <div class="arka-text" id="arkaText">—</div>
-      <div class="rozetler" id="rozetler"></div>
     </div>
     <div class="section section-kafa">
       <div class="section-label label-kafa">OYUNCUNUN KAFASI</div>
@@ -127,20 +125,11 @@
       <div class="spin-bar" id="spinBar"></div>
       <div class="spin-info" id="spinInfo">10 spin sonra aşama 2 başlayacak</div>
     </div>
-    <div class="hikaye">
-      <div class="hikaye-row">
-        <span class="section-label label-spin" style="margin: 0;">HİKAYE AKIŞI</span>
-        <span class="bakiye-meta">otomatik</span>
-      </div>
-      <div class="hikaye-noktalar" id="hikayeNoktalar"></div>
-    </div>
     <div class="bakiye" id="bakiyeBolum">
-      <div class="bakiye-row">
-        <span class="bakiye-meta" id="bakiyeMeta">0 spin</span>
-        <span class="bakiye-meta" style="opacity: 0.7;">net durum</span>
+      <div class="bakiye-tek-satir">
+        <span class="bakiye-prefix" id="bakiyePrefix">0 spin · net durum:</span>
+        <span class="bakiye-net kayip" id="bakiyeNet">0 TL</span>
       </div>
-      <div class="bakiye-net kayip" id="bakiyeNet">0 TL</div>
-      <div class="bakiye-baglam" id="bakiyeBaglam">Simülasyon başlamadı.</div>
     </div>
     <div class="tukenis-overlay" id="tukenisOverlay">
       <div class="tukenis-icerik">
@@ -223,13 +212,7 @@
     document.getElementById('arkaText').textContent = a.arka;
     document.getElementById('kafaText').textContent = a.kafa;
     document.getElementById('bilimNot').textContent = a.bilim;
-    var rozHtml = '';
-    a.rozetler.forEach(function(r) {
-      var cls = 'rozet'; if (r.tip === 'warn') cls += ' rozet-warn';
-      else if (r.tip === 'good') cls += ' rozet-good';
-      rozHtml += '<span class="' + cls + '">' + r.text + '</span>';
-    });
-    document.getElementById('rozetler').innerHTML = rozHtml;
+    // Rozetler bölümü kaldırıldı (panel kompakt akışı için).
     // hedefSpin lokal aktif aşamadan array ile (manuel atla'da Unity onayını beklemez). Aşama 7 (999) → görsel max 10 çubuk.
     var asamaIdx = Math.max(0, Math.min(6, aktifAsama));
     var asamaHedef = ASAMA_SPIN_HEDEF[asamaIdx] || 10;
@@ -251,14 +234,7 @@
     document.getElementById('spinInfo').textContent = aktifAsama < 6
       ? kalan + ' spin sonra aşama ' + (aktifAsama+2) + ' başlayacak'
       : (asamaHedef > 20 ? 'Bakiye tükenince simülasyon biter' : kalan + ' spin sonra simülasyon biter');
-    var noktaHtml = '';
-    for (var j = 0; j < 7; j++) {
-      var nCls = 'nokta';
-      if (j < aktifAsama) nCls += ' gecmis';
-      else if (j === aktifAsama) nCls += ' aktif';
-      noktaHtml += '<div class="' + nCls + '" onclick="atla(' + j + ')"></div>';
-    }
-    document.getElementById('hikayeNoktalar').innerHTML = noktaHtml;
+    // Hikaye akışı (7 nokta) bölümü kaldırıldı (panel kompakt akışı için).
     var bb = document.getElementById('bakiyeBolum');
     var bn = document.getElementById('bakiyeNet');
     // Bakiye renk MANTIGI gerçeklikten gelir (aşama profilinden bağımsız)
@@ -269,8 +245,8 @@
     bn.className = 'bakiye-net ' + renkSinif;
     bb.className = 'bakiye' + bgSinif;
     bn.textContent = formatTL(bakiyeNet);
-    document.getElementById('bakiyeMeta').textContent = toplamSpin + ' spin';
-    document.getElementById('bakiyeBaglam').textContent = a.bakiyeBaglam;
+    // Tek satır kompakt format: "10 spin · net durum:" + bakiyeNet
+    document.getElementById('bakiyePrefix').textContent = toplamSpin + ' spin · net durum:';
     setTimeout(bildirBoyut, 50);
   }
 
