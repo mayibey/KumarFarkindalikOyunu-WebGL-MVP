@@ -133,7 +133,7 @@ namespace Senaryo.Scripted
             var yalanlar = new (Vector2 konum, string yazi)[]
             {
                 (new Vector2(-420f, 280f),  "<color=#EF4444><b>Çocuğum hasta</b></color>, acil para lazım..."),
-                (new Vector2( 420f, 280f),  "<color=#60A5FA><i>Sadece kısa süre için</i></color>, hemen ödeyeceğim..."),
+                (new Vector2( 420f, 280f),  "<color=#EF4444><b>Bir 50 bin kredi çekersem</b></color> hepsini telafi ederim..."),
                 (new Vector2(-490f,  30f),  "<color=#EF4444><b>Kız kardeşim borca girdi</b></color>, yardım etmem gerek..."),
                 (new Vector2( 490f,  30f),  "<color=#FB923C><i>Bu sefer kazanırsam</i></color> hepsini öderim, söz veriyorum..."),
             };
@@ -366,19 +366,19 @@ namespace Senaryo.Scripted
             _dimCanvasGroup = dim.GetComponent<CanvasGroup>();
             _dimCanvasGroup.alpha = 0f;
 
-            // Sol-üstte aşama başlığı — gizlenen anlatici iframe'in yerine geçer.
-            // "BAŞKA YERDEN PARA BULMA ARAYIŞI" — geçiş evresinin pedagojik etiketi.
+            // Orta-üstte aşama başlığı — geçiş evresinin pedagojik etiketi.
+            // "BAŞKA YERDEN PARA BULMA ARAYIŞI" tam orta üste konumlanır, simetrik görünür.
             var asamaGo = new GameObject("AsamaBasligi", typeof(RectTransform), typeof(CanvasRenderer));
             asamaGo.transform.SetParent(_root.transform, false);
             var asamaRt = asamaGo.GetComponent<RectTransform>();
-            asamaRt.anchorMin = new Vector2(0f, 1f);
-            asamaRt.anchorMax = new Vector2(0f, 1f);
-            asamaRt.pivot = new Vector2(0f, 1f);
-            asamaRt.sizeDelta = new Vector2(420f, 100f);
-            asamaRt.anchoredPosition = new Vector2(30f, -30f);
+            asamaRt.anchorMin = new Vector2(0.5f, 1f);
+            asamaRt.anchorMax = new Vector2(0.5f, 1f);
+            asamaRt.pivot = new Vector2(0.5f, 1f);
+            asamaRt.sizeDelta = new Vector2(800f, 100f);
+            asamaRt.anchoredPosition = new Vector2(0f, -40f);
             var asamaTxt = asamaGo.AddComponent<TextMeshProUGUI>();
-            asamaTxt.alignment = TextAlignmentOptions.TopLeft;
-            asamaTxt.fontSize = 26f;
+            asamaTxt.alignment = TextAlignmentOptions.Center;
+            asamaTxt.fontSize = 30f;
             asamaTxt.fontStyle = FontStyles.Bold;
             asamaTxt.color = new Color(0.98f, 0.78f, 0.46f, 1f); // sarı
             asamaTxt.enableWordWrapping = true;

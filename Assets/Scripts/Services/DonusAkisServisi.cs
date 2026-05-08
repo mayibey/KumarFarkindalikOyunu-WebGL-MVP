@@ -310,9 +310,18 @@ public class DonusAkisServisi
         int scatterIdx = _ctx.IzgaraServisi != null ? _ctx.IzgaraServisi.GetScatterSpriteIndex() : -1;
         Debug.Log($"🧪 BonusKontrol: ScatterSay(ilk)={scIlk} ScatterSay(simdi)={scSimdi} kullanilan={sc} / Esik={esik} | scatter index={scatterIdx}");
 
-        // Otomatik bonus tetikleme: önceki spin sonunda flag set edildiyse bonus başlat
+        // SENARYOLU MOD: otomatik bonus tetiği KAPALI. A5'in kontrollü tetiği `bonusOyunuTetikle`
+        // asset flag'i ile aşağıdaki 388-404 satırlarında ayrı yoldan (ScriptedBonusTuzagiPopup) çalışır.
+        // Bu blok scatter eşiği VE admin periyot override'ını birlikte bypass eder.
         bool bonusOtomatikTetik = _ctx.BonusOtomatikTetikSonrakiSpin;
-        if (bonusOtomatikTetik)
+        bool senaryoluMod = AnlaticiSeritKopru.SenaryoEgitimiAktif;
+        if (senaryoluMod && (bonusOtomatikTetik || sc >= esik))
+        {
+            Debug.Log($"[Bonus] Senaryolu mod aktif, otomatik bonus atlandı (scatter sayısı: {sc}, otomatikFlag: {bonusOtomatikTetik})");
+            _ctx.BonusOtomatikTetikSonrakiSpin = false;
+            bonusOtomatikTetik = false; // local flag'i de temizle — aşağıdaki BaslatBonus bloğu da devre dışı kalsın
+        }
+        else if (bonusOtomatikTetik)
         {
             _ctx.BonusOtomatikTetikSonrakiSpin = false;
             Debug.Log("[BONUS_OTOMATIK] Periyot sonu — bonus zorla tetikleniyor.");
@@ -346,7 +355,9 @@ public class DonusAkisServisi
         if (SenaryoYoneticisi.I != null && SenaryoYoneticisi.I.mevcutAsama == SenaryoYoneticisi.SenaryoAsama.Asama7_Finale)
             yield return new WaitForSeconds(1.5f);
 
-        if (sc >= esik || bonusOtomatikTetik)
+        // Senaryolu modda yukarıdaki blok bonusOtomatikTetik=false ve sc>=esik durumunu zaten
+        // bypass etmiş olur (Debug.Log basılır, A5 özel akışı 388-404 satırlarında devam eder).
+        if (!senaryoluMod && (sc >= esik || bonusOtomatikTetik))
         {
             if (sc >= esik && _runCoroutine != null)
                 yield return _runCoroutine(_ctx.ScatterBuyutEfekti());

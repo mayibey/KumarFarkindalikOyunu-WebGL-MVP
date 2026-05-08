@@ -19,6 +19,8 @@ public class AnlaticiSeritKopru : MonoBehaviour
     [DllImport("__Internal")] private static extern void AnlaticiPaneliArkayaAt();
     [DllImport("__Internal")] private static extern void AnlaticiPaneliOneAl();
     [DllImport("__Internal")] private static extern void HosgeldinKutusunuAc(string metin);
+    [DllImport("__Internal")] private static extern void BonusBitisPopupAc(int tutar);
+    [DllImport("__Internal")] private static extern void BonusBitisPopupKapat();
 
     private static void HosgeldinKutusunuAcGuvenli(string metin)
     {
@@ -27,6 +29,41 @@ public class AnlaticiSeritKopru : MonoBehaviour
 #else
         Debug.Log("[HosgeldinKutusu] " + metin);
 #endif
+    }
+
+    /// <summary>Bonus oyun bitiminde modern DOM popup'ı açar (alkış sesi C# tarafında ayrı çalar).
+    /// BonusUIServisi.ShowBonusEndMessage tarafından çağrılır; popup TAMAM tıklanana kadar
+    /// <see cref="BonusBitisOnaylandi"/> false kalır.</summary>
+    public static void BonusBitisGoster(int tutar)
+    {
+        BonusBitisOnaylandi = false;
+#if UNITY_WEBGL && !UNITY_EDITOR
+        try { BonusBitisPopupAc(tutar); }
+        catch (System.Exception e) { Debug.LogWarning("[BonusBitis] hata: " + e.Message); }
+#else
+        Debug.Log("[BonusBitis] Tutar: " + tutar);
+        // Editor fallback: anında onay (test akışı bloklanmasın)
+        BonusBitisOnaylandi = true;
+#endif
+    }
+
+    /// <summary>JS popup'ı manuel kapatma (defansif — sahne değişimi vb.).</summary>
+    public static void BonusBitisGizle()
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        try { BonusBitisPopupKapat(); }
+        catch (System.Exception e) { Debug.LogWarning("[BonusBitis] kapat hata: " + e.Message); }
+#endif
+    }
+
+    /// <summary>JS tarafında TAMAM tıklandığında SendMessage ile true olur — coroutine devam eder.</summary>
+    public static bool BonusBitisOnaylandi { get; private set; }
+
+    /// <summary>JS SendMessage handler — GameObject "AnlaticiSeritKopru" üzerinde çağrılır.</summary>
+    public void BonusBitisOnayla()
+    {
+        BonusBitisOnaylandi = true;
+        Debug.Log("[BonusBitis] Kullanıcı TAMAM tıkladı, coroutine devam.");
     }
 
     /// <summary>Sol panel iframe'ini Unity Canvas'ın ARKASINA gönderir (z:50). Modal'ın "sol panel"

@@ -523,81 +523,30 @@ public class BonusUIServisi
 
     public IEnumerator ShowBonusEndMessage(int bonusToplamKazanc)
     {
-        if (_bonusEndPanel == null) yield break;
-        _setBonusEndCloseRequested?.Invoke(false);
-        _bonusEndPanel.SetActive(true);
-        _bonusEndPanel.transform.SetAsLastSibling();
-        BonusEndCanvasUsteAl(_bonusEndPanel);
-        var panelRt = _bonusEndPanel.transform as RectTransform;
-        BonusEndPanelBoyutunuUygula(panelRt);
-        BonusEndSlotTemasiArkaPlan(_bonusEndPanel);
-        BonusEndMetinVeButonYerlesimi(panelRt, bonusToplamKazanc);
+        // Eski sahne UI panel akışı (BonusEndPanel SetActive + fade + autoClose) DEVRE DIŞI.
+        // Yeni: AnlaticiSeritKopru.BonusBitisGoster ile modern DOM popup açılır.
+        // Alkış sesi BURADA C# tarafında PlayOneShot ile çalmaya devam eder (DOM popup ile paralel).
+        // Sahne paneli (_bonusEndPanel) prefab olarak kalır ama SetActive(true) çağrılmaz.
 
-        CanvasGroup bonusEndCg = _bonusEndCanvasGroup != null
-            ? _bonusEndCanvasGroup
-            : _bonusEndPanel.GetComponent<CanvasGroup>();
-        if (bonusEndCg == null)
-            bonusEndCg = _bonusEndPanel.AddComponent<CanvasGroup>();
-        bonusEndCg.alpha = 0f;
-        bonusEndCg.interactable = true;
-        bonusEndCg.blocksRaycasts = true;
+        // Defansif: eski panel yanlışlıkla aktifse kapat
+        if (_bonusEndPanel != null && _bonusEndPanel.activeSelf)
+            _bonusEndPanel.SetActive(false);
 
+        // Alkış sesi (KORUNDU)
         if (_bonusEndSfxSource != null && _bonusEndApplauseClip != null)
             _bonusEndSfxSource.PlayOneShot(_bonusEndApplauseClip);
         else
             Debug.LogWarning("👏 Bonus End: bonusEndSfxSource veya bonusEndApplauseClip boş!");
 
-        const float girisSuresi = 0.4f;
-        float tg = 0f;
-        while (tg < girisSuresi)
-        {
-            tg += Time.unscaledDeltaTime;
-            float p = Mathf.Clamp01(tg / girisSuresi);
-            float eased = 1f - Mathf.Pow(1f - p, 2.4f);
-            bonusEndCg.alpha = eased;
-            yield return null;
-        }
-        bonusEndCg.alpha = 1f;
+        // Modern DOM popup'ı aç (alkış sesi ile senkron başlar)
+        AnlaticiSeritKopru.BonusBitisGoster(bonusToplamKazanc);
 
-        float autoClose = _getBonusEndAutoCloseSeconds != null ? _getBonusEndAutoCloseSeconds() : 0f;
-        if (autoClose > 0f)
-        {
-            _setBonusEndCloseButtonText?.Invoke(Mathf.CeilToInt(autoClose));
-            float t = 0f;
-            int lastShown = Mathf.CeilToInt(autoClose);
-            while (t < autoClose && (_getBonusEndCloseRequested == null || !_getBonusEndCloseRequested()))
-            {
-                t += Time.unscaledDeltaTime;
-                int remaining = Mathf.Max(0, Mathf.CeilToInt(autoClose - t));
-                if (remaining != lastShown)
-                {
-                    lastShown = remaining;
-                    _setBonusEndCloseButtonText?.Invoke(remaining);
-                }
-                yield return null;
-            }
-            _setBonusEndCloseRequested?.Invoke(true);
-        }
-        else
-            _setBonusEndCloseButtonText?.Invoke(-1);
+        // Kullanıcı TAMAM tıklayana kadar bekle (JS → SendMessage('BonusBitisOnayla') → flag true)
+        // Editor'da BonusBitisGoster fallback flag'i true set eder → coroutine anında devam eder.
+        yield return new WaitUntil(() => AnlaticiSeritKopru.BonusBitisOnaylandi);
 
-        if (_getBonusEndCloseRequested != null)
-            yield return new WaitUntil(() => _getBonusEndCloseRequested());
-
-        const float cikisFade = 0.35f;
-        float ft = 0f;
-        while (ft < cikisFade)
-        {
-            ft += Time.unscaledDeltaTime;
-            float p = Mathf.Clamp01(ft / cikisFade);
-            float easedOut = 1f - Mathf.Pow(1f - p, 2f);
-            bonusEndCg.alpha = Mathf.Lerp(1f, 0f, easedOut);
-            yield return null;
-        }
-        bonusEndCg.alpha = 0f;
-
+        // Bonus müziğini durdur (mevcut davranış)
         if (_bonusEndMusicAudio != null) _bonusEndMusicAudio.Stop();
-        _bonusEndPanel.SetActive(false);
     }
 
     // --- Bonus satın al onay ---
