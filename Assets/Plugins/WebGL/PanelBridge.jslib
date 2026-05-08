@@ -54,9 +54,10 @@ mergeInto(LibraryManager.library, {
                 var iframe = document.getElementById('anlaticiPanelIframe');
                 if (!iframe) return;
 
-                if (msg.type === 'resize' && msg.height) {
-                    iframe.style.height = (msg.height + 8) + 'px';
-                }
+                // Resize mesajı IGNORE edilir — container sabit yükseklikte (calc(100vh-280px)),
+                // iframe height:100% ile container'ı doldurur. İçerik taşması iframe içi body
+                // scroll ile çözülür. (Eski davranış: iframe.style.height dinamik → panel zıplardı.)
+                // if (msg.type === 'resize' && msg.height) { /* artıkno-op */ }
                 if (msg.type === 'ready') {
                     if (typeof window._sonAnlaticiState !== 'undefined' && iframe.contentWindow) {
                         var st = window._sonAnlaticiState;
@@ -171,15 +172,18 @@ mergeInto(LibraryManager.library, {
 
         var container = document.createElement('div');
         container.id = 'anlaticiPanelContainer';
-        // Sabit konum + boyut: sol-orta, 360x700. z-index 100 = Unity canvas üstünde ama Unity Canvas
-        // overlay'lerinin (modal 9998+, balon, yükleme) altında kalması için Gizle/Goster API ile
-        // toggle edilir (display:none ↔ block) — modal/balon açılınca gizlenip kapanınca geri açılır.
-        container.style.cssText = 'position:fixed;top:50%;left:20px;transform:translateY(-50%);width:420px;height:auto;min-height:600px;max-height:calc(100vh - 40px);overflow-y:auto;z-index:100;pointer-events:auto;';
+        // SABİT konum + boyut: sol-orta dikey ortalı, 460×calc(100vh-280px).
+        // Üstten 150px (logo) + alttan 130px (bakiye/spin) = 280px toplam pay,
+        // dikey ortada simetrik 140px boşluk. Aşamadan aşamaya panel yüksekliği DEĞİŞMEZ.
+        // overflow:hidden — iç scroll iframe içinde body tarafından yönetilir.
+        // z-index 100 = Unity canvas üstünde; Gizle/Goster API ile modal/balon altında kalır.
+        container.style.cssText = 'position:fixed;top:50%;left:20px;transform:translateY(-50%);width:460px;height:calc(100vh - 280px);overflow:hidden;z-index:100;pointer-events:auto;';
 
         var iframe = document.createElement('iframe');
         iframe.id = 'anlaticiPanelIframe';
         iframe.src = url;
-        iframe.style.cssText = 'width:100%;height:auto;min-height:600px;border:none;background:transparent;';
+        // Iframe container'ı tamamen doldurur; içerik fazlaysa iframe içindeki body scroll yapar.
+        iframe.style.cssText = 'width:100%;height:100%;border:none;background:transparent;';
         iframe.setAttribute('allowtransparency', 'true');
 
         container.appendChild(iframe);
