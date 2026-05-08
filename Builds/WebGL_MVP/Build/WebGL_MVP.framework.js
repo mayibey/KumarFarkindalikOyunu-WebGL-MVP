@@ -1795,7 +1795,8 @@ function dbg(text) {
           // z-index 100 = Unity canvas üstünde; Gizle/Goster API ile modal/balon altında kalır.
           // transform:none + opacity:1 EXPLICIT → ArkayaAt sonrası state'i ilk render'da garanti sıfırla
           // (browser cache eski JSLIB tutsa bile yeni container default doğru başlar).
-          container.style.cssText = 'position:fixed;top:200px;left:20px;width:460px;height:calc(100vh - 340px);overflow:hidden;z-index:100;pointer-events:auto;transform:none;opacity:1;';
+          // transition → ArkayaAt/OneAl çağrılarında transform/opacity yumuşak slide-out/in animasyonu.
+          container.style.cssText = 'position:fixed;top:200px;left:20px;width:460px;height:calc(100vh - 340px);overflow:hidden;z-index:100;pointer-events:auto;transform:none;opacity:1;transition:transform 0.4s ease, opacity 0.4s ease;';
   
           var iframe = document.createElement('iframe');
           iframe.id = 'anlaticiPanelIframe';
@@ -1811,10 +1812,10 @@ function dbg(text) {
   function _AnlaticiPaneliArkayaAt() {
           var c = document.getElementById('anlaticiPanelContainer');
           if (c) {
-              c.style.transform = 'translateX(-100px)';
-              c.style.opacity = '0.4';
+              c.style.transform = 'translateX(-500px)';
+              c.style.opacity = '0';
               c.style.pointerEvents = 'none';
-              console.log('[Panel] arka — translateX(-100px), opacity 0.4, pointer-events none');
+              console.log('[Panel] arka — translateX(-500px), opacity 0, pointer-events none');
           }
       }
 
