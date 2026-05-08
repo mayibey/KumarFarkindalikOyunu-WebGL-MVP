@@ -1913,6 +1913,94 @@ function dbg(text) {
           window._sonBahisBakiye = undefined;
       }
 
+  function _BonusBitisPopupAc(tutar) {
+          var existing = document.getElementById('bonusBitisPopup');
+          if (existing) existing.remove();
+  
+          // Tek seferlik <style> ekle (keyframes + hover)
+          if (!document.getElementById('bonusBitisStyle')) {
+              var style = document.createElement('style');
+              style.id = 'bonusBitisStyle';
+              style.textContent =
+                  '@keyframes bonusBitisAcilis {' +
+                  '  0% { transform: translate(-50%, -50%) scale(0); }' +
+                  '  60% { transform: translate(-50%, -50%) scale(1.1); }' +
+                  '  100% { transform: translate(-50%, -50%) scale(1.0); }' +
+                  '}' +
+                  '@keyframes bonusBitisParlamaPulse {' +
+                  '  0%, 100% { opacity: 0.6; }' +
+                  '  50% { opacity: 1.0; }' +
+                  '}' +
+                  '@keyframes bonusBitisKapanis {' +
+                  '  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }' +
+                  '  100% { transform: translate(-50%, -50%) scale(0.95); opacity: 0; }' +
+                  '}' +
+                  '#bonusBitisPopup .tamam-btn:hover {' +
+                  '  transform: scale(1.05);' +
+                  '  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.8);' +
+                  '}' +
+                  '#bonusBitisPopup .parlama-bg {' +
+                  '  position: absolute; top: 0; left: 0; right: 0; bottom: 0;' +
+                  '  border-radius: 20px;' +
+                  '  background: radial-gradient(circle at 50% 50%, rgba(255,215,0,0.18), transparent 70%);' +
+                  '  animation: bonusBitisParlamaPulse 2s ease-in-out infinite;' +
+                  '  pointer-events: none;' +
+                  '}';
+              document.head.appendChild(style);
+          }
+  
+          var popup = document.createElement('div');
+          popup.id = 'bonusBitisPopup';
+          popup.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(1);width:480px;padding:32px 40px;background:linear-gradient(135deg,#2d1810 0%,#4a2818 50%,#2d1810 100%);border:3px solid #FFD700;border-radius:20px;box-shadow:0 0 60px rgba(255,215,0,0.6),0 8px 32px rgba(0,0,0,0.8);z-index:9999;text-align:center;font-family:inherit;color:#FFFFFF;animation:bonusBitisAcilis 0.6s cubic-bezier(0.34,1.56,0.64,1);';
+  
+          var parlama = document.createElement('div');
+          parlama.className = 'parlama-bg';
+          popup.appendChild(parlama);
+  
+          var tebrikler = document.createElement('h1');
+          tebrikler.className = 'tebrikler';
+          tebrikler.textContent = '🎉 TEBRİKLER 🎉';
+          tebrikler.style.cssText = 'font-size:32px;font-weight:900;color:#FFD700;letter-spacing:2px;text-shadow:0 0 20px rgba(255,215,0,0.8);margin:0 0 20px 0;position:relative;';
+          popup.appendChild(tebrikler);
+  
+          var tutarText = document.createElement('div');
+          tutarText.className = 'tutar';
+          tutarText.textContent = tutar.toLocaleString('tr-TR') + ' TL';
+          tutarText.style.cssText = 'font-size:56px;font-weight:900;color:#4ADE80;text-shadow:0 0 30px rgba(74,222,128,0.8);margin:16px 0;position:relative;';
+          popup.appendChild(tutarText);
+  
+          var aciklama = document.createElement('p');
+          aciklama.className = 'aciklama';
+          aciklama.textContent = 'Kazandınız!';
+          aciklama.style.cssText = 'font-size:20px;color:#FFFFFF;margin:0 0 28px 0;position:relative;';
+          popup.appendChild(aciklama);
+  
+          var btn = document.createElement('button');
+          btn.className = 'tamam-btn';
+          btn.textContent = 'TAMAM';
+          btn.style.cssText = 'padding:14px 48px;font-size:18px;font-weight:700;background:linear-gradient(135deg,#FFD700,#FFA500);color:#2d1810;border:none;border-radius:10px;cursor:pointer;box-shadow:0 4px 12px rgba(255,215,0,0.5);transition:transform 0.15s,box-shadow 0.15s;font-family:inherit;position:relative;';
+          btn.onclick = function() {
+              popup.style.animation = 'bonusBitisKapanis 0.2s ease-out forwards';
+              setTimeout(function() { if (popup.parentNode) popup.remove(); }, 220);
+              // Unity coroutine'ine onay
+              try {
+                  if (typeof unityInstance !== 'undefined' && unityInstance.SendMessage) {
+                      unityInstance.SendMessage('AnlaticiSeritKopru', 'BonusBitisOnayla', '');
+                  }
+              } catch(e) {
+                  console.warn('[BonusBitisPopup] SendMessage hata:', e);
+              }
+          };
+          popup.appendChild(btn);
+  
+          document.body.appendChild(popup);
+      }
+
+  function _BonusBitisPopupKapat() {
+          var p = document.getElementById('bonusBitisPopup');
+          if (p) p.remove();
+      }
+
   function _GetJSLoadTimeInfo(loadTimePtr) {
     loadTimePtr = (loadTimePtr >> 2);
     HEAPU32[loadTimePtr] = Module.pageStartupTime || 0;
@@ -17844,6 +17932,8 @@ var wasmImports = {
   "BahisPaneliAc": _BahisPaneliAc,
   "BahisPaneliBakiyeGonder": _BahisPaneliBakiyeGonder,
   "BahisPaneliKapat": _BahisPaneliKapat,
+  "BonusBitisPopupAc": _BonusBitisPopupAc,
+  "BonusBitisPopupKapat": _BonusBitisPopupKapat,
   "GetJSLoadTimeInfo": _GetJSLoadTimeInfo,
   "GetJSMemoryInfo": _GetJSMemoryInfo,
   "HosgeldinKutusunuAc": _HosgeldinKutusunuAc,
