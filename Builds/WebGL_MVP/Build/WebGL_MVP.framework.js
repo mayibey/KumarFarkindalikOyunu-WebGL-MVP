@@ -2166,7 +2166,18 @@ function dbg(text) {
           for (var b = 0; b < 3; b++) rocketYarat();
   
           animate();
-          console.log('[HavaiFisek] Başlatıldı');
+  
+          // 3 sn sonra otomatik dur — A5 cazip popup'taki BONUS AL butonuna tıklanabilirlik için.
+          // Mevcut roketler/partiküller animasyonlarını tamamlayıp canvas DOM'dan otomatik kalkar (~4.5sn toplam).
+          // pointer-events:none zaten var (line 385); double-safety: 3sn sonra DOM'dan ayrılma süreci başlar.
+          setTimeout(function() {
+              if (canvas) {
+                  canvas._aktif = false;
+                  console.log('[HavaiFisek] 3sn doldu — otomatik durdu, partiküller bitince canvas temizlenir');
+              }
+          }, 3000);
+  
+          console.log('[HavaiFisek] Başlatıldı (3sn süreli)');
       }
 
   function _HavaiFisekDurdur() {
