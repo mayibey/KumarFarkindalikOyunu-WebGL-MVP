@@ -1,0 +1,76 @@
+    IEnumerator TumbleLoop(System.Action<int> onKazanc)
+    {
+        // Normal spin için limit hesapla
+        int odenebilirLimit = int.MaxValue;
+        if (!bonusAktif && kasa != null)
+        {
+            odenebilirLimit = (int)(kasa.odulHavuzuTL * 0.10f);
+        }
+
+        while (true)
+        {
+            List<Vector2Int> toRemove = FindClustersToRemove(minClusterSize);
+            if (toRemove.Count == 0) break;
+
+            // HER TURDA limit kontrolü - normal spin için
+            if (!bonusAktif && odenebilirLimit != int.MaxValue)
+            {
+                int turHam = CalculateWinForRemoved(toRemove);
+                long projeksiyon = (long)spinKazancHam + (long)turHam;
+                if (projeksiyon > (long)odenebilirLimit)
+                {
+                    Debug.Log($"[TUMBLE] Tur={spinKazancHam}+{turHam}={projeksiyon} > Limit={odenebilirLimit} - Dur!");
+                    break;
+                }
+            }
+
+            // Bonus'ta limit kontrolü (mevcut)
+            if (bonusAktif)
+            {
+                int kalanOdenebilir = GetBonusRemainingPayableTL();
+                int m = GetCurrentMultiplierInt();
+                int turHam = CalculateWinForRemoved(toRemove);
+                long projeksiyon = ((long)spinKazancHam + (long)turHam) * (long)m;
+
+                if (kalanOdenebilir <= 0 || projeksiyon > (long)kalanOdenebilir)
+                {
+                    break;
+                }
+            }
+
+            // Devamı aynı...
+            CarpanUretVeBirik();
+            int turKazanci = CalculateWinForRemoved(toRemove);
+            if (turKazanci > 0)
+            {
+                spinKazancHam += turKazanci;
+                StartCoroutine(AnimateCarpanSisme());
+                tumbleToplamKazanc += turKazanci;
+                
+                sonSpinKazancHamGoster = spinKazancHam;
+                sonSpinCarpanGoster = 1;
+                sonSpinKazancToplamGoster = spinKazancHam;
+                sonSpinKazanci = MulClampInt(spinKazancHam, GetCurrentMultiplier());
+                
+                onKazanc?.Invoke(turKazanci);
+                UI_Guncelle();
+            }
+
+            PlayTumbleSfx(tumblePopClip, ref _lastTumblePopTime, tumblePopMinInterval, 1f);
+
+            yield return StartCoroutine(AnimatePop(toRemove));
+            yield return new WaitForSeconds(0.30f);
+
+            for (int i = 0; i < toRemove.Count; i++)
+            {
+                grid[toRemove[i].x, toRemove[i].y] = -1;
+                carpanDegerGrid[toRemove[i].x, toRemove[i].y] = 0;
+            }
+
+            yield return StartCoroutine(CollapseRefillAndAnimate());
+            yield return new WaitForSeconds(0.15f);
+
+            UI_Guncelle();
+            yield return new WaitForSeconds(betweenStepsDelay);
+        }
+    }

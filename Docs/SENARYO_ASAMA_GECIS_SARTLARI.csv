@@ -1,0 +1,8 @@
+AsamaNo,AsamaAdi,GecilecekAsama,Zorluk,GecisSartlari
+1,"Isındırma / Umut",2,5,"200 spin, bonus görülme 3, bahis değişimi 3"
+2,"Kontrol Bende Hissi",3,6,"300 spin, 5 bahis değişimi, 1 kez bakiye %20 düşüş"
+3,"Az Daha / Kayıp Kovalama",4,7,"150 spin, bakiye %40 erime"
+4,"Bakiye Tükenişi ve Yeniden Yükleme",5,8,"Bakiye 10.000 TL altı, 1 yükleme"
+5,"Bonus Zirve Etkisi",6,9,"3. yükleme tamamlandı"
+6,"Gerçek / Uzun Vadede Kayıp",7,10,"Toplam 500+ spin, net negatif bakiye"
+7,"Finale Zorunlu Geçiş",-,11,"Yükleme hakkı yok veya bakiye 0"

@@ -2028,6 +2028,155 @@ function dbg(text) {
       }
     }
 
+  function _HavaiFisekBaslat() {
+          if (document.getElementById('havaiFisekCanvas')) return; // zaten aktif
+  
+          var canvas = document.createElement('canvas');
+          canvas.id = 'havaiFisekCanvas';
+          canvas.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:9998;';
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+          document.body.appendChild(canvas);
+  
+          var ctx = canvas.getContext('2d');
+          var fireworks = [];   // aktif roketler
+          var particles = [];   // patlama partikülleri
+          var fireworkTimer = 0;
+          canvas._aktif = true; // false → yeni roket üretme; tüm partiküller bitince canvas DOM'dan kalkar
+  
+          var renkler = [
+              [255, 215, 0],    // altın
+              [239, 68, 68],    // kırmızı
+              [74, 222, 128],   // yeşil
+              [251, 146, 60],   // turuncu
+              [102, 166, 255],  // mavi
+              [255, 128, 204],  // pembe
+              [255, 255, 100],  // sarı
+              [180, 130, 255]   // mor
+          ];
+  
+          function rastgeleRenk() {
+              return renkler[Math.floor(Math.random() * renkler.length)];
+          }
+  
+          function rocketYarat() {
+              var startX = Math.random() * canvas.width;
+              var startY = canvas.height;
+              var targetY = Math.random() * canvas.height * 0.5; // üst yarı
+              var hiz = 8 + Math.random() * 4;
+              fireworks.push({
+                  x: startX, y: startY,
+                  targetY: targetY,
+                  vy: -hiz,
+                  renk: rastgeleRenk(),
+                  iz: []
+              });
+          }
+  
+          function patlat(x, y, renk) {
+              var sayi = 30 + Math.floor(Math.random() * 20);
+              for (var i = 0; i < sayi; i++) {
+                  var aci = (Math.PI * 2 * i) / sayi;
+                  var hiz = 2 + Math.random() * 4;
+                  particles.push({
+                      x: x, y: y,
+                      vx: Math.cos(aci) * hiz,
+                      vy: Math.sin(aci) * hiz,
+                      yas: 0,
+                      maxYas: 60 + Math.random() * 40,
+                      renk: renk,
+                      boyut: 2 + Math.random() * 2
+                  });
+              }
+          }
+  
+          function animate() {
+              if (!canvas._aktif && fireworks.length === 0 && particles.length === 0) {
+                  if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
+                  return;
+              }
+  
+              // Hafif fade trail (motion blur)
+              ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+              // Yeni roket gönder (~12 frame'de bir = ~200ms; %40 olasılıkla 2 roket)
+              if (canvas._aktif) {
+                  fireworkTimer++;
+                  if (fireworkTimer > 12) {
+                      fireworkTimer = 0;
+                      rocketYarat();
+                      if (Math.random() < 0.4) rocketYarat();
+                  }
+              }
+  
+              // Roketler
+              for (var i = fireworks.length - 1; i >= 0; i--) {
+                  var f = fireworks[i];
+                  f.iz.push({ x: f.x, y: f.y });
+                  if (f.iz.length > 8) f.iz.shift();
+                  f.y += f.vy;
+                  f.vy += 0.05; // hafif yerçekimi (yavaşla)
+  
+                  // Roket izi (fade)
+                  for (var j = 0; j < f.iz.length; j++) {
+                      var alpha = j / f.iz.length;
+                      ctx.fillStyle = 'rgba(' + f.renk[0] + ',' + f.renk[1] + ',' + f.renk[2] + ',' + alpha + ')';
+                      ctx.fillRect(f.iz[j].x - 1, f.iz[j].y - 1, 3, 3);
+                  }
+  
+                  if (f.y <= f.targetY) {
+                      patlat(f.x, f.y, f.renk);
+                      fireworks.splice(i, 1);
+                  }
+              }
+  
+              // Partiküller
+              for (var k = particles.length - 1; k >= 0; k--) {
+                  var p = particles[k];
+                  p.x += p.vx;
+                  p.y += p.vy;
+                  p.vy += 0.08; // yerçekimi
+                  p.vx *= 0.99;
+                  p.vy *= 0.99;
+                  p.yas++;
+  
+                  if (p.yas > p.maxYas) {
+                      particles.splice(k, 1);
+                      continue;
+                  }
+  
+                  var pAlpha = 1 - (p.yas / p.maxYas);
+                  ctx.fillStyle = 'rgba(' + p.renk[0] + ',' + p.renk[1] + ',' + p.renk[2] + ',' + pAlpha + ')';
+                  ctx.beginPath();
+                  ctx.arc(p.x, p.y, p.boyut, 0, Math.PI * 2);
+                  ctx.fill();
+  
+                  // Glow halkası
+                  ctx.fillStyle = 'rgba(' + p.renk[0] + ',' + p.renk[1] + ',' + p.renk[2] + ',' + (pAlpha * 0.3) + ')';
+                  ctx.beginPath();
+                  ctx.arc(p.x, p.y, p.boyut * 2, 0, Math.PI * 2);
+                  ctx.fill();
+              }
+  
+              requestAnimationFrame(animate);
+          }
+  
+          // Başlangıç burst — 3 roket aynı anda
+          for (var b = 0; b < 3; b++) rocketYarat();
+  
+          animate();
+          console.log('[HavaiFisek] Başlatıldı');
+      }
+
+  function _HavaiFisekDurdur() {
+          var canvas = document.getElementById('havaiFisekCanvas');
+          if (canvas) {
+              canvas._aktif = false;
+              console.log('[HavaiFisek] Durduruldu — son roketler bitince temizlenecek');
+          }
+      }
+
   function _HosgeldinKutusunuAc(adPtr) {
           var ad = UTF8ToString(adPtr);
           if (!ad || ad.trim() === '') ad = 'Misafir';
@@ -17944,6 +18093,8 @@ var wasmImports = {
   "BonusBitisPopupKapat": _BonusBitisPopupKapat,
   "GetJSLoadTimeInfo": _GetJSLoadTimeInfo,
   "GetJSMemoryInfo": _GetJSMemoryInfo,
+  "HavaiFisekBaslat": _HavaiFisekBaslat,
+  "HavaiFisekDurdur": _HavaiFisekDurdur,
   "HosgeldinKutusunuAc": _HosgeldinKutusunuAc,
   "JS_Accelerometer_IsRunning": _JS_Accelerometer_IsRunning,
   "JS_Accelerometer_Start": _JS_Accelerometer_Start,

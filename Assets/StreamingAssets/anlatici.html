@@ -231,9 +231,18 @@
     }
     document.getElementById('spinBar').innerHTML = barHtml;
     var kalan = Math.max(0, asamaHedef - aktifSpin);
-    document.getElementById('spinInfo').textContent = aktifAsama < 6
-      ? kalan + ' spin sonra aşama ' + (aktifAsama+2) + ' başlayacak'
-      : (asamaHedef > 20 ? 'Bakiye tükenince simülasyon biter' : kalan + ' spin sonra simülasyon biter');
+    var spinInfo = document.getElementById('spinInfo');
+    if (aktifAsama === 5) {
+      // A6 = "Borca sürüklenme" aşaması — spin sayacı pedagojik olarak yanıltıcı, statik uyarı göster
+      spinInfo.textContent = 'Borç aldın, daha büyük kayıp geliyor…';
+      spinInfo.style.color = '#EF4444';
+    } else if (aktifAsama < 6) {
+      spinInfo.textContent = kalan + ' spin sonra aşama ' + (aktifAsama+2) + ' başlayacak';
+      spinInfo.style.color = '';
+    } else {
+      spinInfo.textContent = asamaHedef > 20 ? 'Bakiye tükenince simülasyon biter' : kalan + ' spin sonra simülasyon biter';
+      spinInfo.style.color = '';
+    }
     // Hikaye akışı (7 nokta) bölümü kaldırıldı (panel kompakt akışı için).
     var bb = document.getElementById('bakiyeBolum');
     var bn = document.getElementById('bakiyeNet');

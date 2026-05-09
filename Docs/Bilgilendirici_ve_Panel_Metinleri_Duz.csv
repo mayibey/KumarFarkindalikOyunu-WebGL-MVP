@@ -1,0 +1,161 @@
+﻿Bölüm;Kaynak;Kod;Türkçe düz metin
+Modal;AnlaticiSeritKopru.cs;PRE_A1;"Hoş geldiniz. Bu simülasyonda online kumar oyunlarının oyuncuları nasıl etkilediğini birlikte göreceğiz.
+
+Önce oyunu tanıyalım:
+• Ekranda 6×5'lik meyve makinesi var. SPIN tuşuna basıldığında meyveler döner.
+• Aynı meyveden 8 veya daha fazlası bir araya gelirse kazanç verir.
+• Bazı turlarda ÇARPAN düşer (×2, ×5, ×100 vs.) ve kazancı katlar.
+• Kazanan meyveler patlar, üstten yenileri düşer (TUMBLE); zincir kazançlar olur.
+• 4 Bonus Sembolü (yıldız) gelirse BONUS oyun açılır.
+
+Ekrandaki diğer öğeler:
+• Sol panel: Oyuncunun hangi aşamada olduğunu, sahne arkasında ne yaşandığını gösterir; birlikte buradan takip edeceğiz.
+• Bakiye: Oyuna ayrılan para (oyuncu 50.000 TL ile başlıyor).
+• Bahis: Her spinde harcanacak miktar, + ve − tuşlarıyla değişir.
+• KAZANÇ: O spinde kazanılan miktar.
+
+Hadi başlayalım: ilk aşama 'Isındırma ve Umut'."
+Modal;AnlaticiSeritKopru.cs;GECIS_A1_A2;"Birinci aşama tamamlandı. Oyuncu şu an artıda, kendini iyi hissediyor.
+
+Sırada 'Kontrol Bende Hissi' aşaması var. Bu aşamada algoritma oyuncuya üst üste kayıplar yaşatacak. Ama yine de bakiye hâlâ pozitif olduğu için oyuncu 'kontrol bende, istediğim zaman çıkarım, bahis değişiklikleriyle kazanırım' gibi düşünceler yaşar.
+
+Bu yanılsamayı birlikte göreceğiz."
+Modal;AnlaticiSeritKopru.cs;GECIS_A2_A3;"İkinci aşama tamamlandı. Oyuncu şu an küçük kayıplar yaşadı ama hâlâ artıda; 'kontrol bende' hissi iyice yerleşti.
+
+Sırada 'Kaybettiklerimi Geri Kazanabilirim' aşaması var. Sistem bu aşamada oyuncuya bilerek kayıp yaşatacak. Oyuncu artık kazanç peşinde değil; 'kaybettiklerimi kurtarayım yeter' gibi düşünmeye başlayacak. Bu 'Kayıp Kovalama' denilen psikolojik tuzaktır — bir kez girilirse çıkmak çok zor.
+
+Birlikte göreceğiz."
+Modal;AnlaticiSeritKopru.cs;GECIS_A3_A4;"Üçüncü aşamayı gördük: kayıp kovalama tuzağı. Oyuncu bahsi yükselterek kurtulmaya çalıştı, daha çok kaybetti.
+
+Sırada 'Şansım Döndü' aşaması var. Bu aşamada algoritma oyuncuyu pes etme eşiğine getirecek; üst üste sert kayıplar. Tam pes etmek üzereyken büyük bir kazanç düşürecek. Bu büyük kazanç tesadüf değil, kasıtlı bir manipülasyon vuruşu olacak.
+
+Amaç: oyuncuyu tekrar oyuna bağlamak."
+Modal;AnlaticiSeritKopru.cs;GECIS_A4_A5;"Büyük kazanç yaşandı. Oyuncu şu an 'şansım döndü, daha kazanırım' hissinde. İşte tam bu duygu, sıradaki aşamanın yakıtıdır.
+
+Sırada 'Sonunu Düşünen Kahraman Olamaz' aşaması var. Bu aşamada algoritma oyuncuya cazip bir 'bonus oyun tuzağı' kuracak: tüm bakiyesini yatırma karşılığında büyük kazanç vaat edilecek. Yatırırsa, çok azını geri alacak.
+
+Bu, sömürünün doruk noktasıdır. Birlikte göreceğiz."
+Modal;AnlaticiSeritKopru.cs;BORC_SONRASI_1;"İşte oyuncu borç aldı, bakiyesi yenilendi. Şimdi tekrar oynamaya devam edecek.
+
+Kumar sitelerinde yeniden bakiye yükleyenlere bilinçli olarak ilk başlarda yine kazandırılır — bu 'Isındırma ve Umut' aşamasına benzer.
+
+Bu sayede oyuncu tekrar döngüye girer: 'şansım yine açıldı, kayıplarımı telafi ederim' düşünür. Ama er ya da geç sistem kazanır, oyuncu kaybeder.
+
+Şimdi bu döngüyü hızlıca göreceğiz."
+Modal;AnlaticiSeritKopru.cs;BORC_SONRASI_2;"Bu kez oyuncu kayıplarını HIZLI telafi etmek istiyor. Bahsini 10.000 TL'ye çıkardı.
+
+Sadece 5 spin yetecek; algoritma sömürünün son evresinde tüm bakiyeyi alacak. Bu hızlı bitiş, gerçek hayattaki 'son kez deneme' bahanesinin sonucudur."
+Modal;AnlaticiSeritKopru.cs;A4_S1_YILDIZ;Üç yıldız (bonus sembolü) yine düştü, dördüncüsü düşmedi. Oyuncu peş peşe bu sahneleri yaşadıkça 'neredeyse oluyordu, şansım dönmek üzere' hissine kapılır ve masada kalmaya devam eder. Sistem bu beklentiyi mahsus yaratır — birazdan vereceği büyük tek kazançla bu hissi pekiştirip oyuncuyu kilitleyecek.
+Modal;AnlaticiSeritKopru.cs;A4_S5_CARPAN;⚡ Ekrana ×100 çarpan düştü! Oyuncu az önce pes etmek üzereydi, şimdi büyük kazanç. Bu rastlantı değil: algoritma oyuncuyu tam bu duygusal anda yakaladı. 'Şansım döndü' diyecek. Aslında manipülasyon başarılı oldu.
+Modal;AnlaticiSeritKopru.cs;A4_S5_CEKIM;"İşte bu noktada gerçek hayatta oyuncunun aklına şu gelir: 'Şu an kazançtayım, parayı çekip çıkayım.' Mantıklı düşünce. Ama kumar siteleri bunun olmasına izin vermez.
+
+Çekim şartı tuzağı: Site, oyuncunun kazandığı parayı çekebilmesi için bir ""çevrim şartı"" koyar. Bu şart genelde iki şekilde olur:
+
+- Bahis çevrim şartı: Oyuncu, kazandığı paranın belirli bir katı kadar tutarda bahis atmadan parasını çekemez.
+
+- Spin sayısı şartı: Oyuncunun belirli bir spin sayısına ulaşması gerekir, örneğin 1000 spin atma şartı gibi. Bu sayıya ulaşmadan çekim yapmasına izin verilmez.
+
+Sonuç değişmez: Oyuncu bu şartları tamamlamaya çalışırken sistem kazandığı parayı yavaş yavaş geri alır, üstüne kendi parasını da kaybeder. Çekim şartı sağlanamadan oyuncu zaten masada tüketilmiş olur.
+
+Yani ""çekip çıkma"" seçeneği aslında yok — sadece var gibi görünür. Kumar sitesinin tek gerçek amacı oyuncuyu masada tutmaktır."
+Modal;AnlaticiSeritKopru.cs;BASA_ARAYIS;"Oyuncu artık paranın bittiğini fark etti.
+
+Şimdi başka yerden para bulma arayışında. Yalan söylemeye başlıyor: yakınlarına, akrabalarına, arkadaşlarına...
+
+Bu, kumar bağımlılığının yıkıcı evresidir. Bir sonraki ekran o anı temsil ediyor."
+Modal;AnlaticiSeritKopru.cs;DONGU;"Bakın, para tamamen bitti.
+
+5 spin'de 50.000 TL borç eridi. Bu, gerçek hayatta 'hızlı kurtulma' bahanesiyle yatırılan paraların kaderidir.
+
+Şimdi oyuncu A1'e geri dönmek isteyecek. 'Belki bu sefer şanslıyım' diye düşünüyor. 'Bir kerelik daha denersem...' diyerek kendini kandırıyor.
+
+İşte bağımlılığın özü budur: KAYIP → BORÇ → KAYIP → BORÇ. Sonsuz döngü.
+
+Sonraki ekranda yaşanan toplam kayıp gösteriliyor."
+Spin modal (asset);ScriptedSenaryoAssetUreteci.cs;M_A1_S1;İlk kazanç oyuncu için en tehlikeli başlangıçtır. Oyuncunun beyni bu anı unutmayacak: saatlerce oyun başında kalmasının sebebi bu kısa anın hatırasıdır.
+Spin modal (asset);ScriptedSenaryoAssetUreteci.cs;M_A1_S4;Oyuncu ilk kazançları yaşıyor. Oyuncunun beyninde dopamin salgılanıyor. Bu his, saatlerce oyun oynamasının yakıtı olacak.
+Spin modal (asset);ScriptedSenaryoAssetUreteci.cs;M_A2_S2;"⚠️ DİKKAT: manipülasyon farkındalığı
+
+Oyuncu az önce 1.000 TL bahis koydu, ekrana 'KAZANÇ 500 TL' yazdı, bakiyesinden 500 TL EKSİLDİ ama oyuncunun zihninde 'kazandım' hissi yaşanıyor.
+
+Bu sistemin temel manipülasyonudur: her spinde bahisten az ödeme yaparken büyük yazıyla 'KAZANÇ' yazılır. Oyuncuda 'kazanıyorum' algısı yaratılır. Uzun vadede oyuncu daima kayıptadır. Algoritma bunu kasıtlı tasarlar: sürekli artıyormuş gibi göstererek oyuncuyu bağlamak için."
+Spin modal (asset);ScriptedSenaryoAssetUreteci.cs;M_A2_S3_ORPHAN;"Az önce 3 yıldız (bonus sembolü) düştü. Bir tane daha gelseydi, bahis miktarının 100 katı değere sahip 10 ücretsiz spin hakkı veren bir BONUS oyun açılacaktı.
+
+Bu 'Az Daha Tutuyordu' yanılsamasıdır: oyuncunun beyni bu kıl payı kaçırışı kazanmış gibi algılar. Oyuncu 'çok yaklaştım' diye düşünüp daha fazla oynar."
+Spin modal (asset);ScriptedSenaryoAssetUreteci.cs;M_A2_S4;Oyuncu oyunu yönettiğini düşünürken, oyun onu adım adım içine çekiyor.
+Spin modal (asset);ScriptedSenaryoAssetUreteci.cs;M_A2_S6;Hem üzüm hem elma 1 sembol eksikti. İkisi birden kıl payı kaçtı. Oyuncu şu an 'çok yakındım, bir daha denesem' hissi yaşıyor. Bu his manipülasyon: algoritma bunu kasıtlı yarattı. Kontrol yanılsaması böyle pekişiyor.
+Spin modal (asset);ScriptedSenaryoAssetUreteci.cs;M_A3_S3;İlk ciddi kayıplar yaşanıyor. Amaç para kazanmaktan çıktı, kayıpları telafi etmeye dönüştü.
+Spin modal (asset);ScriptedSenaryoAssetUreteci.cs;M_A3_S6;"Oyuncu kayıpları geri kazanmak için daha fazla risk alıyor, mantıklı düşünme yetisini kaybediyor.
+
+⚠️ Şimdi oyuncu bahsini 2.500 TL'ye yükseltecek; 'daha yüksek bahis daha hızlı kurtarır' yanılgısıyla. Bu da algoritmanın istediği şey."
+Spin modal (asset);ScriptedSenaryoAssetUreteci.cs;M_A3_S7;Bir tur daha = bir kayıp daha.
+Spin modal (asset);ScriptedSenaryoAssetUreteci.cs;M_A4_S2;"Üst üste kayıplar oyuncuyu yıpratıyor. Algoritma birkaç spin sonra büyük bir vuruş hazırlıyor; ama önce pes etme eşiğine kadar getirecek."
+Spin modal (asset);ScriptedSenaryoAssetUreteci.cs;M_A4_S4;Oyuncu pes etmek üzere. Tam bu noktada büyük bir kazanç düşürülecek. Bu kasıtlı manipülasyondur: pes etmeyi engellemek için tasarlanan bir kurtarma.
+Spin modal (asset);ScriptedSenaryoAssetUreteci.cs;M_A5_S1;Bahis arttı, beklenti arttı. Oyuncuda adrenalin salgılanıyor.
+Spin modal (asset);ScriptedSenaryoAssetUreteci.cs;M_A5_S3;Ekrana ×500 çarpanı düştü ama eşleşme olmadı. Bu kasıtlı bir tasarım: oyuncunun beyni 'çok yaklaştım, bir daha denesem belki tutar' diye düşünüyor. Bu hisle oyuncu bir sonraki bahsi atmak için sabırsızlanır. İşte tam bu sabırsızlık, algoritmanın kullandığı silahtır.
+Spin modal (asset);ScriptedSenaryoAssetUreteci.cs;M_A5_S4_ORPHAN;🎰 ŞANSLI SAATİNDESİN! Bonus oyun aktif edildi. Bakiyenin tamamını yatır, x10000 kazanma şansını kaçırma. SINIRLI TEKLİF.
+ÖNCE modal;OyunYoneticisi.Spin.cs;ONCE_A1_S7;"Şimdi büyük bir kazanç gelecek. Bu kasıtlı: algoritma oyuncuyu 'şanslıyım' hissine kaptırmak istiyor.
+
+Kazanç sonrası oyuncunun zihninde 'ben kazanırım' duygusu yerleşecek."
+ÖNCE modal;OyunYoneticisi.Spin.cs;ONCE_A2_S4;"Şu an oyuncu bahisini değiştirecek (yükseltecek). Bu bahisin ardından algoritma kasıtlı olarak kazanç yaşatacak.
+
+Amaç: oyuncuya 'doğru zamanda doğru bahis' duygusu vermek. Böylece oyuncu kontrolün kendinde olduğuna inanır."
+Bonus sonu (dinamik);ScriptedBonusOyunUygulayici.cs;A5_S5_SABLON;"Oyuncu tüm bakiyesi olan [YATIRIM] TL'yi bonus oyuna yatırdı. Geri aldığı [GERİ_ALINAN] TL; yatırdığının %[YÜZDE]'i.
+
+Bu sömürünün adı 'değişken oranlı pekiştireç': beyin bu kayba rağmen 'belki bir dahaki sefere' diyerek devam etmeye programlanır."
+Paralel modal;ScriptedDusunceBalonu.cs;BALON_ESLIK;"Bu aşamada oyuncu çevresindeki kişilere yalan söyleyerek veya bankalardan kredi çekerek para bulmaya çalışır.
+
+Burada amaç eski kayıpların telafisidir. Ancak bu, kumar bağımlılığının en yıkıcı evresidir: borç katlanarak büyür, ilişkiler bozulur, hayatlar mahvolur."
+Düşünce balonu;ScriptedDusunceBalonu.cs;BALON_1;Çocuğum hasta, acil para lazım...
+Düşünce balonu;ScriptedDusunceBalonu.cs;BALON_2;Sadece kısa süre için, hemen ödeyeceğim...
+Düşünce balonu;ScriptedDusunceBalonu.cs;BALON_3;Kız kardeşim borca girdi, yardım etmem gerek...
+Düşünce balonu;ScriptedDusunceBalonu.cs;BALON_4;Bu sefer kazanırsam hepsini öderim, söz veriyorum...
+UI;ScriptedModalKopru.cs;TAMAM_BUTON;TAMAM
+Sol panel HTML;anlatici.html;ETIKET_NAV_SOL;‹
+Sol panel HTML;anlatici.html;ETIKET_NAV_SAG;›
+Sol panel HTML;anlatici.html;TUKENIS_PARAGRAF;Bu rakam ortalama bir aile için 2.5 aylık geçim demek. Gerçek hayatta oyuncu burada durmaz — bir sonraki maaş, bir sonraki kredi, bir sonraki dönüş umudu için devam eder.
+Sol panel Aşama 1;anlatici.html;A1_ISIM;Isındırma ve Umut
+Sol panel Aşama 1;anlatici.html;A1_SAHNE_ARKASI;Sistem yeni gelen oyuncuya bilerek bol kazandırıyor. Bu cömertlik gerçekçi değil — oyuncuyu bağlamak için kurulmuş bir tuzak. İlk dakikalardaki başarı duygusu ileride tüm kayıpların kabulüne dönüşecek.
+Sol panel Aşama 1;anlatici.html;A1_OYUNCU_KAFASI;Vay be, bu oyun kazandırıyor! Ben bu işi anladım galiba, biraz daha denerim.
+Sol panel Aşama 1;anlatici.html;A1_BILIM;İlk kazançlar beyne 'ben bu işi yapabiliyorum, demek ki çok şanslıyım' hissi yerleştirir. Oysa burada hiçbir beceri yok, sistem kasten kazandırıyor.
+Sol panel Aşama 1;anlatici.html;A1_ROZETLER;Geri ödeme: %~250 | Tavan: bahsin 5×'i | Şans: yapay yüksek
+Sol panel Aşama 1;anlatici.html;A1_BAKIYE_BAGLAM;Sahte kazanç ileride büyük kayıp için yem olacak.
+Sol panel Aşama 2;anlatici.html;A2_ISIM;Kontrol Bende Hissi
+Sol panel Aşama 2;anlatici.html;A2_SAHNE_ARKASI;"Sistem yavaş yavaş normalleşiyor. Hâlâ ara sıra kazandırıyor ama kayıplar başlıyor. Oyuncu bunu fark etmiyor çünkü kafasında ""ben bu işi çözdüm"" var. Bahsi değiştiriyor, şanslı saydığı anlarda spin atıyor, kendine küçük ritüeller buluyor. Sistemin verdiği rastgele sonuçları ""kendi tarzı"" sanıyor. Sistem bu yanılgıyı mahsus besliyor."
+Sol panel Aşama 2;anlatici.html;A2_OYUNCU_KAFASI;Ne zaman basacağımı biliyorum artık. Belli bir patern var, ben bunu yakaladım.
+Sol panel Aşama 2;anlatici.html;A2_BILIM;"Slot tamamen şans işi, hiçbir kuralı yok. Ama insan beyni rastgele olaylarda bile düzen arar — bahsi yükseltmek, belli bir tuşa basmak, oturuşunu değiştirmek gibi davranışlar oyuncuya ""kontrol bende"" hissi verir. Oysa hiçbirinin sonuca etkisi yoktur."
+Sol panel Aşama 2;anlatici.html;A2_ROZETLER;Geri ödeme: %~200 | Tavan: bahsin 3.5×'i | Şans: yüksek
+Sol panel Aşama 2;anlatici.html;A2_BAKIYE_BAGLAM;Hâlâ kazançta gibi ama gerçekte kayıp başladı.
+Sol panel Aşama 3;anlatici.html;A3_ISIM;Kaybettiklerimi Geri Kazanabilirim
+Sol panel Aşama 3;anlatici.html;A3_SAHNE_ARKASI;"İlk gerçek kayıp dalgası başladı. Sistem oyuncudan aldıklarını geri vermiyor — verecek de değil. Oyuncu ""telafi etmeliyim"" düşüncesiyle bahisleri yükseltiyor. Sistem tam bunu bekliyordu."
+Sol panel Aşama 3;anlatici.html;A3_OYUNCU_KAFASI;Az önce kaybettiklerimi bir geri kazanayım, çıkayım. Sadece o kadar.
+Sol panel Aşama 3;anlatici.html;A3_BILIM;Kayıp Kovalama — kayıp duygusu kazanç umudundan iki kat güçlüdür.
+Sol panel Aşama 3;anlatici.html;A3_ROZETLER;Geri ödeme: %~75 | Tavan: bahsin 1×'i | Şans: dengeli
+Sol panel Aşama 3;anlatici.html;A3_BAKIYE_BAGLAM;Telafi etmek için bahis 2 katına çıkacak — kayıp da öyle.
+Sol panel Aşama 4;anlatici.html;A4_ISIM;Şansın Döndü
+Sol panel Aşama 4;anlatici.html;A4_SAHNE_ARKASI;"Sistem önce oyuncuya peş peşe ""neredeyse kazanıyordum"" sahneleri yaşatır — üç bonus sembolü düşürür, dördüncüsünü düşürmez. Oyuncu ""şansım dönmek üzere"" der ve devam eder. Tam o ümitlendiği anda sistem büyük bir kazanç verir, bahsin 100 katı. ""İşte oldu, ben demiştim"" der oyuncu. Ama bu tek atış kasıtlı bir tuzak. O kazançtan sonra sistem hızla tüketir."
+Sol panel Aşama 4;anlatici.html;A4_OYUNCU_KAFASI;Bir tane daha. Az kalmıştı. Bu sefer kesin tutar — şansım dönüyor.
+Sol panel Aşama 4;anlatici.html;A4_BILIM;"""Neredeyse kazanıyordum"" anları beyni kandırır — sanki gerçekten kazanmaya yakındın gibi gelir. Üstüne büyük tek kazanç gelince beyin ""bu iş yürüyor"" kararı verir. Sonraki kayıpları o tek kazanca sığınarak görmezden gelir oyuncu."
+Sol panel Aşama 4;anlatici.html;A4_ROZETLER;Geri ödeme: %~40 | Tavan: bahsin 0.6×'i | Şans: düşük
+Sol panel Aşama 4;anlatici.html;A4_BAKIYE_BAGLAM;Kayıp dakikada hızlandı. Oyuncu fark etmiyor.
+Sol panel Aşama 5;anlatici.html;A5_ISIM;Sonunu Düşünen Kahraman Olamaz
+Sol panel Aşama 5;anlatici.html;A5_SAHNE_ARKASI;"Oyuncu mantığı bıraktı. Bahisleri agresifce yükseltiyor, ""bu sefer büyük kazanırım"" diye düşünüyor. Sistem bu davranışı bekliyordu — yüksek bahisli spinlerde kayıp katlanır. Bilinçli karar yok artık, sadece refleks."
+Sol panel Aşama 5;anlatici.html;A5_OYUNCU_KAFASI;Yarısı gitti zaten, gerisini de koyayım. Geri çıkmazsa bana ne kalır ki?
+Sol panel Aşama 5;anlatici.html;A5_BILIM;Batık Maliyet Yanılgısı — geçmiş kayıp gelecek kararı bozar.
+Sol panel Aşama 5;anlatici.html;A5_ROZETLER;Geri ödeme: %~20 | Tavan: bahsin 0.4×'i | Şans: minimal
+Sol panel Aşama 5;anlatici.html;A5_BAKIYE_BAGLAM;Toplam kayıp birikiyor. Oyuncu hâlâ duramıyor.
+Sol panel Aşama 6;anlatici.html;A6_ISIM;Başka Bir Yerden Para Bulmalıyım
+Sol panel Aşama 6;anlatici.html;A6_SAHNE_ARKASI;"Bakiye bitti. Oyuncu ""bonus satın al"" butonuna saldırıyor, kredi kartı ekleyip yeni bakiye alıyor. Borca girdi, eve haber vermiyor, başkalarından para istiyor. Oyun dışı zarar başladı — borç, gizlilik, ilişkilerde çatlak."
+Sol panel Aşama 6;anlatici.html;A6_OYUNCU_KAFASI;Bir kredi çekersem, son bir hamle yaparım, hem borç biter hem yeniden başlarım.
+Sol panel Aşama 6;anlatici.html;A6_BILIM;Çaresizlik Tepkisi — beyin uzun vadeli sonucu hesaplayamaz hale gelir.
+Sol panel Aşama 6;anlatici.html;A6_ROZETLER;Geri ödeme: %~15 | Tavan: bahsin 0.3×'i | Şans: tükenmiş
+Sol panel Aşama 6;anlatici.html;A6_BAKIYE_BAGLAM;Kart limitine bonus eklendi. Borç başladı.
+Sol panel Aşama 7;anlatici.html;A7_ISIM;Tükeniş
+Sol panel Aşama 7;anlatici.html;A7_SAHNE_ARKASI;"Sistem son hamleyi yapıyor. Hiç kazanç vermez oldu, ne yaparsa yapsın oyuncu kaybeder. Para bitti, kredi tükendi, eve borç birikti. Oyuncu artık ""bağımlı"" — dur diyemez, oyun zaten kazanmış durumda."
+Sol panel Aşama 7;anlatici.html;A7_OYUNCU_KAFASI;Nasıl bu hale geldim? Eve ne diyeceğim? Ama dursam kayıplar kalır... bir spin daha.
+Sol panel Aşama 7;anlatici.html;A7_BILIM;Tükeniş Aşaması — bağımlılık literatüründe son dönemin klinik adı.
+Sol panel Aşama 7;anlatici.html;A7_ROZETLER;Geri ödeme: %~5 | Tavan: bahsin 0.1×'i | Şans: yok
+Sol panel Aşama 7;anlatici.html;A7_BAKIYE_BAGLAM;Bu, ortalama bir maaşın katlarına ulaştı.
+Şablon JS;anlatici.html;SABLON_SPIN_INFO;kalan spin sonra aşama X başlayacak (Unity JSON ile dolar)
+Şablon JS;anlatici.html;SABLON_SPIN_INFO_A7;Bakiye tükenince simülasyon biter
+Şablon JS;anlatici.html;SABLON_ASAMA_NUM;AŞAMA X / 7
