@@ -214,6 +214,23 @@ public class AnlaticiSeritKopru : MonoBehaviour
             return;
         }
 
+        // ===== SAVE/LOAD RESTORE =====
+        // KullaniciAdiModalKontrol "DEVAM ET" tıkladıysa flag set ediliyor (KumarRestoreModuActif=1).
+        // Save varsa state'i geri yükle, default reset bloğunu atla.
+        if (PlayerPrefs.GetInt("KumarRestoreModuActif", 0) == 1 && SaveLoadServisi.VarMi())
+        {
+            PlayerPrefs.DeleteKey("KumarRestoreModuActif");
+            PlayerPrefs.Save();
+            var save = SaveLoadServisi.Load();
+            if (save != null)
+            {
+                RestoreDurumYukle(save);
+                FinalSahneKurulumu(save.kullaniciAdi);
+                return;
+            }
+            Debug.LogWarning("[SaveLoad] Restore mode aktif ama save null/bozuk → default reset uygulanacak.");
+        }
+
         // KRİTİK: Eski admin senaryo preset'leri (Senaryo 1-5) Anlatıcı manipülasyonunu BYPASS ediyor.
         // Anlatıcı sahnesinde manipülasyonu Anlatıcı yönetir → Normal Oyun moduna geçir
         // (_senaryoPresetAktif=false, _aktifAdminSenaryoIndex=-1, policy reset, cache temizle).
@@ -285,6 +302,13 @@ public class AnlaticiSeritKopru : MonoBehaviour
             StartCoroutine(PreA1KarsilamaAkisi());
         }
 
+        FinalSahneKurulumu(KullaniciVerileri.KullaniciAdi);
+    }
+
+    /// <summary>Start (default reset) ve restore akışlarının ortak sonu: HTML panel + hoşgeldin kutusu +
+    /// senaryolu kontrol kilidi + IlkGuncelleme coroutine. Restore yolu bu metodu kendisi çağırır.</summary>
+    private void FinalSahneKurulumu(string kullaniciAdi)
+    {
 #if UNITY_WEBGL && !UNITY_EDITOR
         AnlaticiPaneliAc("StreamingAssets/anlatici.html");
 #else
@@ -292,8 +316,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
 #endif
 
         // Sağ üst hoşgeldin kutusu (runtime DOM, kullanıcı × ile kapatabilir).
-        // KullaniciAdiModal 01_GirisScene'de KullaniciVerileri.KullaniciAdi'yı set ediyor (default "Misafir").
-        string kullaniciAdi = KullaniciVerileri.KullaniciAdi;
+        // Kullanıcı adı KullaniciAdiModalKontrol'da KullaniciVerileri.KullaniciAdi'ya yazılır (default "Misafir").
         if (string.IsNullOrWhiteSpace(kullaniciAdi)) kullaniciAdi = "Misafir";
         HosgeldinKutusunuAcGuvenli(kullaniciAdi);
 
@@ -491,6 +514,9 @@ public class AnlaticiSeritKopru : MonoBehaviour
         }
 
         Guncelle();
+
+        // SAVE/LOAD: spin sonu otomatik save (HerhangiOverlayAcik + bonus IsAcik triple guard içeride).
+        SaveDurumKaydet();
     }
 
     private void AsamayiUygula(int idx)
@@ -976,6 +1002,9 @@ public class AnlaticiSeritKopru : MonoBehaviour
             panel.PaneliGoster();
             _yuklemePaneliAcildiBuOturum = true;
             Debug.Log("[Anlatici] BasaArayisAkisi tamamlandı — Yükleme paneli açıldı.");
+
+            // SAVE/LOAD: borç paneli açıldı → A6 evresine geçildi, save (kullanıcı bu noktadan devam edebilsin).
+            SaveDurumKaydet();
         }
         else
         {
@@ -1006,5 +1035,155 @@ public class AnlaticiSeritKopru : MonoBehaviour
 
         Debug.Log("[Anlatici] DonguAkisi tamamlandı — Tukenis çağrılıyor.");
         Tukenis();
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════════
+    //  SAVE / LOAD
+    //  - Save tetik: SpinAtildi sonu + BasaArayisAkisi sonu (panel açıldı)
+    //  - Restore: Start başında (KumarRestoreModuActif flag set ise)
+    //  - Sil: A7 final (ScriptedFinalEkrani) + KullaniciAdiModalKontrol "SIFIRDAN BAŞLA"
+    // ═════════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Mevcut state'i KumarSaveData'ya çevirir + PlayerPrefs'e yazar.
+    /// Triple guard: HerhangiOverlayAcik + ScriptedBonusOyunUygulayici.IsAcik +
+    /// ScriptedBonusTuzagiPopup.IsAcik açıkken save yapma (yarım state korunur).
+    /// </summary>
+    private void SaveDurumKaydet()
+    {
+        if (_oy == null) return;
+
+        // STABLE STATE GUARD — popup/modal/bonus akışı açıkken save'lemek state'i bozar.
+        if (HerhangiOverlayAcik)
+        {
+            Debug.Log("[SaveLoad] HerhangiOverlayAcik=true → save atlandı.");
+            return;
+        }
+        if (Senaryo.Scripted.ScriptedBonusOyunUygulayici.IsAcik
+            || Senaryo.Scripted.ScriptedBonusTuzagiPopup.IsAcik)
+        {
+            Debug.Log("[SaveLoad] Bonus akışı / cazip popup aktif → save atlandı.");
+            return;
+        }
+
+        var data = new KumarSaveData
+        {
+            kullaniciAdi = KullaniciVerileri.KullaniciAdi,
+
+            aktifAsama = _aktifAsama,
+            aktifSpin = _aktifSpin,
+            toplamSpin = _toplamSpin,
+            sonUygulananAsama = _sonUygulananAsama,
+            sonBakiye = _sonBakiye,
+            baslangicBakiye = _baslangicBakiye,
+            asamaSpinNet = new System.Collections.Generic.List<int>(_asamaSpinNet),
+
+            yuklemePaneliAcildiBuOturum = _yuklemePaneliAcildiBuOturum,
+            donguModalGosterildi = _donguModalGosterildi,
+            preA1ModalGosterildi = _preA1ModalGosterildi,
+            a2GecisModalGosterildi = _a2GecisModalGosterildi,
+            a3GecisModalGosterildi = _a3GecisModalGosterildi,
+            a4GecisModalGosterildi = _a4GecisModalGosterildi,
+            a5GecisModalGosterildi = _a5GecisModalGosterildi,
+            a3BahisYukseltildi = _a3BahisYukseltildi,
+            a4S5CarpanModalGosterildi = _a4S5CarpanModalGosterildi,
+            a4S1DonmeGosterildi = _a4S1DonmeGosterildi,
+
+            bakiye = (int)_oy.BahisPanelMevcutBakiye(),
+            oturumKazanc = _oy.OturumKazanc,
+
+            yuklemeSayisi = SenaryoYoneticisi.I != null ? SenaryoYoneticisi.I.yuklemeSayisi : 1,
+
+            bonusYatirim = Senaryo.Scripted.ScriptedBonusOyunUygulayici.BonusYatirim,
+            bonusKazanc = Senaryo.Scripted.ScriptedBonusOyunUygulayici.BonusKazanc,
+
+            adminEgilim = _oy.GetAdminOdemeEgilimi(),
+            adminMaxOdeme = _oy.GetAdminMaxOdeme(),
+        };
+        SaveLoadServisi.Save(data);
+    }
+
+    /// <summary>
+    /// Save'den state'i geri yükle. Start akışındaki default reset bloğuyla aynı setup'ı
+    /// kendi içinde yapar (admin reset + SenaryoYoneticisi bypass + kazanç fazı sıfırla),
+    /// sonra alanları override eder + AsamayiUygula + AdminSet override (AsamayiUygula adminSet'leri
+    /// anlatıcı profilinden ezdiği için save'deki override sonradan uygulanır) + Guncelle.
+    /// </summary>
+    private void RestoreDurumYukle(KumarSaveData s)
+    {
+        if (s == null || _oy == null) return;
+
+        // === Setup (default reset bloğunun ortak kısmı) ===
+        try
+        {
+            _oy.AdminNormalOyunUygula();
+            Debug.Log("[SaveLoad/Restore] AdminNormalOyunUygula çağrıldı.");
+        }
+        catch (System.Exception e) { Debug.LogError("[SaveLoad/Restore] AdminNormalOyunUygula hatası: " + e.Message); }
+
+        try { _oy.AnlaticiKazancFaziniSifirla(); }
+        catch (System.Exception e) { Debug.LogError("[SaveLoad/Restore] AnlaticiKazancFaziniSifirla hatası: " + e.Message); }
+
+        // SenaryoYoneticisi defansif Asama7_Finale (her zaman) — gerçek aşama _aktifAsama'da.
+        if (SenaryoYoneticisi.I != null)
+        {
+            try
+            {
+                SenaryoYoneticisi.I.mevcutAsama = SenaryoYoneticisi.SenaryoAsama.Asama7_Finale;
+                SenaryoYoneticisi.I.forcedNoPayKalan = 0;
+                SenaryoYoneticisi.I.yuklemeSayisi = s.yuklemeSayisi;
+            }
+            catch (System.Exception e) { Debug.LogError("[SaveLoad/Restore] SenaryoYoneticisi setup hatası: " + e.Message); }
+        }
+
+        // === Alan override ===
+        _aktifAsama = s.aktifAsama;
+        _aktifSpin = s.aktifSpin;
+        _toplamSpin = s.toplamSpin;
+        _sonUygulananAsama = -1;  // AsamayiUygula içinde "yeniAsama" branch'i çalışsın (idempotency bypass).
+
+        _yuklemePaneliAcildiBuOturum = s.yuklemePaneliAcildiBuOturum;
+        _donguModalGosterildi = s.donguModalGosterildi;
+        _preA1ModalGosterildi = s.preA1ModalGosterildi;
+        _a2GecisModalGosterildi = s.a2GecisModalGosterildi;
+        _a3GecisModalGosterildi = s.a3GecisModalGosterildi;
+        _a4GecisModalGosterildi = s.a4GecisModalGosterildi;
+        _a5GecisModalGosterildi = s.a5GecisModalGosterildi;
+        _a3BahisYukseltildi = s.a3BahisYukseltildi;
+        _a4S5CarpanModalGosterildi = s.a4S5CarpanModalGosterildi;
+        _a4S1DonmeGosterildi = s.a4S1DonmeGosterildi;
+
+        Senaryo.Scripted.ScriptedBonusOyunUygulayici.BonusYatirim = s.bonusYatirim;
+        Senaryo.Scripted.ScriptedBonusOyunUygulayici.BonusKazanc = s.bonusKazanc;
+        // borcAlindi save edilmez — _yuklemePaneliAcildiBuOturum yeterli (panel tekrar açılmaz).
+        // ScriptedYuklemePaneli.BorcAlindiSifirla() çağrılmaz — restore sonrası A6'da iken state korunmalı.
+
+        // Kullanıcı adı — KumarSaveData'dan otoriter (hoşgeldin kutusu, log için).
+        if (!string.IsNullOrWhiteSpace(s.kullaniciAdi))
+            KullaniciVerileri.KullaniciAdi = s.kullaniciAdi;
+
+        // === Ekonomi ===
+        _oy.AnlaticiBakiyeyiSifirla(s.bakiye);
+        _oy.OturumKazancSifirla(s.oturumKazanc);
+        _baslangicBakiye = s.baslangicBakiye;
+        _sonBakiye = s.sonBakiye;
+        // _asamaSpinNet readonly (instance referansı sabit, içerik mutate edilir).
+        // Mevcut SpinAtildi/Reset pattern'iyle tutarlı: Clear + AddRange.
+        _asamaSpinNet.Clear();
+        if (s.asamaSpinNet != null) _asamaSpinNet.AddRange(s.asamaSpinNet);
+
+        // === Aşama uygula + admin override ===
+        // AsamayiUygula içinde anlatıcı profilinin egilim/maxOdeme'si (a.egilim, bahis × a.maxCarpani) yazılır.
+        // Save'deki adminEgilim/adminMaxOdeme bunu sonradan ezer — kullanıcının ayrıldığı andaki tam değerler korunsun.
+        AsamayiUygula(_aktifAsama);
+        try
+        {
+            _oy.AdminSetOdemeEgilimi(s.adminEgilim);
+            _oy.AdminSetMaxOdeme(s.adminMaxOdeme);
+        }
+        catch (System.Exception e) { Debug.LogError("[SaveLoad/Restore] AdminSet override hatası: " + e.Message); }
+
+        Guncelle();
+        Debug.Log($"[SaveLoad/Restore] OK: A{_aktifAsama + 1} S{_aktifSpin + 1} (toplam={_toplamSpin}), bakiye={s.bakiye}, oturumKazanc={s.oturumKazanc}, kullanici='{s.kullaniciAdi}'");
     }
 }

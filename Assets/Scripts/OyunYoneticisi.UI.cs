@@ -708,6 +708,20 @@ public partial class OyunYoneticisi
         Debug.Log("[BAKIYE RESET] Başlangıç bakiye " + yeniBakiye + " TL'ye sıfırlandı");
     }
 
+    /// <summary>SaveLoad restore: oturumKazanc'ı save'deki değere zorla set + UI güncelle.
+    /// Sadece restore akışında çağrılır (AnlaticiSeritKopru.RestoreDurumYukle).</summary>
+    public void OturumKazancSifirla(int hedef)
+    {
+        oturumKazanc = hedef;
+        _uiServisi?.UI_Guncelle();
+    }
+
+    /// <summary>SaveLoad save için Anlatıcı dinamik admin override değerlerini oku (private field'lar).</summary>
+    public int GetAdminOdemeEgilimi() => _odemeEgilimiYuzde;
+
+    /// <summary>SaveLoad save için maxOdemeTL override (private field).</summary>
+    public int GetAdminMaxOdeme() => _maxOdemeTL;
+
     /// <summary>A5 cazip bonus pedagojik düzeltme: motorun ödediği OturumKazanc'ı sabit hedefe indirir,
     /// bakiyeyi (motor — hedef) farkı kadar düzeltir. Hedef 800 TL → kullanıcı 1000 TL yatırımının %80'ini geri
     /// alır (modalde "%80 geri aldın, %20 kayıp" gibi yumuşak mesaj). Pedagojik amaç: motor RTP rastgeleliği
