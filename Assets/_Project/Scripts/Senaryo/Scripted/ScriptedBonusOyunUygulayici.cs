@@ -36,12 +36,6 @@ namespace Senaryo.Scripted
         /// <summary>Bonus oyun bittiğinde toplam ödenen miktar (TL). A5_S5 dinamik modal yüzde hesabı için.</summary>
         public static int BonusKazanc = 0;
 
-        /// <summary>Pedagojik sabit: A5 bonus oyun her zaman bu kadar TL ödesin (motor RTP ne olursa olsun).
-        /// 4000 TL = motor cap (SCRIPTED_BONUS_MAX_KAZANC_TL) ile senkron; counting up 4000'e ulaşır,
-        /// modal "4000 TL geri aldın, yatırdığının %X'i" gösterir (BonusYatirim ~30-50K → %8-13 geri).
-        /// "Büyük kazanç hissi" + "manipülasyon farkındalığı" pedagojik dengesi.</summary>
-        public const int A5_BONUS_HEDEF_KAZANC_TL = 4000;
-
         /// <summary>A5_S5 dinamik modal kapandıktan sonra AnlaticiSeritKopru.SpinAtildi içindeki
         /// _aktifSpin++ + hedefSpin/asama ilerletme mantığını ATLA — A6'ya zıplama A5BonusBittiBorcPaneliAc
         /// içinde manuel yapılır. Pedagojik amaç: bonus tetikleyen spin (A5 Spin 4) sonrası kalan A5 spinleri
@@ -174,11 +168,12 @@ namespace Senaryo.Scripted
                 // 6) Bahis override'ı kapat — oyuncunun gerçek bahisine geri yükle
                 oy.ScriptedBonusBahisOverrideKapat();
 
-                // 7) PEDAGOJIK SABITLEME — motor RTP'sini A5_BONUS_HEDEF_KAZANC_TL'ye düzelt
-                // (bakiye + OturumKazanc senkron). BonusKazanc artık her zaman aynı sayı → modal yüzde tutarlı.
-                oy.A5BonusKazancinaDuzelt(A5_BONUS_HEDEF_KAZANC_TL);
-                BonusKazanc = A5_BONUS_HEDEF_KAZANC_TL;
-                Debug.Log($"[ScriptedBonusOyun] Bonus pedagojik sabitleme: kazanç {BonusKazanc} TL (yatırım {BonusYatirim} TL).");
+                // 7) Bonus motorunun gerçek kazancını kaydet — modal yüzde hesabı için.
+                // Motor cap=SCRIPTED_BONUS_MAX_KAZANC_TL (4000 TL) ile zaten sınırlı; "yapay olumlu katman" yok.
+                // Pedagojik: kullanıcı her oturumda gerçek motor sonucunu görür (0/300/1500/4000 vb.) →
+                // kumar rastgeleliği gerçek rakamla vurgulanır, aldatmaca yok.
+                BonusKazanc = oy.OturumKazanc;
+                Debug.Log($"[ScriptedBonusOyun] Bonus motor ödemesi: {BonusKazanc} TL (yatırım {BonusYatirim} TL).");
 
                 // 8) A5_S5 dinamik modal: gerçek yatırım/kazanç yüzdesini hesaplayıp pedagojik metin oynat.
                 // Asset'teki M_A5_S5 statik string'i kaldırıldı; modal SADECE buradan tetiklenir.

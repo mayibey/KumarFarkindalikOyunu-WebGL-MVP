@@ -37,6 +37,16 @@ public class AnlaticiSeritKopru : MonoBehaviour
     /// <see cref="BonusBitisOnaylandi"/> false kalır.</summary>
     public static void BonusBitisGoster(int tutar)
     {
+        // Bonus 0 TL ödedi → "🎉 TEBRİKLER 🎉" popup + havai fişek YAPAY/komik olur (kayıp horn ile çelişir).
+        // Atla: kayıp horn zaten BonusUIServisi tarafında çalmış oldu, A5_S5 modal direkt açılır
+        // ("Geri aldığı 0 TL, yatırdığının %0'i" → maksimum pedagojik farkındalık).
+        if (tutar <= 0)
+        {
+            Debug.Log("[BonusBitis] Tutar=0, popup ve havai fişek atlandı (gerçek kayıp anı).");
+            BonusBitisOnaylandi = true;
+            BonusBitisAcik = false;
+            return;
+        }
         BonusBitisOnaylandi = false;
         BonusBitisAcik = true; // Spin butonu bu süre boyunca engellensin
 #if UNITY_WEBGL && !UNITY_EDITOR

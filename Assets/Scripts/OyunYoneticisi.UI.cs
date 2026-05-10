@@ -732,26 +732,6 @@ public partial class OyunYoneticisi
     /// <summary>SaveLoad save için maxOdemeTL override (private field).</summary>
     public int GetAdminMaxOdeme() => _maxOdemeTL;
 
-    /// <summary>A5 cazip bonus pedagojik düzeltme: motorun ödediği OturumKazanc'ı sabit hedefe indirir,
-    /// bakiyeyi (motor — hedef) farkı kadar düzeltir. Hedef 800 TL → kullanıcı 1000 TL yatırımının %80'ini geri
-    /// alır (modalde "%80 geri aldın, %20 kayıp" gibi yumuşak mesaj). Pedagojik amaç: motor RTP rastgeleliği
-    /// yerine tutarlı, anlaşılır bir kayıp hissi oluşturmak.</summary>
-    public void A5BonusKazancinaDuzelt(int hedefKazanc)
-    {
-        if (_ekonomiServisi == null) return;
-        int motorOdemesi = oturumKazanc;
-        int duzeltme = hedefKazanc - motorOdemesi;
-        if (duzeltme != 0)
-        {
-            int yeniBakiye = Mathf.Max(0, _ekonomiServisi.Bakiye + duzeltme);
-            _ekonomiServisi.SetBakiye(yeniBakiye);
-        }
-        oturumKazanc = hedefKazanc;
-        _uiServisi?.UI_Guncelle();
-        string isaret = duzeltme >= 0 ? "+" : "";
-        Debug.Log($"[A5_Bonus] Motor ödemesi: {motorOdemesi} TL → Hedef sabit: {hedefKazanc} TL → Düzeltme: {isaret}{duzeltme} TL");
-    }
-
     /// <summary>AnlaticiSeritKopru için: üst üste kazanç/kayıp fazı state'ini sıfırla
     /// (önceki oturumdan kalan _ustUsteKazancFaziAktif=true gibi durumlar Anlatıcı eğilim ayarını bypass edebiliyor).</summary>
     public void AnlaticiKazancFaziniSifirla()
