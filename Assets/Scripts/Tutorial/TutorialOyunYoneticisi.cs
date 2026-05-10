@@ -42,6 +42,8 @@ namespace KumarFarkindalik.Tutorial
         // === Glow state ===
         private GameObject _glowGo;
         private Coroutine _glowCoroutine;
+        private Transform _ayarlarBtnTransform;
+        private Vector3 _ayarlarBaseScale = Vector3.one;
 
         [Preserve]
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -180,7 +182,9 @@ namespace KumarFarkindalik.Tutorial
 #endif
         }
 
-        // === AyarlarButton glow (parlak altın halka, ping-pong alpha) ===
+        // === AyarlarButton glow (premium pulse — SpinButtonAnimator pattern adapte) ===
+        // Mantık: smoothstep eased PingPong; scale 1.0 ↔ 1.06 + outline alpha 0.4 ↔ 0.9, period 1.5sn.
+        // raycastTarget=false KESİN (buton tıklamasını engellemesin). GlowDurdur'da baseScale restore.
 
         private IEnumerator AyarlarButtonGlow(Button ayarlarBtn)
         {
@@ -189,10 +193,10 @@ namespace KumarFarkindalik.Tutorial
             var parent = ayarlarBtn.transform.parent;
             if (btnRt == null || parent == null) yield break;
 
+            // Outline overlay — buton kardeşi, sibling index = buton'un ÖNCESİ (arkada kalsın, üst değil)
             _glowGo = new GameObject("AyarlarButtonGlow",
                 typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
             _glowGo.transform.SetParent(parent, false);
-            // Sibling index: AyarlarButton'dan ÖNCE (arkada) — buton önde, glow arkada.
             int btnIdx = ayarlarBtn.transform.GetSiblingIndex();
             _glowGo.transform.SetSiblingIndex(Mathf.Max(0, btnIdx));
 
@@ -201,19 +205,39 @@ namespace KumarFarkindalik.Tutorial
             glowRt.anchorMax = btnRt.anchorMax;
             glowRt.pivot = btnRt.pivot;
             glowRt.anchoredPosition = btnRt.anchoredPosition;
-            glowRt.sizeDelta = btnRt.sizeDelta + new Vector2(20f, 20f); // 10px her tarafa hafif genişlik
+            glowRt.sizeDelta = btnRt.sizeDelta + new Vector2(20f, 20f); // 10px her tarafa outline efekti
 
             var img = _glowGo.GetComponent<Image>();
-            img.color = new Color(0.83f, 0.69f, 0.22f, 0.3f); // altın yarı saydam
-            img.raycastTarget = false; // KESİN: buton tıklamasını engellemesin
+            img.color = new Color(0.83f, 0.69f, 0.22f, 0.4f); // altın
+            img.raycastTarget = false;
+
+            // Scale state — GlowDurdur restore için sakla
+            _ayarlarBtnTransform = ayarlarBtn.transform;
+            _ayarlarBaseScale = _ayarlarBtnTransform.localScale;
+
+            const float PERIOD = 1.5f;
+            const float PULSE_SCALE = 0.06f;
+            float elapsed = 0f;
 
             while (_glowGo != null)
             {
-                float t = Mathf.PingPong(Time.unscaledTime / 0.6f, 1f);
-                float alpha = Mathf.Lerp(0.3f, 0.7f, t);
-                var c = img.color;
-                c.a = alpha;
-                img.color = c;
+                elapsed += Time.unscaledDeltaTime;
+                float t = (elapsed % PERIOD) / PERIOD;
+                float ping = Mathf.PingPong(t * 2f, 1f);
+                float ease = ping * ping * (3f - 2f * ping); // smoothstep (SpinButtonAnimator pattern)
+
+                // Buton scale
+                if (_ayarlarBtnTransform != null)
+                    _ayarlarBtnTransform.localScale = _ayarlarBaseScale * (1f + ease * PULSE_SCALE);
+
+                // Outline alpha
+                if (img != null)
+                {
+                    var c = img.color;
+                    c.a = Mathf.Lerp(0.4f, 0.9f, ease);
+                    img.color = c;
+                }
+
                 yield return null;
             }
         }
@@ -222,6 +246,12 @@ namespace KumarFarkindalik.Tutorial
         {
             if (_glowCoroutine != null) { StopCoroutine(_glowCoroutine); _glowCoroutine = null; }
             if (_glowGo != null) { Destroy(_glowGo); _glowGo = null; }
+            // Buton scale restore — kullanıcı tıkladıktan sonra buton büyümüş kalmasın
+            if (_ayarlarBtnTransform != null)
+            {
+                _ayarlarBtnTransform.localScale = _ayarlarBaseScale;
+                _ayarlarBtnTransform = null;
+            }
         }
     }
 }

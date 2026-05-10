@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Runtime.InteropServices;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -16,12 +17,19 @@ namespace KumarFarkindalik.Tutorial
     ///
     /// PAKET 2: 03_SenaryoluOyun'a runtime'da iliştirilir. ScriptedModalKopru sortingOrder=1500,
     /// final ekran 1800 → bu modal 1900 (en üstte). ScriptedModalKopru.cs DOKUNULMAZ.
+    ///
+    /// PAKET 3A-DÜZELTME (Sorun 1): Sahne yükleme öncesi PanelBridge.AnlaticiPaneliKapat çağrılır
+    /// — 03'ten kalan anlatici.html iframe DOM'da kalmasın (04'te "Aşama 7/7" kalıntısı temizlik).
     /// </summary>
     [Preserve]
     public class ScriptedTutorialGecisEkrani : MonoBehaviour
     {
         public const int ANLATICI_SAHNE_BUILD_INDEX = 2; // 03_SenaryoluOyun
         public const int CANVAS_SORTING_ORDER = 1900;    // Final ekran (1800) + 100
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        [DllImport("__Internal")] private static extern void AnlaticiPaneliKapat();
+#endif
 
         public static ScriptedTutorialGecisEkrani Ornek { get; private set; }
         public static bool IsAcik { get; private set; }
@@ -278,6 +286,9 @@ namespace KumarFarkindalik.Tutorial
             Debug.Log("[ScriptedTutorialGecisEkrani] YENİDEN OYNA → tam save temizlik + 03_SenaryoluOyun");
             TamSaveTemizlik();
             Gizle();
+#if UNITY_WEBGL && !UNITY_EDITOR
+            AnlaticiPaneliKapat(); // defansif — 03 yeniden start'ta AnlaticiPaneliAc zaten remove yapar ama defansif
+#endif
             SceneManager.LoadScene("03_SenaryoluOyun");
         }
 
@@ -290,6 +301,9 @@ namespace KumarFarkindalik.Tutorial
             Debug.Log("[ScriptedTutorialGecisEkrani] HADİ GÖRELİM → tam save temizlik + 04_AdminOyunScene");
             TamSaveTemizlik();
             Gizle();
+#if UNITY_WEBGL && !UNITY_EDITOR
+            AnlaticiPaneliKapat(); // 04'te AnlaticiSeritKopru pasif → iframe DOM'da kalır; yüklemeden önce kapat
+#endif
             SceneManager.LoadScene("04_AdminOyunScene");
         }
 
