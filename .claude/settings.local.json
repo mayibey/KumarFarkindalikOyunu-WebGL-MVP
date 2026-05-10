@@ -21,7 +21,9 @@
       "Bash(cat)",
       "Read(//tmp/**)",
       "Bash(python3 *)",
-      "Bash(git ls-tree *)"
+      "Bash(git ls-tree *)",
+      "Bash(git fetch *)",
+      "Bash(git tag *)"
     ]
   }
 }

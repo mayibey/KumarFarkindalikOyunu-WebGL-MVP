@@ -9382,6 +9382,17 @@ function dbg(text) {
           if (overlay) overlay.remove();
       }
 
+  function _PaneliSolaAl() {
+          var ov = document.getElementById('panelOverlay');
+          var iframe = document.getElementById('panelIframe');
+          if (!ov || !iframe) return;
+          ov.style.justifyContent = 'flex-start';
+          ov.style.paddingLeft = '20px';
+          ov.style.background = 'rgba(0,0,0,0.5)'; // hafif şeffaflaştır (slot grid sağda görünsün)
+          iframe.style.width = '540px';
+          iframe.style.maxWidth = '540px';
+      }
+
   function ___assert_fail(condition, filename, line, func) {
       abort(`Assertion failed: ${UTF8ToString(condition)}, at: ` + [filename ? UTF8ToString(filename) : 'unknown filename', line, func ? UTF8ToString(func) : 'unknown function']);
     }
@@ -18252,6 +18263,7 @@ var wasmImports = {
   "JS_WebRequest_SetTimeout": _JS_WebRequest_SetTimeout,
   "PaneliAc": _PaneliAc,
   "PaneliKapat": _PaneliKapat,
+  "PaneliSolaAl": _PaneliSolaAl,
   "__assert_fail": ___assert_fail,
   "__cxa_begin_catch": ___cxa_begin_catch,
   "__cxa_end_catch": ___cxa_end_catch,

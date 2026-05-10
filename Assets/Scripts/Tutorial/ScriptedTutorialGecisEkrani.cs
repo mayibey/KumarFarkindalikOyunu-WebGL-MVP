@@ -275,8 +275,8 @@ namespace KumarFarkindalik.Tutorial
             _gecisYapildi = true;
             if (_yenidenOynaButton != null) _yenidenOynaButton.interactable = false;
             if (_hadiGorelimButton != null) _hadiGorelimButton.interactable = false;
-            Debug.Log("[ScriptedTutorialGecisEkrani] YENİDEN OYNA → SaveLoad sil + 03_SenaryoluOyun");
-            SaveLoadServisi.Sil();
+            Debug.Log("[ScriptedTutorialGecisEkrani] YENİDEN OYNA → tam save temizlik + 03_SenaryoluOyun");
+            TamSaveTemizlik();
             Gizle();
             SceneManager.LoadScene("03_SenaryoluOyun");
         }
@@ -287,9 +287,28 @@ namespace KumarFarkindalik.Tutorial
             _gecisYapildi = true;
             if (_yenidenOynaButton != null) _yenidenOynaButton.interactable = false;
             if (_hadiGorelimButton != null) _hadiGorelimButton.interactable = false;
-            Debug.Log("[ScriptedTutorialGecisEkrani] HADİ GÖRELİM → 04_AdminOyunScene");
+            Debug.Log("[ScriptedTutorialGecisEkrani] HADİ GÖRELİM → tam save temizlik + 04_AdminOyunScene");
+            TamSaveTemizlik();
             Gizle();
             SceneManager.LoadScene("04_AdminOyunScene");
+        }
+
+        /// <summary>
+        /// 04 sahnesi tutorial başlangıcında / 03 yeniden başlangıcında save state'inin
+        /// 4 farklı yerden silinmesini garanti eder.
+        ///   - SaveLoadServisi (KumarSaveData_v1 PlayerPrefs key)
+        ///   - PlayerPrefs ayrı key'leri: KullaniciAdi + KumarRestoreModuActif
+        ///   - KullaniciVerileri.KullaniciAdi static field
+        /// "Hoş Geldiniz {eski_ad}" kalıntısını temizler. Yeni sahnede tutorial sabit "Eğitim Modu".
+        /// </summary>
+        private static void TamSaveTemizlik()
+        {
+            SaveLoadServisi.Sil();
+            PlayerPrefs.DeleteKey("KullaniciAdi");
+            PlayerPrefs.DeleteKey("KumarRestoreModuActif");
+            PlayerPrefs.Save();
+            KullaniciVerileri.KullaniciAdi = "Eğitim Modu";
+            Debug.Log("[ScriptedTutorialGecisEkrani] TamSaveTemizlik: SaveLoad sil + PlayerPrefs DeleteKey x2 + KullaniciVerileri reset.");
         }
 
         // === UI yarat (runtime — ScriptedModalKopru:316-466 stilini birebir taklit) ===
