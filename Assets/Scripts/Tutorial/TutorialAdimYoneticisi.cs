@@ -7,11 +7,11 @@ namespace KumarFarkindalik.Tutorial
     /// <summary>
     /// Tutorial akış adımlarının state machine'i (T1 - T11 + T_SON).
     ///
-    /// T1 (PASIF): AyarlarButton glow — TutorialOyunYoneticisi'nin başlangıçtaki davranışı.
-    ///             Bu state machine'in DIŞINDA; kullanıcı panel.html'i açana kadar süren ön akış.
-    /// T2 (PASIF): Tanıtım modal'ı.
-    /// T3-T11 (AKTIF): Modal + panel.html parametre vurgu + spin sayım. Her adımın koşulu sağlandığında İLERİ aktif.
-    /// T_SON (PASIF): Kapanış mesajı + 01_GirisScene'e dönüş.
+    /// PAKET 3B-fix-2: Her aktif adım için 3 modal akışı —
+    ///   A. mesajBaslangic: adım girişi (kavram tanıtımı)
+    ///   B. mesajAksiyon: aksiyon talimatı (kullanıcı ne yapmalı)
+    ///   C. mesajKapanis: aksiyon sonrası pedagojik özet
+    /// Pasif adımlar (T2, T_SON) sadece mesajBaslangic kullanır.
     /// </summary>
     public class TutorialAdimYoneticisi : MonoBehaviour
     {
@@ -21,19 +21,13 @@ namespace KumarFarkindalik.Tutorial
         }
 
         public TutorialAdimId mevcutAdim = TutorialAdimId.T1;
-
-        /// <summary>Adım değiştiğinde tetiklenir — TutorialOyunYoneticisi modal+vurgu+UI yönetir.</summary>
         public event Action<AdimVerisi> OnAdimDegisti;
-
-        /// <summary>T_SON'dan sonra İLERİ tıklanırsa — kapanış akışı.</summary>
         public event Action OnTutorialBitti;
 
         private readonly Dictionary<TutorialAdimId, AdimVerisi> _adimlar = new();
         private int _adimBaslangicSpin;
 
-        // Bug 2 düzeltme: bu adım girdikten sonra panel.html'den DEĞİŞTİRİLEN parametre key'leri.
-        // panelHazir/MevcutAyarlariGonder ile gelen default değerler (örn ardisikKayipLimiti=0) bu set'te yok,
-        // dolayısıyla "değer ≤ 4" gibi koşullar ön-tetiklenmez.
+        // Bug 2 (Paket 3B-fix): bu adıma girdikten sonra panel.html'den DEĞİŞTİRİLEN parametre key'leri.
         private readonly HashSet<string> _adimSirasindaDegisenler = new();
 
         public AdimVerisi MevcutAdimVerisi => _adimlar.TryGetValue(mevcutAdim, out var v) ? v : null;
@@ -43,7 +37,6 @@ namespace KumarFarkindalik.Tutorial
             AdimlariDoldur();
         }
 
-        /// <summary>TutorialOyunYoneticisi panel açıldıktan sonra T2'ye gel demek için çağırır.</summary>
         public void AdimGec(TutorialAdimId yeni)
         {
             if (!_adimlar.ContainsKey(yeni))
@@ -53,12 +46,11 @@ namespace KumarFarkindalik.Tutorial
             }
             mevcutAdim = yeni;
             _adimBaslangicSpin = MevcutSpinAl();
-            _adimSirasindaDegisenler.Clear(); // YENİ — değiştirilen key'leri sıfırla
+            _adimSirasindaDegisenler.Clear();
             Debug.Log($"[TutorialAdimYoneticisi] Adım geçti: {yeni} (başlangıç spin={_adimBaslangicSpin})");
             OnAdimDegisti?.Invoke(_adimlar[yeni]);
         }
 
-        /// <summary>TutorialAdimGoster İLERİ butonundan çağrılır.</summary>
         public void IleriTiklandi()
         {
             if (mevcutAdim == TutorialAdimId.T_SON)
@@ -67,28 +59,22 @@ namespace KumarFarkindalik.Tutorial
                 OnTutorialBitti?.Invoke();
                 return;
             }
-            // Sıradaki adıma geç
             int sonraki = (int)mevcutAdim + 1;
             if (sonraki > (int)TutorialAdimId.T_SON) return;
             AdimGec((TutorialAdimId)sonraki);
         }
 
-        /// <summary>TutorialAdminEnjeksiyonu.AyarDegisti event handler'dan çağrılır — bu adımda
-        /// hangi panel.html key'i değişti haberi.</summary>
         public void AyarDegistiHaber(string key)
         {
             if (string.IsNullOrEmpty(key)) return;
             _adimSirasindaDegisenler.Add(key);
         }
 
-        /// <summary>TutorialAdminEnjeksiyonu Update'te polling ile çağırır.</summary>
         public bool KosulSagla(int mevcutSpin)
         {
             if (!_adimlar.TryGetValue(mevcutAdim, out var v)) return true;
             if (!v.aktifMi) return true;
 
-            // Bug 2 düzeltme: bu adımda DEĞİŞMESİ GEREKEN tüm anahtarlar değişmiş olmalı
-            // (panelHazir default değerleri koşulu ön-tetiklemesin).
             if (v.degisimAnahtarlari != null)
             {
                 foreach (var k in v.degisimAnahtarlari)
@@ -103,21 +89,8 @@ namespace KumarFarkindalik.Tutorial
 
         private static int MevcutSpinAl()
         {
-            // Global spin sayacı — OyunYoneticisi.Bonus.cs:85 ve .Simulasyon.cs:533'te kullanım.
             return SenaryoYoneticisi.I != null ? SenaryoYoneticisi.I.toplamSpin : 0;
         }
-
-        // === ADIM TANIMLARI ===
-        // PanelKopru public static field'ları (line 44-53):
-        //   kazanmaOrani (0-100), minCarpan, maksCarpan, yakinKacirma (0-100),
-        //   ardisikKayipLimiti (int), yeniOyuncuModu (bool), carpanTumbleAktif (bool),
-        //   bonusModu (string), bonusOtomatikSpinPeriyodu (int), aktifSenaryo (string)
-        //
-        // Ek alan: carpanOlasilik (PanelKopru.AyariIsle case "carpanOlasilik")
-        //   PanelKopru'nun public field'ı YOK → AyariIsle değerini tutmaz. Geçici çözüm:
-        //   panel.html bu key'i gönderdiğinde TutorialAdminEnjeksiyonu OnAyarDegisti event'inde
-        //   yakalayıp lokal state olarak saklar. Aşağıdaki Kosul lambda'ları ise
-        //   TutorialAdminEnjeksiyonu.SonCarpanOlasilik vb. erişir.
 
         private void AdimlariDoldur()
         {
@@ -125,17 +98,17 @@ namespace KumarFarkindalik.Tutorial
             {
                 id = TutorialAdimId.T2,
                 aktifMi = false,
-                mesaj = MESAJ_T2,
-                vurguSelectorlari = null,
+                mesajBaslangic = T2_BASLANGIC,
                 gerekliSpin = 0,
-                parametreKosulu = null,
             };
 
             _adimlar[TutorialAdimId.T3] = new AdimVerisi
             {
                 id = TutorialAdimId.T3,
                 aktifMi = true,
-                mesaj = MESAJ_T3,
+                mesajBaslangic = T3_BASLANGIC,
+                mesajAksiyon = T3_AKSIYON,
+                mesajKapanis = T3_KAPANIS,
                 vurguSelectorlari = new[] { "#oyunModu", "#senaryoUygulaBtn" },
                 gerekliSpin = 3,
                 parametreKosulu = () => PanelKopru.aktifSenaryo == "hook",
@@ -146,7 +119,9 @@ namespace KumarFarkindalik.Tutorial
             {
                 id = TutorialAdimId.T4,
                 aktifMi = true,
-                mesaj = MESAJ_T4,
+                mesajBaslangic = T4_BASLANGIC,
+                mesajAksiyon = T4_AKSIYON,
+                mesajKapanis = T4_KAPANIS,
                 vurguSelectorlari = new[] { "#carpanOlasilik", "#carpanOlasilikInput" },
                 gerekliSpin = 3,
                 parametreKosulu = () => TutorialAdminEnjeksiyonu.SonCarpanOlasilik >= 10f,
@@ -157,11 +132,11 @@ namespace KumarFarkindalik.Tutorial
             {
                 id = TutorialAdimId.T5,
                 aktifMi = true,
-                mesaj = MESAJ_T5,
+                mesajBaslangic = T5_BASLANGIC,
+                mesajAksiyon = T5_AKSIYON,
+                mesajKapanis = T5_KAPANIS,
                 vurguSelectorlari = new[] { "#bonusSembolOlasilik" },
                 gerekliSpin = 5,
-                // panel.html dönüşüm: bonusSembolOlasilik (0-5%) → bonusOtomatikOran (spin sayısı).
-                // %5 → 100/5 = 20 spin. Eşik %4 → 100/4 = 25 spin'den AZ (sıkı) olmalı.
                 parametreKosulu = () => PanelKopru.bonusOtomatikSpinPeriyodu > 0
                                         && PanelKopru.bonusOtomatikSpinPeriyodu <= 25,
                 degisimAnahtarlari = new[] { "bonusOtomatikOran" },
@@ -171,10 +146,11 @@ namespace KumarFarkindalik.Tutorial
             {
                 id = TutorialAdimId.T6,
                 aktifMi = true,
-                mesaj = MESAJ_T6,
+                mesajBaslangic = T6_BASLANGIC,
+                mesajAksiyon = T6_AKSIYON,
+                mesajKapanis = T6_KAPANIS,
                 vurguSelectorlari = new[] { "#kazanmaOrani" },
                 gerekliSpin = 5,
-                // panel.html ×10 dönüşüm: 10'da 6 → 60
                 parametreKosulu = () => PanelKopru.kazanmaOrani >= 60f,
                 degisimAnahtarlari = new[] { "kazanmaOrani" },
             };
@@ -183,7 +159,9 @@ namespace KumarFarkindalik.Tutorial
             {
                 id = TutorialAdimId.T7,
                 aktifMi = true,
-                mesaj = MESAJ_T7,
+                mesajBaslangic = T7_BASLANGIC,
+                mesajAksiyon = T7_AKSIYON,
+                mesajKapanis = T7_KAPANIS,
                 vurguSelectorlari = new[] { "#minCarpan", "#maksCarpan" },
                 gerekliSpin = 5,
                 parametreKosulu = () => PanelKopru.minCarpan > 0f
@@ -197,10 +175,11 @@ namespace KumarFarkindalik.Tutorial
             {
                 id = TutorialAdimId.T8,
                 aktifMi = true,
-                mesaj = MESAJ_T8,
+                mesajBaslangic = T8_BASLANGIC,
+                mesajAksiyon = T8_AKSIYON,
+                mesajKapanis = T8_KAPANIS,
                 vurguSelectorlari = new[] { "#yakinKacirma" },
                 gerekliSpin = 5,
-                // panel.html ×10 dönüşüm: 10'da 7 → 70
                 parametreKosulu = () => PanelKopru.yakinKacirma >= 70f,
                 degisimAnahtarlari = new[] { "yakinKacirma" },
             };
@@ -209,7 +188,9 @@ namespace KumarFarkindalik.Tutorial
             {
                 id = TutorialAdimId.T9,
                 aktifMi = true,
-                mesaj = MESAJ_T9,
+                mesajBaslangic = T9_BASLANGIC,
+                mesajAksiyon = T9_AKSIYON,
+                mesajKapanis = T9_KAPANIS,
                 vurguSelectorlari = new[] { "#ardisikKayip" },
                 gerekliSpin = 8,
                 parametreKosulu = () => PanelKopru.ardisikKayipLimiti > 0
@@ -221,7 +202,9 @@ namespace KumarFarkindalik.Tutorial
             {
                 id = TutorialAdimId.T10,
                 aktifMi = true,
-                mesaj = MESAJ_T10,
+                mesajBaslangic = T10_BASLANGIC,
+                mesajAksiyon = T10_AKSIYON,
+                mesajKapanis = T10_KAPANIS,
                 vurguSelectorlari = new[] { "button[onclick=\"carpanZorla(500)\"]" },
                 gerekliSpin = 1,
                 parametreKosulu = () => TutorialAdminEnjeksiyonu.SonCarpanZorla == 500,
@@ -232,7 +215,9 @@ namespace KumarFarkindalik.Tutorial
             {
                 id = TutorialAdimId.T11,
                 aktifMi = true,
-                mesaj = MESAJ_T11,
+                mesajBaslangic = T11_BASLANGIC,
+                mesajAksiyon = T11_AKSIYON,
+                mesajKapanis = T11_KAPANIS,
                 vurguSelectorlari = new[] { ".trigger-btn" },
                 gerekliSpin = 0,
                 parametreKosulu = () => TutorialAdminEnjeksiyonu.BonusTetiklendi,
@@ -243,77 +228,114 @@ namespace KumarFarkindalik.Tutorial
             {
                 id = TutorialAdimId.T_SON,
                 aktifMi = false,
-                mesaj = MESAJ_TSON,
-                vurguSelectorlari = null,
+                mesajBaslangic = TSON_BASLANGIC,
                 gerekliSpin = 0,
-                parametreKosulu = null,
             };
         }
 
-        // === Adım metinleri (büyük string'ler, ayrı sabitlerde) ===
+        // === Adım metinleri (A=başlangıç, B=aksiyon, C=kapanış) ===
 
-        private const string MESAJ_T2 =
-            "Hoş geldin. Az önce gördüğün manipülasyon kuruluyor: bu panelde. " +
-            "Üç bölüm var — Olasılık, Manipülasyon ve Anlık Müdahale. Birlikte inceleyeceğiz.";
+        private const string T2_BASLANGIC =
+            "Hoş geldin. Az önce yaşadığın manipülasyon bu panelde kuruluyor. " +
+            "Üç bölüm var — Olasılık, Manipülasyon ve Anlık Müdahale. Birlikte hepsini göreceğiz.";
 
-        private const string MESAJ_T3 =
-            "İlk seçim Oyun Modu. 5 hazır senaryo var. Hook = yeni oyuncu çekme. " +
-            "Yontma = az az kaybettirme. Tutma = kaçışı engelleme. " +
-            "Şimdi Hook seç ve Uygula bas. Sonra 3 spin at.";
+        private const string T3_BASLANGIC =
+            "Şimdi Oyun Modu seçimini öğreneceğiz. Panelde 5 hazır senaryo var. " +
+            "Her biri farklı bir manipülasyon stratejisi.";
+        private const string T3_AKSIYON =
+            "Şimdi Hook seç ve Uygula bas. Sonra 3 spin at, neler hissettiğine dikkat et.";
+        private const string T3_KAPANIS =
+            "Gördün mü? Hook senaryosunda kazandırma yüksek, kayıplar yumuşak. " +
+            "Yeni oyuncuyu 'şanslıyım, devam edeyim' hissine sokmak için. Bağımlılığın ilk adımı.";
 
-        private const string MESAJ_T4 =
-            "Olasılık Ayarları'nı aç. Çarpan düşme olasılığı default %2. Sen %15 yap. " +
-            "Çarpanlar artık çok daha sık görünecek. 3 spin at, fark hisset.";
+        private const string T4_BASLANGIC =
+            "Şimdi Olasılık Ayarları'na giriyoruz. İlk parametre: çarpan ne sıklıkla düşsün.";
+        private const string T4_AKSIYON =
+            "Çarpan olasılığını %15 yap (default %2). Sonra 3 spin at.";
+        private const string T4_KAPANIS =
+            "Çarpanlar şimdi çok daha sık görünüyor. Operatör bunu 'oyun eğlenceli' hissi için " +
+            "kullanır — ama beyninde 'her an büyük kazanç olabilir' yanılgısı yaratır.";
 
-        private const string MESAJ_T5 =
-            "Bonus sembolü düşme olasılığı. Default %0.5 = her 200 spinde 1 bonus. " +
-            "Sen %5 yap = her 20 spinde 1. 5 spin at.";
+        private const string T5_BASLANGIC =
+            "Bonus oyunu — slot oyunlarının en bağımlılık yapan parçası.";
+        private const string T5_AKSIYON =
+            "Bonus olasılığını %5'e çıkar (default %0.5). Sonra 5 spin at.";
+        private const string T5_KAPANIS =
+            "Bonus daha sık tetikleniyor şimdi. Oyuncu 'her an büyük bonus gelebilir' diye " +
+            "oyunu bırakamaz. Beklenti = bağımlılık.";
 
-        private const string MESAJ_T6 =
-            "Manipülasyon Ayarları'nı aç. En kritik parametre: kazandırma sıklığı. " +
-            "10 spinde kaç tanesinde 'kazandım' hissi olsun? Default 3. " +
-            "Sen 7 yap, 5 spin at. Sürekli küçük kazançlar kullanıcıyı bağlar.";
+        private const string T6_BASLANGIC =
+            "Manipülasyon Ayarları başladı. En kritik parametre: kazandırma sıklığı.";
+        private const string T6_AKSIYON =
+            "Kazandırma sıklığını 7'ye çıkar (default 3). 5 spin at.";
+        private const string T6_KAPANIS =
+            "10 spinden 7'sinde 'kazandım' hissi. Aslında küçük kazançlar bahsin altında — " +
+            "net kayıptasın ama beyne kazanç sinyali gidiyor. Klasik psikolojik tuzak.";
 
-        private const string MESAJ_T7 =
-            "Ödeme aralığı: kazanç bahsin kaç katı olsun. Min=0.5, Maks=2 yap. " +
-            "5 spin at. Kullanıcı kazansa bile bahsin biraz üstünde — görünmez sömürü.";
+        private const string T7_BASLANGIC =
+            "Şimdi ödeme aralığı. Kullanıcı kazandığında ne kadar ödenecek, sen belirleyeceksin.";
+        private const string T7_AKSIYON =
+            "Min'i 0.5, Maks'ı 2 yap. 5 spin at.";
+        private const string T7_KAPANIS =
+            "Kullanıcı kazansa bile bahsinin biraz üstünde ödeme alıyor. Görünmez sömürü — " +
+            "'kazandım' diyor ama gerçekte bahsi karşılamıyor bile.";
 
-        private const string MESAJ_T8 =
-            "Near miss — neredeyse oluyordu hissi. 10 oyundan kaçında 'çok yaklaşmıştım' " +
-            "hissi yaşansın? Default 4, sen 8 yap, 5 spin at. " +
-            "Bu, bağımlılığın en güçlü tetikleyicisi.";
+        private const string T8_BASLANGIC =
+            "Bağımlılık biliminin en güçlü kavramı: near miss — neredeyse oluyordu hissi.";
+        private const string T8_AKSIYON =
+            "Near miss'i 8'e çıkar (default 4). 5 spin at.";
+        private const string T8_KAPANIS =
+            "Beynin 'çok yaklaşmıştım, bir sonrakinde olacak' diyor. Aslında hiç kazanmadın " +
+            "ama dopamin salgılandı. Slot tasarımının en sinsi parçası.";
 
-        private const string MESAJ_T9 =
-            "Kaçış Frenleme. Üst üste kaç kayıptan sonra zorunlu küçük kazanç verilsin? " +
-            "Default 8, sen 3 yap. 8 spin at. Kullanıcı oyundan ayrılmak istediği anı sistem bilir.";
+        private const string T9_BASLANGIC =
+            "Oyuncu çıkmak istediğinde sistem bunu bilir ve müdahale eder.";
+        private const string T9_AKSIYON =
+            "Üst üste kayıp limitini 3 yap (default 8). 8 spin at.";
+        private const string T9_KAPANIS =
+            "3 kayıptan sonra sistem küçük kazanç verdi — kullanıcı 'çıkmayayım, şans dönüyor' " +
+            "diye kaldı. Pes etme noktası tasarlanmış. Sömürünün son aşaması.";
 
-        private const string MESAJ_T10 =
-            "Anlık Müdahale'ye geç. Operatör gerçek zamanlı müdahale eder. " +
-            "Çarpan zorla — ×500 bas, sonra spin at. 'Şanslı an' tasarlanmış andır.";
+        private const string T10_BASLANGIC =
+            "Anlık Müdahale — operatörün gerçek zamanlı eli. Şimdi en güçlü silahını göreceksin.";
+        private const string T10_AKSIYON =
+            "×500 butonuna bas, sonra spin at.";
+        private const string T10_KAPANIS =
+            "Az önce 'şanslı an' tasarlandı. Operatör kasada otururken istediği anda istediği " +
+            "büyüklükte çarpan düşürebilir. 'İnanılmaz kazanç' tesadüf değil — düğmeye basıldı.";
 
-        private const string MESAJ_T11 =
-            "Bonus tetikle. Bonusu da elle başlatabilirsin. Stratejik bir an " +
-            "— kullanıcı pes etmek üzereyken — şans yüzüne gülmüş gibi tetikleyebilirsin. " +
-            "Şimdi tetikle.";
+        private const string T11_BASLANGIC =
+            "Son silah: bonus oyununu elle tetikleme.";
+        private const string T11_AKSIYON =
+            "Bonus Tetikle butonuna bas.";
+        private const string T11_KAPANIS =
+            "Operatör, kullanıcı pes etmek üzereyken bonusu tetikler. " +
+            "'Tam çıkıyordum şans yüzüme güldü' der oyuncu. Aslında operatör onu içeride tutmak " +
+            "için düğmeye bastı.";
 
-        private const string MESAJ_TSON =
-            "Gördün mü? 9 parametre, hepsi kullanıcının zamanını, parasını, " +
-            "dopamin döngüsünü kontrol için. Slot oyunlarında tesadüf yoktur " +
-            "— sadece tasarım vardır. Kumar tesadüf değil, mühendisliktir.\n\n" +
+        private const string TSON_BASLANGIC =
+            "Gördün mü? 9 parametre, hepsi kullanıcının zamanını, parasını, dopamin döngüsünü " +
+            "kontrol için. Slot oyunlarında tesadüf yoktur — sadece tasarım vardır. " +
+            "Kumar tesadüf değil, mühendisliktir.\n\n" +
             "Bağımlılık yaşadığını düşünüyorsan veya yakınında biri varsa: " +
             "Yeşilay Danışmanlık Hattı 0850 222 0 191 (ücretsiz, 7/24).\n\n" +
             "Bu farkındalık seninle kalsın.";
     }
 
-    /// <summary>Bir tutorial adımının tüm verileri (mesaj, vurgu, spin sayım, parametre koşulu).</summary>
+    /// <summary>Bir tutorial adımının tüm verileri (3 modal mesajı + vurgu + spin + parametre koşulu).</summary>
     public class AdimVerisi
     {
         public TutorialAdimYoneticisi.TutorialAdimId id;
         public bool aktifMi;
-        public string mesaj;
+
+        // 3 modal mesajı (Paket 3B-fix-2):
+        public string mesajBaslangic;          // A — adım girişi (kavram tanıtımı)
+        public string mesajAksiyon;            // B — aksiyon talimatı (kullanıcı ne yapmalı)
+        public string mesajKapanis;            // C — pedagojik özet (aksiyon sonrası)
+
         public string[] vurguSelectorlari;     // panel.html CSS selector
         public int gerekliSpin;
         public Func<bool> parametreKosulu;     // PanelKopru.static field okuyan lambda
-        public string[] degisimAnahtarlari;    // panel.html postMessage key'leri; bu adımda kullanıcı tarafından değişmiş olmalı
+        public string[] degisimAnahtarlari;    // bu adımda kullanıcı tarafından değişmiş olmalı
     }
 }

@@ -375,10 +375,11 @@ namespace KumarFarkindalik.Tutorial
                 typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
             karakterGo.transform.SetParent(balonGo.transform, false);
             _karakterRt = karakterGo.GetComponent<RectTransform>();
-            _karakterRt.anchorMin = _karakterRt.anchorMax = new Vector2(0f, 0.5f);
-            _karakterRt.pivot = new Vector2(1f, 0.5f);
-            _karakterRt.sizeDelta = new Vector2(220f, 280f);
-            _karakterRt.anchoredPosition = new Vector2(-20f, 0f); // balon sol kenarından 20 px dışarı
+            // Düzeltme 1: karakter balon ÜST kenarın üstünde, ortalanmış — visual novel header tarzı.
+            _karakterRt.anchorMin = _karakterRt.anchorMax = new Vector2(0.5f, 1f);
+            _karakterRt.pivot = new Vector2(0.5f, 0f);
+            _karakterRt.sizeDelta = new Vector2(180f, 220f);
+            _karakterRt.anchoredPosition = new Vector2(0f, 0f); // balon üst kenarına oturur
             var karakterImg = karakterGo.GetComponent<Image>();
             karakterImg.sprite = EgitmenGorseliniAl();
             karakterImg.preserveAspect = true;

@@ -61,23 +61,9 @@ namespace KumarFarkindalik.Tutorial
             }
         }
 
-        private void Update()
-        {
-            if (_ay == null)
-            {
-                _ay = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
-                if (_ay == null) return;
-            }
-
-            int spin = SenaryoYoneticisi.I != null ? SenaryoYoneticisi.I.toplamSpin : 0;
-            bool sagla = _ay.KosulSagla(spin);
-
-            // İLERİ aktif/pasif — TutorialAdimGoster üzerinden
-            var goster = TutorialAdimGoster.Ornek;
-            if (goster != null && goster.IleriZatenAktif != sagla)
-            {
-                goster.IleriAktif(sagla);
-            }
-        }
+        // PAKET 3B-fix-2: Update polling KALDIRILDI — TutorialOyunYoneticisi.AdimAkisi içinde
+        // yield-while ile KosulSagla bekleniyor (Modal A → B → bekleme → Modal C → İLERİ aktif).
+        // Bu sınıfın görevi sadece: PanelKopru.OnAyarDegisti event'i → _ay.AyarDegistiHaber(key) +
+        // lokal field cache (SonCarpanOlasilik, SonCarpanZorla, BonusTetiklendi).
     }
 }

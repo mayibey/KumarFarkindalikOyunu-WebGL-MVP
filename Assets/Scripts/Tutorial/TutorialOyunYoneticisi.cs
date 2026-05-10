@@ -220,18 +220,22 @@ namespace KumarFarkindalik.Tutorial
         {
             Debug.Log($"[TutorialOyunYoneticisi] AdimAkisi başladı: {v.id}, ModalKopru.Ornek null={TutorialModalKopru.Ornek == null}, Goster.Ornek null={TutorialAdimGoster.Ornek == null}");
 
-            // 1. Modal göster
-            if (TutorialModalKopru.Ornek != null)
-                yield return TutorialModalKopru.Ornek.ModalGoster(v.mesaj);
+            // === Modal A (mesajBaslangic) — her zaman göster ===
+            if (TutorialModalKopru.Ornek != null && !string.IsNullOrEmpty(v.mesajBaslangic))
+                yield return TutorialModalKopru.Ornek.ModalGoster(v.mesajBaslangic);
 
-            // 2. T_SON ise: modal TAMAM = OnTutorialBitti
+            // T_SON: A göster, IleriTiklandi → OnTutorialBitti
             if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T_SON)
             {
                 AdimYoneticisi?.IleriTiklandi();
                 yield break;
             }
 
-            // 3. Vurgu aç (panel.html parametre)
+            // === Modal B (mesajAksiyon) — varsa (aktif adımlar için) ===
+            if (TutorialModalKopru.Ornek != null && !string.IsNullOrEmpty(v.mesajAksiyon))
+                yield return TutorialModalKopru.Ornek.ModalGoster(v.mesajAksiyon);
+
+            // === Vurgu aç (panel.html) ===
             if (v.vurguSelectorlari != null)
             {
                 foreach (var sel in v.vurguSelectorlari)
@@ -242,16 +246,41 @@ namespace KumarFarkindalik.Tutorial
                 }
             }
 
-            // 4. AdimGoster göster (T2 enum=1 → "T2/11", T11 → "T11/11")
+            // === AdimGoster göster ===
             int sira = (int)v.id;
             Debug.Log($"[TutorialOyunYoneticisi] AdimGoster.AdimGoster çağrılıyor: sira={sira}");
             TutorialAdimGoster.Ornek?.AdimGoster(sira);
-            Debug.Log("[TutorialOyunYoneticisi] AdimGoster çağrı bitti");
 
-            // 5. Pasif adımsa İLERİ hemen aktif (KosulSagla zaten true döner)
+            // Pasif adım: İLERİ hemen aktif, kullanıcı İLERİ tıklayınca sonraki
             if (!v.aktifMi)
+            {
                 TutorialAdimGoster.Ornek?.IleriAktif(true);
-            // Aktif adımsa: TutorialAdminEnjeksiyonu.Update polling → KosulSagla → IleriAktif
+                yield break;
+            }
+
+            // === Aktif adım: KosulSagla yield-while ile bekle ===
+            while (true)
+            {
+                int spin = SenaryoYoneticisi.I != null ? SenaryoYoneticisi.I.toplamSpin : 0;
+                if (AdimYoneticisi != null && AdimYoneticisi.KosulSagla(spin)) break;
+                yield return null;
+            }
+            Debug.Log($"[TutorialOyunYoneticisi] Koşul sağlandı: {v.id}");
+
+            // === Modal C (mesajKapanis) — pedagojik özet ===
+            if (!string.IsNullOrEmpty(v.mesajKapanis))
+            {
+                TutorialAdimGoster.Ornek?.Gizle();
+#if UNITY_WEBGL && !UNITY_EDITOR
+                TumVurgulariKapat();
+#endif
+                if (TutorialModalKopru.Ornek != null)
+                    yield return TutorialModalKopru.Ornek.ModalGoster(v.mesajKapanis);
+                TutorialAdimGoster.Ornek?.AdimGoster(sira); // sayaç tekrar göster
+            }
+
+            // === İLERİ aktif (kullanıcı tıklayınca sonraki adım) ===
+            TutorialAdimGoster.Ornek?.IleriAktif(true);
         }
 
         private void IleriTiklandi()
