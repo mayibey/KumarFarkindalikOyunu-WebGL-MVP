@@ -127,12 +127,15 @@ namespace Senaryo.Scripted
 
         private void OnYenidenBaslaTiklandi()
         {
-            Debug.Log("[ScriptedFinalEkrani] Yeniden başla — sahne reset.");
+            Debug.Log("[ScriptedFinalEkrani] TAMAM tıklandı — panel kapatılıyor (sahne reload yok).");
             IsAcik = false;
-            // Static flag'leri sıfırla (sahne reload yeni instance yaratır ama static state taşır).
+            if (_root != null) _root.SetActive(false);
+            // Anlatıcı iframe'ini geri aç (final açılırken Gizle çağrılmıştı, GosterFinalEkrani:101).
+            AnlaticiSeritKopru.Ornek?.Goster();
+            // Defansif: BorcAlindi statik flag temizle (kullanıcı yeni oyun başlatmazsa etkisi yok ama tutarlılık).
             ScriptedYuklemePaneli.BorcAlindiSifirla();
-            // Sahne yeniden yüklenince ScriptedSpinYoneticisi/_yuklemePaneliGosterildi/_gosterildi resetlenir
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            // Save zaten GosterFinalEkrani açılışında silindi (line 97). Sahne reload YOK → kullanıcı
+            // arka plandaki oyun ekranını görür, isterse pencereyi kapatabilir veya tarayıcıyı yenileyerek yeni oyun başlar.
         }
 
         // === UI referansları ===
@@ -268,7 +271,7 @@ namespace Senaryo.Scripted
             btnTxt.fontSize = 24f;
             btnTxt.fontStyle = FontStyles.Bold;
             btnTxt.color = Color.white;
-            btnTxt.text = "YENİDEN BAŞLA";
+            btnTxt.text = "TAMAM";
             btnTxt.raycastTarget = false;
         }
 

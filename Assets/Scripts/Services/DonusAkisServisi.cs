@@ -523,12 +523,15 @@ public class DonusAkisServisi
             _ctx.CarpanKutuUcusFormulKilidiniKaldir();
 
             int odenmekIstenen = zorlaCarpanGoster ? teorikToplam : spinKazanci;
-            if (!zorlaCarpanGoster && _ctx.BonusMaxOdemeTL != int.MaxValue)
+            // CAP HOTFIX: Zorla çarpan dahil HER spin cap'e tabi. Eskiden !zorlaCarpanGoster koşulu
+            // varken bonus oyunda zorla çarpan tetiklenirse o spin sınırsız ödüyordu (kümülatif 23K+).
+            // A5 cazip popup yolunda cap=4000 → counting up KESİN 4000'i aşmaz.
+            if (_ctx.BonusMaxOdemeTL != int.MaxValue)
             {
                 int capKalan = Mathf.Max(0, _ctx.BonusMaxOdemeTL - _ctx.BonusOdenenTL);
                 odenmekIstenen = Mathf.Clamp(odenmekIstenen, 0, capKalan);
             }
-            if (!zorlaCarpanGoster && _ctx.BonusBudgetAktif && _ctx.BonusBudgetKalanTL != int.MaxValue)
+            if (_ctx.BonusBudgetAktif && _ctx.BonusBudgetKalanTL != int.MaxValue)
             {
                 odenmekIstenen = Mathf.Clamp(odenmekIstenen, 0, _ctx.BonusBudgetKalanTL);
             }
