@@ -177,8 +177,10 @@ public partial class OyunYoneticisi
 
     private void SpinButonImpl()
     {
-        if (bonusAktif) return;
-        if (spinCalisiyor) return;
+        Debug.Log("[SpinButon-DEBUG] === BUTONA BASILDI ===");
+
+        if (bonusAktif) { Debug.Log("[SpinButon-DEBUG] RETURN: bonusAktif=true"); return; }
+        if (spinCalisiyor) { Debug.Log("[SpinButon-DEBUG] RETURN: spinCalisiyor=true"); return; }
 
         // SCRIPTED MOD — bloke eden paneller açıkken spin atımı engellenir.
         // - ScriptedYuklemePaneli (A6 borç al)
@@ -187,13 +189,15 @@ public partial class OyunYoneticisi
         // - ScriptedBonusOyunUygulayici (A5 Spin 4 — bonus oyun panel + animasyon)
         // - ScriptedModalKopru (eğitmen modal — sahne reload sonrası Pre-A1 + ÖNCE modallar)
         // - ScriptedDusunceBalonu (A5 sonu düşünce balonu)
-        if (ScriptedYuklemePaneli.IsAcik) return;
-        if (ScriptedFinalEkrani.IsAcik) return;
-        if (ScriptedBonusTuzagiPopup.IsAcik) return;
-        if (ScriptedBonusOyunUygulayici.IsAcik) return;
-        if (ScriptedModalKopru.ModalAcik) return;       // Bilgilendirici Asistan modal'ı
-        if (ScriptedDusunceBalonu.BalonAcik) return;    // Düşünce balonu sahnesi
-        if (AnlaticiSeritKopru.BonusBitisAcik) return;  // Modern bonus bitiş DOM popup'ı
+        if (ScriptedYuklemePaneli.IsAcik) { Debug.Log("[SpinButon-DEBUG] RETURN: ScriptedYuklemePaneli.IsAcik=true"); return; }
+        if (ScriptedFinalEkrani.IsAcik) { Debug.Log("[SpinButon-DEBUG] RETURN: ScriptedFinalEkrani.IsAcik=true"); return; }
+        if (ScriptedBonusTuzagiPopup.IsAcik) { Debug.Log("[SpinButon-DEBUG] RETURN: ScriptedBonusTuzagiPopup.IsAcik=true"); return; }
+        if (ScriptedBonusOyunUygulayici.IsAcik) { Debug.Log("[SpinButon-DEBUG] RETURN: ScriptedBonusOyunUygulayici.IsAcik=true"); return; }
+        if (ScriptedModalKopru.ModalAcik) { Debug.Log("[SpinButon-DEBUG] RETURN: ScriptedModalKopru.ModalAcik=true"); return; }
+        if (ScriptedDusunceBalonu.BalonAcik) { Debug.Log("[SpinButon-DEBUG] RETURN: ScriptedDusunceBalonu.BalonAcik=true"); return; }
+        if (AnlaticiSeritKopru.BonusBitisAcik) { Debug.Log("[SpinButon-DEBUG] RETURN: AnlaticiSeritKopru.BonusBitisAcik=true"); return; }
+        // Race condition fix: A* özel akış coroutine'i (modal + WaitForSeconds delay) sürüyorsa engelle.
+        if (AnlaticiSeritKopru.AnlaticiOzelAkisAktif) { Debug.Log("[SpinButon-DEBUG] RETURN: AnlaticiOzelAkisAktif=true (özel akış sürüyor)"); return; }
 
         // ÖNCE-modal kontrolü: A1 Spin 7 (idx 6) ve A2 Spin 4 (idx 3) tıklandığında önce pedagojik
         // modal açılır, bittiğinde SpinButon tekrar çağrılır → bu sefer flag set olduğu için asıl spin atılır.
@@ -202,9 +206,11 @@ public partial class OyunYoneticisi
         {
             int asama = anlatici.AktifAsama;
             int spinIdx = anlatici.AsamadakiSpinSayaci;
+            Debug.Log($"[SpinButon-DEBUG] AktifAsama={asama}, AsamadakiSpinSayaci={spinIdx}");
             if (asama == 0 && spinIdx == 6 && !_onceModalA1S7Gosterildi)
             {
                 _onceModalA1S7Gosterildi = true;
+                Debug.Log("[SpinButon-DEBUG] RETURN: A1S7 ÖNCE-modal tetiklendi");
                 StartCoroutine(OnceModalGosterVeSpin(
                     "Şimdi <color=#4ADE80>büyük bir kazanç</color> gelecek. Bu <color=#EF4444>kasıtlı</color>: algoritma oyuncuyu <color=#60A5FA><i>'şanslıyım'</i></color> hissine kaptırmak istiyor.\n\n" +
                     "Kazanç sonrası oyuncunun zihninde <color=#60A5FA><i>'ben kazanırım'</i></color> duygusu yerleşecek."
@@ -214,6 +220,7 @@ public partial class OyunYoneticisi
             if (asama == 1 && spinIdx == 3 && !_onceModalA2S4Gosterildi)
             {
                 _onceModalA2S4Gosterildi = true;
+                Debug.Log("[SpinButon-DEBUG] RETURN: A2S4 ÖNCE-modal tetiklendi");
                 StartCoroutine(OnceModalGosterVeSpin(
                     "Şu an oyuncu <color=#FB923C>bahisini değiştirecek</color> (yükseltecek). Bu bahisin ardından algoritma <color=#EF4444>kasıtlı olarak</color> kazanç yaşatacak.\n\n" +
                     "Amaç: oyuncuya <color=#60A5FA><i>'doğru zamanda doğru bahis'</i></color> duygusu vermek. Böylece oyuncu <color=#60A5FA>kontrolün kendinde olduğuna</color> inanır."
@@ -221,13 +228,19 @@ public partial class OyunYoneticisi
                 return;
             }
         }
+        else
+        {
+            Debug.Log("[SpinButon-DEBUG] AnlaticiSeritKopru.Ornek=null (senaryo dışı sahne)");
+        }
 
         if (_ekonomiServisi.Bakiye < _ekonomiServisi.Bahis)
         {
+            Debug.Log($"[SpinButon-DEBUG] RETURN: bakiye yetersiz (Bakiye={_ekonomiServisi.Bakiye}, Bahis={_ekonomiServisi.Bahis})");
             // Bakiye yetersiz: paneli aç, "Bakiye azalıyor, yükleme yapmak ister misin?" uyarısı göster.
             ShowBakiyeYuklePanel(yetersizBakiyeUyarisi: true);
             return;
         }
+        Debug.Log("[SpinButon-DEBUG] Tüm kontroller geçti, spin başlatılıyor (BirSpinHazirlaVeAt)");
         BaslatGeciciGlobalTiklamaKilidi(2f);
         // Spin butonuna basıldığı ilk karede eski spin sonucu görünmesin.
         // DonusAkisServisi bunu tekrar başta sıfırlıyor; burada amaç sadece erken UI sıçramasını engellemek.

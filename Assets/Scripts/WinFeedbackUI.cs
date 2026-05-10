@@ -27,9 +27,9 @@ public class WinFeedbackUI : MonoBehaviour
     [SerializeField] private Image karartmaOverlay;
 
     [Header("Animasyon Süreleri")]
-    [SerializeField] private float girisAnimasyonSuresi = 0.45f;
-    [SerializeField] private float cikisAnimasyonSuresi = 0.35f;
-    [SerializeField] private float saymaFazlaSuresi     = 1.0f;
+    [SerializeField] private float girisAnimasyonSuresi = 0.30f;
+    [SerializeField] private float cikisAnimasyonSuresi = 0.25f;
+    [SerializeField] private float saymaFazlaSuresi     = 0.5f;
 
     [Header("Metinler")]
     [SerializeField] private string bigWinBaslik  = "BÜYÜK KAZANÇ";
@@ -252,10 +252,10 @@ public class WinFeedbackUI : MonoBehaviour
 
     private static float SaymaSuresi(int k)
     {
-        if (k <   500) return 0.8f;
-        if (k <  2000) return 1.5f;
-        if (k <  5000) return 2.5f;
-        return 4.0f;
+        if (k <   500) return 0.6f;
+        if (k <  2000) return 1.1f;
+        if (k <  5000) return 1.9f;
+        return 3.0f;
     }
 
     /// <summary>

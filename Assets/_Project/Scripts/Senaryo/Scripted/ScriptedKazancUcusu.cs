@@ -23,7 +23,7 @@ namespace Senaryo.Scripted
     [Preserve]
     public static class ScriptedKazancUcusu
     {
-        private const float UCUS_SURE = 1.95f;
+        private const float UCUS_SURE = 1.20f;
         private const int BIGWIN_BAHIS_CARPANI = 2; // WinFeedbackUI.KazancSeviyesiHesapla ile aynı eşik
 
         private static Coroutine _aktifUcus;

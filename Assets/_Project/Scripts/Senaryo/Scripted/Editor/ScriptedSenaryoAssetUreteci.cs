@@ -59,7 +59,7 @@ namespace Senaryo.Scripted.Editor
         // A2 Spin 2: bahisten az ödeme alan kazanç — manipülasyon farkındalığı net görünür
         // (A2 bahis 1000, brüt 500 → ekran "KAZANÇ 500 TL" yazar, bakiyeden 500 düşer).
         private const string M_A2_S2 =
-            "<color=#EF4444><b>⚠️ DİKKAT: manipülasyon farkındalığı</b></color>\n\n" +
+            "<color=#EF4444><b>DİKKAT: manipülasyon farkındalığı</b></color>\n\n" +
             "Oyuncu az önce <color=#FB923C><b>1.000 TL</b></color> bahis koydu, ekrana <i>'KAZANÇ 500 TL'</i> yazdı, bakiyesinden <color=#EF4444><b>500 TL EKSİLDİ</b></color> ama oyuncunun zihninde <i>'kazandım'</i> hissi yaşanıyor.\n\n" +
             "Bu sistemin temel <color=#EF4444>manipülasyonudur</color>: her spinde bahisten az ödeme yaparken büyük yazıyla <i>'KAZANÇ'</i> yazılır. Oyuncuda <i>'kazanıyorum'</i> algısı yaratılır. Uzun vadede oyuncu daima <color=#EF4444>kayıptadır</color>. Algoritma bunu <color=#EF4444>kasıtlı</color> tasarlar: sürekli artıyormuş gibi göstererek oyuncuyu bağlamak için.";
         // A2 Spin 3: 3 yıldız near-miss — "Az Daha Tutuyordu" yanılsaması + bonus oyun değeri açıklaması
@@ -75,7 +75,7 @@ namespace Senaryo.Scripted.Editor
         // A3 modal mesajları
         private const string M_A3_S3 = "İlk ciddi <color=#EF4444>kayıplar</color> yaşanıyor. Amaç para kazanmaktan çıktı, <color=#60A5FA>kayıpları telafi etmeye</color> dönüştü.";
         // A3 Spin 6: kayıp kovalama + bahis 2500'e otomatik yükseltme uyarısı
-        private const string M_A3_S6 = "Oyuncu <color=#EF4444>kayıpları</color> geri kazanmak için daha fazla <color=#EF4444>risk alıyor</color>, mantıklı düşünme yetisini kaybediyor.\n\n⚠️ Şimdi oyuncu <color=#FB923C><b>bahsini 2.500 TL'ye</b></color> yükseltecek; <i>'daha yüksek bahis daha hızlı kurtarır'</i> yanılgısıyla. Bu da algoritmanın istediği şey.";
+        private const string M_A3_S6 = "Oyuncu <color=#EF4444>kayıpları</color> geri kazanmak için daha fazla <color=#EF4444>risk alıyor</color>, mantıklı düşünme yetisini kaybediyor.\n\nŞimdi oyuncu <color=#FB923C><b>bahsini 2.500 TL'ye</b></color> yükseltecek; <i>'daha yüksek bahis daha hızlı kurtarır'</i> yanılgısıyla. Bu da algoritmanın istediği şey.";
         // A3 Spin 7
         private const string M_A3_S7 = "Bir tur daha = bir <color=#EF4444>kayıp</color> daha.";
         // A3 Spin 8 modali KALDIRILDI

@@ -65,6 +65,14 @@ public class AnlaticiSeritKopru : MonoBehaviour
     /// SpinButonImpl ve OyunUIGuncellemeServisi bu flag'e bakıp Spin butonunu engeller.</summary>
     public static bool BonusBitisAcik { get; private set; }
 
+    /// <summary>A* özel akış coroutine'i (modal + animasyon + delay) çalışıyor mu?
+    /// Coroutine'in EN BAŞINDA true set edilir (modal henüz açılmadan, WaitForSeconds gibi delay öncesinde),
+    /// finally bloğunda false. SpinButonImpl ve HerhangiOverlayAcik bu flag'i kontrol eder →
+    /// kullanıcı modal açılma anını beklerken spin atamaz (race condition kapanır).
+    /// PreA1, A2-A5 geçişler, A4S1 yıldız modal, A4S5 ×100 modal, BasaArayis, Dongu, BorcSonrasiModal,
+    /// BahisAnimasyonu coroutine'leri try/finally ile bu flag'i güvenle yönetir.</summary>
+    public static bool AnlaticiOzelAkisAktif = false;
+
     /// <summary>JS SendMessage handler — GameObject "AnlaticiSeritKopru" üzerinde çağrılır.</summary>
     public void BonusBitisOnayla()
     {
@@ -85,6 +93,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
             || Senaryo.Scripted.ScriptedModalKopru.ModalAcik
             || Senaryo.Scripted.ScriptedDusunceBalonu.BalonAcik
             || BonusBitisAcik
+            || AnlaticiOzelAkisAktif
         );
 
     /// <summary>Sol panel iframe'ini Unity Canvas'ın ARKASINA gönderir (z:50). Modal'ın "sol panel"
@@ -192,6 +201,9 @@ public class AnlaticiSeritKopru : MonoBehaviour
 
     void Awake()
     {
+        // Defansif reset — önceki sahnedeki coroutine StopCoroutine ile zorla durdurulduysa flag takılı kalabilir.
+        AnlaticiOzelAkisAktif = false;
+
         string aktifSahne = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
         if (aktifSahne != "03_SenaryoluOyun")
         {
@@ -203,7 +215,11 @@ public class AnlaticiSeritKopru : MonoBehaviour
         SenaryoEgitimiAktif = true;
         _ornek = this;
     }
-    void OnDestroy() { if (_ornek == this) { _ornek = null; SenaryoEgitimiAktif = false; } }
+    void OnDestroy()
+    {
+        if (_ornek == this) { _ornek = null; SenaryoEgitimiAktif = false; }
+        AnlaticiOzelAkisAktif = false; // defansif — sahne unload'ında takılı kalmasın
+    }
 
     void Start()
     {
@@ -713,78 +729,118 @@ public class AnlaticiSeritKopru : MonoBehaviour
     /// <summary>Sahne girişinde otomatik: oyuncuyu simülasyona hazırlayan karşılama modalı.</summary>
     private System.Collections.IEnumerator PreA1KarsilamaAkisi()
     {
-        // ScriptedModalKopru'nun spawn olmasını bekle (RuntimeInitializeOnLoadMethod ardından bir frame)
-        yield return null;
-        var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
-        if (modal == null)
+        AnlaticiOzelAkisAktif = true;
+        try
         {
-            Debug.LogWarning("[Anlatici] PreA1 — ScriptedModalKopru bulunamadı, karşılama atlanıyor.");
-            yield break;
+            // ScriptedModalKopru'nun spawn olmasını bekle (RuntimeInitializeOnLoadMethod ardından bir frame)
+            yield return null;
+            var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
+            if (modal == null)
+            {
+                Debug.LogWarning("[Anlatici] PreA1 — ScriptedModalKopru bulunamadı, karşılama atlanıyor.");
+                yield break;
+            }
+            string mesaj =
+                "Hoş geldiniz. Bu simülasyonda online kumar oyunlarının oyuncuları nasıl etkilediğini birlikte göreceğiz.\n\n" +
+                "<b>Önce oyunu tanıyalım:</b>\n" +
+                "• Ekranda 6×5'lik meyve makinesi var. SPIN tuşuna basıldığında meyveler döner.\n" +
+                "• Aynı meyveden <color=#FFD700><b>8 veya daha fazlası</b></color> bir araya gelirse <color=#4ADE80>kazanç verir</color>.\n" +
+                "• Bazı turlarda <color=#FFD700><b>ÇARPAN</b></color> düşer (<color=#FFD700>×2, ×5, ×100</color> vs.) ve <color=#4ADE80>kazancı katlar</color>.\n" +
+                "• Kazanan meyveler patlar, üstten yenileri düşer (<color=#FFD700><b>TUMBLE</b></color>); zincir kazançlar olur.\n" +
+                "• <color=#FFD700>4 Bonus Sembolü</color> (yıldız) gelirse <color=#FFD700><b>BONUS</b> oyun</color> açılır.\n\n" +
+                "<b>Ekrandaki diğer öğeler:</b>\n" +
+                "• <color=#60A5FA><b>Sol panel:</b></color> Oyuncunun hangi aşamada olduğunu, sahne arkasında ne yaşandığını gösterir; birlikte buradan takip edeceğiz.\n" +
+                "• <color=#4ADE80><b>Bakiye:</b></color> Oyuna ayrılan para (oyuncu <color=#4ADE80>50.000 TL</color> ile başlıyor).\n" +
+                "• <color=#FB923C><b>Bahis:</b></color> Her spinde harcanacak miktar, <color=#FB923C>+ ve − tuşlarıyla</color> değişir.\n" +
+                "• <b>KAZANÇ:</b> O spinde kazanılan miktar.\n\n" +
+                "Hadi başlayalım: ilk aşama <i>'Isındırma ve Umut'</i>.";
+            // gizleAnlatici: false → modal "Sol panel" anlatırken kullanıcının paneli görmesi gerekiyor.
+            yield return modal.ModalGoster(mesaj, gizleAnlatici: false);
         }
-        string mesaj =
-            "Hoş geldiniz. Bu simülasyonda online kumar oyunlarının oyuncuları nasıl etkilediğini birlikte göreceğiz.\n\n" +
-            "<b>Önce oyunu tanıyalım:</b>\n" +
-            "• Ekranda 6×5'lik meyve makinesi var. SPIN tuşuna basıldığında meyveler döner.\n" +
-            "• Aynı meyveden <color=#FFD700><b>8 veya daha fazlası</b></color> bir araya gelirse <color=#4ADE80>kazanç verir</color>.\n" +
-            "• Bazı turlarda <color=#FFD700><b>ÇARPAN</b></color> düşer (<color=#FFD700>×2, ×5, ×100</color> vs.) ve <color=#4ADE80>kazancı katlar</color>.\n" +
-            "• Kazanan meyveler patlar, üstten yenileri düşer (<color=#FFD700><b>TUMBLE</b></color>); zincir kazançlar olur.\n" +
-            "• <color=#FFD700>4 Bonus Sembolü</color> (yıldız) gelirse <color=#FFD700><b>BONUS</b> oyun</color> açılır.\n\n" +
-            "<b>Ekrandaki diğer öğeler:</b>\n" +
-            "• <color=#60A5FA><b>Sol panel:</b></color> Oyuncunun hangi aşamada olduğunu, sahne arkasında ne yaşandığını gösterir; birlikte buradan takip edeceğiz.\n" +
-            "• <color=#4ADE80><b>Bakiye:</b></color> Oyuna ayrılan para (oyuncu <color=#4ADE80>50.000 TL</color> ile başlıyor).\n" +
-            "• <color=#FB923C><b>Bahis:</b></color> Her spinde harcanacak miktar, <color=#FB923C>+ ve − tuşlarıyla</color> değişir.\n" +
-            "• <b>KAZANÇ:</b> O spinde kazanılan miktar.\n\n" +
-            "Hadi başlayalım: ilk aşama <i>'Isındırma ve Umut'</i>.";
-        // gizleAnlatici: false → modal "Sol panel" anlatırken kullanıcının paneli görmesi gerekiyor.
-        yield return modal.ModalGoster(mesaj, gizleAnlatici: false);
+        finally
+        {
+            AnlaticiOzelAkisAktif = false;
+        }
     }
 
     /// <summary>A1 son spini sonrası A2'ye geçiş anında: kontrol yanılsamasının başladığını anlatan modal.</summary>
     private System.Collections.IEnumerator A2GecisAkisi()
     {
-        var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
-        if (modal == null) yield break;
-        string mesaj =
-            "Birinci aşama tamamlandı. Oyuncu şu an artıda, kendini iyi hissediyor.\n\n" +
-            "Sırada <color=#FB923C><b>'Kontrol Bende Hissi'</b></color> aşaması var. Bu aşamada algoritma oyuncuya üst üste <color=#EF4444>kayıplar</color> yaşatacak. Ama yine de <color=#4ADE80>bakiye</color> hâlâ pozitif olduğu için oyuncu <i>'kontrol bende, istediğim zaman çıkarım, bahis değişiklikleriyle kazanırım'</i> gibi düşünceler yaşar.\n\n" +
-            "Bu <color=#60A5FA>yanılsamayı</color> birlikte göreceğiz.";
-        yield return modal.ModalGoster(mesaj);
+        AnlaticiOzelAkisAktif = true;
+        try
+        {
+            var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
+            if (modal == null) yield break;
+            string mesaj =
+                "Birinci aşama tamamlandı. Oyuncu şu an artıda, kendini iyi hissediyor.\n\n" +
+                "Sırada <color=#FB923C><b>'Kontrol Bende Hissi'</b></color> aşaması var. Bu aşamada algoritma oyuncuya üst üste <color=#EF4444>kayıplar</color> yaşatacak. Ama yine de <color=#4ADE80>bakiye</color> hâlâ pozitif olduğu için oyuncu <i>'kontrol bende, istediğim zaman çıkarım, bahis değişiklikleriyle kazanırım'</i> gibi düşünceler yaşar.\n\n" +
+                "Bu <color=#60A5FA>yanılsamayı</color> birlikte göreceğiz.";
+            yield return modal.ModalGoster(mesaj);
+        }
+        finally
+        {
+            AnlaticiOzelAkisAktif = false;
+        }
     }
 
     /// <summary>A2 son spini sonrası A3'e geçiş: kayıp kovalama tuzağı uyarısı.</summary>
     private System.Collections.IEnumerator A3GecisAkisi()
     {
-        var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
-        if (modal == null) yield break;
-        string mesaj =
-            "İkinci aşama tamamlandı. Oyuncu şu an küçük <color=#EF4444>kayıplar</color> yaşadı ama hâlâ artıda; <color=#60A5FA><i>'kontrol bende'</i></color> hissi iyice yerleşti.\n\n" +
-            "Sırada <color=#FB923C><b>'Kaybettiklerimi Geri Kazanabilirim'</b></color> aşaması var. Sistem bu aşamada oyuncuya <color=#EF4444>bilerek kayıp</color> yaşatacak. Oyuncu artık kazanç peşinde değil; <i>'kaybettiklerimi kurtarayım yeter'</i> gibi düşünmeye başlayacak. Bu <color=#60A5FA><b>'Kayıp Kovalama'</b></color> denilen psikolojik <color=#EF4444>tuzaktır</color> — bir kez girilirse çıkmak çok zor.\n\n" +
-            "Birlikte göreceğiz.";
-        yield return modal.ModalGoster(mesaj);
+        AnlaticiOzelAkisAktif = true;
+        try
+        {
+            var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
+            if (modal == null) yield break;
+            string mesaj =
+                "İkinci aşama tamamlandı. Oyuncu şu an küçük <color=#EF4444>kayıplar</color> yaşadı ama hâlâ artıda; <color=#60A5FA><i>'kontrol bende'</i></color> hissi iyice yerleşti.\n\n" +
+                "Sırada <color=#FB923C><b>'Kaybettiklerimi Geri Kazanabilirim'</b></color> aşaması var. Sistem bu aşamada oyuncuya <color=#EF4444>bilerek kayıp</color> yaşatacak. Oyuncu artık kazanç peşinde değil; <i>'kaybettiklerimi kurtarayım yeter'</i> gibi düşünmeye başlayacak. Bu <color=#60A5FA><b>'Kayıp Kovalama'</b></color> denilen psikolojik <color=#EF4444>tuzaktır</color> — bir kez girilirse çıkmak çok zor.\n\n" +
+                "Birlikte göreceğiz.";
+            yield return modal.ModalGoster(mesaj);
+        }
+        finally
+        {
+            AnlaticiOzelAkisAktif = false;
+        }
     }
 
     /// <summary>A3 son spini sonrası A4'e geçiş: pes etme eşiği + manipülasyon vuruşu uyarısı.</summary>
     private System.Collections.IEnumerator A4GecisAkisi()
     {
-        var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
-        if (modal == null) yield break;
-        string mesaj =
-            "Üçüncü aşamayı gördük: <color=#60A5FA>kayıp kovalama tuzağı</color>. Oyuncu <color=#FB923C>bahsi yükselterek</color> kurtulmaya çalıştı, daha çok <color=#EF4444>kaybetti</color>.\n\n" +
-            "Sırada <color=#FB923C><b>'Şansım Döndü'</b></color> aşaması var. Bu aşamada algoritma oyuncuyu pes etme eşiğine getirecek; üst üste sert <color=#EF4444>kayıplar</color>. Tam pes etmek üzereyken <color=#4ADE80>büyük bir kazanç</color> düşürecek. Bu büyük kazanç tesadüf değil, <color=#EF4444><b>kasıtlı bir manipülasyon vuruşu</b></color> olacak.\n\n" +
-            "Amaç: oyuncuyu tekrar oyuna bağlamak.";
-        yield return modal.ModalGoster(mesaj);
+        AnlaticiOzelAkisAktif = true;
+        try
+        {
+            var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
+            if (modal == null) yield break;
+            string mesaj =
+                "Üçüncü aşamayı gördük: <color=#60A5FA>kayıp kovalama tuzağı</color>. Oyuncu <color=#FB923C>bahsi yükselterek</color> kurtulmaya çalıştı, daha çok <color=#EF4444>kaybetti</color>.\n\n" +
+                "Sırada <color=#FB923C><b>'Şansım Döndü'</b></color> aşaması var. Bu aşamada algoritma oyuncuyu pes etme eşiğine getirecek; üst üste sert <color=#EF4444>kayıplar</color>. Tam pes etmek üzereyken <color=#4ADE80>büyük bir kazanç</color> düşürecek. Bu büyük kazanç tesadüf değil, <color=#EF4444><b>kasıtlı bir manipülasyon vuruşu</b></color> olacak.\n\n" +
+                "Amaç: oyuncuyu tekrar oyuna bağlamak.";
+            yield return modal.ModalGoster(mesaj);
+        }
+        finally
+        {
+            AnlaticiOzelAkisAktif = false;
+        }
     }
 
     /// <summary>A4 son spini sonrası A5'e geçiş: bonus tuzağı uyarısı.</summary>
     private System.Collections.IEnumerator A5GecisAkisi()
     {
-        var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
-        if (modal == null) yield break;
-        string mesaj =
-            "<color=#4ADE80>Büyük kazanç</color> yaşandı. Oyuncu şu an <i>'şansım döndü, daha kazanırım'</i> hissinde. İşte tam bu duygu, sıradaki aşamanın yakıtıdır.\n\n" +
-            "Sırada <color=#FB923C><b>'Sonunu Düşünen Kahraman Olamaz'</b></color> aşaması var. Bu aşamada algoritma oyuncuya cazip bir <color=#FFD700><b>'bonus oyun tuzağı'</b></color> kuracak: tüm <color=#4ADE80>bakiyesini</color> yatırma karşılığında büyük kazanç vaat edilecek. Yatırırsa, <color=#EF4444>çok azını geri alacak</color>.\n\n" +
-            "Bu, <color=#EF4444>sömürünün doruk noktasıdır</color>. Birlikte göreceğiz.";
-        yield return modal.ModalGoster(mesaj);
+        AnlaticiOzelAkisAktif = true;
+        try
+        {
+            var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
+            if (modal == null) yield break;
+            string mesaj =
+                "<color=#4ADE80>Büyük kazanç</color> yaşandı. Oyuncu şu an <i>'şansım döndü, daha kazanırım'</i> hissinde. İşte tam bu duygu, sıradaki aşamanın yakıtıdır.\n\n" +
+                "Sırada <color=#FB923C><b>'Sonunu Düşünen Kahraman Olamaz'</b></color> aşaması var. Bu aşamada algoritma oyuncuya cazip bir <color=#FFD700><b>'bonus oyun tuzağı'</b></color> kuracak: tüm <color=#4ADE80>bakiyesini</color> yatırma karşılığında büyük kazanç vaat edilecek. Yatırırsa, <color=#EF4444>çok azını geri alacak</color>.\n\n" +
+                "Bu, <color=#EF4444>sömürünün doruk noktasıdır</color>. Birlikte göreceğiz.";
+            yield return modal.ModalGoster(mesaj);
+        }
+        finally
+        {
+            AnlaticiOzelAkisAktif = false;
+        }
     }
 
     /// <summary>
@@ -795,47 +851,64 @@ public class AnlaticiSeritKopru : MonoBehaviour
     /// </summary>
     public System.Collections.IEnumerator BorcSonrasiModalAkisi()
     {
-        yield return new WaitForSecondsRealtime(0.5f); // Yükleme paneli kapanma animasyonu
+        AnlaticiOzelAkisAktif = true;
+        try
+        {
+            yield return new WaitForSecondsRealtime(0.5f); // Yükleme paneli kapanma animasyonu
 
-        var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
-        if (modal == null) yield break;
+            var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
+            if (modal == null) yield break;
 
-        // 1) Döngü başlangıcı pedagojik mesaj
-        yield return modal.ModalGoster(
-            "İşte oyuncu <color=#EF4444>borç aldı</color>, <color=#4ADE80>bakiyesi yenilendi</color>. Şimdi tekrar oynamaya devam edecek.\n\n" +
-            "Kumar sitelerinde yeniden bakiye yükleyenlere <color=#EF4444>bilinçli olarak</color> ilk başlarda yine <color=#4ADE80>kazandırılır</color> — bu <i>'Isındırma ve Umut'</i> aşamasına benzer.\n\n" +
-            "Bu sayede oyuncu tekrar <color=#EF4444>döngüye girer</color>: <i>'şansım yine açıldı, kayıplarımı telafi ederim'</i> düşünür. Ama er ya da geç sistem kazanır, oyuncu <color=#EF4444>kaybeder</color>.\n\n" +
-            "Şimdi bu döngüyü hızlıca göreceğiz."
-        );
+            // 1) Döngü başlangıcı pedagojik mesaj
+            yield return modal.ModalGoster(
+                "İşte oyuncu <color=#EF4444>borç aldı</color>, <color=#4ADE80>bakiyesi yenilendi</color>. Şimdi tekrar oynamaya devam edecek.\n\n" +
+                "Kumar sitelerinde yeniden bakiye yükleyenlere <color=#EF4444>bilinçli olarak</color> ilk başlarda yine <color=#4ADE80>kazandırılır</color> — bu <i>'Isındırma ve Umut'</i> aşamasına benzer.\n\n" +
+                "Bu sayede oyuncu tekrar <color=#EF4444>döngüye girer</color>: <i>'şansım yine açıldı, kayıplarımı telafi ederim'</i> düşünür. Ama er ya da geç sistem kazanır, oyuncu <color=#EF4444>kaybeder</color>.\n\n" +
+                "Şimdi bu döngüyü hızlıca göreceğiz."
+            );
 
-        // 2) A6 bahis bilgilendirme
-        yield return modal.ModalGoster(
-            "Bu kez oyuncu <color=#EF4444>kayıplarını HIZLI telafi</color> etmek istiyor. <color=#FB923C><b>Bahsini 10.000 TL'ye</b></color> çıkardı.\n\n" +
-            "Sadece <color=#FFD700>5 spin</color> yetecek; algoritma <color=#EF4444>sömürünün son evresinde</color> tüm <color=#4ADE80>bakiyeyi</color> alacak. " +
-            "Bu hızlı bitiş, gerçek hayattaki <i>'son kez deneme'</i> bahanesinin sonucudur."
-        );
+            // 2) A6 bahis bilgilendirme
+            yield return modal.ModalGoster(
+                "Bu kez oyuncu <color=#EF4444>kayıplarını HIZLI telafi</color> etmek istiyor. <color=#FB923C><b>Bahsini 10.000 TL'ye</b></color> çıkardı.\n\n" +
+                "Sadece <color=#FFD700>5 spin</color> yetecek; algoritma <color=#EF4444>sömürünün son evresinde</color> tüm <color=#4ADE80>bakiyeyi</color> alacak. " +
+                "Bu hızlı bitiş, gerçek hayattaki <i>'son kez deneme'</i> bahanesinin sonucudur."
+            );
 
-        // 3) Bahis animasyonu: mevcut bahis → 10000 (kademeli artış, "+ tuşu" hissi)
-        yield return BahisAnimasyonu(_oy != null ? _oy.AnlaticiMevcutBahis() : 4000, 10000);
+            // 3) Bahis animasyonu: mevcut bahis → 10000 (kademeli artış, "+ tuşu" hissi)
+            // BahisAnimasyonu kendi try/finally'sine sahip — flag yönetimi nested ama state korunur (true→true→false→false).
+            yield return BahisAnimasyonu(_oy != null ? _oy.AnlaticiMevcutBahis() : 4000, 10000);
+        }
+        finally
+        {
+            AnlaticiOzelAkisAktif = false;
+        }
     }
 
     /// <summary>Bahis kademeli artış animasyon helper. Adım otomatik hesaplanır:
     /// fark ≤ 2500 → 250 TL adım, daha büyük → 1000 TL adım. Her adım 0.10 sn (tick hissi).</summary>
     private System.Collections.IEnumerator BahisAnimasyonu(int eski, int yeni)
     {
-        if (_oy == null) yield break;
-        int fark = yeni - eski;
-        int adim = fark <= 2500 ? 250 : 1000; // küçük fark → küçük adım, büyük fark → hızlı tick
-        const float SURE_PER_ADIM = 0.10f;
-        int simdi = Mathf.Max(eski, _oy.AnlaticiMevcutBahis());
-        while (simdi < yeni)
+        AnlaticiOzelAkisAktif = true;
+        try
         {
-            simdi = Mathf.Min(yeni, simdi + adim);
-            try { _oy.AnlaticiSetBahis(simdi); }
-            catch (System.Exception e) { Debug.LogWarning("[BahisAnim] hata: " + e.Message); break; }
-            yield return new WaitForSecondsRealtime(SURE_PER_ADIM);
+            if (_oy == null) yield break;
+            int fark = yeni - eski;
+            int adim = fark <= 2500 ? 250 : 1000; // küçük fark → küçük adım, büyük fark → hızlı tick
+            const float SURE_PER_ADIM = 0.10f;
+            int simdi = Mathf.Max(eski, _oy.AnlaticiMevcutBahis());
+            while (simdi < yeni)
+            {
+                simdi = Mathf.Min(yeni, simdi + adim);
+                try { _oy.AnlaticiSetBahis(simdi); }
+                catch (System.Exception e) { Debug.LogWarning("[BahisAnim] hata: " + e.Message); break; }
+                yield return new WaitForSecondsRealtime(SURE_PER_ADIM);
+            }
+            Debug.Log($"[BahisAnim] {eski} → {yeni} TL animasyonu tamamlandı (adım={adim}).");
         }
-        Debug.Log($"[BahisAnim] {eski} → {yeni} TL animasyonu tamamlandı (adım={adim}).");
+        finally
+        {
+            AnlaticiOzelAkisAktif = false;
+        }
     }
 
     /// <summary>
@@ -845,18 +918,26 @@ public class AnlaticiSeritKopru : MonoBehaviour
     /// </summary>
     private System.Collections.IEnumerator A4S1YildizModalAkisi()
     {
-        yield return new WaitForSecondsRealtime(0.5f); // Spin animasyonu otursun, yıldızlar yerleşsin
-        YildizDonmeBaslat();
-        yield return new WaitForSecondsRealtime(0.5f); // Kullanıcı dönmeyi fark etsin
-        var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
-        string mesaj =
-            "<color=#FFD700><b>Üç yıldız (bonus sembolü)</b></color> yine düştü, dördüncüsü düşmedi. Oyuncu peş peşe bu sahneleri yaşadıkça " +
-            "<color=#60A5FA><i>'neredeyse oluyordu, şansım dönmek üzere'</i></color> hissine kapılır ve masada kalmaya devam eder. " +
-            "Sistem bu beklentiyi <color=#EF4444>mahsus</color> yaratır — birazdan vereceği <color=#4ADE80>büyük tek kazançla</color> bu hissi pekiştirip " +
-            "oyuncuyu <color=#EF4444>kilitleyecek</color>.";
-        if (modal != null)
-            yield return modal.ModalGoster(mesaj);
-        YildizDonmeyiDurdur();
+        AnlaticiOzelAkisAktif = true;
+        try
+        {
+            yield return new WaitForSecondsRealtime(0.5f); // Spin animasyonu otursun, yıldızlar yerleşsin
+            YildizDonmeBaslat();
+            yield return new WaitForSecondsRealtime(0.5f); // Kullanıcı dönmeyi fark etsin
+            var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
+            string mesaj =
+                "<color=#FFD700><b>Üç yıldız (bonus sembolü)</b></color> yine düştü, dördüncüsü düşmedi. Oyuncu peş peşe bu sahneleri yaşadıkça " +
+                "<color=#60A5FA><i>'neredeyse oluyordu, şansım dönmek üzere'</i></color> hissine kapılır ve masada kalmaya devam eder. " +
+                "Sistem bu beklentiyi <color=#EF4444>mahsus</color> yaratır — birazdan vereceği <color=#4ADE80>büyük tek kazançla</color> bu hissi pekiştirip " +
+                "oyuncuyu <color=#EF4444>kilitleyecek</color>.";
+            if (modal != null)
+                yield return modal.ModalGoster(mesaj);
+            YildizDonmeyiDurdur();
+        }
+        finally
+        {
+            AnlaticiOzelAkisAktif = false;
+        }
     }
 
     /// <summary>Sahnedeki yıldız (scatter) sembol GameObject'lerini bulur — Image sprite name fallback.</summary>
@@ -918,25 +999,36 @@ public class AnlaticiSeritKopru : MonoBehaviour
     /// "çekim şartı tuzağı" ikinci modal'ı (büyük kazanç sonrası "çekip çıkayım" düşüncesini söndürür).</summary>
     private System.Collections.IEnumerator A4S5CarpanModalAkisi()
     {
-        // Kullanıcı çarpanı + büyük kazancı görsün, tumble + ödeme animasyonları otursun
-        yield return new WaitForSeconds(2.0f);
-        var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
-        if (modal == null) yield break;
-        string mesaj =
-            "⚡ Ekrana <color=#FFD700><b>×100 çarpan</b></color> düştü! Oyuncu az önce pes etmek üzereydi, şimdi <color=#4ADE80>büyük kazanç</color>. " +
-            "Bu rastlantı değil: algoritma oyuncuyu tam bu duygusal anda yakaladı. <i>'Şansım döndü'</i> diyecek. " +
-            "Aslında <color=#EF4444>manipülasyon başarılı oldu</color>.";
-        yield return modal.ModalGoster(mesaj);
+        AnlaticiOzelAkisAktif = true;
+        try
+        {
+            // NormalSpinAkisi → ScriptedKazancUcusu yield ile beklendi: buraya geldiğimizde
+            // win feedback popup'ı + kazanç uçuşu ZATEN tamamlanmış. Modal hemen açılabilir.
+            // Küçük buffer: bakiye değişimi netleşsin, kullanıcı "kazandım" hissetsin, sonra modal.
+            yield return new WaitForSeconds(0.2f);
 
-        // Çekim Şartı Tuzağı — büyük kazanç sonrası "çekip çıkayım" düşüncesini söndüren ikinci modal.
-        string cekimSartiMesaji =
+            var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
+            if (modal == null) yield break;
+            string mesaj =
+                "⚡ Ekrana <color=#FFD700><b>×100 çarpan</b></color> düştü! Oyuncu az önce pes etmek üzereydi, şimdi <color=#4ADE80>büyük kazanç</color>. " +
+                "Bu rastlantı değil: algoritma oyuncuyu tam bu duygusal anda yakaladı. <i>'Şansım döndü'</i> diyecek. " +
+                "Aslında <color=#EF4444>manipülasyon başarılı oldu</color>.";
+            yield return modal.ModalGoster(mesaj);
+
+            // Çekim Şartı Tuzağı — büyük kazanç sonrası "çekip çıkayım" düşüncesini söndüren ikinci modal.
+            string cekimSartiMesaji =
             "İşte bu noktada gerçek hayatta oyuncunun aklına şu gelir: <color=#60A5FA><i>'Şu an kazançtayım, parayı çekip çıkayım.'</i></color> Mantıklı düşünce. Ama kumar siteleri bunun olmasına izin vermez.\n\n" +
             "<color=#EF4444><b>Çekim şartı tuzağı:</b></color> Site, oyuncunun kazandığı parayı çekebilmesi için bir <color=#EF4444><b>\"çevrim şartı\"</b></color> koyar. Bu şart genelde iki şekilde olur:\n\n" +
             "- <color=#FB923C><b>Bahis çevrim şartı:</b></color> Oyuncu, kazandığı paranın belirli bir katı kadar tutarda bahis atmadan parasını çekemez.\n\n" +
             "- <color=#FB923C><b>Spin sayısı şartı:</b></color> Oyuncunun belirli bir spin sayısına ulaşması gerekir, <b>örneğin 1000 spin atma şartı gibi</b>. Bu sayıya ulaşmadan çekim yapmasına izin verilmez.\n\n" +
             "Sonuç değişmez: Oyuncu bu şartları tamamlamaya çalışırken sistem <color=#EF4444>kazandığı parayı yavaş yavaş geri alır</color>, üstüne <color=#EF4444>kendi parasını da kaybeder</color>. Çekim şartı <color=#EF4444>sağlanamadan</color> oyuncu zaten masada tüketilmiş olur.\n\n" +
-            "Yani <color=#EF4444><b>\"çekip çıkma\" seçeneği aslında yok</b></color> — sadece var gibi görünür. Kumar sitesinin tek gerçek amacı oyuncuyu masada tutmaktır.";
-        yield return modal.ModalGoster(cekimSartiMesaji);
+                "Yani <color=#EF4444><b>\"çekip çıkma\" seçeneği aslında yok</b></color> — sadece var gibi görünür. Kumar sitesinin tek gerçek amacı oyuncuyu masada tutmaktır.";
+            yield return modal.ModalGoster(cekimSartiMesaji);
+        }
+        finally
+        {
+            AnlaticiOzelAkisAktif = false;
+        }
     }
 
     /// <summary>
@@ -971,44 +1063,52 @@ public class AnlaticiSeritKopru : MonoBehaviour
     /// </summary>
     private System.Collections.IEnumerator BasaArayisAkisi()
     {
-        // 1) Eğitmen modal — anlatıcı pedagojik açıklama (sol-alt karakter dialog)
-        var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
-        string mesaj =
-            "Oyuncu artık <color=#EF4444>paranın bittiğini</color> fark etti.\n\n" +
-            "Şimdi başka yerden para bulma arayışında. <color=#EF4444>Yalan söylemeye</color> başlıyor: " +
-            "yakınlarına, akrabalarına, arkadaşlarına...\n\n" +
-            "Bu, <color=#EF4444>kumar bağımlılığının yıkıcı evresidir</color>. Bir sonraki ekran o anı temsil ediyor.";
-        if (modal != null)
-            yield return modal.ModalGoster(mesaj);
-        else
-            Debug.LogWarning("[Anlatici] BasaArayisAkisi — ScriptedModalKopru bulunamadı, modal atlanıyor.");
+        AnlaticiOzelAkisAktif = true;
+        try
+        {
+            // 1) Eğitmen modal — anlatıcı pedagojik açıklama (sol-alt karakter dialog)
+            var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
+            string mesaj =
+                "Oyuncu artık <color=#EF4444>paranın bittiğini</color> fark etti.\n\n" +
+                "Şimdi başka yerden para bulma arayışında. <color=#EF4444>Yalan söylemeye</color> başlıyor: " +
+                "yakınlarına, akrabalarına, arkadaşlarına...\n\n" +
+                "Bu, <color=#EF4444>kumar bağımlılığının yıkıcı evresidir</color>. Bir sonraki ekran o anı temsil ediyor.";
+            if (modal != null)
+                yield return modal.ModalGoster(mesaj);
+            else
+                Debug.LogWarning("[Anlatici] BasaArayisAkisi — ScriptedModalKopru bulunamadı, modal atlanıyor.");
 
-        // 2) Düşünce balonu — karakter ortada, 4 yalan ayrı bulutlarda (klasik çizgi roman)
-        var balon = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedDusunceBalonu>();
-        if (balon != null)
-        {
-            Debug.Log("[Anlatici] Düşünce balonu açılıyor...");
-            yield return balon.BaloniGoster();
-        }
-        else
-        {
-            Debug.LogWarning("[Anlatici] BasaArayisAkisi — ScriptedDusunceBalonu bulunamadı, balon atlanıyor.");
-        }
+            // 2) Düşünce balonu — karakter ortada, 4 yalan ayrı bulutlarda (klasik çizgi roman)
+            var balon = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedDusunceBalonu>();
+            if (balon != null)
+            {
+                Debug.Log("[Anlatici] Düşünce balonu açılıyor...");
+                yield return balon.BaloniGoster();
+            }
+            else
+            {
+                Debug.LogWarning("[Anlatici] BasaArayisAkisi — ScriptedDusunceBalonu bulunamadı, balon atlanıyor.");
+            }
 
-        // 3) Yükleme paneli — "BORÇ AL — 50.000 TL"
-        var panel = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedYuklemePaneli>();
-        if (panel != null)
-        {
-            panel.PaneliGoster();
-            _yuklemePaneliAcildiBuOturum = true;
-            Debug.Log("[Anlatici] BasaArayisAkisi tamamlandı — Yükleme paneli açıldı.");
+            // 3) Yükleme paneli — "BORÇ AL — 50.000 TL"
+            var panel = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedYuklemePaneli>();
+            if (panel != null)
+            {
+                panel.PaneliGoster();
+                _yuklemePaneliAcildiBuOturum = true;
+                Debug.Log("[Anlatici] BasaArayisAkisi tamamlandı — Yükleme paneli açıldı.");
 
-            // SAVE/LOAD: borç paneli açıldı → A6 evresine geçildi, save (kullanıcı bu noktadan devam edebilsin).
-            SaveDurumKaydet();
+                // SAVE/LOAD: borç paneli açıldı → A6 evresine geçildi, save (kullanıcı bu noktadan devam edebilsin).
+                SaveDurumKaydet();
+            }
+            else
+            {
+                Debug.LogError("[Anlatici] BasaArayisAkisi — ScriptedYuklemePaneli bulunamadı!");
+            }
         }
-        else
+        finally
         {
-            Debug.LogError("[Anlatici] BasaArayisAkisi — ScriptedYuklemePaneli bulunamadı!");
+            AnlaticiOzelAkisAktif = false;
         }
     }
 
@@ -1018,23 +1118,31 @@ public class AnlaticiSeritKopru : MonoBehaviour
     /// </summary>
     private System.Collections.IEnumerator DonguAkisi()
     {
-        if (_donguModalGosterildi) { Tukenis(); yield break; }
-        _donguModalGosterildi = true;
+        AnlaticiOzelAkisAktif = true;
+        try
+        {
+            if (_donguModalGosterildi) { Tukenis(); yield break; }
+            _donguModalGosterildi = true;
 
-        var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
-        string mesaj =
-            "Bakın, <color=#EF4444>para tamamen bitti</color>.\n\n" +
-            "<color=#EF4444><b>5 spin'de 50.000 TL borç eridi.</b></color> Bu, gerçek hayatta <i>'hızlı kurtulma'</i> bahanesiyle yatırılan paraların kaderidir.\n\n" +
-            "Şimdi oyuncu A1'e geri dönmek isteyecek. <i>'Belki bu sefer şanslıyım'</i> diye düşünüyor. <i>'Bir kerelik daha denersem...'</i> diyerek kendini kandırıyor.\n\n" +
-            "İşte bağımlılığın özü budur: <color=#EF4444><b>KAYIP → BORÇ → KAYIP → BORÇ</b></color>. Sonsuz döngü.\n\n" +
-            "Sonraki ekranda yaşanan toplam <color=#EF4444>kayıp</color> gösteriliyor.";
-        if (modal != null)
-            yield return modal.ModalGoster(mesaj);
-        else
-            Debug.LogWarning("[Anlatici] DonguAkisi — ScriptedModalKopru bulunamadı, modal atlanıyor.");
+            var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
+            string mesaj =
+                "Bakın, <color=#EF4444>para tamamen bitti</color>.\n\n" +
+                "<color=#EF4444><b>5 spin'de 50.000 TL borç eridi.</b></color> Bu, gerçek hayatta <i>'hızlı kurtulma'</i> bahanesiyle yatırılan paraların kaderidir.\n\n" +
+                "Şimdi oyuncu A1'e geri dönmek isteyecek. <i>'Belki bu sefer şanslıyım'</i> diye düşünüyor. <i>'Bir kerelik daha denersem...'</i> diyerek kendini kandırıyor.\n\n" +
+                "İşte bağımlılığın özü budur: <color=#EF4444><b>KAYIP → BORÇ → KAYIP → BORÇ</b></color>. Sonsuz döngü.\n\n" +
+                "Sonraki ekranda yaşanan toplam <color=#EF4444>kayıp</color> gösteriliyor.";
+            if (modal != null)
+                yield return modal.ModalGoster(mesaj);
+            else
+                Debug.LogWarning("[Anlatici] DonguAkisi — ScriptedModalKopru bulunamadı, modal atlanıyor.");
 
-        Debug.Log("[Anlatici] DonguAkisi tamamlandı — Tukenis çağrılıyor.");
-        Tukenis();
+            Debug.Log("[Anlatici] DonguAkisi tamamlandı — Tukenis çağrılıyor.");
+            Tukenis();
+        }
+        finally
+        {
+            AnlaticiOzelAkisAktif = false;
+        }
     }
 
     // ═════════════════════════════════════════════════════════════════════════════

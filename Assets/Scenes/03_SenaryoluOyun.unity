@@ -356,9 +356,9 @@ MonoBehaviour:
   baslikText: {fileID: 9870022}
   kazancText: {fileID: 9870032}
   karartmaOverlay: {fileID: 0}
-  girisAnimasyonSuresi: 0.45
-  cikisAnimasyonSuresi: 0.35
-  saymaFazlaSuresi: 1
+  girisAnimasyonSuresi: 0.3
+  cikisAnimasyonSuresi: 0.25
+  saymaFazlaSuresi: 0.5
   bigWinBaslik: "B\xDCY\xDCK KAZAN\xC7"
   megaWinBaslik: "MUHTE\u015EEM KAZAN\xC7"
   epicWinBaslik: "EFSANE KAZAN\xC7"

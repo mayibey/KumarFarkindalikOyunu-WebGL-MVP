@@ -111,10 +111,15 @@ namespace Senaryo.Scripted
         /// </summary>
         public IEnumerator ModalGoster(string mesaj, bool gizleAnlatici = true)
         {
+            Debug.Log($"[ModalKopru-DEBUG] ModalGoster START — mesaj uzunluğu={mesaj?.Length ?? 0}, _root={(_root != null)}, _mesajText={(_mesajText != null)}");
             if (string.IsNullOrEmpty(mesaj) || _root == null || _mesajText == null)
+            {
+                Debug.LogWarning("[ModalKopru-DEBUG] ModalGoster → yield break (mesaj boş veya UI hazır değil) — ModalAcik DEĞİŞMEDİ.");
                 yield break;
+            }
 
             ModalAcik = true; // Spin butonu bu süre boyunca engellenir
+            Debug.Log("[ModalKopru-DEBUG] ModalAcik=true SET edildi (try öncesi)");
 
             // Anlatici HTML iframe yönetimi: TÜM modal akışları için ArkayaAt çağrılır
             // (panel translateX(-100px) + opacity:0.4 + pointer-events:none — display:none yerine).
@@ -126,12 +131,13 @@ namespace Senaryo.Scripted
             {
                 // DİNAMİK YÜKSEKLİK: mesajın TMP-rendered yüksekliğini ölçüp balon kutusunu uyarla.
                 // Genişlik 680 sabit, mesaj iç padding 40 (sol 20+sağ 20), başlık ~45, TAMAM butonu ~60,
-                // alt padding 12 → toplam dikey rezerv ~140 px. Min 200, max 600 clamp.
+                // alt padding 12 → toplam dikey rezerv ~140 px. Min 200, max 800 clamp (1080p ekranda makul,
+                // uzun pedagojik mesajlar için TAMAM butonu erişilebilir).
                 const float BALON_GENISLIK = 680f;
                 const float MESAJ_GENISLIK = BALON_GENISLIK - 40f; // sol+sağ padding
                 const float DIKEY_REZERV = 140f; // başlık + buton + padding
                 const float MIN_YUKSEKLIK = 200f;
-                const float MAX_YUKSEKLIK = 600f;
+                const float MAX_YUKSEKLIK = 800f;
                 Vector2 prefSize = _mesajText.GetPreferredValues(mesaj, MESAJ_GENISLIK, 0f);
                 float balonYukseklik = Mathf.Clamp(prefSize.y + DIKEY_REZERV, MIN_YUKSEKLIK, MAX_YUKSEKLIK);
                 _balonRt.sizeDelta = new Vector2(BALON_GENISLIK, balonYukseklik);
@@ -176,12 +182,14 @@ namespace Senaryo.Scripted
             }
             finally
             {
+                Debug.Log("[ModalKopru-DEBUG] ModalGoster finally — ModalAcik=false SET ediliyor");
                 ModalAcik = false; // Spin butonu tekrar serbest
 
                 // Anlatici iframe state geri yükleme — TÜM modallar için OneAl
                 // (transform:none + opacity:1 + pointer-events:auto). gizleAnlatici parametresi
                 // davranışı etkilemez (geriye uyumluluk için signature korundu).
                 AnlaticiSeritKopru.Ornek?.OneAl();
+                Debug.Log("[ModalKopru-DEBUG] ModalGoster END — ModalAcik=" + ModalAcik);
             }
         }
 
@@ -284,13 +292,20 @@ namespace Senaryo.Scripted
 
         private void OnBalonTiklandi()
         {
+            Debug.Log($"[ModalKopru-DEBUG] OnBalonTiklandi — _typewriterCalisiyor={_typewriterCalisiyor}, _yazmaTamamlandi={_yazmaTamamlandi}, _kullaniciDevamEtti={_kullaniciDevamEtti}");
             if (_typewriterCalisiyor)
             {
                 _typewriterAtla = true; // typewriter coroutine bunu görür, anında tamamlar
+                Debug.Log("[ModalKopru-DEBUG] OnBalonTiklandi → _typewriterAtla=true (typewriter çalışıyordu, atla)");
             }
             else if (_yazmaTamamlandi)
             {
                 _kullaniciDevamEtti = true; // ModalGoster while loop'u biter
+                Debug.Log("[ModalKopru-DEBUG] OnBalonTiklandi → _kullaniciDevamEtti=true (modal kapanma akışı tetiklendi)");
+            }
+            else
+            {
+                Debug.LogWarning("[ModalKopru-DEBUG] OnBalonTiklandi YUTULDU — typewriter çalışmıyor VE yazma tamamlanmadı; modal kapatılamadı.");
             }
         }
 

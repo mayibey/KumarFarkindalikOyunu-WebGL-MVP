@@ -2060,9 +2060,14 @@ function dbg(text) {
           }
   
           function rocketYarat() {
-              var startX = Math.random() * canvas.width;
+              // Popup ekran merkezinde — havai fişeği X aralığını ekran ortasının %50'sine sınırla
+              // (çeyreklerin tamamından doğru → popup üzerinde patlama hissi).
+              var ekranOrtaX = canvas.width / 2;
+              var aralikYari = canvas.width * 0.25;
+              var startX = ekranOrtaX - aralikYari + Math.random() * (aralikYari * 2);
               var startY = canvas.height;
-              var targetY = Math.random() * canvas.height * 0.5; // üst yarı
+              // Hedef Y: ekran üst %15-40 arası (popup başlık üstüne yakın patlasın, alt buton serbest).
+              var targetY = canvas.height * 0.15 + Math.random() * canvas.height * 0.25;
               var hiz = 8 + Math.random() * 4;
               fireworks.push({
                   x: startX, y: startY,
@@ -2074,7 +2079,7 @@ function dbg(text) {
           }
   
           function patlat(x, y, renk) {
-              var sayi = 30 + Math.floor(Math.random() * 20);
+              var sayi = 20 + Math.floor(Math.random() * 10);
               for (var i = 0; i < sayi; i++) {
                   var aci = (Math.PI * 2 * i) / sayi;
                   var hiz = 2 + Math.random() * 4;
@@ -2096,17 +2101,17 @@ function dbg(text) {
                   return;
               }
   
-              // Hafif fade trail (motion blur)
-              ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
-              ctx.fillRect(0, 0, canvas.width, canvas.height);
+              // Karartma yok — pedagojik popup arka planda net görünmeli (fade trail kaldırıldı).
+              // Her frame canvas'ı tamamen temizle.
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
   
-              // Yeni roket gönder (~12 frame'de bir = ~200ms; %40 olasılıkla 2 roket)
+              // Yeni roket gönder (~18 frame'de bir = ~300ms, daha seyrek; %20 olasılıkla 2 roket).
               if (canvas._aktif) {
                   fireworkTimer++;
-                  if (fireworkTimer > 12) {
+                  if (fireworkTimer > 18) {
                       fireworkTimer = 0;
                       rocketYarat();
-                      if (Math.random() < 0.4) rocketYarat();
+                      if (Math.random() < 0.2) rocketYarat();
                   }
               }
   
@@ -2162,8 +2167,8 @@ function dbg(text) {
               requestAnimationFrame(animate);
           }
   
-          // Başlangıç burst — 3 roket aynı anda
-          for (var b = 0; b < 3; b++) rocketYarat();
+          // Başlangıç burst — 1 roket (sade giriş, popup'ı boğmadan).
+          rocketYarat();
   
           animate();
   

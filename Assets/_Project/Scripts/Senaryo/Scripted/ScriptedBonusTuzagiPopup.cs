@@ -250,7 +250,7 @@ namespace Senaryo.Scripted
             // Kalın parlak border (casino vurgusu)
             BorderEkle(kutu.transform, _kutuRt.sizeDelta, 4f, new Color(0.85f, 0.18f, 0.18f, 1f));
 
-            // Başlık: "🎰 ŞANSLI ANINDASIN!"
+            // Başlık: "ŞANSLI ANINDASIN!"
             var basGo = new GameObject("Baslik", typeof(RectTransform), typeof(CanvasRenderer));
             basGo.transform.SetParent(kutu.transform, false);
             var basRt = basGo.GetComponent<RectTransform>();
@@ -263,7 +263,7 @@ namespace Senaryo.Scripted
             basTxt.fontSize = 38f;
             basTxt.fontStyle = FontStyles.Bold;
             basTxt.color = new Color(0.55f, 0.05f, 0.05f, 1f); // koyu kırmızı (altın üstünde okunabilir)
-            basTxt.text = "🎰 ŞANSLI ANINDASIN!";
+            basTxt.text = "ŞANSLI ANINDASIN!";
             basTxt.raycastTarget = false;
 
             // Açıklama

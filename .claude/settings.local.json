@@ -7,7 +7,12 @@
       "Bash(git add *)",
       "Bash(git stash *)",
       "Bash(git clean *)",
-      "Bash(awk END { print NR } *)"
+      "Bash(awk END { print NR } *)",
+      "Bash(grep -anE \"\\\\\\\\\\\\\\\\u[0-9A-Fa-f]{4}\" Assets/_Project/Resources/ScriptedSenaryo.asset)",
+      "Bash(grep -oE \"\\\\\\\\\\\\\\\\u[0-9A-Fa-f]{4}\")",
+      "Bash(awk NR>=990 && NR<=1035 { printf \"%4d: %s\\\\n\", NR, $0 } *)",
+      "Bash(grep -nB 1 \"AnlaticiOzelAkisAktif = true\" Assets/Scripts/AnlaticiSeritKopru.cs)",
+      "Bash(awk NR>=1000 && NR<=1035 { printf \"%4d: %s\\\\n\", NR, $0 } *)"
     ]
   }
 }
