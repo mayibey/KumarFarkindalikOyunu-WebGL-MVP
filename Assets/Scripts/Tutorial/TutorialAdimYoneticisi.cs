@@ -85,8 +85,15 @@ namespace KumarFarkindalik.Tutorial
             return spinOK && parametreOK;
         }
 
-        private static int MevcutSpinAl()
+        /// <summary>
+        /// PAKET 3B-fix-4 (Sorun 2): 04 sahnesinde SenaryoYoneticisi GameObject YOK; bu yüzden
+        /// önce TutorialOyunYoneticisi.TutorialSpinSayaci (ButtonCevir click counter), yoksa
+        /// SenaryoYoneticisi.toplamSpin (fallback — 04'te null döner zaten).
+        /// </summary>
+        public static int MevcutSpinAl()
         {
+            if (TutorialOyunYoneticisi.Ornek != null)
+                return TutorialOyunYoneticisi.Ornek.TutorialSpinSayaci;
             return SenaryoYoneticisi.I != null ? SenaryoYoneticisi.I.toplamSpin : 0;
         }
 

@@ -57,6 +57,13 @@ namespace KumarFarkindalik.Tutorial
         // === Tutorial flow state ===
         private bool _panelAcildi;
 
+        /// <summary>
+        /// PAKET 3B-fix-4 (Sorun 2): 04 sahnesinde SenaryoYoneticisi GameObject YOK → toplamSpin
+        /// çalışmıyor. ButtonCevir.onClick'e runtime listener eklenerek her spin tıklamasında
+        /// bu sayaç artırılır. KosulSagla bu sayacı kullanır.
+        /// </summary>
+        public int TutorialSpinSayaci { get; private set; }
+
         [Preserve]
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void OtomatikInit()
@@ -181,6 +188,23 @@ namespace KumarFarkindalik.Tutorial
             // PAKET 3B-fix-3: "Hoş Geldiniz X" TMP_Text'lerini gizle (runtime içerik taraması)
             HosgeldinGizle();
 
+            // PAKET 3B-fix-4 (Sorun 2): ButtonCevir.onClick'e tutorial spin counter listener ekle.
+            // PersistentCall (OyunYoneticisi.SpinButon) KORUNUR — bu sadece ek listener.
+            var spinBtnGo = GameObject.Find("ButtonCevir");
+            if (spinBtnGo != null)
+            {
+                var spinBtn = spinBtnGo.GetComponent<Button>();
+                if (spinBtn != null)
+                {
+                    spinBtn.onClick.AddListener(() =>
+                    {
+                        TutorialSpinSayaci++;
+                        Debug.Log($"[TutorialOyunYoneticisi] TutorialSpinSayaci = {TutorialSpinSayaci}");
+                    });
+                    Debug.Log("[TutorialOyunYoneticisi] ButtonCevir tutorial spin listener eklendi.");
+                }
+            }
+
             // TutorialAdimGoster İLERİ click subscribe
             yield return new WaitForSeconds(0.1f); // TutorialAdimGoster Awake tamamlansın
             if (TutorialAdimGoster.Ornek != null)
@@ -235,8 +259,10 @@ namespace KumarFarkindalik.Tutorial
             if (TutorialModalKopru.Ornek != null && !string.IsNullOrEmpty(v.mesajBaslangic))
                 yield return TutorialModalKopru.Ornek.ModalGoster(v.mesajBaslangic);
 
-            // T_SON: A göster, IleriTiklandi → OnTutorialBitti
-            if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T_SON)
+            // PAKET 3B-fix-4 (Sorun 1): pasif adımlarda Modal A kapanışında otomatik geçiş.
+            // T_SON ayrı kontrol gereksiz — IleriTiklandi içinde T_SON ise OnTutorialBitti tetiklenir,
+            // diğer pasif (T2) ise sıradaki adıma geçer.
+            if (!v.aktifMi)
             {
                 AdimYoneticisi?.IleriTiklandi();
                 yield break;
@@ -262,17 +288,11 @@ namespace KumarFarkindalik.Tutorial
             Debug.Log($"[TutorialOyunYoneticisi] AdimGoster.AdimGoster çağrılıyor: sira={sira}");
             TutorialAdimGoster.Ornek?.AdimGoster(sira, v.altBaslik, v.yapilacaklar);
 
-            // Pasif adım: İLERİ hemen aktif, kullanıcı İLERİ tıklayınca sonraki
-            if (!v.aktifMi)
-            {
-                TutorialAdimGoster.Ornek?.IleriAktif(true);
-                yield break;
-            }
-
             // === Aktif adım: KosulSagla yield-while ile bekle ===
+            // (pasif adımlar Modal A sonrası IleriTiklandi ile zaten çıktı — buraya gelmez)
             while (true)
             {
-                int spin = SenaryoYoneticisi.I != null ? SenaryoYoneticisi.I.toplamSpin : 0;
+                int spin = TutorialAdimYoneticisi.MevcutSpinAl();
                 if (AdimYoneticisi != null && AdimYoneticisi.KosulSagla(spin)) break;
                 yield return null;
             }

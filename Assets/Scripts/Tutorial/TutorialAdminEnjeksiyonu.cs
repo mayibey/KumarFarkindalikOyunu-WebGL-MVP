@@ -75,7 +75,7 @@ namespace KumarFarkindalik.Tutorial
             var v = _ay.MevcutAdimVerisi;
             if (v == null || !v.aktifMi) return;
 
-            int spin = SenaryoYoneticisi.I != null ? SenaryoYoneticisi.I.toplamSpin : 0;
+            int spin = TutorialAdimYoneticisi.MevcutSpinAl();
             int delta = spin - _ay.AdimBaslangicSpin;
 
             // Parametre tamamlandı mı (degisimAnahtarlari'nın HEPSİ değişmiş mi)
