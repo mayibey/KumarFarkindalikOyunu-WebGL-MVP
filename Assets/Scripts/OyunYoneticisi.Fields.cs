@@ -244,6 +244,10 @@ public partial class OyunYoneticisi
     private int _orijinalBahisYedek = 0;
     /// <summary>Scripted bonus tuzağında zorlanan bahis (TL). Motor doğal RTP × 1000 × 10 spin = ~3-5K çıktı.</summary>
     private const int SCRIPTED_BONUS_BAHIS_TL = 1000;
+    /// <summary>Scripted bonus tuzağı toplam max kazanç sınırı (TL). A5 cazip popup yolunda motor bu cap'i aşamaz —
+    /// counting up 4000 TL'de durur, kullanıcı 4 haneli kazanç görür ama yatırımının küçük yüzdesidir
+    /// (BonusYatirim ~30-50K → %8-13 geri). Pedagojik denge: "büyük kazanç hissi" + "manipülasyon farkındalığı".</summary>
+    private const int SCRIPTED_BONUS_MAX_KAZANC_TL = 4000;
     /// <summary>UI BahisText override'ı (manipülasyon hissi): bonus boyunca sayısal değer yerine "TÜM BAKİYE" gösterir.</summary>
     private bool _scriptedBonusUIOverride = false;
     private const string SCRIPTED_BONUS_BAHIS_UI_METIN = "Bahis: TÜM BAKİYE";

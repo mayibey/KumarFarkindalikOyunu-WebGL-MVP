@@ -21,6 +21,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
     [DllImport("__Internal")] private static extern void HosgeldinKutusunuAc(string metin);
     [DllImport("__Internal")] private static extern void BonusBitisPopupAc(int tutar);
     [DllImport("__Internal")] private static extern void BonusBitisPopupKapat();
+    [DllImport("__Internal")] private static extern void HavaiFisekBaslat();
 
     private static void HosgeldinKutusunuAcGuvenli(string metin)
     {
@@ -41,6 +42,9 @@ public class AnlaticiSeritKopru : MonoBehaviour
 #if UNITY_WEBGL && !UNITY_EDITOR
         try { BonusBitisPopupAc(tutar); }
         catch (System.Exception e) { Debug.LogWarning("[BonusBitis] hata: " + e.Message); }
+        // Tebrikler popup açılışında havai fişek (3sn otomatik dururuyor — ScriptedBonusTuzagiPopup ile aynı görsel dil).
+        try { HavaiFisekBaslat(); }
+        catch (System.Exception e) { Debug.LogWarning("[BonusBitis-HavaiFisek] hata: " + e.Message); }
 #else
         Debug.Log("[BonusBitis] Tutar: " + tutar);
         // Editor fallback: anında onay (test akışı bloklanmasın)

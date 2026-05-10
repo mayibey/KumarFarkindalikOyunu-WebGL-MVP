@@ -142,7 +142,10 @@ if (spinIcon != null) spinIcon.SetRotate(false);
                     else cap = (int)(maliyet * 0.10f);
                     break;
                 case SenaryoYoneticisi.SenaryoAsama.Asama7_Finale:
-                    cap = 0;
+                    // Anlatıcı sahnesi defansif Asama7_Finale set ediyor; ama A5 cazip popup yolundaysa
+                    // (_scriptedBonusBahisOverride=true) motor max kazancı SCRIPTED_BONUS_MAX_KAZANC_TL ile sınırlanır.
+                    // Aksi halde 0 (defansif: senaryolu modda scatter bonus zaten tetiklenmemeli).
+                    cap = _scriptedBonusBahisOverride ? SCRIPTED_BONUS_MAX_KAZANC_TL : 0;
                     break;
                 default:
                     break;
@@ -190,8 +193,12 @@ if (spinIcon != null) spinIcon.SetRotate(false);
     {
         if (!bonusAktif) return int.MaxValue;
 
-        // Cap: bonus başlangıcında havuz snapshot'ının belirli oranı
-        int cap = (_bonusMaxOdemeTL > 0) ? _bonusMaxOdemeTL : int.MaxValue;
+        // Cap semantiği:
+        //   _bonusMaxOdemeTL == int.MaxValue → sınırsız (özel sentinel)
+        //   _bonusMaxOdemeTL >= 0           → tam değer (0 dahil; 0 = ödeme yok)
+        // ESKİ BUG: 0'ı int.MaxValue olarak yorumluyordu → Asama7_Finale dalında (cap=0 set)
+        // motor sınırsız ödeme yapıyordu (A5 cazip popup'ta 10K+ kazanç).
+        int cap = (_bonusMaxOdemeTL == int.MaxValue) ? int.MaxValue : Mathf.Max(0, _bonusMaxOdemeTL);
 
         long kalan = (long)cap - (long)bonusKazanc; // bonusKazanc = şu ana kadar ÖDENEN toplam (pending dahil sayılır)
         if (kalan < 0) kalan = 0;

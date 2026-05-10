@@ -37,9 +37,10 @@ namespace Senaryo.Scripted
         public static int BonusKazanc = 0;
 
         /// <summary>Pedagojik sabit: A5 bonus oyun her zaman bu kadar TL ödesin (motor RTP ne olursa olsun).
-        /// 800 TL = %80 geri (yatırım 1000 TL): kullanıcı tutarlı bir "az kazandım" hissi alır, modal yüzde
-        /// hesabı her oturumda aynı sonucu verir.</summary>
-        public const int A5_BONUS_HEDEF_KAZANC_TL = 800;
+        /// 4000 TL = motor cap (SCRIPTED_BONUS_MAX_KAZANC_TL) ile senkron; counting up 4000'e ulaşır,
+        /// modal "4000 TL geri aldın, yatırdığının %X'i" gösterir (BonusYatirim ~30-50K → %8-13 geri).
+        /// "Büyük kazanç hissi" + "manipülasyon farkındalığı" pedagojik dengesi.</summary>
+        public const int A5_BONUS_HEDEF_KAZANC_TL = 4000;
 
         /// <summary>A5_S5 dinamik modal kapandıktan sonra AnlaticiSeritKopru.SpinAtildi içindeki
         /// _aktifSpin++ + hedefSpin/asama ilerletme mantığını ATLA — A6'ya zıplama A5BonusBittiBorcPaneliAc

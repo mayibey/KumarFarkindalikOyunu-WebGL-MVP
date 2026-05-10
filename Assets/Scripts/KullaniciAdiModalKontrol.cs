@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -9,7 +10,9 @@ using UnityEngine.UI;
 /// - Modal CanvasGroup fade-in + scale 0.9→1.0
 /// - InputField focus, Enter ile BAŞLA tetikleme
 /// - PlayerPrefs + KullaniciVerileri.KullaniciAdi + GameManager.ActivePlayer.playerName senkron yaz
-/// - Save varsa input pre-fill + iki buton "DEVAM ET" / "SIFIRDAN BAŞLA"
+/// - Save varsa input pre-fill ile eski ad gösterilir; kullanıcı aynı adı bırakıp BAŞLA'ya basarsa
+///   restore moduna girilir, farklı ad yazıp basarsa eski save silinir, sıfırdan başlar
+/// - misafirButton sahne prefabında var ama runtime'da gizlenir (tek click handler — BAŞLA)
 /// </summary>
 public class KullaniciAdiModalKontrol : MonoBehaviour
 {
@@ -31,37 +34,25 @@ public class KullaniciAdiModalKontrol : MonoBehaviour
         if (modalCanvasGroup != null) modalCanvasGroup.alpha = 0f;
         if (modalPanel != null) modalPanel.localScale = Vector3.one * 0.9f;
 
+        // Misafir butonu kaldırıldı (UX sadeleştirme) — sahne prefabı dokunulmuyor, runtime'da gizleniyor.
+        if (misafirButton != null) misafirButton.gameObject.SetActive(false);
+
         if (baslaButton != null) baslaButton.onClick.AddListener(BaslaTiklandi);
-        if (misafirButton != null) misafirButton.onClick.AddListener(MisafirTiklandi);
     }
 
     void Start()
     {
         StartCoroutine(FadeIn());
 
-        // Save varsa: input pre-fill + buton metin/listener swap (DEVAM ET / SIFIRDAN BAŞLA).
+        // Save varsa: input'a eski ad pre-fill (kullanıcı görsün, isterse aynısını bırakıp BAŞLA → restore).
+        // Save yoksa: input boş başlar, kullanıcı yeni ad yazıp BAŞLA → sıfırdan.
         if (SaveLoadServisi.VarMi())
         {
             var save = SaveLoadServisi.Load();
             if (save != null && !string.IsNullOrEmpty(save.kullaniciAdi))
             {
                 if (isimInput != null) isimInput.text = save.kullaniciAdi;
-
-                ButonMetniDegistir(baslaButton, "DEVAM ET");
-                ButonMetniDegistir(misafirButton, "SIFIRDAN BAŞLA");
-
-                if (baslaButton != null)
-                {
-                    baslaButton.onClick.RemoveAllListeners();
-                    baslaButton.onClick.AddListener(DevamEtTiklandi);
-                }
-                if (misafirButton != null)
-                {
-                    misafirButton.onClick.RemoveAllListeners();
-                    misafirButton.onClick.AddListener(SifirdanBaslaTiklandi);
-                }
-                Debug.Log($"[KullaniciAdiModalKontrol] Save bulundu — input='{save.kullaniciAdi}', butonlar DEVAM ET / SIFIRDAN BAŞLA olarak ayarlandı.");
-                return;  // input.ActivateInputField yok — kullanıcı zaten ismini görüyor
+                Debug.Log($"[KullaniciAdiModalKontrol] Save bulundu — input pre-filled='{save.kullaniciAdi}' (aynı kalırsa restore, değişirse sıfırdan).");
             }
         }
 
@@ -71,11 +62,7 @@ public class KullaniciAdiModalKontrol : MonoBehaviour
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
-        {
-            // Buton listener'ı dinamik: DEVAM ET veya BaslaTiklandi — onClick.Invoke ile aktif handler tetiklenir.
-            if (baslaButton != null) baslaButton.onClick.Invoke();
-            else BaslaTiklandi();
-        }
+            BaslaTiklandi();
     }
 
     IEnumerator FadeIn()
@@ -97,50 +84,48 @@ public class KullaniciAdiModalKontrol : MonoBehaviour
         if (modalPanel != null) modalPanel.localScale = Vector3.one;
     }
 
-    /// <summary>İlk oyun veya "SIFIRDAN BAŞLA" sonrası — kullanıcı isim yazıp BAŞLA'ya bastı.
-    /// 3 yere senkron yazar: KullaniciVerileri.KullaniciAdi (statik), PlayerPrefs, GameManager.ActivePlayer.playerName.</summary>
+    /// <summary>
+    /// Tek click handler — input'tan girilen adı save ile karşılaştırır:
+    ///   - save != null && girilenAd == save.kullaniciAdi → restore (KumarRestoreModuActif=1)
+    ///   - save varsa ama girilenAd farklı → save sil + sıfırdan
+    ///   - save yok → sıfırdan
+    /// 3 yere senkron yazar (KullaniciVerileri statik + PlayerPrefs + GameManager.ActivePlayer.playerName).
+    /// </summary>
     void BaslaTiklandi()
     {
-        string isim = isimInput != null ? isimInput.text.Trim() : "";
-        if (string.IsNullOrEmpty(isim)) isim = "Misafir";
-        IsmiSenkronYaz(isim);
-        Debug.Log($"[KullaniciAdiModalKontrol] BAŞLA — '{isim}' kaydedildi → {hedefSahne}");
-        SceneManager.LoadScene(hedefSahne);
-    }
+        string girilenAd = isimInput != null ? isimInput.text.Trim() : "";
+        if (string.IsNullOrEmpty(girilenAd)) girilenAd = "Misafir";
 
-    /// <summary>"Misafir" butonu — eski kullanıcı save'i SİLİNMEZ (dönerse DEVAM ET hâlâ görünür).</summary>
-    void MisafirTiklandi()
-    {
-        IsmiSenkronYaz("Misafir");
-        Debug.Log($"[KullaniciAdiModalKontrol] MİSAFİR — kaydedildi (save silinmedi) → {hedefSahne}");
-        SceneManager.LoadScene(hedefSahne);
-    }
+        // Defansif: önceki sahneden kalan restore flag'i temizle (her durumda yeniden değerlendirilecek).
+        PlayerPrefs.DeleteKey("KumarRestoreModuActif");
 
-    /// <summary>Save varsa: kullanıcı ismini save'den alıp restore mode flag'i set ediyor;
-    /// AnlaticiSeritKopru.Start bu flag'i görüp RestoreDurumYukle çağırıyor.</summary>
-    void DevamEtTiklandi()
-    {
-        var save = SaveLoadServisi.Load();
-        if (save == null)
+        var save = SaveLoadServisi.VarMi() ? SaveLoadServisi.Load() : null;
+        bool ayniAd = save != null
+            && !string.IsNullOrEmpty(save.kullaniciAdi)
+            && string.Equals(save.kullaniciAdi.Trim(), girilenAd, StringComparison.Ordinal);
+
+        if (ayniAd)
         {
-            Debug.LogWarning("[KullaniciAdiModalKontrol] DEVAM ET tıklandı ama save null/bozuk → BAŞLA fallback.");
-            BaslaTiklandi();
-            return;
+            // Restore: aynı ad → eski oturumdan devam.
+            IsmiSenkronYaz(girilenAd);
+            PlayerPrefs.SetInt("KumarRestoreModuActif", 1);
+            PlayerPrefs.Save();
+            Debug.Log($"[KullaniciAdiModalKontrol] BAŞLA — '{girilenAd}' aynı ad, restore mode aktif → {hedefSahne}");
         }
-        IsmiSenkronYaz(save.kullaniciAdi);
-        PlayerPrefs.SetInt("KumarRestoreModuActif", 1);
-        PlayerPrefs.Save();
-        Debug.Log($"[KullaniciAdiModalKontrol] DEVAM ET — '{save.kullaniciAdi}' restore mode aktif → {hedefSahne}");
-        SceneManager.LoadScene(hedefSahne);
-    }
+        else
+        {
+            // Sıfırdan: save varsa farklı ad demek, eski save'i sil.
+            if (save != null)
+            {
+                SaveLoadServisi.Sil();
+                Debug.Log($"[KullaniciAdiModalKontrol] BAŞLA — '{girilenAd}' farklı ad (eski='{save.kullaniciAdi}'), save silindi.");
+            }
+            IsmiSenkronYaz(girilenAd);
+            PlayerPrefs.Save();
+            Debug.Log($"[KullaniciAdiModalKontrol] BAŞLA — '{girilenAd}' sıfırdan → {hedefSahne}");
+        }
 
-    /// <summary>Save varsa: kullanıcı eski oturumu silip yeni oyuna başlıyor.</summary>
-    void SifirdanBaslaTiklandi()
-    {
-        SaveLoadServisi.Sil();
-        // Input'taki pre-fill kullanıcının yeni adı olabilir — onu kullan, boşsa "Misafir".
-        Debug.Log("[KullaniciAdiModalKontrol] SIFIRDAN BAŞLA — save silindi, BAŞLA akışı.");
-        BaslaTiklandi();
+        SceneManager.LoadScene(hedefSahne);
     }
 
     /// <summary>3 yere senkron yaz (Misafir bug fix 2026-04-29 + 2026-05-10).</summary>
@@ -152,15 +137,5 @@ public class KullaniciAdiModalKontrol : MonoBehaviour
         PlayerPrefs.Save();
         if (GameManager.I != null && GameManager.I.ActivePlayer != null)
             GameManager.I.ActivePlayer.playerName = isim;
-    }
-
-    /// <summary>Buton içindeki tüm TMP_Text/Text bileşenlerinin metnini değiştirir (sahne hierarşisi bilinmediği için tarama).</summary>
-    static void ButonMetniDegistir(Button btn, string yeniMetin)
-    {
-        if (btn == null) return;
-        var tmps = btn.GetComponentsInChildren<TMP_Text>(true);
-        foreach (var t in tmps) t.text = yeniMetin;
-        var legacys = btn.GetComponentsInChildren<Text>(true);
-        foreach (var l in legacys) l.text = yeniMetin;
     }
 }
