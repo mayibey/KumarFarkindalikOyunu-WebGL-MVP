@@ -43,6 +43,9 @@ namespace KumarFarkindalik.Tutorial
 
         private void AyarDegisti(string key, string value)
         {
+            // Bug 2 düzeltme: TutorialAdimYoneticisi'ne "bu adımda key değişti" sinyali ver
+            _ay?.AyarDegistiHaber(key);
+
             switch (key)
             {
                 case "carpanOlasilik":

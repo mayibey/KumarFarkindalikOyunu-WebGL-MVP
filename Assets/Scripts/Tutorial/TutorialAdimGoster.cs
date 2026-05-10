@@ -77,6 +77,7 @@ namespace KumarFarkindalik.Tutorial
 
             UIYarat();
             Gizle();
+            Debug.Log("[TutorialAdimGoster] Spawn: Ornek atandı, UIYarat tamamlandı.");
         }
 
         private void OnDestroy()
@@ -88,6 +89,7 @@ namespace KumarFarkindalik.Tutorial
 
         public void AdimGoster(int sira)
         {
+            Debug.Log($"[TutorialAdimGoster] AdimGoster çağrıldı: sira={sira}, root={_root != null}");
             if (_root == null) return;
             _root.SetActive(true);
             if (_sayacText != null) _sayacText.text = $"T{sira}/{TOPLAM_ADIM}";
@@ -96,6 +98,7 @@ namespace KumarFarkindalik.Tutorial
 
         public void IleriAktif(bool aktif)
         {
+            Debug.Log($"[TutorialAdimGoster] IleriAktif: {aktif}");
             if (_ileriButton == null) return;
             _ileriButton.interactable = aktif;
             IleriZatenAktif = aktif;

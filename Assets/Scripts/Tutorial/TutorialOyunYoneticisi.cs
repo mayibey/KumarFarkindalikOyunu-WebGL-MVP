@@ -1,5 +1,7 @@
 using System.Collections;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using Senaryo.Scripted;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Scripting;
@@ -89,6 +91,11 @@ namespace KumarFarkindalik.Tutorial
             if (Ornek != null && Ornek != this) { Destroy(gameObject); return; }
             Ornek = this;
 
+            // Bug 1 düzeltme: ScriptedModalKopru.ModalAcik 03'ten 04'e taşınmış olabilir (singleton Destroy
+            // edildi ama static property true kaldı). 04'te SpinButton bu flag'i okuyup kilit kalıyor.
+            // Property private setter olduğu için reflection ile reset.
+            ScriptedModalKopruModalAcikReset();
+
             AdimYoneticisi = gameObject.AddComponent<TutorialAdimYoneticisi>();
             Enjeksiyon = gameObject.AddComponent<TutorialAdminEnjeksiyonu>();
 
@@ -97,6 +104,29 @@ namespace KumarFarkindalik.Tutorial
             AdimYoneticisi.OnTutorialBitti += TutorialBitti;
 
             Debug.Log("[TutorialOyunYoneticisi] Spawn + AdimYoneticisi/Enjeksiyon AddComponent + event bağlandı.");
+        }
+
+        private static void ScriptedModalKopruModalAcikReset()
+        {
+            try
+            {
+                var prop = typeof(ScriptedModalKopru).GetProperty("ModalAcik",
+                    BindingFlags.Static | BindingFlags.Public);
+                var setter = prop?.GetSetMethod(true); // private setter dahil
+                if (setter != null)
+                {
+                    setter.Invoke(null, new object[] { false });
+                    Debug.Log("[TutorialOyunYoneticisi] ScriptedModalKopru.ModalAcik reset → false");
+                }
+                else
+                {
+                    Debug.LogWarning("[TutorialOyunYoneticisi] ScriptedModalKopru.ModalAcik setter bulunamadı");
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("[TutorialOyunYoneticisi] ModalAcik reset fail: " + e.Message);
+            }
         }
 
         private void OnDestroy()
@@ -188,6 +218,8 @@ namespace KumarFarkindalik.Tutorial
 
         private IEnumerator AdimAkisi(AdimVerisi v)
         {
+            Debug.Log($"[TutorialOyunYoneticisi] AdimAkisi başladı: {v.id}, ModalKopru.Ornek null={TutorialModalKopru.Ornek == null}, Goster.Ornek null={TutorialAdimGoster.Ornek == null}");
+
             // 1. Modal göster
             if (TutorialModalKopru.Ornek != null)
                 yield return TutorialModalKopru.Ornek.ModalGoster(v.mesaj);
@@ -211,10 +243,10 @@ namespace KumarFarkindalik.Tutorial
             }
 
             // 4. AdimGoster göster (T2 enum=1 → "T2/11", T11 → "T11/11")
-            int sira = (int)v.id; // T1=0, T2=1, ..., T11=10 — enum ismi ile uyum için sira = (int)id + 1 GEREKMİYOR;
-            // enum T1=0 → display "T1/11", T2=1 → display "T2/11" zaten doğru çünkü TOPLAM_ADIM=11 ve T1 state machine dışında.
-            // Hayır — kullanıcı sayım: T2 ilk gösterilen, "T2/11" yazsın → sira = (int)v.id
+            int sira = (int)v.id;
+            Debug.Log($"[TutorialOyunYoneticisi] AdimGoster.AdimGoster çağrılıyor: sira={sira}");
             TutorialAdimGoster.Ornek?.AdimGoster(sira);
+            Debug.Log("[TutorialOyunYoneticisi] AdimGoster çağrı bitti");
 
             // 5. Pasif adımsa İLERİ hemen aktif (KosulSagla zaten true döner)
             if (!v.aktifMi)

@@ -31,6 +31,11 @@ namespace KumarFarkindalik.Tutorial
         private readonly Dictionary<TutorialAdimId, AdimVerisi> _adimlar = new();
         private int _adimBaslangicSpin;
 
+        // Bug 2 düzeltme: bu adım girdikten sonra panel.html'den DEĞİŞTİRİLEN parametre key'leri.
+        // panelHazir/MevcutAyarlariGonder ile gelen default değerler (örn ardisikKayipLimiti=0) bu set'te yok,
+        // dolayısıyla "değer ≤ 4" gibi koşullar ön-tetiklenmez.
+        private readonly HashSet<string> _adimSirasindaDegisenler = new();
+
         public AdimVerisi MevcutAdimVerisi => _adimlar.TryGetValue(mevcutAdim, out var v) ? v : null;
 
         private void Awake()
@@ -48,6 +53,7 @@ namespace KumarFarkindalik.Tutorial
             }
             mevcutAdim = yeni;
             _adimBaslangicSpin = MevcutSpinAl();
+            _adimSirasindaDegisenler.Clear(); // YENİ — değiştirilen key'leri sıfırla
             Debug.Log($"[TutorialAdimYoneticisi] Adım geçti: {yeni} (başlangıç spin={_adimBaslangicSpin})");
             OnAdimDegisti?.Invoke(_adimlar[yeni]);
         }
@@ -67,11 +73,28 @@ namespace KumarFarkindalik.Tutorial
             AdimGec((TutorialAdimId)sonraki);
         }
 
+        /// <summary>TutorialAdminEnjeksiyonu.AyarDegisti event handler'dan çağrılır — bu adımda
+        /// hangi panel.html key'i değişti haberi.</summary>
+        public void AyarDegistiHaber(string key)
+        {
+            if (string.IsNullOrEmpty(key)) return;
+            _adimSirasindaDegisenler.Add(key);
+        }
+
         /// <summary>TutorialAdminEnjeksiyonu Update'te polling ile çağırır.</summary>
         public bool KosulSagla(int mevcutSpin)
         {
             if (!_adimlar.TryGetValue(mevcutAdim, out var v)) return true;
             if (!v.aktifMi) return true;
+
+            // Bug 2 düzeltme: bu adımda DEĞİŞMESİ GEREKEN tüm anahtarlar değişmiş olmalı
+            // (panelHazir default değerleri koşulu ön-tetiklemesin).
+            if (v.degisimAnahtarlari != null)
+            {
+                foreach (var k in v.degisimAnahtarlari)
+                    if (!_adimSirasindaDegisenler.Contains(k)) return false;
+            }
+
             int delta = mevcutSpin - _adimBaslangicSpin;
             bool spinOK = delta >= v.gerekliSpin;
             bool parametreOK = v.parametreKosulu?.Invoke() ?? true;
@@ -116,6 +139,7 @@ namespace KumarFarkindalik.Tutorial
                 vurguSelectorlari = new[] { "#oyunModu", "#senaryoUygulaBtn" },
                 gerekliSpin = 3,
                 parametreKosulu = () => PanelKopru.aktifSenaryo == "hook",
+                degisimAnahtarlari = new[] { "oyunModu" },
             };
 
             _adimlar[TutorialAdimId.T4] = new AdimVerisi
@@ -126,6 +150,7 @@ namespace KumarFarkindalik.Tutorial
                 vurguSelectorlari = new[] { "#carpanOlasilik", "#carpanOlasilikInput" },
                 gerekliSpin = 3,
                 parametreKosulu = () => TutorialAdminEnjeksiyonu.SonCarpanOlasilik >= 10f,
+                degisimAnahtarlari = new[] { "carpanOlasilik" },
             };
 
             _adimlar[TutorialAdimId.T5] = new AdimVerisi
@@ -139,6 +164,7 @@ namespace KumarFarkindalik.Tutorial
                 // %5 → 100/5 = 20 spin. Eşik %4 → 100/4 = 25 spin'den AZ (sıkı) olmalı.
                 parametreKosulu = () => PanelKopru.bonusOtomatikSpinPeriyodu > 0
                                         && PanelKopru.bonusOtomatikSpinPeriyodu <= 25,
+                degisimAnahtarlari = new[] { "bonusOtomatikOran" },
             };
 
             _adimlar[TutorialAdimId.T6] = new AdimVerisi
@@ -150,6 +176,7 @@ namespace KumarFarkindalik.Tutorial
                 gerekliSpin = 5,
                 // panel.html ×10 dönüşüm: 10'da 6 → 60
                 parametreKosulu = () => PanelKopru.kazanmaOrani >= 60f,
+                degisimAnahtarlari = new[] { "kazanmaOrani" },
             };
 
             _adimlar[TutorialAdimId.T7] = new AdimVerisi
@@ -163,6 +190,7 @@ namespace KumarFarkindalik.Tutorial
                                         && PanelKopru.minCarpan <= 0.5f
                                         && PanelKopru.maksCarpan > 0f
                                         && PanelKopru.maksCarpan <= 2f,
+                degisimAnahtarlari = new[] { "minCarpan", "maksCarpan" },
             };
 
             _adimlar[TutorialAdimId.T8] = new AdimVerisi
@@ -174,6 +202,7 @@ namespace KumarFarkindalik.Tutorial
                 gerekliSpin = 5,
                 // panel.html ×10 dönüşüm: 10'da 7 → 70
                 parametreKosulu = () => PanelKopru.yakinKacirma >= 70f,
+                degisimAnahtarlari = new[] { "yakinKacirma" },
             };
 
             _adimlar[TutorialAdimId.T9] = new AdimVerisi
@@ -185,6 +214,7 @@ namespace KumarFarkindalik.Tutorial
                 gerekliSpin = 8,
                 parametreKosulu = () => PanelKopru.ardisikKayipLimiti > 0
                                         && PanelKopru.ardisikKayipLimiti <= 4,
+                degisimAnahtarlari = new[] { "ardisikKayip" },
             };
 
             _adimlar[TutorialAdimId.T10] = new AdimVerisi
@@ -195,6 +225,7 @@ namespace KumarFarkindalik.Tutorial
                 vurguSelectorlari = new[] { "button[onclick=\"carpanZorla(500)\"]" },
                 gerekliSpin = 1,
                 parametreKosulu = () => TutorialAdminEnjeksiyonu.SonCarpanZorla == 500,
+                degisimAnahtarlari = new[] { "carpanZorla" },
             };
 
             _adimlar[TutorialAdimId.T11] = new AdimVerisi
@@ -205,6 +236,7 @@ namespace KumarFarkindalik.Tutorial
                 vurguSelectorlari = new[] { ".trigger-btn" },
                 gerekliSpin = 0,
                 parametreKosulu = () => TutorialAdminEnjeksiyonu.BonusTetiklendi,
+                degisimAnahtarlari = new[] { "bonusTetikle" },
             };
 
             _adimlar[TutorialAdimId.T_SON] = new AdimVerisi
@@ -279,8 +311,9 @@ namespace KumarFarkindalik.Tutorial
         public TutorialAdimYoneticisi.TutorialAdimId id;
         public bool aktifMi;
         public string mesaj;
-        public string[] vurguSelectorlari;  // panel.html CSS selector
+        public string[] vurguSelectorlari;     // panel.html CSS selector
         public int gerekliSpin;
-        public Func<bool> parametreKosulu;  // PanelKopru.static field okuyan lambda
+        public Func<bool> parametreKosulu;     // PanelKopru.static field okuyan lambda
+        public string[] degisimAnahtarlari;    // panel.html postMessage key'leri; bu adımda kullanıcı tarafından değişmiş olmalı
     }
 }
