@@ -7,6 +7,13 @@ using System.Runtime.InteropServices;
 /// </summary>
 public class PanelKopru : MonoBehaviour
 {
+    /// <summary>
+    /// panel.html'den her ayar değişimi (AyariIsle) tetiklendiğinde
+    /// (key, value) ile invoke edilir. Tutorial sistemi (04_AdminOyunScene)
+    /// subscribe eder; 03_SenaryoluOyun'da subscribe edilmediği için no-op.
+    /// </summary>
+    public static event System.Action<string, string> OnAyarDegisti;
+
     [Header("Panel Referansı")]
     [Tooltip("Panel HTML dosyasının yolu. StreamingAssets içindeki dosyayı kullanır.")]
     public string panelDosyaYolu = "panel.html"; // sadece dosya adı, yol Application.streamingAssetsPath ile eklenir
@@ -105,6 +112,9 @@ public class PanelKopru : MonoBehaviour
     private void AyariIsle(string anahtar, string deger)
     {
         Debug.Log($"[PanelKopru] AyariIsle: anahtar='{anahtar}' deger='{deger}' | _oy null={_oy == null}");
+
+        // Tutorial sistemi için sinyal — 03'te subscribe yok, no-op.
+        OnAyarDegisti?.Invoke(anahtar, deger);
 
         switch (anahtar)
         {

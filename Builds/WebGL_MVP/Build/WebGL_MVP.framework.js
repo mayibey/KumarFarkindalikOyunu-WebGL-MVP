@@ -9387,11 +9387,11 @@ function dbg(text) {
           var iframe = document.getElementById('panelIframe');
           if (!ov || !iframe) return;
   
-          // === Sol konum + sabit boyut ===
+          // Sol konum + sabit boyut + transparent backdrop
           ov.style.justifyContent = 'flex-start';
           ov.style.alignItems = 'center';
           ov.style.paddingLeft = '20px';
-          ov.style.background = 'rgba(0,0,0,0.5)';
+          ov.style.background = 'transparent';
           iframe.style.width = '540px';
           iframe.style.minWidth = '540px';
           iframe.style.maxWidth = '540px';
@@ -9399,57 +9399,87 @@ function dbg(text) {
           iframe.style.minHeight = '800px';
           iframe.style.maxHeight = '800px';
   
-          // === Katman 1: Backdrop click engelle (Kanal 1) ===
-          // PanelBridge.jslib overlay click listener'ı yine çalışır ama event hiç gelmez
-          // (pointer-events:none). iframe içi tıklamalar etkilenmez (auto).
+          // Katman 1: Backdrop click engelle
           ov.style.pointerEvents = 'none';
           iframe.style.pointerEvents = 'auto';
   
-          // === Katman 2 + 3: iframe içi override (X gizle + paneliKapat no-op) ===
-          // iframe.load event'i (StreamingAssets same-origin → contentDocument erişimi OK)
-          iframe.addEventListener('load', function() {
+          // Katman 2+3: iframe içi (load + polling fallback)
+          var uygula = function() {
               try {
                   var doc = iframe.contentDocument;
                   var win = iframe.contentWindow;
-                  if (!doc || !win) return;
-  
-                  // Katman 2: X (close) butonu gizle (Kanal 2)
+                  if (!doc || !win || !doc.body) return false;
                   var closeBtn = doc.querySelector('.close-btn');
-                  if (closeBtn) closeBtn.style.display = 'none';
-  
-                  // Katman 3: paneliKapat global no-op (Kanal 3 + 4: otomatik setTimeout + iç kapanmaTimer)
-                  win.paneliKapat = function() {
-                      console.log('[Tutorial] panel.html paneliKapat çağrıldı, engellendi');
-                  };
-              } catch (e) {
-                  console.warn('[TutorialPanelKonum] iframe override fail (load):', e);
-              }
-          });
-  
-          // === FALLBACK: Polling ===
-          // iframe PaneliSolaAl çağrısından ÖNCE yüklenmişse (cache vs.) load event yeniden tetiklenmez.
-          // 100 ms × 20 = 2 sn polling, contentDocument hazır olunca override uygulanır. Idempotent
-          // (paneliKapat zaten "engellendi" içeriyorsa tekrar override etmez).
-          var deneme = 0;
-          var poll = setInterval(function() {
-              if (deneme++ > 20) { clearInterval(poll); return; }
-              try {
-                  var doc = iframe.contentDocument;
-                  var win = iframe.contentWindow;
-                  if (!doc || !win || !doc.body) return;
-  
-                  var closeBtn = doc.querySelector('.close-btn');
-                  if (closeBtn && closeBtn.style.display !== 'none') {
-                      closeBtn.style.display = 'none';
-                  }
+                  if (closeBtn && closeBtn.style.display !== 'none') closeBtn.style.display = 'none';
                   if (win.paneliKapat && win.paneliKapat.toString().indexOf('engellendi') === -1) {
                       win.paneliKapat = function() {
-                          console.log('[Tutorial] panel.html paneliKapat engellendi (poll)');
+                          console.log('[Tutorial] panel.html paneliKapat engellendi');
                       };
                   }
-                  clearInterval(poll);
-              } catch (e) { /* iframe henüz hazır değil, sonraki tick'te dene */ }
+                  return true;
+              } catch (e) { return false; }
+          };
+          iframe.addEventListener('load', uygula);
+          var deneme = 0;
+          var poll = setInterval(function() {
+              if (deneme++ > 20 || uygula()) clearInterval(poll);
           }, 100);
+      }
+
+  function _TumVurgulariKapat() {
+          var iframe = document.getElementById('panelIframe');
+          if (!iframe) return;
+          try {
+              var doc = iframe.contentDocument;
+              if (!doc) return;
+              doc.querySelectorAll('.apply-btn-pulsing').forEach(function(el) {
+                  el.classList.remove('apply-btn-pulsing');
+              });
+          } catch (e) {}
+      }
+
+  function _TutorialPaneliKapat() {
+          var ov = document.getElementById('panelOverlay');
+          if (ov) ov.remove();
+      }
+
+  function _VurguAc(selectorPtr) {
+          var sel = UTF8ToString(selectorPtr);
+          var iframe = document.getElementById('panelIframe');
+          if (!iframe) return;
+          var uygula = function() {
+              try {
+                  var doc = iframe.contentDocument;
+                  if (!doc) return false;
+                  var els = doc.querySelectorAll(sel);
+                  if (els.length === 0) return false;
+                  els.forEach(function(el) {
+                      // Accordion auto-open: el'in parent accordion-section'u kapalıysa header'a click
+                      var acc = el.closest ? el.closest('.accordion-section') : null;
+                      if (acc && acc.getAttribute('data-open') !== 'true') {
+                          var header = acc.querySelector('.accordion-header');
+                          if (header) header.click();
+                      }
+                      el.classList.add('apply-btn-pulsing');
+                  });
+                  return true;
+              } catch (e) { return false; }
+          };
+          // Direkt + 1 tick gecikme — iframe henüz hazır değilse
+          if (!uygula()) setTimeout(uygula, 200);
+      }
+
+  function _VurguKapat(selectorPtr) {
+          var sel = UTF8ToString(selectorPtr);
+          var iframe = document.getElementById('panelIframe');
+          if (!iframe) return;
+          try {
+              var doc = iframe.contentDocument;
+              if (!doc) return;
+              doc.querySelectorAll(sel).forEach(function(el) {
+                  el.classList.remove('apply-btn-pulsing');
+              });
+          } catch (e) {}
       }
 
   function ___assert_fail(condition, filename, line, func) {
@@ -18323,6 +18353,10 @@ var wasmImports = {
   "PaneliAc": _PaneliAc,
   "PaneliKapat": _PaneliKapat,
   "PaneliSolaAl": _PaneliSolaAl,
+  "TumVurgulariKapat": _TumVurgulariKapat,
+  "TutorialPaneliKapat": _TutorialPaneliKapat,
+  "VurguAc": _VurguAc,
+  "VurguKapat": _VurguKapat,
   "__assert_fail": ___assert_fail,
   "__cxa_begin_catch": ___cxa_begin_catch,
   "__cxa_end_catch": ___cxa_end_catch,

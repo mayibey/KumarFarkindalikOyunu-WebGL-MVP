@@ -24,7 +24,8 @@
       "Bash(git ls-tree *)",
       "Bash(git fetch *)",
       "Bash(git tag *)",
-      "Bash(node -e \"var src = require\\('fs'\\).readFileSync\\('Assets/Plugins/WebGL/TutorialPanelKonum.jslib','utf8'\\); new Function\\(src\\); console.log\\('JSLIB syntax OK'\\);\")"
+      "Bash(node -e \"var src = require\\('fs'\\).readFileSync\\('Assets/Plugins/WebGL/TutorialPanelKonum.jslib','utf8'\\); new Function\\(src\\); console.log\\('JSLIB syntax OK'\\);\")",
+      "Bash(node -e \"var s=require\\('fs'\\).readFileSync\\('Assets/Plugins/WebGL/TutorialPanelKonum.jslib','utf8'\\); new Function\\(s\\); console.log\\('JSLIB OK'\\);\")"
     ]
   }
 }
