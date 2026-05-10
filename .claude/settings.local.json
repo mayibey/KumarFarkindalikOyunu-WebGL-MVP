@@ -13,7 +13,15 @@
       "Bash(awk NR>=990 && NR<=1035 { printf \"%4d: %s\\\\n\", NR, $0 } *)",
       "Bash(grep -nB 1 \"AnlaticiOzelAkisAktif = true\" Assets/Scripts/AnlaticiSeritKopru.cs)",
       "Bash(awk NR>=1000 && NR<=1035 { printf \"%4d: %s\\\\n\", NR, $0 } *)",
-      "Bash(awk END {print NR} *)"
+      "Bash(awk END {print NR} *)",
+      "Bash(uuidgen)",
+      "Bash(powershell -NoProfile -Command \"[guid]::NewGuid\\(\\).ToString\\('N'\\)\")",
+      "Bash(sed -n '18145,18151p' Assets/Scenes/04_AdminOyunScene.unity)",
+      "Bash(sed -n '18145,18151p' Assets/Scenes/03_SenaryoluOyun.unity)",
+      "Bash(cat)",
+      "Read(//tmp/**)",
+      "Bash(python3 *)",
+      "Bash(git ls-tree *)"
     ]
   }
 }
