@@ -61,9 +61,32 @@ namespace KumarFarkindalik.Tutorial
             }
         }
 
-        // PAKET 3B-fix-2: Update polling KALDIRILDI — TutorialOyunYoneticisi.AdimAkisi içinde
-        // yield-while ile KosulSagla bekleniyor (Modal A → B → bekleme → Modal C → İLERİ aktif).
-        // Bu sınıfın görevi sadece: PanelKopru.OnAyarDegisti event'i → _ay.AyarDegistiHaber(key) +
-        // lokal field cache (SonCarpanOlasilik, SonCarpanZorla, BonusTetiklendi).
+        // PAKET 3B-fix-3: Update YENİDEN aktif — SADECE canlı UI güncellemesi.
+        // İLERİ aktif/pasif YAPMAZ (AdimAkisi yield-while ile zaten yönetiyor).
+        // Bu method TutorialAdimGoster.IlerlemeGuncelle ile parametre/spin durumunu refresh eder.
+        private void Update()
+        {
+            if (TutorialAdimGoster.Ornek == null) return;
+            if (_ay == null)
+            {
+                _ay = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
+                if (_ay == null) return;
+            }
+            var v = _ay.MevcutAdimVerisi;
+            if (v == null || !v.aktifMi) return;
+
+            int spin = SenaryoYoneticisi.I != null ? SenaryoYoneticisi.I.toplamSpin : 0;
+            int delta = spin - _ay.AdimBaslangicSpin;
+
+            // Parametre tamamlandı mı (degisimAnahtarlari'nın HEPSİ değişmiş mi)
+            bool parametreTamam = true;
+            if (v.degisimAnahtarlari != null)
+            {
+                foreach (var k in v.degisimAnahtarlari)
+                    if (!_ay.AdimSirasindaDegistirildi(k)) { parametreTamam = false; break; }
+            }
+
+            TutorialAdimGoster.Ornek.IlerlemeGuncelle(delta, v.gerekliSpin, parametreTamam);
+        }
     }
 }

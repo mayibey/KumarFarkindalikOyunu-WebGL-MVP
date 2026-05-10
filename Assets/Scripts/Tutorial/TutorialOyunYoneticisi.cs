@@ -170,6 +170,17 @@ namespace KumarFarkindalik.Tutorial
             // Diğer butonlar pasif (Tutorial T_SON sonuna kadar ya da panel açılana kadar)
             DigerButonlariPasiflestir();
 
+            // PAKET 3B-fix-3: BAKIYE YÜKLE tamamen gizle (Görev Takip Paneli onun yerine geçer)
+            var bakiyeBtn = GameObject.Find("BakiyeYukleButon");
+            if (bakiyeBtn != null)
+            {
+                bakiyeBtn.SetActive(false);
+                Debug.Log("[TutorialOyunYoneticisi] BAKIYE YÜKLE gizlendi.");
+            }
+
+            // PAKET 3B-fix-3: "Hoş Geldiniz X" TMP_Text'lerini gizle (runtime içerik taraması)
+            HosgeldinGizle();
+
             // TutorialAdimGoster İLERİ click subscribe
             yield return new WaitForSeconds(0.1f); // TutorialAdimGoster Awake tamamlansın
             if (TutorialAdimGoster.Ornek != null)
@@ -246,10 +257,10 @@ namespace KumarFarkindalik.Tutorial
                 }
             }
 
-            // === AdimGoster göster ===
+            // === AdimGoster göster (sira + altBaslik + yapılacaklar) ===
             int sira = (int)v.id;
             Debug.Log($"[TutorialOyunYoneticisi] AdimGoster.AdimGoster çağrılıyor: sira={sira}");
-            TutorialAdimGoster.Ornek?.AdimGoster(sira);
+            TutorialAdimGoster.Ornek?.AdimGoster(sira, v.altBaslik, v.yapilacaklar);
 
             // Pasif adım: İLERİ hemen aktif, kullanıcı İLERİ tıklayınca sonraki
             if (!v.aktifMi)
@@ -276,7 +287,7 @@ namespace KumarFarkindalik.Tutorial
 #endif
                 if (TutorialModalKopru.Ornek != null)
                     yield return TutorialModalKopru.Ornek.ModalGoster(v.mesajKapanis);
-                TutorialAdimGoster.Ornek?.AdimGoster(sira); // sayaç tekrar göster
+                TutorialAdimGoster.Ornek?.AdimGoster(sira, v.altBaslik, v.yapilacaklar); // sayaç tekrar göster
             }
 
             // === İLERİ aktif (kullanıcı tıklayınca sonraki adım) ===
@@ -338,6 +349,24 @@ namespace KumarFarkindalik.Tutorial
             "paraCekButon",
             "ParaCekButon",
         };
+
+        private static void HosgeldinGizle()
+        {
+            // "Hoş Geldin..." başlangıçlı TMP_Text'leri runtime'da gizle. HosgeldinizText script'i
+            // source kodda yok (broken reference), m_Name de belirsiz — bu yüzden içerik taraması.
+            var tumTextler = Object.FindObjectsOfType<TMPro.TextMeshProUGUI>(true);
+            int gizliSayisi = 0;
+            foreach (var txt in tumTextler)
+            {
+                if (txt == null || string.IsNullOrEmpty(txt.text)) continue;
+                if (txt.text.StartsWith("Hoş Geldin") || txt.text.StartsWith("Hoş geldin"))
+                {
+                    txt.gameObject.SetActive(false);
+                    gizliSayisi++;
+                }
+            }
+            Debug.Log($"[TutorialOyunYoneticisi] HosgeldinGizle: {gizliSayisi} TMP_Text gizlendi.");
+        }
 
         private static void DigerButonlariPasiflestir()
         {

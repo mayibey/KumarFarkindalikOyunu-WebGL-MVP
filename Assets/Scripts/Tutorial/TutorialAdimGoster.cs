@@ -8,30 +8,50 @@ using UnityEngine.UI;
 namespace KumarFarkindalik.Tutorial
 {
     /// <summary>
-    /// Sağ-üst köşede "T#/11 + İLERİ" gösterge UI'ı. Modal kapanınca görünür, koşul sağlanınca
-    /// İLERİ aktif olur. Self-spawn pattern (build idx 3).
+    /// Görev Takip Paneli — BAKIYE YÜKLE'nin tam yerinde sağ-üst bölgede 280×320 panel.
+    /// İçerik (yukarıdan aşağıya):
+    ///   1. Başlık "ADIM #/11"
+    ///   2. Alt başlık ("HOOK SENARYOSU" vb.)
+    ///   3. Ayraç çizgi
+    ///   4. "NE YAPMALISIN:" + 3 satır yapılacaklar (aktif adımda)
+    ///   5. Ayraç çizgi
+    ///   6. "İLERLEME:" + parametre durumu + spin sayacı (aktif adımda)
+    ///   7. Ayraç çizgi
+    ///   8. İLERİ butonu
+    /// Pasif adımlarda (T2, T_SON) yapılacaklar ve ilerleme blokları gizli, sadece başlık+İLERİ.
     /// </summary>
     [Preserve]
     public class TutorialAdimGoster : MonoBehaviour
     {
         public const int TUTORIAL_SAHNE_BUILD_INDEX = 3;
-        public const int CANVAS_SORTING_ORDER = 1650; // panel.html (DOM) ile aynı seviyede kalır, modal (1500) üstü
+        public const int CANVAS_SORTING_ORDER = 1650;
 
         public static TutorialAdimGoster Ornek { get; private set; }
 
-        // ScriptedModalKopru ile birebir paleti
+        // Renk paleti — ScriptedModalKopru ile uyumlu
         private static readonly Color BALON_RENK = new Color(0.10f, 0.16f, 0.23f, 0.95f);
         private static readonly Color ALTIN_RENK = new Color(0.83f, 0.69f, 0.22f, 1f);
         private static readonly Color BUTON_ARKA = new Color(0.12f, 0.12f, 0.12f, 0.75f);
         private static readonly Color BUTON_BORDER_CTA = new Color(0.98f, 0.78f, 0.46f, 1f);
+        private static readonly Color YESIL = new Color(0.45f, 0.85f, 0.45f, 1f);
+        private static readonly Color GRI = new Color(0.78f, 0.78f, 0.80f, 1f);
+        private static readonly Color BEYAZ = new Color(0.95f, 0.97f, 1f, 1f);
 
         private const int TOPLAM_ADIM = 11;
 
         public event Action OnIleriTiklandi;
 
+        // UI referansları
         private GameObject _root;
         private TextMeshProUGUI _sayacText;
+        private TextMeshProUGUI _altBaslikText;
+        private GameObject _yapilacaklarBlok;
+        private TextMeshProUGUI[] _yapilacakSatirlari = new TextMeshProUGUI[3];
+        private GameObject _ilerlemeBlok;
+        private TextMeshProUGUI _parametreText;
+        private TextMeshProUGUI _spinText;
         private Button _ileriButton;
+
         public bool IleriZatenAktif { get; private set; }
 
         [Preserve]
@@ -87,13 +107,61 @@ namespace KumarFarkindalik.Tutorial
 
         // === Public API ===
 
-        public void AdimGoster(int sira)
+        public void AdimGoster(int sira, string altBaslik, string[] yapilacaklar)
         {
-            Debug.Log($"[TutorialAdimGoster] AdimGoster çağrıldı: sira={sira}, root={_root != null}");
+            Debug.Log($"[TutorialAdimGoster] AdimGoster: sira={sira}, altBaslik={altBaslik}, yapilacaklar={yapilacaklar?.Length ?? 0}");
             if (_root == null) return;
             _root.SetActive(true);
-            if (_sayacText != null) _sayacText.text = $"T{sira}/{TOPLAM_ADIM}";
+
+            if (_sayacText != null) _sayacText.text = $"ADIM {sira}/{TOPLAM_ADIM}";
+            if (_altBaslikText != null) _altBaslikText.text = altBaslik ?? "";
+
+            bool yapVar = yapilacaklar != null && yapilacaklar.Length > 0;
+            if (_yapilacaklarBlok != null) _yapilacaklarBlok.SetActive(yapVar);
+            if (_ilerlemeBlok != null) _ilerlemeBlok.SetActive(yapVar);
+
+            if (yapVar)
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    if (_yapilacakSatirlari[i] == null) continue;
+                    if (i < yapilacaklar.Length)
+                    {
+                        _yapilacakSatirlari[i].text = "→ " + yapilacaklar[i];
+                        _yapilacakSatirlari[i].gameObject.SetActive(true);
+                    }
+                    else
+                    {
+                        _yapilacakSatirlari[i].gameObject.SetActive(false);
+                    }
+                }
+                IlerlemeGuncelle(0, 0, false);
+            }
+
             IleriAktif(false);
+        }
+
+        public void IlerlemeGuncelle(int spinAtilan, int hedefSpin, bool parametreTamam)
+        {
+            if (_parametreText != null)
+            {
+                _parametreText.text = (parametreTamam ? "✓" : "⌛") + " Parametre: " + (parametreTamam ? "tamam" : "bekleniyor");
+                _parametreText.color = parametreTamam ? YESIL : GRI;
+            }
+            if (_spinText != null)
+            {
+                if (hedefSpin > 0)
+                {
+                    bool spinTamam = spinAtilan >= hedefSpin;
+                    _spinText.text = (spinTamam ? "✓" : "⌛") + $" Spin: {Mathf.Min(spinAtilan, hedefSpin)}/{hedefSpin}";
+                    _spinText.color = spinTamam ? YESIL : GRI;
+                }
+                else
+                {
+                    _spinText.text = "—";
+                    _spinText.color = GRI;
+                }
+            }
         }
 
         public void IleriAktif(bool aktif)
@@ -102,7 +170,6 @@ namespace KumarFarkindalik.Tutorial
             if (_ileriButton == null) return;
             _ileriButton.interactable = aktif;
             IleriZatenAktif = aktif;
-            // İLERİ aktif olunca buton parlat (alpha 1), pasif iken hafif gri
             var img = _ileriButton.GetComponent<Image>();
             if (img != null)
             {
@@ -117,7 +184,7 @@ namespace KumarFarkindalik.Tutorial
             if (_root != null) _root.SetActive(false);
         }
 
-        // === UI yaratımı (sağ-üst 220×80) ===
+        // === UI yaratımı — 280×320 panel ===
 
         private void UIYarat()
         {
@@ -134,45 +201,87 @@ namespace KumarFarkindalik.Tutorial
             scaler.referenceResolution = new Vector2(1920, 1080);
             scaler.matchWidthOrHeight = 0.5f;
 
-            // Panel arka — sağ-üst
+            // Ana panel — BAKIYE YÜKLE'nin yerinde (sahne YAML'dan: anchor 0.5/0.5, pos 801.18, 222)
             var panel = new GameObject("Panel",
                 typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
             panel.transform.SetParent(_root.transform, false);
             var panelRt = panel.GetComponent<RectTransform>();
-            panelRt.anchorMin = new Vector2(1f, 1f);
-            panelRt.anchorMax = new Vector2(1f, 1f);
-            panelRt.pivot = new Vector2(1f, 1f);
-            panelRt.sizeDelta = new Vector2(220f, 80f);
-            panelRt.anchoredPosition = new Vector2(-30f, -30f);
+            panelRt.anchorMin = panelRt.anchorMax = new Vector2(0.5f, 0.5f);
+            panelRt.pivot = new Vector2(0.5f, 0.5f);
+            panelRt.sizeDelta = new Vector2(280f, 320f);
+            panelRt.anchoredPosition = new Vector2(801.18f, 222f);
             panel.GetComponent<Image>().color = BALON_RENK;
             BorderEkle(panel.transform, panelRt.sizeDelta, 2f, ALTIN_RENK);
 
-            // Sayaç metni (sol-orta)
-            var sayacGo = new GameObject("Sayac", typeof(RectTransform), typeof(CanvasRenderer));
-            sayacGo.transform.SetParent(panel.transform, false);
-            var sayacRt = sayacGo.GetComponent<RectTransform>();
-            sayacRt.anchorMin = new Vector2(0f, 0f);
-            sayacRt.anchorMax = new Vector2(0.45f, 1f);
-            sayacRt.offsetMin = new Vector2(12f, 0f);
-            sayacRt.offsetMax = Vector2.zero;
-            _sayacText = sayacGo.AddComponent<TextMeshProUGUI>();
-            _sayacText.alignment = TextAlignmentOptions.Left;
-            _sayacText.fontSize = 22f;
-            _sayacText.fontStyle = FontStyles.Bold;
-            _sayacText.color = ALTIN_RENK;
-            _sayacText.text = "T?/11";
-            _sayacText.raycastTarget = false;
+            // 1. Başlık "ADIM #/11" (top -10)
+            _sayacText = MetinYarat(panel.transform, "Baslik", new Vector2(0f, -10f),
+                new Vector2(260f, 30f), 22f, FontStyles.Bold, ALTIN_RENK,
+                TextAlignmentOptions.Center, "ADIM ?/11");
 
-            // İLERİ butonu (sağ-orta)
+            // 2. Alt başlık (top -45)
+            _altBaslikText = MetinYarat(panel.transform, "AltBaslik", new Vector2(0f, -45f),
+                new Vector2(260f, 25f), 16f, FontStyles.Bold, ALTIN_RENK,
+                TextAlignmentOptions.Center, "");
+
+            // 3. Ayraç 1 (top -73)
+            CizgiEkle(panel.transform, new Vector2(0f, -73f), new Vector2(240f, 1f));
+
+            // === YAPILACAKLAR BLOK (aktif adımlarda görünür) ===
+            _yapilacaklarBlok = new GameObject("YapilacaklarBlok", typeof(RectTransform));
+            _yapilacaklarBlok.transform.SetParent(panel.transform, false);
+            var ybRt = _yapilacaklarBlok.GetComponent<RectTransform>();
+            ybRt.anchorMin = ybRt.anchorMax = new Vector2(0.5f, 1f);
+            ybRt.pivot = new Vector2(0.5f, 1f);
+            ybRt.sizeDelta = new Vector2(280f, 110f);
+            ybRt.anchoredPosition = new Vector2(0f, -78f);
+
+            MetinYarat(_yapilacaklarBlok.transform, "Baslik_NeYapmali", new Vector2(0f, 0f),
+                new Vector2(240f, 22f), 13f, FontStyles.Bold, BEYAZ,
+                TextAlignmentOptions.Left, "NE YAPMALISIN:");
+
+            for (int i = 0; i < 3; i++)
+            {
+                _yapilacakSatirlari[i] = MetinYarat(_yapilacaklarBlok.transform, $"Yap{i}",
+                    new Vector2(10f, -26f - i * 25f), new Vector2(230f, 22f), 13f,
+                    FontStyles.Normal, GRI, TextAlignmentOptions.Left, "");
+            }
+
+            // === Ayraç 2 (top -195) ===
+            CizgiEkle(panel.transform, new Vector2(0f, -195f), new Vector2(240f, 1f));
+
+            // === İLERLEME BLOK ===
+            _ilerlemeBlok = new GameObject("IlerlemeBlok", typeof(RectTransform));
+            _ilerlemeBlok.transform.SetParent(panel.transform, false);
+            var ibRt = _ilerlemeBlok.GetComponent<RectTransform>();
+            ibRt.anchorMin = ibRt.anchorMax = new Vector2(0.5f, 1f);
+            ibRt.pivot = new Vector2(0.5f, 1f);
+            ibRt.sizeDelta = new Vector2(280f, 75f);
+            ibRt.anchoredPosition = new Vector2(0f, -200f);
+
+            MetinYarat(_ilerlemeBlok.transform, "Baslik_Ilerleme", new Vector2(0f, 0f),
+                new Vector2(240f, 22f), 13f, FontStyles.Bold, BEYAZ,
+                TextAlignmentOptions.Left, "İLERLEME:");
+
+            _parametreText = MetinYarat(_ilerlemeBlok.transform, "Parametre",
+                new Vector2(10f, -26f), new Vector2(230f, 22f), 13f, FontStyles.Normal, GRI,
+                TextAlignmentOptions.Left, "⌛ Parametre: bekleniyor");
+
+            _spinText = MetinYarat(_ilerlemeBlok.transform, "Spin",
+                new Vector2(10f, -50f), new Vector2(230f, 22f), 13f, FontStyles.Normal, GRI,
+                TextAlignmentOptions.Left, "—");
+
+            // === Ayraç 3 (top -280) ===
+            CizgiEkle(panel.transform, new Vector2(0f, -280f), new Vector2(240f, 1f));
+
+            // === İLERİ butonu (sağ-alt 12 px iç) ===
             var btnGo = new GameObject("IleriButon",
                 typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
             btnGo.transform.SetParent(panel.transform, false);
             var btnRt = btnGo.GetComponent<RectTransform>();
-            btnRt.anchorMin = new Vector2(1f, 0.5f);
-            btnRt.anchorMax = new Vector2(1f, 0.5f);
-            btnRt.pivot = new Vector2(1f, 0.5f);
-            btnRt.sizeDelta = new Vector2(100f, 36f);
-            btnRt.anchoredPosition = new Vector2(-12f, 0f);
+            btnRt.anchorMin = btnRt.anchorMax = new Vector2(1f, 0f);
+            btnRt.pivot = new Vector2(1f, 0f);
+            btnRt.sizeDelta = new Vector2(110f, 32f);
+            btnRt.anchoredPosition = new Vector2(-12f, 8f);
             var btnImg = btnGo.GetComponent<Image>();
             btnImg.color = BUTON_ARKA;
             BorderEkle(btnGo.transform, btnRt.sizeDelta, 1.5f, BUTON_BORDER_CTA);
@@ -180,19 +289,57 @@ namespace KumarFarkindalik.Tutorial
             _ileriButton.transition = Selectable.Transition.None;
             _ileriButton.onClick.AddListener(() => OnIleriTiklandi?.Invoke());
 
-            // İLERİ → metni
-            var txtGo = new GameObject("Txt", typeof(RectTransform), typeof(CanvasRenderer));
-            txtGo.transform.SetParent(btnGo.transform, false);
-            var txtRt = txtGo.GetComponent<RectTransform>();
-            txtRt.anchorMin = Vector2.zero; txtRt.anchorMax = Vector2.one;
-            txtRt.offsetMin = txtRt.offsetMax = Vector2.zero;
-            var txt = txtGo.AddComponent<TextMeshProUGUI>();
-            txt.alignment = TextAlignmentOptions.Center;
-            txt.fontSize = 18f;
-            txt.fontStyle = FontStyles.Bold;
-            txt.color = Color.white;
-            txt.text = "İLERİ →";
+            var btnTxtGo = new GameObject("Txt", typeof(RectTransform), typeof(CanvasRenderer));
+            btnTxtGo.transform.SetParent(btnGo.transform, false);
+            var btnTxtRt = btnTxtGo.GetComponent<RectTransform>();
+            btnTxtRt.anchorMin = Vector2.zero; btnTxtRt.anchorMax = Vector2.one;
+            btnTxtRt.offsetMin = btnTxtRt.offsetMax = Vector2.zero;
+            var btnTxt = btnTxtGo.AddComponent<TextMeshProUGUI>();
+            btnTxt.alignment = TextAlignmentOptions.Center;
+            btnTxt.fontSize = 16f;
+            btnTxt.fontStyle = FontStyles.Bold;
+            btnTxt.color = Color.white;
+            btnTxt.text = "İLERİ →";
+            btnTxt.raycastTarget = false;
+        }
+
+        // === Yardımcılar ===
+
+        private static TextMeshProUGUI MetinYarat(Transform parent, string adi, Vector2 pos,
+            Vector2 size, float fontSize, FontStyles style, Color renk,
+            TextAlignmentOptions hizalama, string baslangicMetin)
+        {
+            var go = new GameObject(adi, typeof(RectTransform), typeof(CanvasRenderer));
+            go.transform.SetParent(parent, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
+            rt.pivot = new Vector2(0.5f, 1f);
+            rt.sizeDelta = size;
+            rt.anchoredPosition = pos;
+            var txt = go.AddComponent<TextMeshProUGUI>();
+            txt.fontSize = fontSize;
+            txt.fontStyle = style;
+            txt.color = renk;
+            txt.alignment = hizalama;
+            txt.text = baslangicMetin;
             txt.raycastTarget = false;
+            txt.enableWordWrapping = false;
+            txt.overflowMode = TextOverflowModes.Ellipsis;
+            return txt;
+        }
+
+        private static void CizgiEkle(Transform parent, Vector2 pos, Vector2 size)
+        {
+            var go = new GameObject("Ayrac", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            go.transform.SetParent(parent, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
+            rt.pivot = new Vector2(0.5f, 1f);
+            rt.sizeDelta = size;
+            rt.anchoredPosition = pos;
+            var img = go.GetComponent<Image>();
+            img.color = new Color(0.83f, 0.69f, 0.22f, 0.40f);
+            img.raycastTarget = false;
         }
 
         private static void BorderEkle(Transform parent, Vector2 size, float kalinlik, Color renk)

@@ -6,12 +6,8 @@ namespace KumarFarkindalik.Tutorial
 {
     /// <summary>
     /// Tutorial akış adımlarının state machine'i (T1 - T11 + T_SON).
-    ///
-    /// PAKET 3B-fix-2: Her aktif adım için 3 modal akışı —
-    ///   A. mesajBaslangic: adım girişi (kavram tanıtımı)
-    ///   B. mesajAksiyon: aksiyon talimatı (kullanıcı ne yapmalı)
-    ///   C. mesajKapanis: aksiyon sonrası pedagojik özet
-    /// Pasif adımlar (T2, T_SON) sadece mesajBaslangic kullanır.
+    /// PAKET 3B-fix-3: Görev Takip Paneli için altBaslik + yapilacaklar alanları + canlı ilerleme
+    /// erişimcileri (AdimBaslangicSpin, AdimSirasindaDegistirildi).
     /// </summary>
     public class TutorialAdimYoneticisi : MonoBehaviour
     {
@@ -26,11 +22,13 @@ namespace KumarFarkindalik.Tutorial
 
         private readonly Dictionary<TutorialAdimId, AdimVerisi> _adimlar = new();
         private int _adimBaslangicSpin;
-
-        // Bug 2 (Paket 3B-fix): bu adıma girdikten sonra panel.html'den DEĞİŞTİRİLEN parametre key'leri.
         private readonly HashSet<string> _adimSirasindaDegisenler = new();
 
         public AdimVerisi MevcutAdimVerisi => _adimlar.TryGetValue(mevcutAdim, out var v) ? v : null;
+
+        // PAKET 3B-fix-3: TutorialAdminEnjeksiyonu.Update bu erişimcileri kullanır (canlı ilerleme).
+        public int AdimBaslangicSpin => _adimBaslangicSpin;
+        public bool AdimSirasindaDegistirildi(string key) => _adimSirasindaDegisenler.Contains(key);
 
         private void Awake()
         {
@@ -99,6 +97,8 @@ namespace KumarFarkindalik.Tutorial
                 id = TutorialAdimId.T2,
                 aktifMi = false,
                 mesajBaslangic = T2_BASLANGIC,
+                altBaslik = "GİRİŞ",
+                yapilacaklar = null,
                 gerekliSpin = 0,
             };
 
@@ -109,6 +109,8 @@ namespace KumarFarkindalik.Tutorial
                 mesajBaslangic = T3_BASLANGIC,
                 mesajAksiyon = T3_AKSIYON,
                 mesajKapanis = T3_KAPANIS,
+                altBaslik = "HOOK SENARYOSU",
+                yapilacaklar = new[] { "Oyun modunu 'Hook' seç", "Uygula bas", "3 spin at" },
                 vurguSelectorlari = new[] { "#oyunModu", "#senaryoUygulaBtn" },
                 gerekliSpin = 3,
                 parametreKosulu = () => PanelKopru.aktifSenaryo == "hook",
@@ -122,6 +124,8 @@ namespace KumarFarkindalik.Tutorial
                 mesajBaslangic = T4_BASLANGIC,
                 mesajAksiyon = T4_AKSIYON,
                 mesajKapanis = T4_KAPANIS,
+                altBaslik = "ÇARPAN OLASILIĞI",
+                yapilacaklar = new[] { "Olasılık Ayarları'nı aç", "Çarpan olasılığını %15 yap", "3 spin at" },
                 vurguSelectorlari = new[] { "#carpanOlasilik", "#carpanOlasilikInput" },
                 gerekliSpin = 3,
                 parametreKosulu = () => TutorialAdminEnjeksiyonu.SonCarpanOlasilik >= 10f,
@@ -135,6 +139,8 @@ namespace KumarFarkindalik.Tutorial
                 mesajBaslangic = T5_BASLANGIC,
                 mesajAksiyon = T5_AKSIYON,
                 mesajKapanis = T5_KAPANIS,
+                altBaslik = "BONUS SEMBOLÜ",
+                yapilacaklar = new[] { "Bonus olasılığını %5 yap", "5 spin at" },
                 vurguSelectorlari = new[] { "#bonusSembolOlasilik" },
                 gerekliSpin = 5,
                 parametreKosulu = () => PanelKopru.bonusOtomatikSpinPeriyodu > 0
@@ -149,6 +155,8 @@ namespace KumarFarkindalik.Tutorial
                 mesajBaslangic = T6_BASLANGIC,
                 mesajAksiyon = T6_AKSIYON,
                 mesajKapanis = T6_KAPANIS,
+                altBaslik = "KAZANDIRMA SIKLIĞI",
+                yapilacaklar = new[] { "Manipülasyon Ayarları'nı aç", "Kazandırma sıklığını 7 yap", "5 spin at" },
                 vurguSelectorlari = new[] { "#kazanmaOrani" },
                 gerekliSpin = 5,
                 parametreKosulu = () => PanelKopru.kazanmaOrani >= 60f,
@@ -162,6 +170,8 @@ namespace KumarFarkindalik.Tutorial
                 mesajBaslangic = T7_BASLANGIC,
                 mesajAksiyon = T7_AKSIYON,
                 mesajKapanis = T7_KAPANIS,
+                altBaslik = "ÖDEME ARALIĞI",
+                yapilacaklar = new[] { "Min'i 0.5 yap", "Maks'ı 2 yap", "5 spin at" },
                 vurguSelectorlari = new[] { "#minCarpan", "#maksCarpan" },
                 gerekliSpin = 5,
                 parametreKosulu = () => PanelKopru.minCarpan > 0f
@@ -178,6 +188,8 @@ namespace KumarFarkindalik.Tutorial
                 mesajBaslangic = T8_BASLANGIC,
                 mesajAksiyon = T8_AKSIYON,
                 mesajKapanis = T8_KAPANIS,
+                altBaslik = "NEAR MISS",
+                yapilacaklar = new[] { "Near miss'i 8 yap", "5 spin at" },
                 vurguSelectorlari = new[] { "#yakinKacirma" },
                 gerekliSpin = 5,
                 parametreKosulu = () => PanelKopru.yakinKacirma >= 70f,
@@ -191,6 +203,8 @@ namespace KumarFarkindalik.Tutorial
                 mesajBaslangic = T9_BASLANGIC,
                 mesajAksiyon = T9_AKSIYON,
                 mesajKapanis = T9_KAPANIS,
+                altBaslik = "KAÇIŞ FRENLEME",
+                yapilacaklar = new[] { "Üst üste kayıp limitini 3 yap", "8 spin at" },
                 vurguSelectorlari = new[] { "#ardisikKayip" },
                 gerekliSpin = 8,
                 parametreKosulu = () => PanelKopru.ardisikKayipLimiti > 0
@@ -205,6 +219,8 @@ namespace KumarFarkindalik.Tutorial
                 mesajBaslangic = T10_BASLANGIC,
                 mesajAksiyon = T10_AKSIYON,
                 mesajKapanis = T10_KAPANIS,
+                altBaslik = "ÇARPAN ZORLA",
+                yapilacaklar = new[] { "Anlık Müdahale'yi aç", "×500 butonuna bas", "1 spin at" },
                 vurguSelectorlari = new[] { "button[onclick=\"carpanZorla(500)\"]" },
                 gerekliSpin = 1,
                 parametreKosulu = () => TutorialAdminEnjeksiyonu.SonCarpanZorla == 500,
@@ -218,6 +234,8 @@ namespace KumarFarkindalik.Tutorial
                 mesajBaslangic = T11_BASLANGIC,
                 mesajAksiyon = T11_AKSIYON,
                 mesajKapanis = T11_KAPANIS,
+                altBaslik = "BONUS TETİKLE",
+                yapilacaklar = new[] { "Bonus Tetikle butonuna bas" },
                 vurguSelectorlari = new[] { ".trigger-btn" },
                 gerekliSpin = 0,
                 parametreKosulu = () => TutorialAdminEnjeksiyonu.BonusTetiklendi,
@@ -229,6 +247,8 @@ namespace KumarFarkindalik.Tutorial
                 id = TutorialAdimId.T_SON,
                 aktifMi = false,
                 mesajBaslangic = TSON_BASLANGIC,
+                altBaslik = "TAMAMLANDI",
+                yapilacaklar = null,
                 gerekliSpin = 0,
             };
         }
@@ -322,20 +342,22 @@ namespace KumarFarkindalik.Tutorial
             "Bu farkındalık seninle kalsın.";
     }
 
-    /// <summary>Bir tutorial adımının tüm verileri (3 modal mesajı + vurgu + spin + parametre koşulu).</summary>
+    /// <summary>Bir tutorial adımının tüm verileri (3 modal mesajı + altBaslik + yapilacaklar + vurgu + spin + parametre).</summary>
     public class AdimVerisi
     {
         public TutorialAdimYoneticisi.TutorialAdimId id;
         public bool aktifMi;
+        public string mesajBaslangic;
+        public string mesajAksiyon;
+        public string mesajKapanis;
 
-        // 3 modal mesajı (Paket 3B-fix-2):
-        public string mesajBaslangic;          // A — adım girişi (kavram tanıtımı)
-        public string mesajAksiyon;            // B — aksiyon talimatı (kullanıcı ne yapmalı)
-        public string mesajKapanis;            // C — pedagojik özet (aksiyon sonrası)
+        // PAKET 3B-fix-3: Görev Takip Paneli için
+        public string altBaslik;
+        public string[] yapilacaklar;
 
-        public string[] vurguSelectorlari;     // panel.html CSS selector
+        public string[] vurguSelectorlari;
         public int gerekliSpin;
-        public Func<bool> parametreKosulu;     // PanelKopru.static field okuyan lambda
-        public string[] degisimAnahtarlari;    // bu adımda kullanıcı tarafından değişmiş olmalı
+        public Func<bool> parametreKosulu;
+        public string[] degisimAnahtarlari;
     }
 }
