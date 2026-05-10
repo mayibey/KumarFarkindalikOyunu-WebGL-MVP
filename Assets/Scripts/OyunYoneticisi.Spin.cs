@@ -371,14 +371,30 @@ public partial class OyunYoneticisi
     private SpinSimulasyonKaydi SimuleEtVeKaydetImpl(int odenebilirLimit, bool bonusSpin)
     {
         // SCRIPTED MODE — anlatıcı sahnesinde (build idx 2) scripted senaryo aktifse RNG bypass.
-        if (!bonusSpin && ScriptedSpinYoneticisi.Aktif && ScriptedSpinYoneticisi.Ornek != null)
+        // - Normal spin (bonusSpin=false): aşama+spin sırasından kayıt al (asamaSpinleri[asamaIdx].spinler[spinIdx]).
+        // - Bonus spin (bonusSpin=true && _scriptedBonusBahisOverride): bonusSpinleri[bonusIdx] al → motor RTP devre dışı,
+        //   10 sabit spin × toplam 4000 TL garanti (paytable doğrulanmış).
+        if (ScriptedSpinYoneticisi.Aktif && ScriptedSpinYoneticisi.Ornek != null)
         {
-            int asamaIdx = AnlaticiSeritKopru.Ornek != null ? AnlaticiSeritKopru.Ornek.AktifAsama : 0;
-            int spinIdx = AnlaticiSeritKopru.Ornek != null ? AnlaticiSeritKopru.Ornek.AsamadakiSpinSayaci : 0;
-            var scriptedKayit = ScriptedSpinYoneticisi.Ornek.SonrakiSpiniAl(asamaIdx, spinIdx);
+            ScriptedSpinKaydi scriptedKayit = null;
+            if (bonusSpin && _scriptedBonusBahisOverride)
+            {
+                // Bonus spin idx hesabı: bonusHakBaslangic 10, BonusHakKalan azalır → 0..9
+                int bonusSpinIdx = bonusHakBaslangic - bonusHakKalan;
+                scriptedKayit = ScriptedSpinYoneticisi.Ornek.SonrakiBonusSpiniAl(bonusSpinIdx);
+                if (scriptedKayit != null)
+                    Debug.Log($"[ScriptedBonus] Spin {bonusSpinIdx + 1}/10 — RNG bypass, brüt {scriptedKayit.brutOdeme} TL");
+            }
+            else if (!bonusSpin)
+            {
+                int asamaIdx = AnlaticiSeritKopru.Ornek != null ? AnlaticiSeritKopru.Ornek.AktifAsama : 0;
+                int spinIdx = AnlaticiSeritKopru.Ornek != null ? AnlaticiSeritKopru.Ornek.AsamadakiSpinSayaci : 0;
+                scriptedKayit = ScriptedSpinYoneticisi.Ornek.SonrakiSpiniAl(asamaIdx, spinIdx);
+                if (scriptedKayit != null)
+                    Debug.Log($"[Scripted] Aşama {asamaIdx + 1} Spin {spinIdx + 1} — RNG bypass, brüt {scriptedKayit.brutOdeme}");
+            }
             if (scriptedKayit != null)
             {
-                Debug.Log($"[Scripted] Aşama {asamaIdx + 1} Spin {spinIdx + 1} — RNG bypass, brüt {scriptedKayit.brutOdeme}");
                 int gercekBahis = _ekonomiServisi != null ? _ekonomiServisi.Bahis : scriptedKayit.bahis;
                 return ScriptedSpinUygulayici.UygulaKaydi(scriptedKayit, this, gercekBahis);
             }

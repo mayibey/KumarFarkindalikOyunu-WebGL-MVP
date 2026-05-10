@@ -28,6 +28,15 @@ namespace Senaryo.Scripted
         /// </summary>
         public List<AsamaSpinListesi> asamaSpinleri = new List<AsamaSpinListesi>();
 
+        /// <summary>
+        /// A5 cazip popup → bonus oyun için 10 sabit scripted spin. Toplam tam 4000 TL ödeme garantili
+        /// (paytable matematik doğrulanmış, bkz ScriptedSenaryoAssetUreteci.DoldurBonusSpinleri).
+        /// Pedagojik ritim: 5 sıfır + 5 kazanç (anti-climax kapanış). Bonus motor RTP devre dışı,
+        /// DonusAkisServisi.BonusDongusu bu kayıttan grid+tumble yükler, brutOdeme'yi paytable yerine
+        /// kayıttan okur. Her oturumda aynı pedagojik deneyim → "kumar şans" gerçeği tutarlı.
+        /// </summary>
+        public List<ScriptedSpinKaydi> bonusSpinleri = new List<ScriptedSpinKaydi>();
+
         /// <summary>Resources.Load için kullanılan asset yol kökü (Resources/ kısmı atlanmış).</summary>
         public const string ResourcePath = "ScriptedSenaryo";
     }

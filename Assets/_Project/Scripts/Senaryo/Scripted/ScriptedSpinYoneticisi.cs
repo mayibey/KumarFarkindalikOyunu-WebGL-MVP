@@ -169,6 +169,20 @@ namespace Senaryo.Scripted
             return SonKayit;
         }
 
+        /// <summary>
+        /// A5 cazip popup → bonus oyun: 10 sabit scripted spin (asset'teki bonusSpinleri'nden okur).
+        /// SimuleEtVeKaydetImpl bonusSpin=true durumunda bu metoda başvurur (ScriptedBonusSpinAktif aktifse).
+        /// Toplam 4000 TL ödeme garantili (paytable doğrulanmış).
+        /// </summary>
+        /// <param name="bonusSpinIdx">0-indexed (0..9). DonusAkisServisi.BonusDongusu (10 - bonusHakKalan) ile besler.</param>
+        public ScriptedSpinKaydi SonrakiBonusSpiniAl(int bonusSpinIdx)
+        {
+            if (_asamaListesi == null || _asamaListesi.bonusSpinleri == null) return null;
+            if (bonusSpinIdx < 0 || bonusSpinIdx >= _asamaListesi.bonusSpinleri.Count) return null;
+            SonKayit = _asamaListesi.bonusSpinleri[bonusSpinIdx];
+            return SonKayit;
+        }
+
 #if UNITY_EDITOR
         // ───────────────────────────────────────────────────────────────────────
         // INSPECTOR CONTEXT MENU — Editor'da Play modunda Hierarchy'den bu component

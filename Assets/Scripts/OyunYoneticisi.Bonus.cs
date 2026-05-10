@@ -142,10 +142,12 @@ if (spinIcon != null) spinIcon.SetRotate(false);
                     else cap = (int)(maliyet * 0.10f);
                     break;
                 case SenaryoYoneticisi.SenaryoAsama.Asama7_Finale:
-                    // Anlatıcı sahnesi defansif Asama7_Finale set ediyor; ama A5 cazip popup yolundaysa
-                    // (_scriptedBonusBahisOverride=true) motor max kazancı SCRIPTED_BONUS_MAX_KAZANC_TL ile sınırlanır.
+                    // Anlatıcı sahnesi defansif Asama7_Finale set ediyor; A5 cazip popup yolundaysa
+                    // (_scriptedBonusBahisOverride=true) bonus motoru SCRIPTED bonus spin kayıtlarından oynatılır
+                    // (SimuleEtVeKaydetImpl bypass). Toplam ödeme zaten asset'te 4000 TL garanti — cap mantığı
+                    // GEREKSİZ. int.MaxValue ile motor cap'i tamamen bypass eder, kayıt değerleri kullanılır.
                     // Aksi halde 0 (defansif: senaryolu modda scatter bonus zaten tetiklenmemeli).
-                    cap = _scriptedBonusBahisOverride ? SCRIPTED_BONUS_MAX_KAZANC_TL : 0;
+                    cap = _scriptedBonusBahisOverride ? int.MaxValue : 0;
                     break;
                 default:
                     break;

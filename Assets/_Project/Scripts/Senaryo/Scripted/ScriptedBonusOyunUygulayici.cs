@@ -44,7 +44,7 @@ namespace Senaryo.Scripted
 
         // Polling güvenlik sınırları
         private const int BONUS_BASLAMA_BEKLEME_MAX_FRAME = 60;       // ~1 sn @60 fps
-        private const float BONUS_BITIS_BEKLEME_MAX_SN = 120f;        // 2 dk üst sınır
+        private const float BONUS_BITIS_BEKLEME_MAX_SN = 180f;        // 3 dk üst sınır (10 scripted spin × ~12 sn = ~120 sn ortalama, 180 sn buffer ile timeout takılmaz)
 
         // Doğru mimari: bahis backend'de 1000 TL'ye düşürülür (BaslatBonus içinde otomatik), motor
         // doğal RTP ile cluster üretir, cap override veya manuel düzeltme YOK. Bonus toplamı 10 spin
