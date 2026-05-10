@@ -197,7 +197,7 @@ namespace Senaryo.Scripted
             basTxt.fontSize = 38f;
             basTxt.fontStyle = FontStyles.Bold;
             basTxt.color = new Color(1f, 0.45f, 0.45f, 1f);
-            basTxt.text = "Borç al — devam etmek istiyor musun?";
+            basTxt.text = "Borç alarak devam etmek istiyor musun?";
             basTxt.enableWordWrapping = true;
 
             // Açıklama
@@ -215,7 +215,7 @@ namespace Senaryo.Scripted
             aciklamaTxt.color = new Color(0.85f, 0.85f, 0.85f, 1f);
             aciklamaTxt.enableWordWrapping = true;
             aciklamaTxt.richText = true;
-            aciklamaTxt.text = "Aileden, kredi kartından veya iş arkadaşından <color=#EF4444>borç alarak</color> oyuna devam etmek istiyorsun. <color=#EF4444><b>Borçla kumar oynamak</b></color> bağımlılığın klasik göstergelerinden biridir.";
+            aciklamaTxt.text = "Aileden, kredi kartından veya iş arkadaşından <color=#EF4444>borç alarak</color> oyuna devam etmek istiyor musun? <color=#EF4444><b>Borçla kumar oynamak</b></color> bağımlılığın klasik göstergelerinden biridir.";
 
             // Borç al butonu
             var btnGo = new GameObject("BorcAlButon",

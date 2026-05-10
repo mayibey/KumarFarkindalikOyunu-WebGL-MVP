@@ -382,7 +382,7 @@ mergeInto(LibraryManager.library, {
 
         var canvas = document.createElement('canvas');
         canvas.id = 'havaiFisekCanvas';
-        canvas.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:9998;';
+        canvas.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:10000;';
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         document.body.appendChild(canvas);

@@ -716,6 +716,16 @@ public partial class OyunYoneticisi
         _uiServisi?.UI_Guncelle();
     }
 
+    /// <summary>A* özel akış coroutine finally'lerinden çağrılır — flag sıfırlandıktan sonra
+    /// SpinButon interactable durumu (HerhangiOverlayAcik bağımlı) tazelenir.
+    /// Aksi halde BahisAnimasyonu gibi bahis değiştirip biten coroutine'ler sonrası
+    /// onEconomyChanged tetiklenmediği için interactable=false takılı kalır → A3/A6 spin kilit bug'ı.</summary>
+    public void UIYenile()
+    {
+        _uiServisi?.UI_Guncelle();
+        _uiServisi?.ButonDurumu(true);
+    }
+
     /// <summary>SaveLoad save için Anlatıcı dinamik admin override değerlerini oku (private field'lar).</summary>
     public int GetAdminOdemeEgilimi() => _odemeEgilimiYuzde;
 

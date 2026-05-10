@@ -77,6 +77,16 @@ public class AnlaticiSeritKopru : MonoBehaviour
     /// BahisAnimasyonu coroutine'leri try/finally ile bu flag'i güvenle yönetir.</summary>
     public static bool AnlaticiOzelAkisAktif = false;
 
+    /// <summary>11 A* coroutine finally'lerinden çağrılır: flag false + UI yenileme.
+    /// UI_Guncelle/ButonDurumu çağrısı KRİTİK çünkü BahisAnimasyonu gibi bahis-değişen coroutine'ler
+    /// bittikten sonra onEconomyChanged tetiklenmez → spinButon.interactable=false takılı kalır.
+    /// Helper bunu garanti eder; A3/A6 spin kilit bug'ının fix'i.</summary>
+    private void AnlaticiOzelAkisBitir()
+    {
+        AnlaticiOzelAkisAktif = false;
+        _oy?.UIYenile();
+    }
+
     /// <summary>JS SendMessage handler — GameObject "AnlaticiSeritKopru" üzerinde çağrılır.</summary>
     public void BonusBitisOnayla()
     {
@@ -763,7 +773,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
         }
         finally
         {
-            AnlaticiOzelAkisAktif = false;
+            AnlaticiOzelAkisBitir();
         }
     }
 
@@ -783,7 +793,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
         }
         finally
         {
-            AnlaticiOzelAkisAktif = false;
+            AnlaticiOzelAkisBitir();
         }
     }
 
@@ -803,7 +813,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
         }
         finally
         {
-            AnlaticiOzelAkisAktif = false;
+            AnlaticiOzelAkisBitir();
         }
     }
 
@@ -823,7 +833,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
         }
         finally
         {
-            AnlaticiOzelAkisAktif = false;
+            AnlaticiOzelAkisBitir();
         }
     }
 
@@ -843,7 +853,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
         }
         finally
         {
-            AnlaticiOzelAkisAktif = false;
+            AnlaticiOzelAkisBitir();
         }
     }
 
@@ -884,7 +894,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
         }
         finally
         {
-            AnlaticiOzelAkisAktif = false;
+            AnlaticiOzelAkisBitir();
         }
     }
 
@@ -911,7 +921,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
         }
         finally
         {
-            AnlaticiOzelAkisAktif = false;
+            AnlaticiOzelAkisBitir();
         }
     }
 
@@ -940,7 +950,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
         }
         finally
         {
-            AnlaticiOzelAkisAktif = false;
+            AnlaticiOzelAkisBitir();
         }
     }
 
@@ -1031,7 +1041,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
         }
         finally
         {
-            AnlaticiOzelAkisAktif = false;
+            AnlaticiOzelAkisBitir();
         }
     }
 
@@ -1112,7 +1122,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
         }
         finally
         {
-            AnlaticiOzelAkisAktif = false;
+            AnlaticiOzelAkisBitir();
         }
     }
 
@@ -1145,7 +1155,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
         }
         finally
         {
-            AnlaticiOzelAkisAktif = false;
+            AnlaticiOzelAkisBitir();
         }
     }
 

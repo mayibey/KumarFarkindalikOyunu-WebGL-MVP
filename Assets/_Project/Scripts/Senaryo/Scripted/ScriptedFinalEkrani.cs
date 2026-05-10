@@ -164,7 +164,7 @@ namespace Senaryo.Scripted
             kutu.transform.SetParent(_root.transform, false);
             var kutuRt = kutu.GetComponent<RectTransform>();
             kutuRt.anchorMin = kutuRt.anchorMax = kutuRt.pivot = new Vector2(0.5f, 0.5f);
-            kutuRt.sizeDelta = new Vector2(820f, 600f);
+            kutuRt.sizeDelta = new Vector2(820f, 850f);
             kutuRt.anchoredPosition = Vector2.zero;
             kutu.GetComponent<Image>().color = new Color(0.05f, 0.07f, 0.12f, 0.99f);
             BorderEkle(kutu.transform, kutuRt.sizeDelta, 3f, new Color(0.85f, 0.18f, 0.18f, 1f));
@@ -186,12 +186,12 @@ namespace Senaryo.Scripted
             basTxt.text = "<color=#EF4444><b>OYUN BİTTİ</b></color>";
             basTxt.raycastTarget = false;
 
-            // İstatistik metni (orta-üst)
+            // İstatistik metni (orta-üst) — Y aralığı: kutu mid+50 (~+50) ila kutu top-110 (~+315)
             var istGo = new GameObject("Istatistik", typeof(RectTransform), typeof(CanvasRenderer));
             istGo.transform.SetParent(kutu.transform, false);
             var istRt = istGo.GetComponent<RectTransform>();
             istRt.anchorMin = new Vector2(0f, 0.5f); istRt.anchorMax = new Vector2(1f, 1f);
-            istRt.offsetMin = new Vector2(40f, 20f); istRt.offsetMax = new Vector2(-40f, -110f);
+            istRt.offsetMin = new Vector2(40f, 50f); istRt.offsetMax = new Vector2(-40f, -110f);
             _istatistikText = istGo.AddComponent<TextMeshProUGUI>();
             _istatistikText.alignment = TextAlignmentOptions.Center;
             _istatistikText.fontSize = 24f;
@@ -207,8 +207,9 @@ namespace Senaryo.Scripted
             var aileRt = aileGo.GetComponent<RectTransform>();
             aileRt.anchorMin = new Vector2(0f, 0.5f); aileRt.anchorMax = new Vector2(1f, 0.5f);
             aileRt.pivot = new Vector2(0.5f, 0.5f);
-            aileRt.sizeDelta = new Vector2(0f, 110f);
-            aileRt.anchoredPosition = new Vector2(0f, -10f);
+            // Kompakt: 90 yükseklik, +30 offset → Y aralığı -15 ila +75 (orta hattın üstünde)
+            aileRt.sizeDelta = new Vector2(0f, 90f);
+            aileRt.anchoredPosition = new Vector2(0f, 30f);
             var aileTxt = aileGo.AddComponent<TextMeshProUGUI>();
             aileTxt.alignment = TextAlignmentOptions.Center;
             aileTxt.fontSize = 22f;
@@ -222,11 +223,12 @@ namespace Senaryo.Scripted
             aileTxt.raycastTarget = false;
 
             // Mesaj (alt) — pedagojik metin + Yeşilay
+            // Y aralığı: kutu bottom+120 (~-305) ila kutu mid-70 (~-70) → ~235px alan, 4 paragraf rahat sığar
             var mesGo = new GameObject("Mesaj", typeof(RectTransform), typeof(CanvasRenderer));
             mesGo.transform.SetParent(kutu.transform, false);
             var mesRt = mesGo.GetComponent<RectTransform>();
             mesRt.anchorMin = new Vector2(0f, 0f); mesRt.anchorMax = new Vector2(1f, 0.5f);
-            mesRt.offsetMin = new Vector2(40f, 130f); mesRt.offsetMax = new Vector2(-40f, -120f);
+            mesRt.offsetMin = new Vector2(40f, 120f); mesRt.offsetMax = new Vector2(-40f, -70f);
             var mesTxt = mesGo.AddComponent<TextMeshProUGUI>();
             mesTxt.alignment = TextAlignmentOptions.Center;
             mesTxt.fontSize = 18f;
