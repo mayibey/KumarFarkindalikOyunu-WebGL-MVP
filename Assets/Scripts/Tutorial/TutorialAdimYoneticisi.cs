@@ -150,11 +150,12 @@ namespace KumarFarkindalik.Tutorial
                 mesajAksiyon = T3_TUTMA_B,
                 mesajKapanis = T3_TUTMA_C,
                 altBaslik = "KAÇIŞ ENGELLEME (TUTMA)",
-                yapilacaklar = new[] { "Oyun Modu 'Kaçış Engelleme' seç", "Uygula bas", "5 spin at" },
+                // PAKET 4-FAZ-3: TUTMA pattern motoru 6 spin (0/0/2000/0/0/2000) — pedagojik "kayıp → tutucu → kayıp → tutucu" ritmi
+                yapilacaklar = new[] { "Oyun Modu 'Kaçış Engelleme' seç", "Uygula bas", "6 spin at" },
                 sira = 3,
                 altSayac = "3/5",
                 vurguSelectorlari = new[] { "#oyunModu", "#senaryoUygulaBtn" },
-                gerekliSpin = 5,
+                gerekliSpin = 6,
                 parametreKosulu = () => PanelKopru.aktifSenaryo == "tutma",
                 degisimAnahtarlari = new[] { "oyunModu" },
             };
@@ -332,7 +333,10 @@ namespace KumarFarkindalik.Tutorial
             {
                 id = TutorialAdimId.T_SON,
                 aktifMi = false,
-                mesajBaslangic = TSON_BASLANGIC,
+                // PAKET 4-FAZ-3: TSON_BASLANGIC kaldırıldı (boş string) → AdimAkisi Modal A'yı skip eder.
+                // T_SON'a girince hemen OnTutorialBitti → TutorialBitti → KapanisAkisi → tek modal (Yeşilay + rehber).
+                // Eski TSON_BASLANGIC sabiti dosyada kalıyor (kullanılmıyor) — gelecek temizlikte silinebilir.
+                mesajBaslangic = "",
                 altBaslik = "TAMAMLANDI",
                 yapilacaklar = null,
                 sira = 11,
@@ -369,10 +373,11 @@ namespace KumarFarkindalik.Tutorial
             "Üçüncü senaryo: KAÇIŞ ENGELLEME (Tutma). Oyuncu çıkmaya niyetlenirse sistem küçük " +
             "kazanç hediyesi verir.";
         private const string T3_TUTMA_B =
-            "Oyun Modu'ndan 'Kaçış Engelleme' seç, Uygula bas. 5 spin at.";
+            "Oyun Modu'ndan 'Kaçış Engelleme' seç, Uygula bas. 6 spin at.";
         private const string T3_TUTMA_C =
-            "Çıkmak isteyen oyuncuya tam o anda kazanç. 'Şans dönüyor, çıkmayayım' der. " +
-            "Bağımlılığın tutkalı.";
+            "Gördün mü? 2 kez kayıp, sonra ÖDEME. Yine 2 kez kayıp, yine ÖDEME. " +
+            "Sistem seni tam çıkacağın anda küçük kazançla TUTUYOR. " +
+            "Asıl manipülasyon budur — kaybetmeni bekletip, küçük hediye vererek bir spin daha attırır.";
 
         private const string T3_KORUMA_A =
             "Dördüncü senaryo: BAKİYE TÜKETME (Koruma). Ödeme neredeyse durur — kasa korunur, " +

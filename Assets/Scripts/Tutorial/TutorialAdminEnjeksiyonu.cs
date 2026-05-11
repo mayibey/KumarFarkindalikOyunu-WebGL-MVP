@@ -79,6 +79,11 @@ namespace KumarFarkindalik.Tutorial
                 case "bonusTetikle":
                     BonusTetiklendi = true;
                     break;
+                case "oyunModu":
+                    // PAKET 4-FAZ-1: Tutorial T3 scripted spin motoru tetikleyici
+                    // value = "hook" / "yontma" / "tutma" / "koruma" / "normal"
+                    TutorialSenaryoMotoru.PatternBaslat(value);
+                    break;
             }
         }
 

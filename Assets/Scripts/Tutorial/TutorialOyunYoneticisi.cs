@@ -23,7 +23,7 @@ namespace KumarFarkindalik.Tutorial
     ///      + IframeKonumAyarla + PanelAcildiSonrasi (1.5sn bekle → AdminBahisAyarla(1) → AdimGec(T2))
     ///   3. AdimYoneticisi.OnAdimDegisti → AdimAkisi coroutine: modal göster, vurgu aç, AdimGoster göster
     ///   4. TutorialAdimGoster.OnIleriTiklandi → AdimYoneticisi.IleriTiklandi
-    ///   5. AdimYoneticisi.OnTutorialBitti → TamSaveTemizlik + TutorialPaneliKapat + LoadScene("01_GirisScene")
+    ///   5. AdimYoneticisi.OnTutorialBitti → KapanisAkisi: UI gizle + T_SON modal + SerbestTestModunaGec (sahne 04'te KALIR, LoadScene yok)
     /// </summary>
     [Preserve]
     public class TutorialOyunYoneticisi : MonoBehaviour
@@ -58,6 +58,11 @@ namespace KumarFarkindalik.Tutorial
         // === Tutorial flow state ===
         private bool _panelAcildi;
         private bool _ileriTiklandi; // AdimAkisi her başlangıçta reset; İLERİ butonu "atla" rolü
+
+        // PAKET 4-FAZ-2: T_SON sonrası serbest test → original değerler restore için cache
+        private static float _orijinalScatterChance = 0.005f;
+        private static int _orijinalBonusOtomatikPeriyot = 0;
+        private static int _orijinalBahis = 10;
 
         /// <summary>
         /// PAKET 3B-fix-4 (Sorun 2): 04 sahnesinde SenaryoYoneticisi GameObject YOK → toplamSpin
@@ -295,6 +300,8 @@ namespace KumarFarkindalik.Tutorial
                         }
                         TutorialSpinSayaci++;
                         Debug.Log($"[TutorialOyunYoneticisi] TutorialSpinSayaci = {TutorialSpinSayaci}");
+                        // PAKET 4-FAZ-1: Scripted spin motor sayacını ilerlet (idx → idx+1, sonraki spin için)
+                        TutorialSenaryoMotoru.SpinTamamlandi();
                     });
                     Debug.Log("[TutorialOyunYoneticisi] ButtonCevir tutorial spin listener eklendi.");
                 }
@@ -326,12 +333,21 @@ namespace KumarFarkindalik.Tutorial
             var oy = Object.FindObjectOfType<OyunYoneticisi>();
             if (oy != null)
             {
+                // PAKET 4-FAZ-2: Original değerleri cache (T_SON sonrası restore için)
+                _orijinalScatterChance = oy.scatterChanceNormal;
+                _orijinalBonusOtomatikPeriyot = oy.bonusOtomatikSpinPeriyodu;
+                _orijinalBahis = oy.BotIcinBahis;
+                Debug.Log($"[Tutorial] Original cache: scatter={_orijinalScatterChance}, periyot={_orijinalBonusOtomatikPeriyot}, bahis={_orijinalBahis}");
+
                 oy.AnlaticiBakiyeyiSifirla(50000);
                 oy.AdminBahisAyarla(1000);
                 // PAKET 3B-fix-13 (Bug 1): Tutorial boyunca otomatik bonus tetiklenmesini engelle.
                 // T11 manuel bonus AdminManuelBonusBaslat ile scatter'dan bağımsız çalışır.
                 oy.scatterChanceNormal = 0f;
                 Debug.Log("[TutorialOyunYoneticisi] Bakiye=50000 + Bahis=1000 + scatterChanceNormal=0 (eğitim modu).");
+
+                // PAKET 4-FAZ-2: Bahis kilit (T3+ boyunca 1000 TL sabit, T_SON sonrası açılır)
+                BahisKilitle(true);
             }
 
             // PAKET 3B-fix-10 (İş 3): Tutorial sırasında dikkat dağıtıcı butonları gizle
@@ -462,22 +478,81 @@ namespace KumarFarkindalik.Tutorial
 
         private IEnumerator KapanisAkisi()
         {
-            // Tüm vurguları kapat
+            Debug.Log("[Tutorial] T_SON başladı — serbest test moduna geçilecek (sahne 04'te kalınır)");
+
+            // 1. Vurguları kapat (panel.html iframe AÇIK KALSIN — kullanıcı serbest test'te kullanacak)
 #if UNITY_WEBGL && !UNITY_EDITOR
             TumVurgulariKapat();
-            TutorialPaneliKapat(); // panel.html iframe DOM remove
+            // TutorialPaneliKapat KALDIRILDI — iframe açık kalır, kullanıcı senaryo değiştirip test eder.
 #endif
-            TutorialAdimGoster.Ornek?.Gizle();
 
-            // Save temizlik (yeni başlangıç için)
-            SaveLoadServisi.Sil();
-            PlayerPrefs.DeleteKey("KullaniciAdi");
-            PlayerPrefs.DeleteKey("KumarRestoreModuActif");
-            PlayerPrefs.Save();
-            KullaniciVerileri.KullaniciAdi = "Misafir";
+            // 2. Tutorial UI elementlerini gizle
+            TutorialAdimGoster.Ornek?.Gizle();
+            if (_spinGuardOverlayGo != null) _spinGuardOverlayGo.SetActive(false);
+            var hudGo = GameObject.Find("TutorialBonusHUD");
+            if (hudGo != null) hudGo.SetActive(false);
 
             yield return new WaitForSeconds(0.3f);
-            SceneManager.LoadScene("01_GirisScene");
+
+            // 3. T_SON serbest test rehber modali
+            if (TutorialModalKopru.Ornek != null)
+            {
+                yield return TutorialModalKopru.Ornek.ModalGoster(
+                    "Tutorial tamamlandı. Artık istediğin gibi test edebilirsin. " +
+                    "AYARLAR butonuna basıp panel'i aç, farklı modlar dene, spin at, gör.\n\n" +
+                    "Bağımlılıkla mücadelede yalnız değilsin: Yeşilay Danışma Hattı 0850 222 0 191");
+            }
+
+            // 4. Serbest test moduna geç (restore + loop modu)
+            SerbestTestModunaGec();
+
+            // LoadScene KALDIRILDI — sahne 04'te kalır
+            Debug.Log("[Tutorial] Serbest test modu aktif.");
+        }
+
+        private void SerbestTestModunaGec()
+        {
+            var oy = Object.FindObjectOfType<OyunYoneticisi>();
+            if (oy != null)
+            {
+                // Restore: scatter + periyot original değerlerine geri
+                oy.scatterChanceNormal = _orijinalScatterChance;
+                oy.AdminSetBonusOtomatikSpinPeriyodu(_orijinalBonusOtomatikPeriyot);
+                Debug.Log($"[Tutorial] Restore: scatter={_orijinalScatterChance}, periyot={_orijinalBonusOtomatikPeriyot}");
+            }
+
+            // Bahis butonlarını AÇ (1000 TL sabit yerine kullanıcı serbest)
+            BahisKilitle(false);
+
+            // Pattern motoru loop moduna geç (kullanıcı senaryo değişip spin attıkça pattern başa sarar)
+            TutorialSenaryoMotoru.LoopModaGec();
+
+            // Hatırlatma sistemi devre dışı (tutorial bitti, idle uyarısı yok)
+            if (HatirlatmaServisi.Ornek != null)
+                HatirlatmaServisi.Ornek.gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        /// PAKET 4-FAZ-2: Bahis +/- butonlarını kilitle/aç. T3+ tutorial boyunca kilit, T_SON sonrası açık.
+        /// GameObject.Find ile çalışır — OyunYoneticisi public field null olabilir; sahne objesi referansı garantili.
+        /// </summary>
+        private static void BahisKilitle(bool kilitli)
+        {
+            float alpha = kilitli ? 0.5f : 1f;
+            bool interactable = !kilitli;
+            void Uygula(string isim)
+            {
+                var go = GameObject.Find(isim);
+                if (go == null) return;
+                var btn = go.GetComponent<Button>();
+                if (btn != null) btn.interactable = interactable;
+                var cg = go.GetComponent<CanvasGroup>();
+                if (cg == null) cg = go.AddComponent<CanvasGroup>();
+                cg.alpha = alpha;
+            }
+            Uygula("bahisArttirButon");
+            Uygula("bahisAzaltButon");
+            Debug.Log($"[Tutorial] Bahis butonları kilit={kilitli}");
         }
 
         // === Yardımcılar ===

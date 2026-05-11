@@ -31,6 +31,9 @@ namespace KumarFarkindalik.Tutorial
         private static readonly Color GRI          = new Color(0.78f, 0.78f, 0.80f, 1f);
         private static readonly Color BEYAZ        = new Color(0.95f, 0.97f, 1f, 1f);
         private static readonly Color KOYU_YAZI    = new Color(0.06f, 0.08f, 0.12f, 1f);    // altın buton üstü yazı
+        // PAKET 3B-fix-15: Yapılacaklar listesi satır renkleri (tamamlandı yeşil, beklemede beyaz)
+        private static readonly Color SATIR_BEYAZ  = new Color(1f, 1f, 1f, 1f);
+        private static readonly Color SATIR_YESIL  = new Color(0.30f, 0.80f, 0.35f, 1f);    // #4DCC59
 
         private const int TOPLAM_ADIM = 11;
         private const float PULSE_PERIYOT = 2.5f;
@@ -134,7 +137,9 @@ namespace KumarFarkindalik.Tutorial
                     if (_yapilacakSatirlari[i] == null) continue;
                     if (i < yapilacaklar.Length)
                     {
+                        // PAKET 3B-fix-15: Yeni adımda renk + prefix RESET (önceki adımın yeşilleri silinir)
                         _yapilacakSatirlari[i].text = "→ " + yapilacaklar[i];
+                        _yapilacakSatirlari[i].color = SATIR_BEYAZ;
                         _yapilacakSatirlari[i].gameObject.SetActive(true);
                     }
                     else
@@ -198,6 +203,73 @@ namespace KumarFarkindalik.Tutorial
             if (_root != null) _root.SetActive(false);
             if (_pulseCoroutine != null) { StopCoroutine(_pulseCoroutine); _pulseCoroutine = null; }
             if (_panelRt != null) _panelRt.localScale = Vector3.one;
+        }
+
+        // PAKET 3B-fix-15: Her frame yapılacaklar listesi renk + prefix polling.
+        // Aktif adım değişimleri (parametre değişti, spin sayısı arttı) anında satıra yansır.
+        // Overhead: en fazla ~5 anahtar HashSet.Contains O(1) + 3 satır text/color atama.
+        private void Update()
+        {
+            if (_root == null || !_root.activeSelf) return;
+            if (_yapilacaklarBlok == null || !_yapilacaklarBlok.activeSelf) return;
+            YapilacaklarRenkGuncelle();
+        }
+
+        /// <summary>
+        /// Strateji B (TumAnahtarlarTamam fallback):
+        ///   - i &lt; paramSayisi → degisimAnahtarlari[i] kontrolü
+        ///   - i == son madde + gerekliSpin > 0 + ekstra madde var → spin koşulu
+        ///   - aradakiler ("açma/uygula bas" maddeleri) → tüm anahtarlar tamam mı fallback
+        /// </summary>
+        public void YapilacaklarRenkGuncelle()
+        {
+            var oy = TutorialOyunYoneticisi.Ornek;
+            var ay = oy?.AdimYoneticisi;
+            var v = ay?.MevcutAdimVerisi;
+            if (v?.yapilacaklar == null || v.yapilacaklar.Length == 0) return;
+
+            int yapilacakSayisi = v.yapilacaklar.Length;
+            int paramSayisi = v.degisimAnahtarlari?.Length ?? 0;
+
+            // Tüm anahtarlar tamam mı (fallback için)
+            bool tumAnahtarlarTamam = paramSayisi > 0;
+            for (int k = 0; k < paramSayisi; k++)
+            {
+                if (!ay.AdimSirasindaDegistirildi(v.degisimAnahtarlari[k]))
+                {
+                    tumAnahtarlarTamam = false;
+                    break;
+                }
+            }
+
+            // Spin koşulu (delta = mevcut spin - adım başlangıç spin)
+            int delta = oy.TutorialSpinSayaci - ay.AdimBaslangicSpin;
+            bool spinTamam = v.gerekliSpin > 0 && delta >= v.gerekliSpin;
+
+            for (int i = 0; i < yapilacakSayisi && i < _yapilacakSatirlari.Length; i++)
+            {
+                if (_yapilacakSatirlari[i] == null) continue;
+
+                bool tamam;
+                bool sonMaddeSpin = (i == yapilacakSayisi - 1)
+                                    && v.gerekliSpin > 0
+                                    && yapilacakSayisi > paramSayisi;
+
+                if (sonMaddeSpin)
+                    tamam = spinTamam;
+                else if (i < paramSayisi)
+                    tamam = ay.AdimSirasindaDegistirildi(v.degisimAnahtarlari[i]);
+                else
+                    tamam = tumAnahtarlarTamam; // "açma/uygula bas" maddesi
+
+                string prefix = tamam ? "✓ " : "→ ";
+                string yeniText = prefix + v.yapilacaklar[i];
+                if (_yapilacakSatirlari[i].text != yeniText)
+                    _yapilacakSatirlari[i].text = yeniText;
+                Color hedefRenk = tamam ? SATIR_YESIL : SATIR_BEYAZ;
+                if (_yapilacakSatirlari[i].color != hedefRenk)
+                    _yapilacakSatirlari[i].color = hedefRenk;
+            }
         }
 
         // === Pulse coroutine — subtle dikkat çekme (SpinButtonAnimator pattern) ===

@@ -105,11 +105,15 @@ namespace KumarFarkindalik.Tutorial
                 return;
             }
 
-            Aktif = true;
+            // ★ PAKET 4-FAZ-1: Tutorial T3 motoru kod-içi pattern kullanır. 03 anlatıcı senaryosu (A0-A7)
+            // burada OYNATILMAZ. Aktif=false → ScriptedSenaryoCacheTazele Start'ta atlanır,
+            // SimuleEtVeKaydetImpl scripted hook'una girilmez, RNG akışına da geçilmez (motor takılır).
+            // TutorialSenaryoMotoru reflection ile _oncedenHesaplananKayit'ı override eder.
+            Aktif = false;
             int toplam = 0;
             for (int i = 0; i < _asamaListesi.asamaSpinleri.Count; i++)
                 toplam += _asamaListesi.asamaSpinleri[i]?.spinler?.Count ?? 0;
-            Debug.Log($"[ScriptedTANI] BAŞARILI! Aşama={_asamaListesi.asamaSpinleri.Count}, toplam spin={toplam}. Aktif=true.");
+            Debug.Log($"[ScriptedTANI] Asset yüklendi (Aşama={_asamaListesi.asamaSpinleri.Count}, toplam spin={toplam}) AMA Aktif=false (Tutorial T3 motoru yönetir).");
         }
 
         private void Start()
