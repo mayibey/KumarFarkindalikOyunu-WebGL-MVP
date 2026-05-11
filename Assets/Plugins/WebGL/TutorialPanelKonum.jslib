@@ -48,6 +48,42 @@ mergeInto(LibraryManager.library, {
         }, 100);
     },
 
+    // === Oyun modu dropdown — panel.html'deki <option>'lara title attribute ekle (native browser tooltip) ===
+
+    DropdownTooltipEkle: function() {
+        var iframe = document.getElementById('panelIframe');
+        if (!iframe) return;
+
+        var titles = {
+            'normal': 'Manipülasyon kapalı, oyun kendi kurallarında akar (RTP %94).',
+            'hook':   'Yeni oyuncuyu çekmek için: bol kazandırma, yumuşak kayıplar.',
+            'yontma': 'Oyuncu farkına varmadan azar azar kaybettirme.',
+            'tutma':  'Oyuncu çıkmaya niyetlenince küçük kazanç hediyesi ile tutar.',
+            'koruma': 'Ödeme neredeyse durur, bakiye tüketilir.'
+        };
+
+        var uygula = function() {
+            try {
+                var doc = iframe.contentDocument;
+                if (!doc) return false;
+                var sel = doc.getElementById('oyunModu');
+                if (!sel) return false;
+                var optionlar = sel.querySelectorAll('option');
+                if (optionlar.length === 0) return false;
+                optionlar.forEach(function(o) {
+                    if (titles[o.value]) o.title = titles[o.value];
+                });
+                return true;
+            } catch (e) { return false; }
+        };
+
+        iframe.addEventListener('load', uygula);
+        var deneme = 0;
+        var poll = setInterval(function() {
+            if (deneme++ > 20 || uygula()) clearInterval(poll);
+        }, 100);
+    },
+
     // === Tutorial vurgu — panel.html .apply-btn-pulsing class'ını ekle/çıkar + accordion auto-open ===
 
     VurguAc: function(selectorPtr) {

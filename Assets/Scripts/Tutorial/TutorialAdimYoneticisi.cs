@@ -116,11 +116,11 @@ namespace KumarFarkindalik.Tutorial
                 mesajAksiyon = T3_HOOK_B,
                 mesajKapanis = T3_HOOK_C,
                 altBaslik = "TAZE KAN (HOOK)",
-                yapilacaklar = new[] { "Oyun Modu 'Taze Kan' seç", "Uygula bas", "2 spin at" },
+                yapilacaklar = new[] { "Oyun Modu 'Taze Kan' seç", "Uygula bas", "5 spin at" },
                 sira = 3,
                 altSayac = "1/5",
                 vurguSelectorlari = new[] { "#oyunModu", "#senaryoUygulaBtn" },
-                gerekliSpin = 2,
+                gerekliSpin = 5,
                 parametreKosulu = () => PanelKopru.aktifSenaryo == "hook",
                 degisimAnahtarlari = new[] { "oyunModu" },
             };
@@ -133,11 +133,11 @@ namespace KumarFarkindalik.Tutorial
                 mesajAksiyon = T3_YONTMA_B,
                 mesajKapanis = T3_YONTMA_C,
                 altBaslik = "AZ AZ KAYIP (YONTMA)",
-                yapilacaklar = new[] { "Oyun Modu 'Az Az Kayıp' seç", "Uygula bas", "2 spin at" },
+                yapilacaklar = new[] { "Oyun Modu 'Az Az Kayıp' seç", "Uygula bas", "5 spin at" },
                 sira = 3,
                 altSayac = "2/5",
                 vurguSelectorlari = new[] { "#oyunModu", "#senaryoUygulaBtn" },
-                gerekliSpin = 2,
+                gerekliSpin = 5,
                 parametreKosulu = () => PanelKopru.aktifSenaryo == "yontma",
                 degisimAnahtarlari = new[] { "oyunModu" },
             };
@@ -150,11 +150,11 @@ namespace KumarFarkindalik.Tutorial
                 mesajAksiyon = T3_TUTMA_B,
                 mesajKapanis = T3_TUTMA_C,
                 altBaslik = "KAÇIŞ ENGELLEME (TUTMA)",
-                yapilacaklar = new[] { "Oyun Modu 'Kaçış Engelleme' seç", "Uygula bas", "2 spin at" },
+                yapilacaklar = new[] { "Oyun Modu 'Kaçış Engelleme' seç", "Uygula bas", "5 spin at" },
                 sira = 3,
                 altSayac = "3/5",
                 vurguSelectorlari = new[] { "#oyunModu", "#senaryoUygulaBtn" },
-                gerekliSpin = 2,
+                gerekliSpin = 5,
                 parametreKosulu = () => PanelKopru.aktifSenaryo == "tutma",
                 degisimAnahtarlari = new[] { "oyunModu" },
             };
@@ -167,11 +167,11 @@ namespace KumarFarkindalik.Tutorial
                 mesajAksiyon = T3_KORUMA_B,
                 mesajKapanis = T3_KORUMA_C,
                 altBaslik = "BAKİYE TÜKETME (KORUMA)",
-                yapilacaklar = new[] { "Oyun Modu 'Bakiye Tüketme' seç", "Uygula bas", "2 spin at" },
+                yapilacaklar = new[] { "Oyun Modu 'Bakiye Tüketme' seç", "Uygula bas", "5 spin at" },
                 sira = 3,
                 altSayac = "4/5",
                 vurguSelectorlari = new[] { "#oyunModu", "#senaryoUygulaBtn" },
-                gerekliSpin = 2,
+                gerekliSpin = 5,
                 parametreKosulu = () => PanelKopru.aktifSenaryo == "koruma",
                 degisimAnahtarlari = new[] { "oyunModu" },
             };
@@ -184,11 +184,11 @@ namespace KumarFarkindalik.Tutorial
                 mesajAksiyon = T3_NORMAL_B,
                 mesajKapanis = T3_NORMAL_C,
                 altBaslik = "NORMAL (KIYASLAMA)",
-                yapilacaklar = new[] { "Oyun Modu 'Normal' seç", "Uygula bas", "2 spin at" },
+                yapilacaklar = new[] { "Oyun Modu 'Normal' seç", "Uygula bas", "5 spin at" },
                 sira = 3,
                 altSayac = "5/5",
                 vurguSelectorlari = new[] { "#oyunModu", "#senaryoUygulaBtn" },
-                gerekliSpin = 2,
+                gerekliSpin = 5,
                 parametreKosulu = () => PanelKopru.aktifSenaryo == "normal",
                 degisimAnahtarlari = new[] { "oyunModu" },
             };
@@ -353,7 +353,7 @@ namespace KumarFarkindalik.Tutorial
             "İlk senaryo: TAZE KAN (Hook). Yeni gelen oyuncu için tasarlandı — bol kazandırma, " +
             "yumuşak kayıplar, 'şanslıyım' hissi.";
         private const string T3_HOOK_B =
-            "Oyun Modu'ndan 'Taze Kan' seç, Uygula bas. 2 spin at.";
+            "Oyun Modu'ndan 'Taze Kan' seç, Uygula bas. 5 spin at.";
         private const string T3_HOOK_C =
             "Gördün mü? Yeni oyuncu hemen kazandı, oyuna bağlandı. Sömürünün başlangıcı — kanca.";
 
@@ -361,7 +361,7 @@ namespace KumarFarkindalik.Tutorial
             "İkinci senaryo: AZ AZ KAYIP (Yontma). Oyuncu farkına varmadan, küçük küçük kaybettirme. " +
             "Bakiye sessizce erir.";
         private const string T3_YONTMA_B =
-            "Oyun Modu'ndan 'Az Az Kayıp' seç, Uygula bas. 2 spin at.";
+            "Oyun Modu'ndan 'Az Az Kayıp' seç, Uygula bas. 5 spin at.";
         private const string T3_YONTMA_C =
             "Kazanç hiç gelmedi ya da bahsin altında küçük şey. Oyuncu 'fark etmedim' der. Sessiz sömürü.";
 
@@ -369,7 +369,7 @@ namespace KumarFarkindalik.Tutorial
             "Üçüncü senaryo: KAÇIŞ ENGELLEME (Tutma). Oyuncu çıkmaya niyetlenirse sistem küçük " +
             "kazanç hediyesi verir.";
         private const string T3_TUTMA_B =
-            "Oyun Modu'ndan 'Kaçış Engelleme' seç, Uygula bas. 2 spin at.";
+            "Oyun Modu'ndan 'Kaçış Engelleme' seç, Uygula bas. 5 spin at.";
         private const string T3_TUTMA_C =
             "Çıkmak isteyen oyuncuya tam o anda kazanç. 'Şans dönüyor, çıkmayayım' der. " +
             "Bağımlılığın tutkalı.";
@@ -378,7 +378,7 @@ namespace KumarFarkindalik.Tutorial
             "Dördüncü senaryo: BAKİYE TÜKETME (Koruma). Ödeme neredeyse durur — kasa korunur, " +
             "oyuncu son kuruşa kadar kaybeder.";
         private const string T3_KORUMA_B =
-            "Oyun Modu'ndan 'Bakiye Tüketme' seç, Uygula bas. 2 spin at.";
+            "Oyun Modu'ndan 'Bakiye Tüketme' seç, Uygula bas. 5 spin at.";
         private const string T3_KORUMA_C =
             "Kazanç yok. Oyuncu son kuruşuna kadar kaybediyor. Senaryonun ilk üç adımı bağladı, " +
             "son adım sömürdü. Tükeniş aşaması.";
@@ -387,7 +387,7 @@ namespace KumarFarkindalik.Tutorial
             "Son senaryo: NORMAL OYUN. Manipülasyon kapalı, oyun kendi kurallarında akıyor. " +
             "Bunu diğer 4 ile kıyaslayacağız.";
         private const string T3_NORMAL_B =
-            "Oyun Modu'ndan 'Normal' seç, Uygula bas. 2 spin at.";
+            "Oyun Modu'ndan 'Normal' seç, Uygula bas. 5 spin at.";
         private const string T3_NORMAL_C =
             "Fark hissettin mi? Diğer 4 senaryo bütün aksiyon kullanıcının dopaminini, parasını, " +
             "beklentilerini kontrol etmek için kurulmuş. Normal oyun = manipülasyonsuz. " +

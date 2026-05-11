@@ -2009,6 +2009,40 @@ function dbg(text) {
           if (p) p.remove();
       }
 
+  function _DropdownTooltipEkle() {
+          var iframe = document.getElementById('panelIframe');
+          if (!iframe) return;
+  
+          var titles = {
+              'normal': 'Manipülasyon kapalı, oyun kendi kurallarında akar (RTP %94).',
+              'hook':   'Yeni oyuncuyu çekmek için: bol kazandırma, yumuşak kayıplar.',
+              'yontma': 'Oyuncu farkına varmadan azar azar kaybettirme.',
+              'tutma':  'Oyuncu çıkmaya niyetlenince küçük kazanç hediyesi ile tutar.',
+              'koruma': 'Ödeme neredeyse durur, bakiye tüketilir.'
+          };
+  
+          var uygula = function() {
+              try {
+                  var doc = iframe.contentDocument;
+                  if (!doc) return false;
+                  var sel = doc.getElementById('oyunModu');
+                  if (!sel) return false;
+                  var optionlar = sel.querySelectorAll('option');
+                  if (optionlar.length === 0) return false;
+                  optionlar.forEach(function(o) {
+                      if (titles[o.value]) o.title = titles[o.value];
+                  });
+                  return true;
+              } catch (e) { return false; }
+          };
+  
+          iframe.addEventListener('load', uygula);
+          var deneme = 0;
+          var poll = setInterval(function() {
+              if (deneme++ > 20 || uygula()) clearInterval(poll);
+          }, 100);
+      }
+
   function _GetJSLoadTimeInfo(loadTimePtr) {
     loadTimePtr = (loadTimePtr >> 2);
     HEAPU32[loadTimePtr] = Module.pageStartupTime || 0;
@@ -18207,6 +18241,7 @@ var wasmImports = {
   "BahisPaneliKapat": _BahisPaneliKapat,
   "BonusBitisPopupAc": _BonusBitisPopupAc,
   "BonusBitisPopupKapat": _BonusBitisPopupKapat,
+  "DropdownTooltipEkle": _DropdownTooltipEkle,
   "GetJSLoadTimeInfo": _GetJSLoadTimeInfo,
   "GetJSMemoryInfo": _GetJSMemoryInfo,
   "HavaiFisekBaslat": _HavaiFisekBaslat,

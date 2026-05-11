@@ -42,6 +42,7 @@ namespace KumarFarkindalik.Tutorial
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")] private static extern void PaneliSolaAl();
+        [DllImport("__Internal")] private static extern void DropdownTooltipEkle();
         [DllImport("__Internal")] private static extern void VurguAc(string selector);
         [DllImport("__Internal")] private static extern void VurguKapat(string selector);
         [DllImport("__Internal")] private static extern void TumVurgulariKapat();
@@ -56,6 +57,7 @@ namespace KumarFarkindalik.Tutorial
 
         // === Tutorial flow state ===
         private bool _panelAcildi;
+        private bool _ileriTiklandi; // AdimAkisi her başlangıçta reset; İLERİ butonu "atla" rolü
 
         /// <summary>
         /// PAKET 3B-fix-4 (Sorun 2): 04 sahnesinde SenaryoYoneticisi GameObject YOK → toplamSpin
@@ -253,26 +255,25 @@ namespace KumarFarkindalik.Tutorial
 
         private IEnumerator AdimAkisi(AdimVerisi v)
         {
-            Debug.Log($"[TutorialOyunYoneticisi] AdimAkisi başladı: {v.id}, ModalKopru.Ornek null={TutorialModalKopru.Ornek == null}, Goster.Ornek null={TutorialAdimGoster.Ornek == null}");
+            Debug.Log($"[TutorialOyunYoneticisi] AdimAkisi başladı: {v.id}");
+            _ileriTiklandi = false; // PAKET 3B-fix-6: yeni adım, atla flag'i reset
 
             // === Modal A (mesajBaslangic) — her zaman göster ===
             if (TutorialModalKopru.Ornek != null && !string.IsNullOrEmpty(v.mesajBaslangic))
                 yield return TutorialModalKopru.Ornek.ModalGoster(v.mesajBaslangic);
 
-            // PAKET 3B-fix-4 (Sorun 1): pasif adımlarda Modal A kapanışında otomatik geçiş.
-            // T_SON ayrı kontrol gereksiz — IleriTiklandi içinde T_SON ise OnTutorialBitti tetiklenir,
-            // diğer pasif (T2) ise sıradaki adıma geçer.
+            // Pasif (T2, T_SON): Modal A sonrası otomatik geçiş
             if (!v.aktifMi)
             {
                 AdimYoneticisi?.IleriTiklandi();
                 yield break;
             }
 
-            // === Modal B (mesajAksiyon) — varsa (aktif adımlar için) ===
+            // === Modal B (mesajAksiyon) ===
             if (TutorialModalKopru.Ornek != null && !string.IsNullOrEmpty(v.mesajAksiyon))
                 yield return TutorialModalKopru.Ornek.ModalGoster(v.mesajAksiyon);
 
-            // === Vurgu aç (panel.html) ===
+            // === Vurgu aç ===
             if (v.vurguSelectorlari != null)
             {
                 foreach (var sel in v.vurguSelectorlari)
@@ -283,40 +284,40 @@ namespace KumarFarkindalik.Tutorial
                 }
             }
 
-            // === AdimGoster göster (sira + altBaslik + yapılacaklar + altSayac) ===
-            int sira = v.sira; // PAKET 3B-fix-5: T3_* için hepsi 3 (override)
-            Debug.Log($"[TutorialOyunYoneticisi] AdimGoster.AdimGoster çağrılıyor: sira={sira}, altSayac={v.altSayac ?? "-"}");
+            // === AdimGoster göster + İLERİ ANINDA AKTİF (atla butonu) ===
+            int sira = v.sira;
+            Debug.Log($"[TutorialOyunYoneticisi] AdimGoster.AdimGoster: sira={sira}, altSayac={v.altSayac ?? "-"}");
             TutorialAdimGoster.Ornek?.AdimGoster(sira, v.altBaslik, v.yapilacaklar, v.altSayac);
+            TutorialAdimGoster.Ornek?.IleriAktif(true); // PAKET 3B-fix-6: hemen aktif — kullanıcı atlayabilir
 
-            // === Aktif adım: KosulSagla yield-while ile bekle ===
-            // (pasif adımlar Modal A sonrası IleriTiklandi ile zaten çıktı — buraya gelmez)
-            while (true)
+            // === Koşul VEYA İLERİ tıklamasını bekle ===
+            while (!_ileriTiklandi)
             {
                 int spin = TutorialAdimYoneticisi.MevcutSpinAl();
                 if (AdimYoneticisi != null && AdimYoneticisi.KosulSagla(spin)) break;
                 yield return null;
             }
-            Debug.Log($"[TutorialOyunYoneticisi] Koşul sağlandı: {v.id}");
+            Debug.Log($"[TutorialOyunYoneticisi] Adım bitti (ileriTiklandi={_ileriTiklandi}): {v.id}");
 
-            // === Modal C (mesajKapanis) — pedagojik özet ===
-            if (!string.IsNullOrEmpty(v.mesajKapanis))
-            {
-                TutorialAdimGoster.Ornek?.Gizle();
+            // === Vurgu kapat + AdimGoster gizle ===
+            TutorialAdimGoster.Ornek?.Gizle();
 #if UNITY_WEBGL && !UNITY_EDITOR
-                TumVurgulariKapat();
+            TumVurgulariKapat();
 #endif
-                if (TutorialModalKopru.Ornek != null)
-                    yield return TutorialModalKopru.Ornek.ModalGoster(v.mesajKapanis);
-                TutorialAdimGoster.Ornek?.AdimGoster(sira, v.altBaslik, v.yapilacaklar, v.altSayac); // sayaç tekrar göster
-            }
 
-            // === İLERİ aktif (kullanıcı tıklayınca sonraki adım) ===
-            TutorialAdimGoster.Ornek?.IleriAktif(true);
+            // === Modal C (pedagojik özet — atlasa da gösterilsin) ===
+            if (TutorialModalKopru.Ornek != null && !string.IsNullOrEmpty(v.mesajKapanis))
+                yield return TutorialModalKopru.Ornek.ModalGoster(v.mesajKapanis);
+
+            // === Modal C kapandı → ANINDA sıradaki adım ===
+            AdimYoneticisi?.IleriTiklandi();
         }
 
         private void IleriTiklandi()
         {
-            AdimYoneticisi?.IleriTiklandi();
+            // PAKET 3B-fix-6: İLERİ "atla" butonu — flag set, AdimAkisi yield-while görür ve Modal C'ye geçer.
+            // Doğrudan AdimYoneticisi.IleriTiklandi() çağırmıyoruz; otomatik geçiş Modal C sonrası.
+            _ileriTiklandi = true;
         }
 
         // === T_SON kapanış akışı ===
@@ -419,6 +420,7 @@ namespace KumarFarkindalik.Tutorial
             yield return new WaitForSeconds(0.1f);
 #if UNITY_WEBGL && !UNITY_EDITOR
             PaneliSolaAl();
+            DropdownTooltipEkle(); // PAKET 3B-fix-7: oyun modu <option> title attribute (native tooltip)
 #endif
         }
 
