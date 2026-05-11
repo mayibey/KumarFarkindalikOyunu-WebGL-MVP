@@ -14,7 +14,9 @@ namespace KumarFarkindalik.Tutorial
         {
             T1, T2,
             T3_HOOK, T3_YONTMA, T3_TUTMA, T3_KORUMA, T3_NORMAL,
-            T4, T5, T6, T7, T8, T9, T10, T11,
+            T4, T5,
+            T6_YENI_OYUNCU,  // PAKET 6C2: Yeni adım — operatörün hook fazı toggle'ı
+            T6, T7, T8, T9, T10, T11,
             T_SON
         }
 
@@ -204,7 +206,8 @@ namespace KumarFarkindalik.Tutorial
                 mesajAksiyon = T4_AKSIYON,
                 mesajKapanis = T4_KAPANIS,
                 altBaslik = "ÇARPAN OLASILIĞI",
-                yapilacaklar = new[] { "Olasılık Ayarları'nı aç", "Çarpan olasılığını %15 yap", "3 spin at" },
+                // PAKET 5: Accordion otomatik açılıyor (VurguAc) → "aç" maddesi çıkarıldı
+                yapilacaklar = new[] { "Çarpan olasılığını %15 yap", "3 spin at" },
                 sira = 4,
                 vurguSelectorlari = new[] { "#carpanOlasilik", "#carpanOlasilikInput" },
                 gerekliSpin = 3,
@@ -220,13 +223,31 @@ namespace KumarFarkindalik.Tutorial
                 mesajAksiyon = T5_AKSIYON,
                 mesajKapanis = T5_KAPANIS,
                 altBaslik = "BONUS SEMBOLÜ",
-                yapilacaklar = new[] { "Bonus olasılığını %5 yap", "5 spin at" },
+                // PAKET 6C1: 1 spin yeterli — scripted scatter pattern bonus tetikler
+                yapilacaklar = new[] { "Bonus sembolü olasılığını arttır", "Uygula bas", "1 spin at" },
                 sira = 5,
                 vurguSelectorlari = new[] { "#bonusSembolOlasilik" },
-                gerekliSpin = 5,
+                gerekliSpin = 1,
                 parametreKosulu = () => PanelKopru.bonusOtomatikSpinPeriyodu > 0
                                         && PanelKopru.bonusOtomatikSpinPeriyodu <= 25,
                 degisimAnahtarlari = new[] { "bonusOtomatikOran" },
+            };
+
+            _adimlar[TutorialAdimId.T6_YENI_OYUNCU] = new AdimVerisi
+            {
+                id = TutorialAdimId.T6_YENI_OYUNCU,
+                aktifMi = true,
+                mesajBaslangic = T6YO_BASLANGIC,
+                mesajAksiyon = T6YO_AKSIYON,
+                mesajKapanis = T6YO_KAPANIS,
+                altBaslik = "YENİ OYUNCU MODU",
+                // PAKET 6C2: 2-aşamalı adım — 3 spin (kapalı) + toggle + 3 spin (açık) = 6 spin total
+                yapilacaklar = new[] { "Yeni Oyuncu Modu'nu aç", "6 spin at" },
+                sira = 6,
+                vurguSelectorlari = new[] { "#yeniOyuncuToggle" },
+                gerekliSpin = 6,
+                parametreKosulu = () => PanelKopru.yeniOyuncuModu,
+                degisimAnahtarlari = new[] { "yeniOyuncu" },
             };
 
             _adimlar[TutorialAdimId.T6] = new AdimVerisi
@@ -236,12 +257,13 @@ namespace KumarFarkindalik.Tutorial
                 mesajBaslangic = T6_BASLANGIC,
                 mesajAksiyon = T6_AKSIYON,
                 mesajKapanis = T6_KAPANIS,
-                altBaslik = "KAZANDIRMA SIKLIĞI",
-                yapilacaklar = new[] { "Manipülasyon Ayarları'nı aç", "Kazandırma sıklığını 7 yap", "5 spin at" },
-                sira = 6,
+                altBaslik = "5'DE KAÇ KAZANÇ?",
+                // PAKET 6C3: 5'lik N mantığı — slider değeri/2 = 5'de N kazanç
+                yapilacaklar = new[] { "Kazandırma sıklığı slider'ını ayarla", "Uygula bas", "5 spin at" },
+                sira = 7,
                 vurguSelectorlari = new[] { "#kazanmaOrani" },
                 gerekliSpin = 5,
-                parametreKosulu = () => PanelKopru.kazanmaOrani >= 60f,
+                parametreKosulu = () => PanelKopru.kazanmaOrani > 0f,
                 degisimAnahtarlari = new[] { "kazanmaOrani" },
             };
 
@@ -252,15 +274,13 @@ namespace KumarFarkindalik.Tutorial
                 mesajBaslangic = T7_BASLANGIC,
                 mesajAksiyon = T7_AKSIYON,
                 mesajKapanis = T7_KAPANIS,
-                altBaslik = "ÖDEME ARALIĞI",
-                yapilacaklar = new[] { "Min'i 0.5 yap", "Maks'ı 2 yap", "5 spin at" },
-                sira = 7,
+                altBaslik = "MAKS VE MİN MANİPÜLASYON",
+                // PAKET 6D: 2-aşamalı — Aşama 1 (maks=3, 3 spin), ara modal, Aşama 2 (min=3 maks=5, 3 spin)
+                yapilacaklar = new[] { "Ödeme MAKS'ı 3'e ayarla", "Uygula bas, 3 spin at", "MIN=3 MAKS=5 yap, 3 spin daha at" },
+                sira = 8,
                 vurguSelectorlari = new[] { "#minCarpan", "#maksCarpan" },
-                gerekliSpin = 5,
-                parametreKosulu = () => PanelKopru.minCarpan > 0f
-                                        && PanelKopru.minCarpan <= 0.5f
-                                        && PanelKopru.maksCarpan > 0f
-                                        && PanelKopru.maksCarpan <= 2f,
+                gerekliSpin = 6,
+                parametreKosulu = () => PanelKopru.minCarpan > 0f && PanelKopru.maksCarpan > 0f,
                 degisimAnahtarlari = new[] { "minCarpan", "maksCarpan" },
             };
 
@@ -271,12 +291,13 @@ namespace KumarFarkindalik.Tutorial
                 mesajBaslangic = T8_BASLANGIC,
                 mesajAksiyon = T8_AKSIYON,
                 mesajKapanis = T8_KAPANIS,
-                altBaslik = "NEAR MISS",
-                yapilacaklar = new[] { "Near miss'i 8 yap", "5 spin at" },
-                sira = 8,
+                altBaslik = "5'DE KAÇ NEAR MISS?",
+                // PAKET 6C3: 5'lik N mantığı — slider değeri/2 = 5'de N near miss
+                yapilacaklar = new[] { "Near miss slider'ını ayarla", "Uygula bas", "5 spin at" },
+                sira = 9,
                 vurguSelectorlari = new[] { "#yakinKacirma" },
                 gerekliSpin = 5,
-                parametreKosulu = () => PanelKopru.yakinKacirma >= 70f,
+                parametreKosulu = () => PanelKopru.yakinKacirma > 0f,
                 degisimAnahtarlari = new[] { "yakinKacirma" },
             };
 
@@ -287,11 +308,12 @@ namespace KumarFarkindalik.Tutorial
                 mesajBaslangic = T9_BASLANGIC,
                 mesajAksiyon = T9_AKSIYON,
                 mesajKapanis = T9_KAPANIS,
-                altBaslik = "KAÇIŞ FRENLEME",
-                yapilacaklar = new[] { "Üst üste kayıp limitini 3 yap", "8 spin at" },
-                sira = 9,
+                altBaslik = "ÇIKMA ANINDA YAKALAMA",
+                // PAKET 6D: 3 kayıp + 1 kazanç (limit'e ulaşıldığında otomatik frenleme)
+                yapilacaklar = new[] { "Kaçış limiti kutusuna 3 yaz", "Uygula bas", "4 spin at" },
+                sira = 10,
                 vurguSelectorlari = new[] { "#ardisikKayip" },
-                gerekliSpin = 8,
+                gerekliSpin = 4,
                 parametreKosulu = () => PanelKopru.ardisikKayipLimiti > 0
                                         && PanelKopru.ardisikKayipLimiti <= 4,
                 degisimAnahtarlari = new[] { "ardisikKayip" },
@@ -304,11 +326,13 @@ namespace KumarFarkindalik.Tutorial
                 mesajBaslangic = T10_BASLANGIC,
                 mesajAksiyon = T10_AKSIYON,
                 mesajKapanis = T10_KAPANIS,
-                altBaslik = "ÇARPAN ZORLA",
-                yapilacaklar = new[] { "Anlık Müdahale'yi aç", "×500 butonuna bas", "1 spin at" },
-                sira = 10,
-                vurguSelectorlari = new[] { "button[onclick=\"carpanZorla(500)\"]" },
-                gerekliSpin = 1,
+                altBaslik = "AÇIK MI KAPALI MI?",
+                // PAKET 6D: 2-aşamalı — Aşama 1 (toggle KAPALI + ×500 = ödeme yok), ara modal,
+                // Aşama 2 (toggle AÇIK + ×500 = mega kazanç)
+                yapilacaklar = new[] { "×500 butonuna bas (toggle KAPALI)", "'Çarpan Ödeme' toggle aç", "×500 tekrar bas" },
+                sira = 11,
+                vurguSelectorlari = new[] { "#carpanOdemeToggle", "button[onclick=\"carpanZorla(500)\"]" },
+                gerekliSpin = 2,
                 parametreKosulu = () => TutorialAdminEnjeksiyonu.SonCarpanZorla == 500,
                 degisimAnahtarlari = new[] { "carpanZorla" },
             };
@@ -322,7 +346,7 @@ namespace KumarFarkindalik.Tutorial
                 mesajKapanis = T11_KAPANIS,
                 altBaslik = "BONUS TETİKLE",
                 yapilacaklar = new[] { "Bonus Tetikle butonuna bas" },
-                sira = 11,
+                sira = 12,
                 vurguSelectorlari = new[] { ".trigger-btn" },
                 gerekliSpin = 0,
                 parametreKosulu = () => TutorialAdminEnjeksiyonu.BonusTetiklendi,
@@ -339,7 +363,7 @@ namespace KumarFarkindalik.Tutorial
                 mesajBaslangic = "",
                 altBaslik = "TAMAMLANDI",
                 yapilacaklar = null,
-                sira = 11,
+                sira = 12,
                 gerekliSpin = 0,
             };
         }
@@ -401,7 +425,7 @@ namespace KumarFarkindalik.Tutorial
         // === T4-T11 (mevcut) ===
 
         private const string T4_BASLANGIC =
-            "Şimdi Olasılık Ayarları'na giriyoruz. İlk parametre: çarpan ne sıklıkla düşsün.";
+            "Olasılık Ayarları bölümü otomatik açıldı. İlk parametre: çarpan ne sıklıkla düşsün.";
         private const string T4_AKSIYON =
             "Çarpan olasılığını %15 yap (default %2). Sonra 3 spin at.";
         private const string T4_KAPANIS =
@@ -409,52 +433,97 @@ namespace KumarFarkindalik.Tutorial
             "kullanır — ama beyninde 'her an büyük kazanç olabilir' yanılgısı yaratır.";
 
         private const string T5_BASLANGIC =
-            "Bonus oyunu — slot oyunlarının en bağımlılık yapan parçası.";
+            "Şimdi bonus sembolüne bakalım. Yıldız (scatter) sembolü nadir düşer ama operatör " +
+            "sıklığını arttırabilir. Slider'ı maxa kadar arttır, ne olacağını gör.";
         private const string T5_AKSIYON =
-            "Bonus olasılığını %5'e çıkar (default %0.5). Sonra 5 spin at.";
+            "Bonus sembolü olasılığını arttır, Uygula bas. 1 spin at.";
         private const string T5_KAPANIS =
-            "Bonus daha sık tetikleniyor şimdi. Oyuncu 'her an büyük bonus gelebilir' diye " +
-            "oyunu bırakamaz. Beklenti = bağımlılık.";
+            "Gördün mü? Slider'ı arttırdın → scatter düştü → bonus oyun açıldı. " +
+            "Operatör bunu sana 'sürpriz' gibi sunar ama aslında 'şimdi büyük kazanca yakınsın, " +
+            "devam et' tuzağıdır.";
 
+        // PAKET 6C2 — T6_YENI_OYUNCU (Hook Fazı toggle)
+        private const string T6YO_BASLANGIC =
+            "Şimdi operatörün GİZLİ silahını göreceğiz: Yeni Oyuncu Modu.\n\n" +
+            "Bu toggle açıkken sistem seni 'yeni gelen' sayar — sana ÖZEL bir rejim uygular: " +
+            "bol kazandırma, yumuşak kayıplar. 'Şanslı bir gün' hissi.";
+        private const string T6YO_AKSIYON =
+            "Önce 3 spin at (toggle KAPALI iken — fark için referans). " +
+            "Sonra Manipülasyon Ayarları'nda 'Yeni Oyuncu Modu' toggle'ını AÇ ve 3 spin daha at.";
+        public const string T6YO_ARA_MODAL =
+            "3 spin attık (toggle kapalı). Sonuç: NET kayıp — normal RTP davranışı.\n\n" +
+            "Şimdi Manipülasyon Ayarları'nda 'Yeni Oyuncu Modu' toggle'ını AÇ. " +
+            "Ardından 3 spin daha at. Fark net olacak.";
+        private const string T6YO_KAPANIS =
+            "Gördün mü? Aynı slot, aynı bahis. Toggle KAPALI → NET kayıp, AÇIK → NET kazanç. " +
+            "Operatör seni 'yeni' diye işaretler, sistem sana hediye verir, sen 'şanslı bir gün' sanırsın.\n\n" +
+            "Bu manipülasyonun adı HOOK FAZI — yeni oyuncu için tasarlanmış kanca.";
+
+        // PAKET 6C3: T6 (Kazandırma) — 5'lik N mantığı, dinamik pattern motor
         private const string T6_BASLANGIC =
-            "Manipülasyon Ayarları başladı. En kritik parametre: kazandırma sıklığı.";
+            "Şimdi 'Kazandırma Sıklığı'na bakalım. Bu slider 5 spin'in kaçında kullanıcıya " +
+            "kazanç verileceğini belirler. Slider'ı ayarla — sen seçeceksin.";
         private const string T6_AKSIYON =
-            "Kazandırma sıklığını 7'ye çıkar (default 3). 5 spin at.";
+            "Slider'ı kaydır. Slider değeri ÷ 2 = 5'de kaç kazanç. Örneğin slider 6 → 5'de 3 kazanç. " +
+            "Uygula bas, 5 spin at.";
         private const string T6_KAPANIS =
-            "10 spinden 7'sinde 'kazandım' hissi. Aslında küçük kazançlar bahsin altında — " +
-            "net kayıptasın ama beyne kazanç sinyali gidiyor. Klasik psikolojik tuzak.";
+            "Slider 5'de N seçtin. 5 spin'in N tanesi kazanç oldu, kalanı kayıp. " +
+            "Operatör bunu istediği gibi ayarlar — sen 'şanslı bir gün' veya 'şanssız' sanırsın " +
+            "ama her şey ayarlanmıştır.";
 
+        // PAKET 6D: T7 (Ödeme Aralığı) — 2-aşamalı maks 3x vs min 3-maks 5x karşılaştırma
         private const string T7_BASLANGIC =
-            "Şimdi ödeme aralığı. Kullanıcı kazandığında ne kadar ödenecek, sen belirleyeceksin.";
+            "Ödeme aralığı — operatör kazancın TUTAR aralığını sınırlar. " +
+            "Bahis × min ile bahis × maks arasında ödeme yapar. Önce maksimumu görelim.";
         private const string T7_AKSIYON =
-            "Min'i 0.5, Maks'ı 2 yap. 5 spin at.";
+            "Ödeme MAKS'ı 3'e ayarla (bahis × 3 = 3000 TL tavan). " +
+            "Uygula bas, 3 spin at. Kazançlar 0-3000 TL arasında olacak.";
+        public const string T7_ARA_MODAL =
+            "3 spin attık (maks 3x). Şimdi MIN ve MAKS'ı BİRLİKTE ayarlayalım.\n\n" +
+            "Ödeme MIN'i 3, MAKS'ı 5 yap. 3 spin daha at. Bu sefer kazançlar 3000-5000 TL arasına GARANTİ.";
         private const string T7_KAPANIS =
-            "Kullanıcı kazansa bile bahsinin biraz üstünde ödeme alıyor. Görünmez sömürü — " +
-            "'kazandım' diyor ama gerçekte bahsi karşılamıyor bile.";
+            "İlk 3 spin'de kazanç düşüktü (maks 3x = dar aralık). " +
+            "İkinci 3 spin'de kazanç GARANTİ 3-5x oldu (kayıp imkansız). " +
+            "Operatör bunu kullanıcıya 'şanslı seri' gibi gösterir — gerçekte algoritma her şeyi kontrol eder.";
 
+        // PAKET 6C3: T8 (Near Miss) — 5'lik N mantığı, dinamik pattern motor (7-sembol layout)
         private const string T8_BASLANGIC =
-            "Bağımlılık biliminin en güçlü kavramı: near miss — neredeyse oluyordu hissi.";
+            "Near miss — 'neredeyse kazanıyordun' hissi. Slot oyununun en güçlü tuzaklarından biri. " +
+            "Slider'ı ayarla, kaç near miss istediğini sen seç.";
         private const string T8_AKSIYON =
-            "Near miss'i 8'e çıkar (default 4). 5 spin at.";
+            "Slider 5'de N near miss demek. 5 spin'in N tanesinde 'tam azıcık eksik' kümeler düşecek. " +
+            "Uygula bas, 5 spin at.";
         private const string T8_KAPANIS =
-            "Beynin 'çok yaklaşmıştım, bir sonrakinde olacak' diyor. Aslında hiç kazanmadın " +
-            "ama dopamin salgılandı. Slot tasarımının en sinsi parçası.";
+            "Gördün mü? 7 aynı sembol düştü ama 1 EKSİK — cluster 8'den başlıyor. " +
+            "Beynin 'KAZANIYORDUM' der, oysa hiç şansın yoktu. " +
+            "Bu manipülasyon dopamin pompalar — bağımlılığın temel mekanizması.";
 
+        // PAKET 6D: T9 (Kaçış Frenleme) — 3 kayıp + 1 kazanç deterministik demo
         private const string T9_BASLANGIC =
-            "Oyuncu çıkmak istediğinde sistem bunu bilir ve müdahale eder.";
+            "Kaçış Frenleme — kullanıcı kaybedip kaybedip çıkma noktasına geldiğinde operatör NE YAPAR? " +
+            "Onu tutmak için otomatik kazanç verir. Sen limit yaz: kaç kayıp sonra otomatik kazanç gelsin.";
         private const string T9_AKSIYON =
-            "Üst üste kayıp limitini 3 yap (default 8). 8 spin at.";
+            "Kaçış limiti kutusuna 3 yaz. Yani 3 kayıptan sonra sistem otomatik kazanç verecek. " +
+            "Uygula bas, 4 spin at.";
         private const string T9_KAPANIS =
-            "3 kayıptan sonra sistem küçük kazanç verdi — kullanıcı 'çıkmayayım, şans dönüyor' " +
-            "diye kaldı. Pes etme noktası tasarlanmış. Sömürünün son aşaması.";
+            "İlk 3 spin tam kayıp. Tam çıkmak istedin değil mi? Ama 4. spin kazanç geldi — " +
+            "sistemin 'frenleme' anı. 'İyi ki kalmışım' dedirten o anlar. " +
+            "Bu manipülasyon T3_TUTMA'yla kombine, ama daha PROGRAMLI: limit operatörün elinde.";
 
+        // PAKET 6D: T10 (Çarpan Zorla) — 2-aşamalı açık/kapalı toggle demo
         private const string T10_BASLANGIC =
-            "Anlık Müdahale — operatörün gerçek zamanlı eli. Şimdi en güçlü silahını göreceksin.";
+            "Çarpan Zorla — operatörün son silahı. İstediği anda çarpan düşürür. " +
+            "Ama bir tuzak var: 'Çarpan Ödeme' toggle KAPALI iken çarpan düşse de ÖDEME YAPILMAZ. " +
+            "Sırayla görelim.";
         private const string T10_AKSIYON =
-            "×500 butonuna bas, sonra spin at.";
+            "Önce 'Çarpan Ödeme' toggle KAPALI iken çarpan zorla. ×500 butonuna bas. Spinin sonucunu izle.";
+        public const string T10_ARA_MODAL =
+            "Gördün mü? ×500 çarpan düştü AMA meyve dizilimi cluster oluşturmadı — ödeme YAPILMADI.\n\n" +
+            "Şimdi 'Çarpan Ödeme' toggle'ını AÇ ve ×500 butonuna tekrar bas.";
         private const string T10_KAPANIS =
-            "Az önce 'şanslı an' tasarlandı. Operatör kasada otururken istediği anda istediği " +
-            "büyüklükte çarpan düşürebilir. 'İnanılmaz kazanç' tesadüf değil — düğmeye basıldı.";
+            "Aynı işlem, ama bu sefer ödeme yapan meyve dizilimi + çarpan düştü → MEGA KAZANÇ. " +
+            "Operatör bu toggle'ı kullanarak 'şu kullanıcıya bonus vereceğim' der, gerisini ayarlar. " +
+            "Manipülasyon %100 kontrol.";
 
         private const string T11_BASLANGIC =
             "Son silah: bonus oyununu elle tetikleme.";

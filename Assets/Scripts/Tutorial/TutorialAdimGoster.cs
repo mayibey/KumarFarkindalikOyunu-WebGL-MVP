@@ -35,7 +35,7 @@ namespace KumarFarkindalik.Tutorial
         private static readonly Color SATIR_BEYAZ  = new Color(1f, 1f, 1f, 1f);
         private static readonly Color SATIR_YESIL  = new Color(0.30f, 0.80f, 0.35f, 1f);    // #4DCC59
 
-        private const int TOPLAM_ADIM = 11;
+        private const int TOPLAM_ADIM = 12; // PAKET 6C2: T6_YENI_OYUNCU eklendi (11 → 12)
         private const float PULSE_PERIYOT = 2.5f;
         private const float PULSE_OLCEK = 1.012f;
 
@@ -263,7 +263,15 @@ namespace KumarFarkindalik.Tutorial
                     tamam = tumAnahtarlarTamam; // "açma/uygula bas" maddesi
 
                 string prefix = tamam ? "✓ " : "→ ";
-                string yeniText = prefix + v.yapilacaklar[i];
+                // PAKET 5: Spin sayacı son maddeye entegre — "5 spin at (2/5)"
+                string asilMetin = v.yapilacaklar[i];
+                if (sonMaddeSpin)
+                {
+                    int saymaDelta = oy.TutorialSpinSayaci - ay.AdimBaslangicSpin;
+                    int kalan = Mathf.Min(Mathf.Max(0, saymaDelta), v.gerekliSpin);
+                    asilMetin += $" ({kalan}/{v.gerekliSpin})";
+                }
+                string yeniText = prefix + asilMetin;
                 if (_yapilacakSatirlari[i].text != yeniText)
                     _yapilacakSatirlari[i].text = yeniText;
                 Color hedefRenk = tamam ? SATIR_YESIL : SATIR_BEYAZ;
@@ -314,7 +322,7 @@ namespace KumarFarkindalik.Tutorial
             _panelRt = panel.GetComponent<RectTransform>();
             _panelRt.anchorMin = _panelRt.anchorMax = new Vector2(0.5f, 0.5f);
             _panelRt.pivot = new Vector2(0.5f, 0.5f);
-            _panelRt.sizeDelta = new Vector2(280f, 320f);
+            _panelRt.sizeDelta = new Vector2(280f, 260f); // PAKET 5: ILERLEME bloğu kaldırıldı, yükseklik 320→260
             _panelRt.anchoredPosition = new Vector2(801.18f, 222f);
             panel.GetComponent<Image>().color = BALON_RENK;
 
@@ -336,65 +344,42 @@ namespace KumarFarkindalik.Tutorial
             // Header alt aksan çizgisi (2px ALTIN_ACIK)
             CizgiEkle(panel.transform, new Vector2(0f, -60f), new Vector2(240f, 2f), ALTIN_ACIK);
 
-            // Sayaç başlık (header içinde, fontSize 22 + outline)
-            _sayacText = MetinYarat(header.transform, "Baslik", new Vector2(0f, -6f),
-                new Vector2(260f, 28f), 18f, FontStyles.Bold, ALTIN_ACIK,
+            // PAKET 5: Sayaç başlık fontSize 18→24
+            _sayacText = MetinYarat(header.transform, "Baslik", new Vector2(0f, -4f),
+                new Vector2(260f, 30f), 24f, FontStyles.Bold, ALTIN_ACIK,
                 TextAlignmentOptions.Center, "ADIM ?/11");
             _sayacText.outlineWidth = 0.18f;
             _sayacText.outlineColor = ALTIN_KOYU;
 
-            // Alt başlık (header alt yarısı)
-            _altBaslikText = MetinYarat(header.transform, "AltBaslik", new Vector2(0f, -32f),
-                new Vector2(260f, 20f), 14f, FontStyles.Bold, ALTIN_RENK,
+            // PAKET 5: Alt başlık fontSize 14→18, pos -32→-34
+            _altBaslikText = MetinYarat(header.transform, "AltBaslik", new Vector2(0f, -34f),
+                new Vector2(260f, 22f), 18f, FontStyles.Bold, ALTIN_RENK,
                 TextAlignmentOptions.Center, "");
             _altBaslikText.characterSpacing = 4f;
 
-            // === YAPILACAKLAR BLOK ===
+            // === YAPILACAKLAR BLOK (PAKET 5: fontlar büyütüldü 13→16/18, satır yüksekliği 25→30) ===
             _yapilacaklarBlok = new GameObject("YapilacaklarBlok", typeof(RectTransform));
             _yapilacaklarBlok.transform.SetParent(panel.transform, false);
             var ybRt = _yapilacaklarBlok.GetComponent<RectTransform>();
             ybRt.anchorMin = ybRt.anchorMax = new Vector2(0.5f, 1f);
             ybRt.pivot = new Vector2(0.5f, 1f);
-            ybRt.sizeDelta = new Vector2(280f, 110f);
-            ybRt.anchoredPosition = new Vector2(0f, -68f);
+            ybRt.sizeDelta = new Vector2(280f, 170f); // 110→170 (ilerleme bloğu yok, yapılacaklar tek blok)
+            ybRt.anchoredPosition = new Vector2(0f, -70f);
 
             MetinYarat(_yapilacaklarBlok.transform, "Baslik_NeYapmali", new Vector2(0f, 0f),
-                new Vector2(240f, 22f), 13f, FontStyles.Bold, BEYAZ,
+                new Vector2(240f, 28f), 18f, FontStyles.Bold, BEYAZ,
                 TextAlignmentOptions.Left, "NE YAPMALISIN:");
 
             for (int i = 0; i < 3; i++)
             {
                 _yapilacakSatirlari[i] = MetinYarat(_yapilacaklarBlok.transform, $"Yap{i}",
-                    new Vector2(10f, -26f - i * 25f), new Vector2(230f, 22f), 13f,
+                    new Vector2(10f, -34f - i * 32f), new Vector2(230f, 28f), 16f,
                     FontStyles.Normal, GRI, TextAlignmentOptions.Left, "");
             }
 
-            // === Ayraç (yapılacaklar - ilerleme arası) ===
-            CizgiEkle(panel.transform, new Vector2(0f, -188f), new Vector2(240f, 1f), ALTIN_KOYU);
-
-            // === İLERLEME BLOK ===
-            _ilerlemeBlok = new GameObject("IlerlemeBlok", typeof(RectTransform));
-            _ilerlemeBlok.transform.SetParent(panel.transform, false);
-            var ibRt = _ilerlemeBlok.GetComponent<RectTransform>();
-            ibRt.anchorMin = ibRt.anchorMax = new Vector2(0.5f, 1f);
-            ibRt.pivot = new Vector2(0.5f, 1f);
-            ibRt.sizeDelta = new Vector2(280f, 75f);
-            ibRt.anchoredPosition = new Vector2(0f, -193f);
-
-            MetinYarat(_ilerlemeBlok.transform, "Baslik_Ilerleme", new Vector2(0f, 0f),
-                new Vector2(240f, 22f), 13f, FontStyles.Bold, BEYAZ,
-                TextAlignmentOptions.Left, "İLERLEME:");
-
-            _parametreText = MetinYarat(_ilerlemeBlok.transform, "Parametre",
-                new Vector2(10f, -26f), new Vector2(230f, 22f), 13f, FontStyles.Normal, GRI,
-                TextAlignmentOptions.Left, "⌛ Parametre: bekleniyor");
-
-            _spinText = MetinYarat(_ilerlemeBlok.transform, "Spin",
-                new Vector2(10f, -50f), new Vector2(230f, 22f), 13f, FontStyles.Normal, GRI,
-                TextAlignmentOptions.Left, "—");
-
-            // === Ayraç (ilerleme - İLERİ buton arası) ===
-            CizgiEkle(panel.transform, new Vector2(0f, -273f), new Vector2(240f, 1f), ALTIN_KOYU);
+            // PAKET 5: 1. Ayraç + ILERLEME BLOK + 2. Ayraç KALDIRILDI.
+            // _ilerlemeBlok, _parametreText, _spinText field'ları null kalır (IlerlemeGuncelle null check ile safe).
+            // Spin sayacı son yapılacaklar maddesine entegre — YapilacaklarRenkGuncelle dinamik günceller.
 
             // === İLERİ butonu ===
             var btnGo = new GameObject("IleriButon",

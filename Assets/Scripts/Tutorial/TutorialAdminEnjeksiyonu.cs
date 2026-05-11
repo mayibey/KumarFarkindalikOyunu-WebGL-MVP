@@ -84,6 +84,77 @@ namespace KumarFarkindalik.Tutorial
                     // value = "hook" / "yontma" / "tutma" / "koruma" / "normal"
                     TutorialSenaryoMotoru.PatternBaslat(value);
                     break;
+                case "yeniOyuncu":
+                    // PAKET 6C2: T6_YENI_OYUNCU aşama 2 — toggle açıldığında ikinci pattern başlat
+                    if (value == "True" || value == "true")
+                    {
+                        var ay2 = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
+                        if (ay2 != null && ay2.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T6_YENI_OYUNCU
+                            && TutorialOyunYoneticisi.T6AraModalGosterildi
+                            && !TutorialOyunYoneticisi.T6IkinciAsamaBasladi)
+                        {
+                            TutorialOyunYoneticisi.T6IkinciAsamaBasladi = true;
+                            TutorialSenaryoMotoru.PatternBaslat("yeniOyuncu_acik");
+                            Debug.Log("[Tutorial T6_YENI_OYUNCU] Toggle açıldı → ikinci pattern başladı");
+                        }
+                    }
+                    break;
+                case "kazanmaOrani":
+                    // PAKET 6C3: T7 (Kazandırma) — slider değeri/2 = 5'de N kazanç
+                    {
+                        var ayK = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
+                        if (ayK != null && ayK.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T6
+                            && int.TryParse(value, out int kazSliderVal))
+                        {
+                            int n = Mathf.Clamp(kazSliderVal / 2, 0, 5);
+                            TutorialSenaryoMotoru.DinamikPatternBaslat("kazandirma", n);
+                        }
+                    }
+                    break;
+                case "yakinKacirma":
+                    // PAKET 6C3: T9 (Near Miss) — slider değeri/2 = 5'de N near miss
+                    {
+                        var ayN = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
+                        if (ayN != null && ayN.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T8
+                            && int.TryParse(value, out int nmSliderVal))
+                        {
+                            int n = Mathf.Clamp(nmSliderVal / 2, 0, 5);
+                            TutorialSenaryoMotoru.DinamikPatternBaslat("nearMiss", n);
+                        }
+                    }
+                    break;
+                case "maksCarpan":
+                    // PAKET 6D: T7 (Ödeme) aşama 2 — kullanıcı MIN=3, MAKS=5 ayarladığında ikinci pattern
+                    {
+                        var ayO = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
+                        if (ayO != null && ayO.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T7
+                            && TutorialOyunYoneticisi.T8AraModalGosterildi
+                            && !TutorialOyunYoneticisi.T8IkinciAsamaBasladi
+                            && float.TryParse(value, System.Globalization.NumberStyles.Float,
+                                              System.Globalization.CultureInfo.InvariantCulture, out float maks)
+                            && maks >= 4.5f && maks <= 5.5f)
+                        {
+                            TutorialOyunYoneticisi.T8IkinciAsamaBasladi = true;
+                            TutorialSenaryoMotoru.PatternBaslat("odeme_aralik3_5");
+                            Debug.Log("[Tutorial T8 Ödeme] MAKS=5 set → ikinci pattern başladı");
+                        }
+                    }
+                    break;
+                case "carpanOdeme":
+                    // PAKET 6D: T11 (Çarpan Zorla) aşama 2 — toggle açıldığında ikinci pattern
+                    if (value == "True" || value == "true")
+                    {
+                        var ayC = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
+                        if (ayC != null && ayC.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T10
+                            && TutorialOyunYoneticisi.T11AraModalGosterildi
+                            && !TutorialOyunYoneticisi.T11IkinciAsamaBasladi)
+                        {
+                            TutorialOyunYoneticisi.T11IkinciAsamaBasladi = true;
+                            TutorialSenaryoMotoru.PatternBaslat("carpanZorla_acikOdeme");
+                            Debug.Log("[Tutorial T11 Çarpan Zorla] carpanOdemeToggle açıldı → ikinci pattern başladı");
+                        }
+                    }
+                    break;
             }
         }
 

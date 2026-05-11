@@ -141,6 +141,61 @@ mergeInto(LibraryManager.library, {
     TutorialPaneliKapat: function() {
         var ov = document.getElementById('panelOverlay');
         if (ov) ov.remove();
+    },
+
+    // === Dropdown auto-revert: Uygula basılmadan blur/focus loss olursa eski değere geri dön ===
+    // panel.html: <select id="oyunModu"> + <button id="senaryoUygulaBtn">. Tutorial kullanıcısı yanlışlıkla
+    // dropdown'u değiştirip Uygula'ya basmadan tıklamadan kaçarsa, seçim sıfırlanır → kafa karışıklığı yok.
+    DropdownAutoRevertEkle: function() {
+        var iframe = document.getElementById('panelIframe');
+        if (!iframe) return;
+
+        var uygula = function() {
+            try {
+                var doc = iframe.contentDocument;
+                if (!doc) return false;
+                var sel = doc.getElementById('oyunModu');
+                if (!sel) return false;
+                var uygulaBtn = doc.getElementById('senaryoUygulaBtn');
+                if (!uygulaBtn) return false;
+                // Idempotent: aynı select'e iki kez kurulmasın
+                if (sel.getAttribute('data-tutorial-revert') === '1') return true;
+                sel.setAttribute('data-tutorial-revert', '1');
+
+                var sonUygulanan = sel.value; // başlangıç değeri
+                var bekliyor = false;
+
+                uygulaBtn.addEventListener('click', function() {
+                    sonUygulanan = sel.value;
+                    bekliyor = false;
+                    console.log('[Tutorial] Senaryo uygulandı:', sonUygulanan);
+                });
+
+                sel.addEventListener('change', function() {
+                    if (sel.value !== sonUygulanan) bekliyor = true;
+                });
+
+                sel.addEventListener('blur', function() {
+                    if (bekliyor) {
+                        sel.value = sonUygulanan;
+                        bekliyor = false;
+                        console.log('[Tutorial] Dropdown revert ->', sonUygulanan);
+                    }
+                });
+
+                console.log('[Tutorial] Dropdown auto-revert kuruldu, baslangic:', sonUygulanan);
+                return true;
+            } catch (e) {
+                console.warn('[Tutorial] DropdownAutoRevertEkle hata:', e);
+                return false;
+            }
+        };
+
+        iframe.addEventListener('load', uygula);
+        var deneme = 0;
+        var poll = setInterval(function() {
+            if (deneme++ > 20 || uygula()) clearInterval(poll);
+        }, 100);
     }
 
 });

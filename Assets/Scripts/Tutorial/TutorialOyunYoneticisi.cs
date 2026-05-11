@@ -43,6 +43,7 @@ namespace KumarFarkindalik.Tutorial
 #if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")] private static extern void PaneliSolaAl();
         [DllImport("__Internal")] private static extern void DropdownTooltipEkle();
+        [DllImport("__Internal")] private static extern void DropdownAutoRevertEkle(); // PAKET 5: Uygula basmadan kaçınca revert
         [DllImport("__Internal")] private static extern void VurguAc(string selector);
         [DllImport("__Internal")] private static extern void VurguKapat(string selector);
         [DllImport("__Internal")] private static extern void TumVurgulariKapat();
@@ -69,6 +70,16 @@ namespace KumarFarkindalik.Tutorial
         private bool _spinBekliyor = false;
         private bool _oncekiSpinCalisiyor = false;
         private OyunYoneticisi _oyRef;
+
+        // PAKET 6C2: T6_YENI_OYUNCU 2-aşamalı akış state (TutorialAdminEnjeksiyonu okur)
+        public static bool T6AraModalGosterildi { get; set; }
+        public static bool T6IkinciAsamaBasladi { get; set; }
+
+        // PAKET 6D: T8 (Ödeme) + T11 (Çarpan Zorla) 2-aşamalı akış state
+        public static bool T8AraModalGosterildi { get; set; }
+        public static bool T8IkinciAsamaBasladi { get; set; }
+        public static bool T11AraModalGosterildi { get; set; }
+        public static bool T11IkinciAsamaBasladi { get; set; }
 
         // PAKET 4-HOTFIX: T3_TUTMA pedagojik ara modaller (Spin 2 sonrası tahmin, Spin 3 sonrası devam)
         private const string TAHMIN_MODAL =
@@ -402,6 +413,51 @@ namespace KumarFarkindalik.Tutorial
             // AdimGoster'ı gizle (modal süresince görünmesin, modal sonra göster)
             TutorialAdimGoster.Ornek?.Gizle();
 
+            // PAKET 6C1/6C2/6C3: adım bazlı pattern motor yönetimi
+            if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T5)
+            {
+                TutorialSenaryoMotoru.PatternBaslat("bonusTest");
+            }
+            else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T6_YENI_OYUNCU)
+            {
+                T6AraModalGosterildi = false;
+                T6IkinciAsamaBasladi = false;
+                TutorialSenaryoMotoru.PatternBaslat("yeniOyuncu_kapali");
+            }
+            else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T6) // KAZANDIRMA (sira=7)
+            {
+                // PAKET 6C3: Default N=3 (slider değişene kadar). Slider hareket → AyarDegisti güncellenir.
+                TutorialSenaryoMotoru.DinamikPatternBaslat("kazandirma", 3);
+            }
+            else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T8) // NEAR MISS (sira=9)
+            {
+                // PAKET 6C3: Default N=2. Slider değişince DinamikPatternBaslat yeniden çağrılır.
+                TutorialSenaryoMotoru.DinamikPatternBaslat("nearMiss", 2);
+            }
+            else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T7) // ÖDEME ARALIĞI (sira=8, UI "T8")
+            {
+                // PAKET 6D: 2-aşamalı maks 3x → min/maks 3-5x
+                T8AraModalGosterildi = false;
+                T8IkinciAsamaBasladi = false;
+                TutorialSenaryoMotoru.PatternBaslat("odeme_dusukMaks");
+            }
+            else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T9) // KAÇIŞ FRENLEME (sira=10, UI "T10")
+            {
+                // PAKET 6D: 3 kayıp + 1 kazanç deterministik
+                TutorialSenaryoMotoru.PatternBaslat("kacisFrenle");
+            }
+            else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T10) // ÇARPAN ZORLA (sira=11, UI "T11")
+            {
+                // PAKET 6D: 2-aşamalı çarpan ödeme kapalı → açık demo
+                T11AraModalGosterildi = false;
+                T11IkinciAsamaBasladi = false;
+                TutorialSenaryoMotoru.PatternBaslat("carpanZorla_kapaliOdeme");
+            }
+            else if ((int)v.id >= (int)TutorialAdimYoneticisi.TutorialAdimId.T4)
+            {
+                TutorialSenaryoMotoru.Durdur();
+            }
+
             StartCoroutine(AdimAkisi(v));
         }
 
@@ -459,6 +515,26 @@ namespace KumarFarkindalik.Tutorial
             }
             Debug.Log($"[TutorialOyunYoneticisi] Adım bitti (ileriTiklandi={_ileriTiklandi}): {v.id}");
 
+            // PAKET 6A: T11 bonus yarım kesme — Bonus Tetikle basıldı, 3sn "Bonus Oyun Başladı"
+            // görseli hissedildi, sonra reflection cleanup ile 10 free spin oynamadan kes.
+            if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T11)
+            {
+                Debug.Log("[Tutorial T11] Bonus tetiklendi, 3sn görsel hissedilecek...");
+                yield return new WaitForSecondsRealtime(3f);
+                T11BonusYarimKes();
+                yield return new WaitForSecondsRealtime(0.3f); // state stabilize + UI refresh
+            }
+
+            // PAKET 6C1: T5 bonus yarım kesme — scatter pattern 4 scatter düşürür, OyunYoneticisi
+            // bonus tetikler, 3sn hissedilir, sonra T11 ile aynı reflection cleanup uygulanır.
+            if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T5)
+            {
+                Debug.Log("[Tutorial T5] Scatter bonus tetiklendi, 3sn görsel hissedilecek...");
+                yield return new WaitForSecondsRealtime(3f);
+                T11BonusYarimKes(); // aynı reflection cleanup (bonusAktif=false, bonusHakKalan=0, spinCalisiyor=false)
+                yield return new WaitForSecondsRealtime(0.3f);
+            }
+
             // === Vurgu kapat + AdimGoster gizle ===
             TutorialAdimGoster.Ornek?.Gizle();
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -506,10 +582,9 @@ namespace KumarFarkindalik.Tutorial
                 if (_spinBekliyor)
                 {
                     _spinBekliyor = false;
-                    TutorialSpinSayaci++;
-                    Debug.Log($"[TutorialOyunYoneticisi] Spin tamamlandı, TutorialSpinSayaci={TutorialSpinSayaci}");
-                    TutorialSenaryoMotoru.SpinTamamlandi();
-                    TutorialT3TutmaModalKontrol();
+                    // PAKET 6A: SpinCalisiyorMu false oluyor AMA counting up / kazanç UI animation
+                    // hâlâ devam ediyor olabilir → 0.8sn gecikmeli sayaç++ ile Modal C "zart" açılma fix.
+                    StartCoroutine(SayaciGecikmeliArtir());
                 }
             }
 
@@ -547,6 +622,94 @@ namespace KumarFarkindalik.Tutorial
             // TutorialModalKopru kendi raycast bloker'i var (önceki paket) → SpinGuardOverlay'a dokunmaya gerek yok
             if (TutorialModalKopru.Ornek != null)
                 yield return TutorialModalKopru.Ornek.ModalGoster(metin);
+        }
+
+        // PAKET 6A: Spin bitiş sonrası gecikmeli sayaç++ — Modal C'nin counting up / kazanç UI animation
+        // tamamlanmadan açılmasını engeller (önceki SpinCalisiyorMu transition fix yetersizdi).
+        private IEnumerator SayaciGecikmeliArtir()
+        {
+            yield return new WaitForSecondsRealtime(0.8f);
+            TutorialSpinSayaci++;
+            Debug.Log($"[TutorialOyunYoneticisi] Spin tamamlandı (0.8sn gecikmeli), TutorialSpinSayaci={TutorialSpinSayaci}");
+            TutorialSenaryoMotoru.SpinTamamlandi();
+            TutorialT3TutmaModalKontrol();
+            TutorialT6YeniOyuncuModalKontrol();
+            TutorialT8OdemeModalKontrol();
+            TutorialT11CarpanZorlaModalKontrol();
+        }
+
+        // PAKET 6D: T8 (Ödeme) 3. spin sonrası ara modal — kullanıcıya MIN/MAKS ayarlama daveti
+        private void TutorialT8OdemeModalKontrol()
+        {
+            if (AdimYoneticisi == null) return;
+            if (AdimYoneticisi.mevcutAdim != TutorialAdimYoneticisi.TutorialAdimId.T7) return; // T7 enum = "T8 Ödeme"
+            if (T8AraModalGosterildi) return;
+
+            int sayac = TutorialSpinSayaci - AdimYoneticisi.AdimBaslangicSpin;
+            if (sayac == 3)
+            {
+                T8AraModalGosterildi = true;
+                Debug.Log("[Tutorial T8 Ödeme] Aşama 1 bitti (3 spin), ara modal + motor pasif");
+                TutorialSenaryoMotoru.Durdur();
+                StartCoroutine(GosterAraModal(TutorialAdimYoneticisi.T7_ARA_MODAL));
+            }
+        }
+
+        // PAKET 6D: T11 (Çarpan Zorla) 1. spin sonrası ara modal — toggle aç daveti
+        private void TutorialT11CarpanZorlaModalKontrol()
+        {
+            if (AdimYoneticisi == null) return;
+            if (AdimYoneticisi.mevcutAdim != TutorialAdimYoneticisi.TutorialAdimId.T10) return; // T10 enum = "T11 Çarpan Zorla"
+            if (T11AraModalGosterildi) return;
+
+            int sayac = TutorialSpinSayaci - AdimYoneticisi.AdimBaslangicSpin;
+            if (sayac == 1)
+            {
+                T11AraModalGosterildi = true;
+                Debug.Log("[Tutorial T11 Çarpan Zorla] Aşama 1 bitti (1 spin), ara modal + motor pasif");
+                TutorialSenaryoMotoru.Durdur();
+                StartCoroutine(GosterAraModal(TutorialAdimYoneticisi.T10_ARA_MODAL));
+            }
+        }
+
+        // PAKET 6C2: T6_YENI_OYUNCU 3. spin sonrası ara modal — kullanıcıya toggle'ı açma daveti
+        private void TutorialT6YeniOyuncuModalKontrol()
+        {
+            if (AdimYoneticisi == null) return;
+            if (AdimYoneticisi.mevcutAdim != TutorialAdimYoneticisi.TutorialAdimId.T6_YENI_OYUNCU) return;
+            if (T6AraModalGosterildi) return;
+
+            int sayac = TutorialSpinSayaci - AdimYoneticisi.AdimBaslangicSpin;
+            if (sayac == 3)
+            {
+                T6AraModalGosterildi = true;
+                Debug.Log("[Tutorial T6_YENI_OYUNCU] Aşama 1 bitti (3 spin), ara modal açılıyor + motor pasif");
+                // Motor pasif — kullanıcı toggle'ı açana kadar bekleyecek (AyarDegisti yeniOyuncu_acik başlatır)
+                TutorialSenaryoMotoru.Durdur();
+                StartCoroutine(GosterAraModal(TutorialAdimYoneticisi.T6YO_ARA_MODAL));
+            }
+        }
+
+        // PAKET 6A: T11 bonus oyun yarım kesme — bonus oyun başlatıldı, 3sn görsel hissedildi,
+        // sonra reflection ile state cleanup → 10 free spin oynamadan T_SON'a geçilir.
+        // Önceki Fix 4 (TutorialAdminEnjeksiyonu) T11 muafiyetli; burada KASITLI cleanup yapılır.
+        private static void T11BonusYarimKes()
+        {
+            var oy = Object.FindObjectOfType<OyunYoneticisi>();
+            if (oy == null) return;
+
+            var bonusAktifField = typeof(OyunYoneticisi).GetField("bonusAktif",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            var bonusHakKalanField = typeof(OyunYoneticisi).GetField("bonusHakKalan",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            var spinCalisiyorField = typeof(OyunYoneticisi).GetField("spinCalisiyor",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+
+            bonusAktifField?.SetValue(oy, false);
+            bonusHakKalanField?.SetValue(oy, 0);
+            spinCalisiyorField?.SetValue(oy, false);
+
+            Debug.Log("[Tutorial T11] Bonus yarım kesildi: bonusAktif=false, bonusHakKalan=0, spinCalisiyor=false");
         }
 
         // === T_SON kapanış akışı ===
@@ -709,6 +872,7 @@ namespace KumarFarkindalik.Tutorial
 #if UNITY_WEBGL && !UNITY_EDITOR
             PaneliSolaAl();
             DropdownTooltipEkle(); // PAKET 3B-fix-7: oyun modu <option> title attribute (native tooltip)
+            DropdownAutoRevertEkle(); // PAKET 5: Uygula basılmadan blur olursa dropdown eski değere döner
 #endif
         }
 

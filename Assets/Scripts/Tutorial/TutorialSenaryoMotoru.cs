@@ -28,7 +28,10 @@ namespace KumarFarkindalik.Tutorial
         private struct SpinDesen
         {
             public int sembolId;  // -1 = kayıp grid (cluster yok); 0..7 = meyve sembol
-            public int adet;      // 8-12 (8-9 → x8-9, 10-11 → x10-11, 12+ → x12+)
+            public int adet;      // 8-12 (8-9 → x8-9, 10-11 → x10-11, 12+ → x12+); 7 = near miss
+            // PAKET 6D — T11 (Çarpan Zorla) demo: çarpan grid'e CARPAN_SEMBOL yerleştir
+            public bool carpanZorla;
+            public int carpanDeger; // örn 500
         }
 
         // Pattern dictionary — bahis=1000 TL, tumble YOK (tek paytable hit / tek tumble adımı)
@@ -71,14 +74,73 @@ namespace KumarFarkindalik.Tutorial
                 new SpinDesen { sembolId = 0, adet = 8 },   // 200 TL (orijinal 250 → 200)
                 new SpinDesen { sembolId = -1, adet = 0 },
             },
+            // PAKET 6C1 — T5 BONUS SEMBOLÜ: 1 spin, 4 scatter → ScatterEsik (default 4) aşılır → bonus tetiklenir
+            ["bonusTest"] = new[]
+            {
+                new SpinDesen { sembolId = SCATTER_PATTERN_FLAG, adet = 4 },
+            },
+            // PAKET 6C2 — T6_YENI_OYUNCU aşama 1: toggle KAPALI iken 3 spin (kayıp-küçük kazanç-kayıp, NET kayıp)
+            ["yeniOyuncu_kapali"] = new[]
+            {
+                new SpinDesen { sembolId = -1, adet = 0 },   // Kayıp
+                new SpinDesen { sembolId = 3, adet = 8 },    // 500 TL (x8-9[3]=0.5)
+                new SpinDesen { sembolId = -1, adet = 0 },   // Kayıp
+            },
+            // PAKET 6C2 — T6_YENI_OYUNCU aşama 2: toggle AÇIK iken 3 spin (kazanç-kayıp-kazanç, NET kazanç)
+            ["yeniOyuncu_acik"] = new[]
+            {
+                new SpinDesen { sembolId = 3, adet = 12 },   // 2500 TL (x12+[3]=2.5)
+                new SpinDesen { sembolId = -1, adet = 0 },   // Kayıp
+                new SpinDesen { sembolId = 4, adet = 12 },   // 3000 TL (x12+[4]=3.0)
+            },
+            // PAKET 6D — T8 (Ödeme) aşama 1: maks 3x dar aralık (kazançlar <3000, biri kayıp)
+            ["odeme_dusukMaks"] = new[]
+            {
+                new SpinDesen { sembolId = 3, adet = 8 },    // 500 TL (0.5x)
+                new SpinDesen { sembolId = -1, adet = 0 },   // Kayıp
+                new SpinDesen { sembolId = 4, adet = 8 },    // 600 TL (0.6x)
+            },
+            // PAKET 6D — T8 aşama 2: 3-5x garanti aralık (kazanç kesin, kayıp yok)
+            ["odeme_aralik3_5"] = new[]
+            {
+                new SpinDesen { sembolId = 4, adet = 12 },   // 3000 TL (3.0x — min)
+                new SpinDesen { sembolId = 5, adet = 12 },   // 5000 TL (5.0x — maks)
+                new SpinDesen { sembolId = 4, adet = 12 },   // 3000 TL
+            },
+            // PAKET 6D — T10 (Kaçış): 3 kayıp + 1 kazanç (limit anında otomatik frenleme)
+            ["kacisFrenle"] = new[]
+            {
+                new SpinDesen { sembolId = -1, adet = 0 },   // Spin 1: Kayıp
+                new SpinDesen { sembolId = -1, adet = 0 },   // Spin 2: Kayıp
+                new SpinDesen { sembolId = -1, adet = 0 },   // Spin 3: Kayıp (limit'e ulaşıldı)
+                new SpinDesen { sembolId = 5, adet = 10 },   // Spin 4: 2000 TL KAZANÇ (frenleme)
+            },
+            // PAKET 6D — T11 (Çarpan Zorla) aşama 1: çarpan düşer AMA ödeme yapacak cluster yok
+            ["carpanZorla_kapaliOdeme"] = new[]
+            {
+                new SpinDesen { sembolId = -1, adet = 0, carpanZorla = true, carpanDeger = 500 },
+            },
+            // PAKET 6D — T11 aşama 2: cluster + çarpan → büyük kazanç
+            ["carpanZorla_acikOdeme"] = new[]
+            {
+                new SpinDesen { sembolId = 5, adet = 12, carpanZorla = true, carpanDeger = 500 },
+            },
             // "normal" → bu dict'te yok → PatternBaslat motor pasif → RNG akışı
         };
+
+        // PAKET 6C1: Scatter pattern özel flag (sembolId yerine kullanılır, scatterIdx'e dönüştürülür DesenToKayit'ta)
+        private const int SCATTER_PATTERN_FLAG = -10;
 
         // === Static state — OnDestroy'da reset (03 kontaminasyon güvenliği) ===
         private static string _aktifPattern = "";
         private static int _spinIdx = 0;
         private static bool _motorAktif = false;
         private static bool _loopAktif = false;
+
+        // PAKET 6C3: Dinamik pattern state (T7 Kazandırma + T9 Near Miss — 5'de N mantığı)
+        private static int _dinamikN = 3;
+        private static string _dinamikMod = "";          // "kazandirma" / "nearMiss"
+        private static SpinDesen[] _dinamikPattern;      // cache (her PatternBaslat'ta yeniden üretilir)
 
         // System.Random instance (Unity Random.seed'e DOKUNMAZ — 03'e sızmaz)
         private static readonly System.Random _rng = new System.Random(12345);
@@ -198,6 +260,67 @@ namespace KumarFarkindalik.Tutorial
             Debug.Log("[TutorialSenaryoMotoru] Motor tamamen durduruldu.");
         }
 
+        // PAKET 6C3: Dinamik pattern başlat (T7 Kazandırma + T9 Near Miss)
+        // mod: "kazandirma" → N adet 500-600 TL kazanç + (5-N) kayıp shuffle
+        // mod: "nearMiss"  → N adet 7-sembol near miss + (5-N) kayıp shuffle
+        public static void DinamikPatternBaslat(string mod, int n)
+        {
+            _dinamikMod = mod;
+            _dinamikN = Mathf.Clamp(n, 0, 5);
+            _dinamikPattern = UretDinamikDesenler(_dinamikMod, _dinamikN);
+            _aktifPattern = "dinamik";
+            _spinIdx = 0;
+            _motorAktif = true;
+
+            var oy = Object.FindObjectOfType<OyunYoneticisi>();
+            oy?.ScriptedSenaryoCacheTazele();
+
+            Debug.Log($"[TutorialSenaryoMotoru] Dinamik pattern başladı: mod={mod}, N={_dinamikN}/5, desen sayısı={_dinamikPattern.Length}");
+        }
+
+        private static SpinDesen[] UretDinamikDesenler(string mod, int n)
+        {
+            var liste = new List<SpinDesen>();
+            int kazancAdedi = Mathf.Clamp(n, 0, 5);
+            int kayipAdedi = 5 - kazancAdedi;
+
+            if (mod == "kazandirma")
+            {
+                // N kazanç desen (500/300/600 TL random — paytable uyumlu küçük kazançlar)
+                for (int i = 0; i < kazancAdedi; i++)
+                {
+                    int tip = _rng.Next(3);
+                    switch (tip)
+                    {
+                        case 0: liste.Add(new SpinDesen { sembolId = 3, adet = 8 }); break; // x8-9[3]=0.5 → 500 TL
+                        case 1: liste.Add(new SpinDesen { sembolId = 1, adet = 8 }); break; // x8-9[1]=0.3 → 300 TL
+                        case 2: liste.Add(new SpinDesen { sembolId = 4, adet = 8 }); break; // x8-9[4]=0.6 → 600 TL
+                    }
+                }
+                for (int i = 0; i < kayipAdedi; i++)
+                    liste.Add(new SpinDesen { sembolId = -1, adet = 0 });
+            }
+            else if (mod == "nearMiss")
+            {
+                // N near-miss desen (7 sembol — cluster eşik 8'in 1 altı, "neredeyse")
+                for (int i = 0; i < kazancAdedi; i++)
+                {
+                    int sym = _rng.Next(0, 7); // 0-6 normal meyve (scatter 7-8 hariç)
+                    liste.Add(new SpinDesen { sembolId = sym, adet = 7 });
+                }
+                for (int i = 0; i < kayipAdedi; i++)
+                    liste.Add(new SpinDesen { sembolId = -1, adet = 0 });
+            }
+
+            // Fisher-Yates shuffle (sıralama karışık olsun)
+            for (int i = liste.Count - 1; i > 0; i--)
+            {
+                int j = _rng.Next(0, i + 1);
+                var tmp = liste[i]; liste[i] = liste[j]; liste[j] = tmp;
+            }
+            return liste.ToArray();
+        }
+
         // === Update polling — _hazir=true ise üzerine Tutorial kayıt yaz ===
 
         private void Update()
@@ -211,7 +334,17 @@ namespace KumarFarkindalik.Tutorial
                 if (_oy == null) return;
             }
 
-            if (!_patternlar.TryGetValue(_aktifPattern, out var pattern)) return;
+            // PAKET 6C3: dinamik pattern branch (T7/T9 — runtime üretilen, _dinamikPattern cache)
+            SpinDesen[] pattern;
+            if (_aktifPattern == "dinamik")
+            {
+                pattern = _dinamikPattern;
+                if (pattern == null || pattern.Length == 0) return;
+            }
+            else if (!_patternlar.TryGetValue(_aktifPattern, out pattern))
+            {
+                return;
+            }
 
             int idx;
             if (_loopAktif)
@@ -285,11 +418,38 @@ namespace KumarFarkindalik.Tutorial
                 SenaryoOdemeBandinaUygun = true
             };
 
+            // PAKET 6C1 — Scatter pattern (T5 bonus testi): 'adet' kadar scatter + dolgu meyve, cluster yok
+            if (desen.sembolId == SCATTER_PATTERN_FLAG)
+            {
+                DolduScatterPattern(kayit.IlkGrid, SUTUN, SATIR, sembolSayisi, scatterIdx, desen.adet);
+                kayit.ToplamHamKazanc = 0;
+                Debug.Log($"[TutorialSenaryoMotoru] Scatter pattern: {desen.adet} scatter yerleştirildi → bonus tetiklenmeli");
+                return kayit;
+            }
+
             if (desen.sembolId < 0)
             {
                 // KAYIP grid — cluster yok, scatter yok, Adimlar boş
                 DolduClusterSiz(kayit.IlkGrid, SUTUN, SATIR, sembolSayisi, scatterIdx);
                 kayit.ToplamHamKazanc = 0;
+                // PAKET 6D — T11 aşama 1: çarpan zorla AMA cluster yok → ödeme 0 ama görsel çarpan düşer
+                if (desen.carpanZorla && desen.carpanDeger > 0)
+                {
+                    EnjekteCarpanZorla(kayit, SUTUN, SATIR, desen.carpanDeger, hedefSym: -1);
+                    Debug.Log($"[TutorialSenaryoMotoru] CARPAN ZORLA (kapalı ödeme): {desen.carpanDeger}x düştü, cluster yok, ödeme=0");
+                }
+                return kayit;
+            }
+
+            // PAKET 6C3 — NEAR MISS: 7 aynı sembol (cluster eşik 8'in 1 altı). Hiç patlama yok,
+            // pedagojik vurgu "1 sembol daha eksik = neredeyse kazanıyordum". Adimlar boş.
+            if (desen.adet == 7)
+            {
+                var nmPozlari = new List<Vector2Int>(7);
+                DolduCluster(kayit.IlkGrid, SUTUN, SATIR, sembolSayisi, scatterIdx,
+                             desen.sembolId, 7, nmPozlari);
+                kayit.ToplamHamKazanc = 0;
+                Debug.Log($"[TutorialSenaryoMotoru] NEAR MISS: 7 adet sym={desen.sembolId} yerleştirildi (cluster yok)");
                 return kayit;
             }
 
@@ -297,6 +457,55 @@ namespace KumarFarkindalik.Tutorial
             var clusterPozlari = new List<Vector2Int>(desen.adet);
             DolduCluster(kayit.IlkGrid, SUTUN, SATIR, sembolSayisi, scatterIdx,
                          desen.sembolId, desen.adet, clusterPozlari);
+
+            // PAKET 6C1 — Çarpan enjeksiyonu (T4+ adımlarda, panel.html'den ayar geçerli)
+            // T3_*'de DEVRE DIŞI — T3 senaryo davranışı bozulmasın (oyunModu == hook/yontma/tutma/koruma)
+            // HOTFIX: TutorialAdimYoneticisi singleton yok → TutorialOyunYoneticisi.Ornek üzerinden erişim
+            //         field adı carpanUretimiAktif (extra "i")
+            var ay = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
+            bool carpanIzinli = ay != null
+                                && (int)ay.mevcutAdim >= (int)TutorialAdimYoneticisi.TutorialAdimId.T4;
+            if (carpanIzinli && _oy.carpanUretimiAktif)
+            {
+                float carpanOlasilik = _oy.carpanUretimOlasiligi;
+                int maxCarpan = Mathf.Max(1, _oy.maxCarpanAdedi);
+                if (carpanOlasilik > 0.001f)
+                {
+                    const int CARPAN_SEMBOL_LOCAL = -2; // OyunYoneticisi.CARPAN_SEMBOL ile aynı
+                    int[] dogalHavuz = { 2, 3, 5, 8, 10 }; // Fields.cs:557 doğal havuz {2,3,5,8,10}
+
+                    // Cluster hücreleri set (çarpan kazanç sembolüne yerleşmesin → cluster bozulmasın)
+                    var clusterSet = new HashSet<Vector2Int>(clusterPozlari);
+
+                    // Dolgu hücrelerini shuffle ile gez
+                    var adaylar = new List<Vector2Int>();
+                    for (int y = 0; y < SATIR; y++)
+                        for (int x = 0; x < SUTUN; x++)
+                            if (!clusterSet.Contains(new Vector2Int(x, y)))
+                                adaylar.Add(new Vector2Int(x, y));
+                    for (int i = adaylar.Count - 1; i > 0; i--)
+                    {
+                        int j = _rng.Next(0, i + 1);
+                        var tmp = adaylar[i]; adaylar[i] = adaylar[j]; adaylar[j] = tmp;
+                    }
+
+                    int yerlesen = 0;
+                    foreach (var p in adaylar)
+                    {
+                        if (yerlesen >= maxCarpan) break;
+                        if (_rng.NextDouble() < carpanOlasilik)
+                        {
+                            kayit.IlkGrid[p.x, p.y] = CARPAN_SEMBOL_LOCAL;
+                            int carpanDegeri = dogalHavuz[_rng.Next(dogalHavuz.Length)];
+                            kayit.IlkCarpanGrid[p.x, p.y] = carpanDegeri;
+                            kayit.IlkCarpanDegerleri.Add(carpanDegeri);
+                            yerlesen++;
+                        }
+                    }
+                    if (yerlesen > 0)
+                        Debug.Log($"[TutorialSenaryoMotoru] Çarpan enjekte: olasilik={carpanOlasilik:F2}, max={maxCarpan}, yerlesen={yerlesen}");
+                }
+            }
 
             // PAKET 4-HOTFIX (Bug 2): Gravity tumble simülasyonu — CokmeAkisServisi.OynatTumbleAdimi
             // YeniSpawnEdilenHucreler + DusenHucreFrom/To listelerini kullanarak yukarıdan düşme
@@ -359,10 +568,43 @@ namespace KumarFarkindalik.Tutorial
             adim.DusenHucreTo.AddRange(dusenTo);
             adim.YeniSpawnEdilenHucreler.AddRange(yeniSpawn);
 
+            // PAKET 6D — T11 aşama 2: cluster KAZANÇ + büyük çarpan kombosu (carpanOdemeToggle açık)
+            if (desen.carpanZorla && desen.carpanDeger > 0)
+            {
+                EnjekteCarpanZorla(kayit, SUTUN, SATIR, desen.carpanDeger, hedefSym: desen.sembolId);
+                Debug.Log($"[TutorialSenaryoMotoru] CARPAN ZORLA (açık ödeme): {desen.carpanDeger}x + cluster sym={desen.sembolId} = mega kazanç");
+            }
+
             kayit.Adimlar.Add(adim);
             kayit.ToplamHamKazanc = turKazanci;
 
             return kayit;
+        }
+
+        // PAKET 6D: T11 çarpan zorla — IlkCarpanGrid'e CARPAN_SEMBOL + değer yerleştir.
+        // hedefSym=-1 (kayıp path): herhangi bir hücre (scatter hariç).
+        // hedefSym>=0 (kazanç path): cluster hücrelerine yerleşmesin (cluster bozulmasın).
+        private void EnjekteCarpanZorla(SpinSimulasyonKaydi kayit, int sutun, int satir, int carpanDeger, int hedefSym)
+        {
+            if (_oy == null || _oy.tumbleAyarlari == null) return;
+            int scatterIdx = _oy.tumbleAyarlari.ScatterIndex;
+            const int CARPAN_SEMBOL_LOCAL = -2;
+
+            var adaylar = new List<Vector2Int>();
+            for (int x = 0; x < sutun; x++)
+                for (int y = 0; y < satir; y++)
+                {
+                    int s = kayit.IlkGrid[x, y];
+                    if (s == scatterIdx) continue;
+                    if (hedefSym >= 0 && s == hedefSym) continue;
+                    adaylar.Add(new Vector2Int(x, y));
+                }
+
+            if (adaylar.Count == 0) return;
+            var p = adaylar[_rng.Next(adaylar.Count)];
+            kayit.IlkGrid[p.x, p.y] = CARPAN_SEMBOL_LOCAL;
+            kayit.IlkCarpanGrid[p.x, p.y] = carpanDeger;
+            kayit.IlkCarpanDegerleri.Add(carpanDeger);
         }
 
         // 30 hücreyi rastgele meyve ile doldur — hiçbir sembolden 8+ olmasın, scatter ASLA.
@@ -447,6 +689,53 @@ namespace KumarFarkindalik.Tutorial
                     }
                 }
                 if (sec < 0) sec = (sembolId == 0) ? 1 : 0;
+                grid[pozlar[i].x, pozlar[i].y] = sec;
+                sembolAdet[sec]++;
+            }
+        }
+
+        // PAKET 6C1: T5 scatter pattern — 'scatterAdet' kadar scatter yerleştir + kalanı meyve (cluster yok)
+        private void DolduScatterPattern(int[,] grid, int sutun, int satir, int sembolSayisi,
+                                          int scatterIdx, int scatterAdet)
+        {
+            int hucre = sutun * satir;
+            var pozlar = new List<Vector2Int>(hucre);
+            for (int y = 0; y < satir; y++)
+                for (int x = 0; x < sutun; x++)
+                    pozlar.Add(new Vector2Int(x, y));
+            // Fisher-Yates shuffle
+            for (int i = pozlar.Count - 1; i > 0; i--)
+            {
+                int j = _rng.Next(0, i + 1);
+                var tmp = pozlar[i]; pozlar[i] = pozlar[j]; pozlar[j] = tmp;
+            }
+
+            int adet = Mathf.Clamp(scatterAdet, 0, hucre);
+            for (int i = 0; i < adet; i++)
+                grid[pozlar[i].x, pozlar[i].y] = scatterIdx;
+
+            const int MAX_PER_DOLGU = 5;
+            int[] sembolAdet = new int[sembolSayisi];
+            sembolAdet[scatterIdx] = adet;
+            for (int i = adet; i < pozlar.Count; i++)
+            {
+                int sec = -1;
+                for (int t = 0; t < sembolSayisi * 3; t++)
+                {
+                    int s = _rng.Next(0, sembolSayisi);
+                    if (s == scatterIdx) continue;
+                    if (sembolAdet[s] >= MAX_PER_DOLGU) continue;
+                    sec = s; break;
+                }
+                if (sec < 0)
+                {
+                    for (int s = 0; s < sembolSayisi; s++)
+                    {
+                        if (s == scatterIdx) continue;
+                        if (sembolAdet[s] < MAX_PER_DOLGU + 2) { sec = s; break; }
+                    }
+                }
+                if (sec < 0) sec = 0;
                 grid[pozlar[i].x, pozlar[i].y] = sec;
                 sembolAdet[sec]++;
             }
