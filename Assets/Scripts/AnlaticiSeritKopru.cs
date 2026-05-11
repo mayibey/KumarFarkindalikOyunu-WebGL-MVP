@@ -247,6 +247,17 @@ public class AnlaticiSeritKopru : MonoBehaviour
 
     void Start()
     {
+        // HOTFIX (Bug 1): AnlaticiSeritKopru sadece 03_SenaryoluOyun (build idx 2) için.
+        // 04 Tutorial sahnesinde (build idx 3) çalıştığında anlatici.html iframe açılıp sol panel
+        // "normal modu uygulandı" toast'ı gösteriyordu → pedagojik kafa karışıklığı. Guard ile atla.
+        int sahneIdx = UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex;
+        if (sahneIdx != 2)
+        {
+            Debug.Log($"[AnlaticiSeritKopru] Build idx {sahneIdx} → 03 dışı, Start atlanıyor (Tutorial sızıntısı önlendi)");
+            gameObject.SetActive(false);
+            return;
+        }
+
         _oy = FindObjectOfType<OyunYoneticisi>();
         if (_oy == null)
         {

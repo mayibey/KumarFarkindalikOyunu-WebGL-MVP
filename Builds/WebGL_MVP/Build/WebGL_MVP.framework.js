@@ -2038,12 +2038,17 @@ function dbg(text) {
                       if (sel.value !== sonUygulanan) bekliyor = true;
                   });
   
+                  // HOTFIX: blur Uygula click'ten ÖNCE tetikleniyordu → revert kullanıcının seçimini siliyordu
+                  // → toast "normal modu uygulandı" görünüyordu. 200ms setTimeout ile Uygula click önce işlenir,
+                  // sonUygulanan güncellenir + bekliyor=false → revert IPTAL OLUR.
                   sel.addEventListener('blur', function() {
-                      if (bekliyor) {
-                          sel.value = sonUygulanan;
-                          bekliyor = false;
-                          console.log('[Tutorial] Dropdown revert ->', sonUygulanan);
-                      }
+                      setTimeout(function() {
+                          if (bekliyor) {
+                              sel.value = sonUygulanan;
+                              bekliyor = false;
+                              console.log('[Tutorial] Dropdown revert ->', sonUygulanan);
+                          }
+                      }, 200);
                   });
   
                   console.log('[Tutorial] Dropdown auto-revert kuruldu, baslangic:', sonUygulanan);
