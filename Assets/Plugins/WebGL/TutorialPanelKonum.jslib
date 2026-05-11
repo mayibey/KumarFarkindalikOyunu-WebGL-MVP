@@ -12,7 +12,7 @@ mergeInto(LibraryManager.library, {
         // Sol konum + sabit boyut + transparent backdrop
         ov.style.justifyContent = 'flex-start';
         ov.style.alignItems = 'center';
-        ov.style.paddingLeft = '20px';
+        ov.style.paddingLeft = '0px'; // Panel ekran sol kenarına yapışır
         ov.style.background = 'transparent';
         iframe.style.width = '540px';
         iframe.style.minWidth = '540px';
