@@ -134,6 +134,20 @@ namespace KumarFarkindalik.Tutorial
             return true;
         }
 
+        /// <summary>
+        /// PAKET 3B-fix-11 (Sorun 2): SPIN'e bastı ama parametre eksik durumunda gösterilecek mesaj.
+        /// yapilacaklar listesinden ilk 2 madde (parametre kısmı) — "X seç + Uygula bas".
+        /// </summary>
+        private string ParametreEksikMesaj()
+        {
+            var v = AdimYoneticisi?.MevcutAdimVerisi;
+            if (v?.yapilacaklar == null || v.yapilacaklar.Length == 0)
+                return "Önce talimatları tamamla";
+            if (v.yapilacaklar.Length >= 2)
+                return $"Önce {v.yapilacaklar[0]} + {v.yapilacaklar[1]}";
+            return $"Önce {v.yapilacaklar[0]}";
+        }
+
         private static void ScriptedModalKopruModalAcikReset()
         {
             try
@@ -219,10 +233,13 @@ namespace KumarFarkindalik.Tutorial
                 {
                     _spinBtnRef.onClick.AddListener(() =>
                     {
-                        HatirlatmaServisi.Ornek?.AktiviteHaberVer(); // PAKET 3B-fix-9 (Feature 3)
+                        HatirlatmaServisi.Ornek?.AktiviteHaberVer();
                         if (!ParametreSuanTamam())
                         {
-                            Debug.Log("[TutorialOyunYoneticisi] Spin parametre bekleniyor — sayım atlandı.");
+                            // PAKET 3B-fix-11 (Sorun 2): SPIN'e bastı ama parametre eksik → anlık uyarı
+                            string eksikMsg = ParametreEksikMesaj();
+                            HatirlatmaServisi.Ornek?.ZorlaGoster(eksikMsg);
+                            Debug.Log("[TutorialOyunYoneticisi] Spin parametre bekleniyor — uyarı: " + eksikMsg);
                             return;
                         }
                         TutorialSpinSayaci++;

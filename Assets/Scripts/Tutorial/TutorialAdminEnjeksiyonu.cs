@@ -91,10 +91,18 @@ namespace KumarFarkindalik.Tutorial
 
             TutorialAdimGoster.Ornek.IlerlemeGuncelle(delta, v.gerekliSpin, parametreTamam);
 
-            // PAKET 3B-fix-9 (Bug 1): SPIN butonu interactable toggle — parametre bekleniyor iken disable
+            // PAKET 3B-fix-11 (Sorun 2): SPIN butonu interactable=true bırak (listener guard handle ediyor + uyarı).
+            // Sadece görsel CanvasGroup alpha grilik (0.5) ile "disabled hissi" ver — click yine işler, guard yanıtlar.
             var spinBtn = TutorialOyunYoneticisi.Ornek?.SpinBtnRef;
-            if (spinBtn != null && spinBtn.interactable != parametreTamam)
-                spinBtn.interactable = parametreTamam;
+            if (spinBtn != null)
+            {
+                var cg = spinBtn.gameObject.GetComponent<CanvasGroup>();
+                if (cg == null) cg = spinBtn.gameObject.AddComponent<CanvasGroup>();
+                float hedefAlpha = parametreTamam ? 1f : 0.5f;
+                if (Mathf.Abs(cg.alpha - hedefAlpha) > 0.01f)
+                    cg.alpha = hedefAlpha;
+                if (!spinBtn.interactable) spinBtn.interactable = true; // sürekli aktif
+            }
         }
     }
 }

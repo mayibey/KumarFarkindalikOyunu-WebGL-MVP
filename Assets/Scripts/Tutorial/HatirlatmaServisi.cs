@@ -36,6 +36,7 @@ namespace KumarFarkindalik.Tutorial
         private float _sonAktivite;
         private float _sonHatirlatma = -999f;
         private bool _hatirlatmaAcik;
+        private OyunYoneticisi _oy; // PAKET 3B-fix-11 (Sorun 1): SpinCalisiyorMu polling için cache
 
         private GameObject _root;
         private RectTransform _balonRt;
@@ -98,12 +99,30 @@ namespace KumarFarkindalik.Tutorial
             _sonAktivite = Time.unscaledTime;
         }
 
+        /// <summary>
+        /// PAKET 3B-fix-11 (Sorun 2): Cooldown bypass + özel mesaj. SPIN guard'ından çağrılır:
+        /// "Önce Hook seç + Uygula bas" gibi anlık uyarı. Üst üste binmesin diye _hatirlatmaAcik check.
+        /// </summary>
+        public void ZorlaGoster(string mesaj)
+        {
+            if (_hatirlatmaAcik) return;
+            StartCoroutine(Goster(mesaj));
+        }
+
         private void Update()
         {
             if (_hatirlatmaAcik) return;
 
             // Tutorial modal açıkken idle saymaz (kullanıcı modal okur)
             if (TutorialModalKopru.ModalAcik)
+            {
+                _sonAktivite = Time.unscaledTime;
+                return;
+            }
+
+            // PAKET 3B-fix-11 (Sorun 1): Spin çalışıyorsa idle timer reset — animasyon süresi uyarı olmasın
+            if (_oy == null) _oy = UnityEngine.Object.FindObjectOfType<OyunYoneticisi>();
+            if (_oy != null && _oy.SpinCalisiyorMu)
             {
                 _sonAktivite = Time.unscaledTime;
                 return;
@@ -123,12 +142,12 @@ namespace KumarFarkindalik.Tutorial
                 StartCoroutine(Goster());
         }
 
-        private IEnumerator Goster()
+        private IEnumerator Goster(string ozelMesaj = null)
         {
             _hatirlatmaAcik = true;
             _sonHatirlatma = Time.unscaledTime;
 
-            string msg = MesajInsa();
+            string msg = ozelMesaj ?? MesajInsa();
             if (_mesajText != null) _mesajText.text = msg;
             if (_root != null) _root.SetActive(true);
             if (_balonRt != null) _balonRt.localScale = Vector3.zero;
