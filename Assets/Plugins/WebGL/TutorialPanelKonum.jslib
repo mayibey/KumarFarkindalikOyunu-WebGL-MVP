@@ -14,12 +14,12 @@ mergeInto(LibraryManager.library, {
         ov.style.alignItems = 'center';
         ov.style.paddingLeft = '0px'; // Panel ekran sol kenarına yapışır
         ov.style.background = 'transparent';
-        iframe.style.width = '540px';
-        iframe.style.minWidth = '540px';
-        iframe.style.maxWidth = '540px';
-        iframe.style.height = '800px';
-        iframe.style.minHeight = '800px';
-        iframe.style.maxHeight = '800px';
+        iframe.style.width = '520px';
+        iframe.style.minWidth = '520px';
+        iframe.style.maxWidth = '520px';
+        iframe.style.height = '720px';
+        iframe.style.minHeight = '720px';
+        iframe.style.maxHeight = '720px';
 
         // Katman 1: Backdrop click engelle
         ov.style.pointerEvents = 'none';

@@ -46,6 +46,9 @@ namespace KumarFarkindalik.Tutorial
             // Bug 2 düzeltme: TutorialAdimYoneticisi'ne "bu adımda key değişti" sinyali ver
             _ay?.AyarDegistiHaber(key);
 
+            // PAKET 3B-fix-9 (Feature 3): panel.html aksiyon → hatırlatma timer reset
+            HatirlatmaServisi.Ornek?.AktiviteHaberVer();
+
             switch (key)
             {
                 case "carpanOlasilik":
@@ -87,6 +90,11 @@ namespace KumarFarkindalik.Tutorial
             }
 
             TutorialAdimGoster.Ornek.IlerlemeGuncelle(delta, v.gerekliSpin, parametreTamam);
+
+            // PAKET 3B-fix-9 (Bug 1): SPIN butonu interactable toggle — parametre bekleniyor iken disable
+            var spinBtn = TutorialOyunYoneticisi.Ornek?.SpinBtnRef;
+            if (spinBtn != null && spinBtn.interactable != parametreTamam)
+                spinBtn.interactable = parametreTamam;
         }
     }
 }

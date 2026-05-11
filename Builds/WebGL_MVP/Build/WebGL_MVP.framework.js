@@ -9426,12 +9426,12 @@ function dbg(text) {
           ov.style.alignItems = 'center';
           ov.style.paddingLeft = '0px'; // Panel ekran sol kenarına yapışır
           ov.style.background = 'transparent';
-          iframe.style.width = '540px';
-          iframe.style.minWidth = '540px';
-          iframe.style.maxWidth = '540px';
-          iframe.style.height = '800px';
-          iframe.style.minHeight = '800px';
-          iframe.style.maxHeight = '800px';
+          iframe.style.width = '520px';
+          iframe.style.minWidth = '520px';
+          iframe.style.maxWidth = '520px';
+          iframe.style.height = '720px';
+          iframe.style.minHeight = '720px';
+          iframe.style.maxHeight = '720px';
   
           // Katman 1: Backdrop click engelle
           ov.style.pointerEvents = 'none';
@@ -19096,9 +19096,9 @@ var dynCall_jijii = Module["dynCall_jijii"] = createExportWrapper("dynCall_jijii
 /** @type {function(...*):?} */
 var dynCall_viiiifii = Module["dynCall_viiiifii"] = createExportWrapper("dynCall_viiiifii");
 /** @type {function(...*):?} */
-var dynCall_fi = Module["dynCall_fi"] = createExportWrapper("dynCall_fi");
-/** @type {function(...*):?} */
 var dynCall_viiiffi = Module["dynCall_viiiffi"] = createExportWrapper("dynCall_viiiffi");
+/** @type {function(...*):?} */
+var dynCall_fi = Module["dynCall_fi"] = createExportWrapper("dynCall_fi");
 /** @type {function(...*):?} */
 var dynCall_iiiffii = Module["dynCall_iiiffii"] = createExportWrapper("dynCall_iiiffii");
 /** @type {function(...*):?} */

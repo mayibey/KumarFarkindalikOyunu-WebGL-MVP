@@ -66,6 +66,11 @@ namespace KumarFarkindalik.Tutorial
         /// </summary>
         public int TutorialSpinSayaci { get; private set; }
 
+        // PAKET 3B-fix-9 (Bug 1): ButtonCevir reference field — TutorialAdminEnjeksiyonu.Update'ten
+        // interactable toggle için public erişim. Pasif/aktif state'i parametreTamam'a göre yönetilir.
+        private Button _spinBtnRef;
+        public Button SpinBtnRef => _spinBtnRef;
+
         [Preserve]
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void OtomatikInit()
@@ -113,6 +118,20 @@ namespace KumarFarkindalik.Tutorial
             AdimYoneticisi.OnTutorialBitti += TutorialBitti;
 
             Debug.Log("[TutorialOyunYoneticisi] Spawn + AdimYoneticisi/Enjeksiyon AddComponent + event bağlandı.");
+        }
+
+        /// <summary>
+        /// PAKET 3B-fix-9 (Bug 1): MevcutAdimVerisi.degisimAnahtarlari'nın HEPSİ kullanıcı tarafından
+        /// değiştirilmişse true. Pasif adım (degisimAnahtarlari null/boş) için her zaman true.
+        /// </summary>
+        public bool ParametreSuanTamam()
+        {
+            var v = AdimYoneticisi?.MevcutAdimVerisi;
+            if (v?.degisimAnahtarlari == null || v.degisimAnahtarlari.Length == 0)
+                return true;
+            foreach (var k in v.degisimAnahtarlari)
+                if (!AdimYoneticisi.AdimSirasindaDegistirildi(k)) return false;
+            return true;
         }
 
         private static void ScriptedModalKopruModalAcikReset()
@@ -195,11 +214,17 @@ namespace KumarFarkindalik.Tutorial
             var spinBtnGo = GameObject.Find("ButtonCevir");
             if (spinBtnGo != null)
             {
-                var spinBtn = spinBtnGo.GetComponent<Button>();
-                if (spinBtn != null)
+                _spinBtnRef = spinBtnGo.GetComponent<Button>();
+                if (_spinBtnRef != null)
                 {
-                    spinBtn.onClick.AddListener(() =>
+                    _spinBtnRef.onClick.AddListener(() =>
                     {
+                        HatirlatmaServisi.Ornek?.AktiviteHaberVer(); // PAKET 3B-fix-9 (Feature 3)
+                        if (!ParametreSuanTamam())
+                        {
+                            Debug.Log("[TutorialOyunYoneticisi] Spin parametre bekleniyor — sayım atlandı.");
+                            return;
+                        }
                         TutorialSpinSayaci++;
                         Debug.Log($"[TutorialOyunYoneticisi] TutorialSpinSayaci = {TutorialSpinSayaci}");
                     });
@@ -227,12 +252,31 @@ namespace KumarFarkindalik.Tutorial
         {
             yield return new WaitForSeconds(1.5f); // panel.html iframe yüklenip hazırlansın
 
-            // Bahis koruma: tutorial sırasında min bahis (1 TL) — bakiye sıfırlanmasın (45+ spin × default 200-500)
+            // PAKET 3B-fix-10 (İş 1): Tutorial = "ayar etkisi gösterimi" sahnesi.
+            // 50K bakiye + 1000 TL bahis → büyük rakamlarla çalış, ayar değişimi belirgin hissedilsin.
+            // 25 spin × 1000 TL = 25K max kayıp; 50K bakiye yeterli pay.
             var oy = Object.FindObjectOfType<OyunYoneticisi>();
             if (oy != null)
             {
-                oy.AdminBahisAyarla(1);
-                Debug.Log("[TutorialOyunYoneticisi] AdminBahisAyarla(1) — tutorial bahis koruma");
+                oy.AnlaticiBakiyeyiSifirla(50000);
+                oy.AdminBahisAyarla(1000);
+                Debug.Log("[TutorialOyunYoneticisi] Bakiye=50000 + Bahis=1000 set edildi (eğitim modu).");
+            }
+
+            // PAKET 3B-fix-10 (İş 3): Tutorial sırasında dikkat dağıtıcı butonları gizle
+            string[] gizleIsimleri = { "BonusSatinAlButton", "LoginButton", "YoneticiButton" };
+            foreach (var ad in gizleIsimleri)
+            {
+                var go = GameObject.Find(ad);
+                if (go != null)
+                {
+                    go.SetActive(false);
+                    Debug.Log($"[TutorialOyunYoneticisi] {ad} gizlendi.");
+                }
+                else
+                {
+                    Debug.LogWarning($"[TutorialOyunYoneticisi] {ad} sahnede bulunamadı.");
+                }
             }
 
             if (AdimYoneticisi != null)
@@ -243,6 +287,8 @@ namespace KumarFarkindalik.Tutorial
 
         private void AdimDegisti(AdimVerisi v)
         {
+            HatirlatmaServisi.Ornek?.AktiviteHaberVer(); // PAKET 3B-fix-9 (Feature 3) — yeni adım, timer reset
+
             // Önceki adımın vurgularını temizle
 #if UNITY_WEBGL && !UNITY_EDITOR
             TumVurgulariKapat();
@@ -318,6 +364,7 @@ namespace KumarFarkindalik.Tutorial
             // PAKET 3B-fix-6: İLERİ "atla" butonu — flag set, AdimAkisi yield-while görür ve Modal C'ye geçer.
             // Doğrudan AdimYoneticisi.IleriTiklandi() çağırmıyoruz; otomatik geçiş Modal C sonrası.
             _ileriTiklandi = true;
+            HatirlatmaServisi.Ornek?.AktiviteHaberVer(); // PAKET 3B-fix-9 (Feature 3)
         }
 
         // === T_SON kapanış akışı ===

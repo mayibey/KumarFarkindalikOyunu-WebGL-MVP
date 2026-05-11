@@ -331,6 +331,21 @@ namespace KumarFarkindalik.Tutorial
             // (Browser zoom + Canvas Scaler durumlarında karakter balon'la birlikte scale/move etsin).
             // Anchor (0.5, 0.5) + pivot (0.5, 0.5) → ekran merkezine yerleşir; reference resolution
             // 1920×1080 üzerinde balon (680×420) tam ortada. Karakter sol kenarında bitişik.
+            // PAKET 3B-fix-9 (Bug 2): Full-screen raycast blocker — modal açıkken altta SPIN/AYARLAR
+            // tıklanmasın. Balon'dan ÖNCE eklenir (sibling order: arka kalır), raycastTarget=true ile
+            // tüm Unity UI tıklamalarını yutar. Modal kapanışında _root.SetActive(false) ile gizlenir.
+            var backdropGo = new GameObject("ModalBackdrop",
+                typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            backdropGo.transform.SetParent(_root.transform, false);
+            var backdropRt = backdropGo.GetComponent<RectTransform>();
+            backdropRt.anchorMin = Vector2.zero;
+            backdropRt.anchorMax = Vector2.one;
+            backdropRt.offsetMin = Vector2.zero;
+            backdropRt.offsetMax = Vector2.zero;
+            var backdropImg = backdropGo.GetComponent<Image>();
+            backdropImg.color = new Color(0f, 0f, 0f, 0.01f); // neredeyse görünmez
+            backdropImg.raycastTarget = true; // tüm Unity UI tıklamaları burada yutulur
+
             var balonGo = new GameObject("Balon",
                 typeof(RectTransform), typeof(CanvasRenderer), typeof(Image),
                 typeof(CanvasGroup), typeof(Button));
