@@ -71,6 +71,11 @@ namespace KumarFarkindalik.Tutorial
         private Button _spinBtnRef;
         public Button SpinBtnRef => _spinBtnRef;
 
+        // PAKET 3B-fix-12 (İş 1): ButtonCevir üstüne overlay — parametre eksikken click yutar + uyarı.
+        // OyunYoneticisi'nin orijinal listener'ı bypass eder (paralel listener sorununu çözer).
+        private GameObject _spinGuardOverlayGo;
+        public GameObject SpinGuardOverlay => _spinGuardOverlayGo;
+
         [Preserve]
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void OtomatikInit()
@@ -132,6 +137,49 @@ namespace KumarFarkindalik.Tutorial
             foreach (var k in v.degisimAnahtarlari)
                 if (!AdimYoneticisi.AdimSirasindaDegistirildi(k)) return false;
             return true;
+        }
+
+        /// <summary>
+        /// PAKET 3B-fix-12 (İş 1): ButtonCevir parent'ına invisible overlay button — RectTransform birebir
+        /// kopya, raycastTarget=true, sibling index ButtonCevir+1 (üstte render). Parametre eksikken
+        /// SetActive(true) — SPIN click'i yutar + ZorlaGoster uyarısı. Toggle TutorialAdminEnjeksiyonu.Update'te.
+        /// </summary>
+        private void SpinGuardOverlayYarat(GameObject spinBtnGo)
+        {
+            var btnRt = spinBtnGo.GetComponent<RectTransform>();
+            var parent = spinBtnGo.transform.parent;
+            if (btnRt == null || parent == null) { Debug.LogWarning("[TutorialOyunYoneticisi] SpinGuardOverlay: ButtonCevir RectTransform/parent null"); return; }
+
+            _spinGuardOverlayGo = new GameObject("SpinGuardOverlay",
+                typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
+            _spinGuardOverlayGo.transform.SetParent(parent, false);
+
+            var olRt = _spinGuardOverlayGo.GetComponent<RectTransform>();
+            olRt.anchorMin = btnRt.anchorMin;
+            olRt.anchorMax = btnRt.anchorMax;
+            olRt.pivot = btnRt.pivot;
+            olRt.anchoredPosition = btnRt.anchoredPosition;
+            olRt.sizeDelta = btnRt.sizeDelta;
+            olRt.localScale = btnRt.localScale;
+
+            // Sibling: ButtonCevir'den HEMEN SONRA → üstte render → raycast yutar
+            _spinGuardOverlayGo.transform.SetSiblingIndex(spinBtnGo.transform.GetSiblingIndex() + 1);
+
+            var olImg = _spinGuardOverlayGo.GetComponent<Image>();
+            olImg.color = new Color(1f, 1f, 1f, 0f); // tamamen transparent
+            olImg.raycastTarget = true;
+
+            var olBtn = _spinGuardOverlayGo.GetComponent<Button>();
+            olBtn.transition = Selectable.Transition.None;
+            olBtn.onClick.AddListener(() =>
+            {
+                string eksikMsg = ParametreEksikMesaj();
+                HatirlatmaServisi.Ornek?.ZorlaGoster(eksikMsg);
+                Debug.Log("[TutorialOyunYoneticisi] SpinGuardOverlay click → uyarı: " + eksikMsg);
+            });
+
+            _spinGuardOverlayGo.SetActive(false); // başlangıçta gizli; Update'te toggle
+            Debug.Log("[TutorialOyunYoneticisi] SpinGuardOverlay yaratıldı.");
         }
 
         /// <summary>
@@ -231,6 +279,9 @@ namespace KumarFarkindalik.Tutorial
                 _spinBtnRef = spinBtnGo.GetComponent<Button>();
                 if (_spinBtnRef != null)
                 {
+                    // PAKET 3B-fix-12 (İş 1): SpinGuardOverlay yarat (ButtonCevir üstüne sibling)
+                    SpinGuardOverlayYarat(spinBtnGo);
+
                     _spinBtnRef.onClick.AddListener(() =>
                     {
                         HatirlatmaServisi.Ornek?.AktiviteHaberVer();
@@ -277,7 +328,10 @@ namespace KumarFarkindalik.Tutorial
             {
                 oy.AnlaticiBakiyeyiSifirla(50000);
                 oy.AdminBahisAyarla(1000);
-                Debug.Log("[TutorialOyunYoneticisi] Bakiye=50000 + Bahis=1000 set edildi (eğitim modu).");
+                // PAKET 3B-fix-13 (Bug 1): Tutorial boyunca otomatik bonus tetiklenmesini engelle.
+                // T11 manuel bonus AdminManuelBonusBaslat ile scatter'dan bağımsız çalışır.
+                oy.scatterChanceNormal = 0f;
+                Debug.Log("[TutorialOyunYoneticisi] Bakiye=50000 + Bahis=1000 + scatterChanceNormal=0 (eğitim modu).");
             }
 
             // PAKET 3B-fix-10 (İş 3): Tutorial sırasında dikkat dağıtıcı butonları gizle
@@ -353,6 +407,14 @@ namespace KumarFarkindalik.Tutorial
             TutorialAdimGoster.Ornek?.AdimGoster(sira, v.altBaslik, v.yapilacaklar, v.altSayac);
             TutorialAdimGoster.Ornek?.IleriAktif(true); // PAKET 3B-fix-6: hemen aktif — kullanıcı atlayabilir
 
+            // PAKET 3B-fix-12 (İş 2): Adım girişinde proaktif uyarı — parametre eksikse kullanıcı SPIN'e
+            // tıklayıp uyarı beklemesin. Modal kapanış animasyonu için 0.5sn bekle.
+            yield return new WaitForSecondsRealtime(0.5f);
+            if (!ParametreSuanTamam())
+            {
+                HatirlatmaServisi.Ornek?.ZorlaGoster(ParametreEksikMesaj());
+            }
+
             // === Koşul VEYA İLERİ tıklamasını bekle ===
             while (!_ileriTiklandi)
             {
@@ -371,6 +433,12 @@ namespace KumarFarkindalik.Tutorial
             // === Modal C (pedagojik özet — atlasa da gösterilsin) ===
             if (TutorialModalKopru.Ornek != null && !string.IsNullOrEmpty(v.mesajKapanis))
                 yield return TutorialModalKopru.Ornek.ModalGoster(v.mesajKapanis);
+
+            // PAKET 3B-fix-14 (Fix 2): Aktif adım bittikten sonra bonusOtomatikSpinPeriyodu reset.
+            // T5'te kullanıcı periyot ayarlar → o adımın spin'leri bitti → birikim silinir → T6-T11
+            // sonraki adımlarda otomatik bonus tetiklenmez. T1-T4 zaten 0 olduğu için no-op.
+            var oyRef = Object.FindObjectOfType<OyunYoneticisi>();
+            if (oyRef != null) oyRef.AdminSetBonusOtomatikSpinPeriyodu(0);
 
             // === Modal C kapandı → ANINDA sıradaki adım ===
             AdimYoneticisi?.IleriTiklandi();

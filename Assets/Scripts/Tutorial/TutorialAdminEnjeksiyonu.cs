@@ -21,6 +21,16 @@ namespace KumarFarkindalik.Tutorial
         private TutorialAdimYoneticisi _ay;
         private bool _eventBagli;
 
+        // PAKET 3B-fix-14 (Bug A/B/C): OyunYoneticisi cache + private field reflection.
+        // Update'te her frame:
+        //   Fix 1) scatterChanceNormal > 0 ise 0'a çek (panel.html veya başka path geri yükseltirse)
+        //   Fix 3) bonusAktif true → false geçişlerinde log (Bug A root cause izleme)
+        //   Fix 4) bonusAktif=true && bonusHakKalan<=0 && T11 değil → reflection cleanup (Bug C)
+        private OyunYoneticisi _oy;
+        private System.Reflection.FieldInfo _bonusAktifField;
+        private System.Reflection.FieldInfo _bonusHakKalanField;
+        private bool _oncekiBonusAktif;
+
         private void Start()
         {
             _ay = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
@@ -30,6 +40,14 @@ namespace KumarFarkindalik.Tutorial
             SonCarpanOlasilik = 0f;
             SonCarpanZorla = 0;
             BonusTetiklendi = false;
+
+            // PAKET 3B-fix-14: OyunYoneticisi private field reflection cache
+            _bonusAktifField = typeof(OyunYoneticisi).GetField("bonusAktif",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            _bonusHakKalanField = typeof(OyunYoneticisi).GetField("bonusHakKalan",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (_bonusAktifField == null || _bonusHakKalanField == null)
+                Debug.LogWarning("[Tutorial] Bonus state field reflection bulunamadı — Bug C cleanup devre dışı kalacak");
         }
 
         private void OnDestroy()
@@ -75,6 +93,47 @@ namespace KumarFarkindalik.Tutorial
                 _ay = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
                 if (_ay == null) return;
             }
+
+            // === PAKET 3B-fix-14 (Bug A/B/C): Defansif scatter + bonus state izleme/cleanup ===
+            // Pasif adımlar (T2, T_SON) dahil HER frame çalışır.
+            if (_oy == null) _oy = Object.FindObjectOfType<OyunYoneticisi>();
+            if (_oy != null)
+            {
+                bool t11Aktif = _ay.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T11;
+
+                // Fix 1: scatterChanceNormal kalıcı 0 (panel.html veya başka path 0'dan kaldırsa anında reset)
+                if (_oy.scatterChanceNormal > 0.0001f)
+                {
+                    _oy.scatterChanceNormal = 0f;
+                    Debug.Log("[Tutorial] scatterChanceNormal yeniden 0'a çekildi (overhead trigger)");
+                }
+
+                // Fix 3: bonus aktif geçiş logu — Bug A root cause izleme
+                bool bonusAktif = _oy.BonusAktifMi;
+                if (bonusAktif && !_oncekiBonusAktif)
+                {
+                    string adim = _ay.mevcutAdim.ToString();
+                    if (t11Aktif)
+                        Debug.Log($"[Tutorial] Bonus tetiklendi (T11 — BEKLENEN). bonusHakKalan={_oy.BonusHakKalan}");
+                    else
+                        Debug.LogWarning($"[Tutorial] BONUS TETIKLENDI (BEKLENMEYEN)! Adim={adim} scatter={_oy.scatterChanceNormal} periyot={_oy.bonusOtomatikSpinPeriyodu} hakKalan={_oy.BonusHakKalan} oturumKazanc={_oy.OturumKazanc}");
+                }
+                else if (!bonusAktif && _oncekiBonusAktif)
+                {
+                    Debug.Log("[Tutorial] Bonus state false oldu (cleanup veya normal akış)");
+                }
+                _oncekiBonusAktif = bonusAktif;
+
+                // Fix 4: Bug C cleanup — bonus oyun bitti (hakKalan<=0) ama bonusAktif takılı → reflection ile false set
+                if (bonusAktif && _oy.BonusHakKalan <= 0 && !t11Aktif
+                    && _bonusAktifField != null && _bonusHakKalanField != null)
+                {
+                    _bonusAktifField.SetValue(_oy, false);
+                    _bonusHakKalanField.SetValue(_oy, 0);
+                    Debug.Log("[Tutorial] Bonus state reflection ile temizlendi (Bug C — 04'te cleanup kaynagi yok)");
+                }
+            }
+
             var v = _ay.MevcutAdimVerisi;
             if (v == null || !v.aktifMi) return;
 
@@ -102,6 +161,15 @@ namespace KumarFarkindalik.Tutorial
                 if (Mathf.Abs(cg.alpha - hedefAlpha) > 0.01f)
                     cg.alpha = hedefAlpha;
                 if (!spinBtn.interactable) spinBtn.interactable = true; // sürekli aktif
+            }
+
+            // PAKET 3B-fix-12 (İş 1): SpinGuardOverlay toggle — parametre eksikken click yutucu aktif
+            var overlay = TutorialOyunYoneticisi.Ornek?.SpinGuardOverlay;
+            if (overlay != null)
+            {
+                bool olmalı = !parametreTamam;
+                if (overlay.activeSelf != olmalı)
+                    overlay.SetActive(olmalı);
             }
         }
     }
