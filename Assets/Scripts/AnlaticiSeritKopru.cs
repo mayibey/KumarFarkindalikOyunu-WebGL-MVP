@@ -764,6 +764,17 @@ public class AnlaticiSeritKopru : MonoBehaviour
                 Debug.LogWarning("[Anlatici] PreA1 — ScriptedModalKopru bulunamadı, karşılama atlanıyor.");
                 yield break;
             }
+            // PreA1 ek anlatım — A1 aşamasının pedagojik özeti (Hoş geldin sonrası ikinci modal)
+            const string A1_ANLATIM =
+                "İlk aşamayı (Isındırma ve Umut) anlatayım:\n\n" +
+                "Bu aşamada oyun yeni başlayan oyuncuya bol kazançlar verecek. " +
+                "Sistem kurban için yeni oyuncu modunu açıyor ve ona bol kazanç, " +
+                "yumuşak kayıplar ve 'şanslı bir gün' hissi yaşatacak.\n\n" +
+                "10 spin at ve sonuçlarını gözlemle. Spinlerin çoğu kazançla " +
+                "bitecek. Beyin dopamin pompalayacak. Oyuncu 'Bu oyunu sevdim, " +
+                "devam edeyim' diyecek.\n\n" +
+                "Bahis 500 TL, başlangıç bakiyen 50.000 TL. Manipülasyon " +
+                "başlıyor — izle ve gör.";
             string mesaj =
                 "Hoş geldiniz. Bu simülasyonda online kumar oyunlarının oyuncuları nasıl etkilediğini birlikte göreceğiz.\n\n" +
                 "<b>Önce oyunu tanıyalım:</b>\n" +
@@ -780,6 +791,8 @@ public class AnlaticiSeritKopru : MonoBehaviour
                 "Hadi başlayalım: ilk aşama <i>'Isındırma ve Umut'</i>.";
             // gizleAnlatici: false → modal "Sol panel" anlatırken kullanıcının paneli görmesi gerekiyor.
             yield return modal.ModalGoster(mesaj, gizleAnlatici: false);
+            // PreA1 ek anlatım modal — A1 aşamasının pedagojik özeti
+            yield return modal.ModalGoster(A1_ANLATIM, gizleAnlatici: false);
         }
         finally
         {
