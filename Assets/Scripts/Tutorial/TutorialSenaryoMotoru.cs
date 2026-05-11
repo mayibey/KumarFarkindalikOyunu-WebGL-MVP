@@ -298,13 +298,51 @@ namespace KumarFarkindalik.Tutorial
             DolduCluster(kayit.IlkGrid, SUTUN, SATIR, sembolSayisi, scatterIdx,
                          desen.sembolId, desen.adet, clusterPozlari);
 
-            // Refill grid: kazanan hücreler farklı sembollerle (cluster yok)
+            // PAKET 4-HOTFIX (Bug 2): Gravity tumble simülasyonu — CokmeAkisServisi.OynatTumbleAdimi
+            // YeniSpawnEdilenHucreler + DusenHucreFrom/To listelerini kullanarak yukarıdan düşme
+            // animasyonu oynatır. Boş bırakırsak meyveler "zart" beliriyor (Bug 2 root cause).
+            // Algoritma: her sütun bağımsız → survivors aşağı kayar, üst boşluklar yeni meyvelerle.
+            var patlayanSet = new HashSet<Vector2Int>(clusterPozlari);
             int[,] refillGrid = new int[SUTUN, SATIR];
+            var dusenFrom = new List<Vector2Int>();
+            var dusenTo = new List<Vector2Int>();
+            var yeniSpawn = new List<Vector2Int>();
+
             for (int x = 0; x < SUTUN; x++)
+            {
+                // Sütundaki survivors (patlamayan hücreler, y küçükten büyüğe)
+                var survivors = new List<(int oldY, int sym)>();
                 for (int y = 0; y < SATIR; y++)
-                    refillGrid[x, y] = kayit.IlkGrid[x, y];
-            foreach (var p in clusterPozlari)
-                refillGrid[p.x, p.y] = SecDolguSembol(refillGrid, SUTUN, SATIR, sembolSayisi, scatterIdx, desen.sembolId, p.x, p.y);
+                {
+                    if (!patlayanSet.Contains(new Vector2Int(x, y)))
+                        survivors.Add((y, kayit.IlkGrid[x, y]));
+                }
+
+                // En alttan yukarı doğru yerleştir (y=SATIR-1 alt, y=0 üst — Unity ekran koord)
+                int yeniY = SATIR - 1;
+                for (int i = survivors.Count - 1; i >= 0; i--)
+                {
+                    int oldY = survivors[i].oldY;
+                    int sym = survivors[i].sym;
+                    refillGrid[x, yeniY] = sym;
+                    if (oldY != yeniY)
+                    {
+                        dusenFrom.Add(new Vector2Int(x, oldY));
+                        dusenTo.Add(new Vector2Int(x, yeniY));
+                    }
+                    yeniY--;
+                }
+
+                // Üst boşluklar → yeni meyveler (hedef sembol DEĞİL, scatter DEĞİL, komşu cluster engelle)
+                while (yeniY >= 0)
+                {
+                    int newSym = SecDolguSembol(refillGrid, SUTUN, SATIR, sembolSayisi, scatterIdx,
+                                                 desen.sembolId, x, yeniY);
+                    refillGrid[x, yeniY] = newSym;
+                    yeniSpawn.Add(new Vector2Int(x, yeniY));
+                    yeniY--;
+                }
+            }
 
             // Paytable kazanç hesabı (READ ONLY — paytable'a YAZILMIYOR)
             float payCoef = ta.GetPayForCount(desen.sembolId, desen.adet);
@@ -317,6 +355,9 @@ namespace KumarFarkindalik.Tutorial
                 CarpanGridRefillSonrasi = new int[SUTUN, SATIR]
             };
             adim.PatlayanHucreler.AddRange(clusterPozlari);
+            adim.DusenHucreFrom.AddRange(dusenFrom);
+            adim.DusenHucreTo.AddRange(dusenTo);
+            adim.YeniSpawnEdilenHucreler.AddRange(yeniSpawn);
 
             kayit.Adimlar.Add(adim);
             kayit.ToplamHamKazanc = turKazanci;

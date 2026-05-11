@@ -64,6 +64,25 @@ namespace KumarFarkindalik.Tutorial
         private static int _orijinalBonusOtomatikPeriyot = 0;
         private static int _orijinalBahis = 10;
 
+        // PAKET 4-HOTFIX (Bug 1): Spin animasyonu bitince sayaç + scripted motor ilerlet
+        // (tıklama anında değil — Modal C erken açılma sorunu fix)
+        private bool _spinBekliyor = false;
+        private bool _oncekiSpinCalisiyor = false;
+        private OyunYoneticisi _oyRef;
+
+        // PAKET 4-HOTFIX: T3_TUTMA pedagojik ara modaller (Spin 2 sonrası tahmin, Spin 3 sonrası devam)
+        private const string TAHMIN_MODAL =
+            "DİKKATLE İZLE!\n\n" +
+            "2 kez kaybettin değil mi? Çıkmayı düşünüyorsun belki.\n\n" +
+            "Şimdi bir sonraki spin'de SANA KAZANÇ GELECEK. İzle, gör, hisset.\n\n" +
+            "Sistem nasıl seni TUTUYOR, kendi gözlerinle göreceksin.";
+
+        private const string DEVAM_MODAL =
+            "Gördün mü?\n\n" +
+            "Tam çıkacağın anda KAZANÇ geldi. 'İyi ki kalmışım' dedirtti.\n\n" +
+            "Bir kere daha izleyelim — aynı kayıp/kayıp/KAZANÇ döngüsünü tekrar yaşayacaksın.\n\n" +
+            "Bu sefer farkındasın. Bu sefer şüphecisin. Kanıtlayalım.";
+
         /// <summary>
         /// PAKET 3B-fix-4 (Sorun 2): 04 sahnesinde SenaryoYoneticisi GameObject YOK → toplamSpin
         /// çalışmıyor. ButtonCevir.onClick'e runtime listener eklenerek her spin tıklamasında
@@ -298,10 +317,10 @@ namespace KumarFarkindalik.Tutorial
                             Debug.Log("[TutorialOyunYoneticisi] Spin parametre bekleniyor — uyarı: " + eksikMsg);
                             return;
                         }
-                        TutorialSpinSayaci++;
-                        Debug.Log($"[TutorialOyunYoneticisi] TutorialSpinSayaci = {TutorialSpinSayaci}");
-                        // PAKET 4-FAZ-1: Scripted spin motor sayacını ilerlet (idx → idx+1, sonraki spin için)
-                        TutorialSenaryoMotoru.SpinTamamlandi();
+                        // PAKET 4-HOTFIX (Bug 1): Sayaç ve SpinTamamlandi() artık tıklamada değil,
+                        // spin animasyonu bittiğinde Update polling ile tetiklenir (Modal C erken açılma fix).
+                        _spinBekliyor = true;
+                        Debug.Log("[TutorialOyunYoneticisi] Spin bekleniyor — animasyon bitince sayaç ilerleyecek.");
                     });
                     Debug.Log("[TutorialOyunYoneticisi] ButtonCevir tutorial spin listener eklendi.");
                 }
@@ -466,6 +485,68 @@ namespace KumarFarkindalik.Tutorial
             // Doğrudan AdimYoneticisi.IleriTiklandi() çağırmıyoruz; otomatik geçiş Modal C sonrası.
             _ileriTiklandi = true;
             HatirlatmaServisi.Ornek?.AktiviteHaberVer(); // PAKET 3B-fix-9 (Feature 3)
+        }
+
+        // === PAKET 4-HOTFIX (Bug 1): Update polling — spin animasyonu bitince sayaç ilerlet ===
+
+        private void Update()
+        {
+            if (_oyRef == null)
+            {
+                _oyRef = Object.FindObjectOfType<OyunYoneticisi>();
+                if (_oyRef == null) return;
+            }
+
+            bool simdi = _oyRef.SpinCalisiyorMu;
+
+            // Spin bitiş geçişi (true → false)
+            if (_oncekiSpinCalisiyor && !simdi)
+            {
+                _oncekiSpinCalisiyor = false;
+                if (_spinBekliyor)
+                {
+                    _spinBekliyor = false;
+                    TutorialSpinSayaci++;
+                    Debug.Log($"[TutorialOyunYoneticisi] Spin tamamlandı, TutorialSpinSayaci={TutorialSpinSayaci}");
+                    TutorialSenaryoMotoru.SpinTamamlandi();
+                    TutorialT3TutmaModalKontrol();
+                }
+            }
+
+            // Spin başlama geçişi (false → true)
+            if (!_oncekiSpinCalisiyor && simdi)
+                _oncekiSpinCalisiyor = true;
+        }
+
+        /// <summary>
+        /// PAKET 4-HOTFIX: T3_TUTMA pedagojik müdahale — spin 2 sonrası TAHMIN, spin 3 sonrası DEVAM.
+        /// Spin 6 (final) AdimAkisi.mesajKapanis ile zaten oynatılıyor — burada müdahale yok.
+        /// </summary>
+        private void TutorialT3TutmaModalKontrol()
+        {
+            if (AdimYoneticisi == null) return;
+            if (AdimYoneticisi.mevcutAdim != TutorialAdimYoneticisi.TutorialAdimId.T3_TUTMA) return;
+
+            int sayac = TutorialSpinSayaci - AdimYoneticisi.AdimBaslangicSpin;
+
+            if (sayac == 2)
+            {
+                Debug.Log("[Tutorial] T3_TUTMA Spin 2 bitti → TAHMIN modal");
+                StartCoroutine(GosterAraModal(TAHMIN_MODAL));
+            }
+            else if (sayac == 3)
+            {
+                Debug.Log("[Tutorial] T3_TUTMA Spin 3 bitti → DEVAM modal");
+                StartCoroutine(GosterAraModal(DEVAM_MODAL));
+            }
+            // sayac == 6 final modali → AdimAkisi otomatik (mesajKapanis = T3_TUTMA_C)
+        }
+
+        private IEnumerator GosterAraModal(string metin)
+        {
+            // TutorialModalKopru kendi raycast bloker'i var (önceki paket) → SpinGuardOverlay'a dokunmaya gerek yok
+            if (TutorialModalKopru.Ornek != null)
+                yield return TutorialModalKopru.Ornek.ModalGoster(metin);
         }
 
         // === T_SON kapanış akışı ===
