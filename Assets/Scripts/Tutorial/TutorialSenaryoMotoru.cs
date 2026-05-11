@@ -136,6 +136,9 @@ namespace KumarFarkindalik.Tutorial
         private static int _spinIdx = 0;
         private static bool _motorAktif = false;
         private static bool _loopAktif = false;
+        // HOTFIX (Bug 2-4): RNG kaydı ToplamHamKazanc tesadüfen Tutorial hedefiyle eşleşince
+        // idempotent check skip ediyordu → motor inject olmuyordu. Çözüm: reference tracking.
+        private static SpinSimulasyonKaydi _sonInjekteEttigimKayit;
 
         // PAKET 6C3: Dinamik pattern state (T7 Kazandırma + T9 Near Miss — 5'de N mantığı)
         private static int _dinamikN = 3;
@@ -208,6 +211,7 @@ namespace KumarFarkindalik.Tutorial
             _spinIdx = 0;
             _motorAktif = false;
             _loopAktif = false;
+            _sonInjekteEttigimKayit = null;
             Debug.Log("[TutorialSenaryoMotoru] OnDestroy — tüm static state temizlendi.");
         }
 
@@ -240,6 +244,7 @@ namespace KumarFarkindalik.Tutorial
         {
             if (!_motorAktif) return;
             _spinIdx++;
+            _sonInjekteEttigimKayit = null; // HOTFIX: tüketildi, sonraki Update yeni desen inject etsin
             Debug.Log($"[TutorialSenaryoMotoru] SpinTamamlandi → spinIdx={_spinIdx}");
         }
 
@@ -359,16 +364,19 @@ namespace KumarFarkindalik.Tutorial
 
             var desen = pattern[idx];
 
-            // Idempotent: mevcut cache zaten bu desene aitse skip
+            // HOTFIX: Reference tracking — bizim inject ettiğimiz kayıt hâlâ orada mı?
+            // RNG cache ToplamHamKazanc'ı Tutorial hedefiyle tesadüfen eşleşse bile artık skip etmez.
             bool hazir = (bool)_hazirField.GetValue(_oy);
             var mevcutKayit = _kayitField.GetValue(_oy) as SpinSimulasyonKaydi;
-            if (hazir && mevcutKayit != null && KayitDeseneUygunMu(mevcutKayit, desen)) return;
+            if (hazir && mevcutKayit != null && System.Object.ReferenceEquals(mevcutKayit, _sonInjekteEttigimKayit))
+                return;
 
             var yeniKayit = DesenToKayit(desen);
             if (yeniKayit == null) return;
 
             _kayitField.SetValue(_oy, yeniKayit);
             _hazirField.SetValue(_oy, true);
+            _sonInjekteEttigimKayit = yeniKayit;
 
             Debug.Log($"[TutorialSenaryoMotoru] Spin enjekte (loop={_loopAktif}): pattern={_aktifPattern}, " +
                       $"idx={idx}/{pattern.Length - 1}, sembol={desen.sembolId}, adet={desen.adet}, " +

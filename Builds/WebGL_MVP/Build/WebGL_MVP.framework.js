@@ -19219,6 +19219,12 @@ var dynCall_iiiiifiiiii = Module["dynCall_iiiiifiiiii"] = createExportWrapper("d
 /** @type {function(...*):?} */
 var dynCall_viffii = Module["dynCall_viffii"] = createExportWrapper("dynCall_viffii");
 /** @type {function(...*):?} */
+var dynCall_iiiifffi = Module["dynCall_iiiifffi"] = createExportWrapper("dynCall_iiiifffi");
+/** @type {function(...*):?} */
+var dynCall_iiiiiifffi = Module["dynCall_iiiiiifffi"] = createExportWrapper("dynCall_iiiiiifffi");
+/** @type {function(...*):?} */
+var dynCall_iiiffffi = Module["dynCall_iiiffffi"] = createExportWrapper("dynCall_iiiffffi");
+/** @type {function(...*):?} */
 var dynCall_viiiiiiiiiiiiii = Module["dynCall_viiiiiiiiiiiiii"] = createExportWrapper("dynCall_viiiiiiiiiiiiii");
 /** @type {function(...*):?} */
 var dynCall_iiiiji = Module["dynCall_iiiiji"] = createExportWrapper("dynCall_iiiiji");

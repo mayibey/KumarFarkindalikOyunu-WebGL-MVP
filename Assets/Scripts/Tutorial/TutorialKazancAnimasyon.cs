@@ -8,30 +8,36 @@ using UnityEngine.UI;
 namespace KumarFarkindalik.Tutorial
 {
     /// <summary>
-    /// PAKET 5: Spin sonu bakiye delta görsel feedback'i — floating text MVP.
+    /// PAKET 5 + HOTFIX (Bug 6): Spin sonu bakiye delta görsel feedback'i — basket animasyon.
     ///
-    /// SpinCalisiyorMu true→false geçişinde BotIcinBakiye delta hesaplar:
-    ///   delta > 0 → "+{tutar} TL" sarı (kazanç + bahis fark)
-    ///   delta < 0 → "{tutar} TL" kırmızı (sadece bahis düştü, kazanç yok)
-    ///   delta == 0 → atla (push spin)
+    /// KAZANÇ akışı (5 aşama):
+    ///   1. Spin tahta merkezinde +X TL belirir (scale 0.5→1.0)
+    ///   2. Hold 0.5sn (kullanıcı okur)
+    ///   3. Parabolic flight (Bezier curve) bakiye text'e doğru
+    ///   4. Bakiye konumunda scale pulse (1.0→1.3→1.0)
+    ///   5. Destroy
     ///
-    /// MVP: parabolic flight + counting up YOK (sonraki paket). Sadece scale-pulse + opacity.
+    /// KAYIP akışı (3 aşama):
+    ///   1. Bakiye yakını -X TL belirir
+    ///   2. Hold 0.3sn
+    ///   3. Yukarı + yana flight + fade out
     /// </summary>
     [Preserve]
     public class TutorialKazancAnimasyon : MonoBehaviour
     {
         public const int BUILD_INDEX = 3;
-        public const int CANVAS_SORTING_ORDER = 1700; // Tutorial UI'lardan üstte
+        public const int CANVAS_SORTING_ORDER = 1700;
 
         public static TutorialKazancAnimasyon Ornek { get; private set; }
 
-        private static readonly Color KAZANC_RENK = new Color(1f, 0.85f, 0.20f, 1f); // sarı
-        private static readonly Color KAYIP_RENK  = new Color(0.95f, 0.30f, 0.25f, 1f); // kırmızı
+        private static readonly Color KAZANC_RENK = new Color(1f, 0.85f, 0.20f, 1f);
+        private static readonly Color KAYIP_RENK  = new Color(0.95f, 0.30f, 0.25f, 1f);
 
         private OyunYoneticisi _oy;
         private int _oncekiBakiye = -1;
         private bool _oncekiSpinCalisiyor = false;
         private GameObject _canvasGo;
+        private RectTransform _canvasRt;
 
         [Preserve]
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -66,7 +72,6 @@ namespace KumarFarkindalik.Tutorial
             }
             if (Ornek != null && Ornek != this) { Destroy(gameObject); return; }
             Ornek = this;
-
             CanvasYarat();
         }
 
@@ -90,8 +95,8 @@ namespace KumarFarkindalik.Tutorial
             scaler.referenceResolution = new Vector2(1920, 1080);
             scaler.matchWidthOrHeight = 0.5f;
 
-            // Raycast yok (animasyon UI tıklamayı engellemesin)
             _canvasGo.GetComponent<GraphicRaycaster>().enabled = false;
+            _canvasRt = _canvasGo.GetComponent<RectTransform>();
         }
 
         private void Update()
@@ -105,7 +110,6 @@ namespace KumarFarkindalik.Tutorial
 
             bool simdi = _oy.SpinCalisiyorMu;
 
-            // Spin bitiş geçişi (true → false)
             if (_oncekiSpinCalisiyor && !simdi)
             {
                 _oncekiSpinCalisiyor = false;
@@ -115,88 +119,201 @@ namespace KumarFarkindalik.Tutorial
 
                 if (delta > 0)
                 {
-                    StartCoroutine(FloatingText($"+{delta:N0} TL", KAZANC_RENK));
-                    Debug.Log($"[TutorialKazancAnim] Kazanç delta=+{delta} TL");
+                    StartCoroutine(KazancAnimasyon(delta));
+                    Debug.Log($"[TutorialKazancAnim] Kazanç delta=+{delta} TL — basket animasyonu");
                 }
                 else if (delta < 0)
                 {
-                    StartCoroutine(FloatingText($"{delta:N0} TL", KAYIP_RENK));
-                    Debug.Log($"[TutorialKazancAnim] Kayıp delta={delta} TL");
+                    StartCoroutine(KayipAnimasyon(delta));
+                    Debug.Log($"[TutorialKazancAnim] Kayıp delta={delta} TL — pota dışı animasyonu");
                 }
-                // delta == 0 → atla
             }
 
             if (!_oncekiSpinCalisiyor && simdi)
             {
                 _oncekiSpinCalisiyor = true;
-                // Spin başında oncekiBakiye'yi güncel tut (bahis henüz düşmedi, başlangıç değeri)
                 _oncekiBakiye = _oy.BotIcinBakiye;
             }
         }
 
-        private IEnumerator FloatingText(string metin, Color renk)
+        // === KAZANÇ — basket animasyon (5 aşama) ===
+
+        private IEnumerator KazancAnimasyon(int delta)
         {
-            // TMP text oluştur — Canvas merkezinde, biraz üstte
+            Vector2 baslangicPos = SpinTahtaLocalPos();
+            var go = TmpYarat($"+{delta:N0} TL", KAZANC_RENK, baslangicPos);
+            var rt = go.GetComponent<RectTransform>();
+            var txt = go.GetComponent<TextMeshProUGUI>();
+
+            // Aşama 1: scale 0.5→1.0 + opacity 0→1 (0.3sn)
+            yield return ScaleAndFadeIn(rt, txt, 0.5f, 1.0f, 0.3f);
+
+            // Aşama 2: Hold (0.5sn)
+            yield return new WaitForSecondsRealtime(0.5f);
+
+            // Aşama 3: Parabolic flight (Bezier curve, 0.6sn)
+            Vector2 hedefPos = BakiyeLocalPos();
+            Vector2 kontrolPos = (baslangicPos + hedefPos) * 0.5f + new Vector2(0f, 200f);
+            yield return BezierFlight(rt, baslangicPos, kontrolPos, hedefPos, 0.6f, 1.0f, 0.5f);
+
+            // Aşama 4: Bakiye'de scale pulse (1.0→1.3→1.0, 0.2sn)
+            yield return ScalePulse(rt, 0.5f, 0.8f, 0.5f, 0.1f);
+
+            // Aşama 5: Fade out (0.1sn)
+            yield return FadeOut(txt, 0.1f);
+
+            Destroy(go);
+        }
+
+        // === KAYIP — pota dışı animasyon (3 aşama) ===
+
+        private IEnumerator KayipAnimasyon(int delta)
+        {
+            Vector2 baslangicPos = BakiyeLocalPos() + new Vector2(0f, 80f);
+            var go = TmpYarat($"{delta:N0} TL", KAYIP_RENK, baslangicPos);
+            var rt = go.GetComponent<RectTransform>();
+            var txt = go.GetComponent<TextMeshProUGUI>();
+
+            // Aşama 1: scale + opacity (0.2sn)
+            yield return ScaleAndFadeIn(rt, txt, 0.5f, 1.0f, 0.2f);
+
+            // Aşama 2: Hold (0.3sn)
+            yield return new WaitForSecondsRealtime(0.3f);
+
+            // Aşama 3: Yukarı + yana flight + fade out (0.5sn) — pota dışına
+            Vector2 hedefPos = baslangicPos + new Vector2(200f, 300f);
+            yield return FlightFade(rt, txt, baslangicPos, hedefPos, 0.5f);
+
+            Destroy(go);
+        }
+
+        // === Yardımcılar ===
+
+        private Vector2 SpinTahtaLocalPos()
+        {
+            if (_oy == null || _oy.slotGridRoot == null) return new Vector2(0f, 100f);
+            return WorldToCanvasLocal(_oy.slotGridRoot.position) + new Vector2(0f, 50f); // tahta üstü
+        }
+
+        private Vector2 BakiyeLocalPos()
+        {
+            if (_oy == null || _oy.bakiyeText == null) return new Vector2(-700f, -450f); // fallback
+            return WorldToCanvasLocal(_oy.bakiyeText.transform.position);
+        }
+
+        private Vector2 WorldToCanvasLocal(Vector3 worldPos)
+        {
+            Vector2 screenPos = RectTransformUtility.WorldToScreenPoint(null, worldPos);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                _canvasRt, screenPos, null, out Vector2 localPos);
+            return localPos;
+        }
+
+        private GameObject TmpYarat(string metin, Color renk, Vector2 pos)
+        {
             var go = new GameObject("KazancText", typeof(RectTransform), typeof(CanvasRenderer));
             go.transform.SetParent(_canvasGo.transform, false);
             var rt = go.GetComponent<RectTransform>();
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot = new Vector2(0.5f, 0.5f);
             rt.sizeDelta = new Vector2(400f, 100f);
-            rt.anchoredPosition = new Vector2(0f, 100f); // ekran merkezinden 100px yukarı
+            rt.anchoredPosition = pos;
+            rt.localScale = new Vector3(0.5f, 0.5f, 1f);
 
             var txt = go.AddComponent<TextMeshProUGUI>();
             txt.text = metin;
             txt.fontSize = 64f;
             txt.fontStyle = FontStyles.Bold;
-            txt.color = renk;
+            txt.color = new Color(renk.r, renk.g, renk.b, 0f);
             txt.alignment = TextAlignmentOptions.Center;
             txt.outlineWidth = 0.25f;
             txt.outlineColor = new Color(0f, 0f, 0f, 0.85f);
             txt.raycastTarget = false;
+            return go;
+        }
 
-            // Faz 1: 0.0-0.2sn — scale 0.5→1.2, opacity 0→1
-            const float GIRIS = 0.2f;
+        private IEnumerator ScaleAndFadeIn(RectTransform rt, TextMeshProUGUI txt, float scaleStart, float scaleEnd, float sure)
+        {
+            Color baslangicRenk = txt.color;
             float t = 0f;
-            while (t < GIRIS)
+            while (t < sure)
             {
                 t += Time.unscaledDeltaTime;
-                float u = Mathf.Clamp01(t / GIRIS);
-                float scale = Mathf.Lerp(0.5f, 1.2f, u);
+                float u = Mathf.Clamp01(t / sure);
+                float scale = Mathf.Lerp(scaleStart, scaleEnd, u);
                 rt.localScale = new Vector3(scale, scale, 1f);
-                var c = txt.color; c.a = u; txt.color = c;
+                Color c = baslangicRenk; c.a = u; txt.color = c;
                 yield return null;
             }
+            rt.localScale = new Vector3(scaleEnd, scaleEnd, 1f);
+            Color son = baslangicRenk; son.a = 1f; txt.color = son;
+        }
 
-            // Faz 2: 0.2-0.4sn — scale 1.2→1.0 (settle)
-            const float SETTLE = 0.2f;
-            t = 0f;
-            while (t < SETTLE)
+        private IEnumerator BezierFlight(RectTransform rt, Vector2 p0, Vector2 p1, Vector2 p2,
+                                         float sure, float scaleStart, float scaleEnd)
+        {
+            float t = 0f;
+            while (t < sure)
             {
                 t += Time.unscaledDeltaTime;
-                float u = Mathf.Clamp01(t / SETTLE);
-                float scale = Mathf.Lerp(1.2f, 1.0f, u);
+                float u = Mathf.Clamp01(t / sure);
+                Vector2 pos = (1f - u) * (1f - u) * p0 + 2f * (1f - u) * u * p1 + u * u * p2;
+                rt.anchoredPosition = pos;
+                float scale = Mathf.Lerp(scaleStart, scaleEnd, u);
                 rt.localScale = new Vector3(scale, scale, 1f);
                 yield return null;
             }
+            rt.anchoredPosition = p2;
+            rt.localScale = new Vector3(scaleEnd, scaleEnd, 1f);
+        }
 
-            // Faz 3: 0.4-1.0sn — hold (kullanıcı okur)
-            yield return new WaitForSecondsRealtime(0.6f);
-
-            // Faz 4: 1.0-1.5sn — opacity 1→0 + yukarı kayma (40px)
-            const float CIKIS = 0.5f;
-            t = 0f;
-            Vector2 baslangicPos = rt.anchoredPosition;
-            while (t < CIKIS)
+        private IEnumerator ScalePulse(RectTransform rt, float baz, float pic, float bazSon, float yariDonem)
+        {
+            float t = 0f;
+            while (t < yariDonem)
             {
                 t += Time.unscaledDeltaTime;
-                float u = Mathf.Clamp01(t / CIKIS);
-                var c = txt.color; c.a = 1f - u; txt.color = c;
-                rt.anchoredPosition = baslangicPos + new Vector2(0f, u * 40f);
+                float u = Mathf.Clamp01(t / yariDonem);
+                float s = Mathf.Lerp(baz, pic, u);
+                rt.localScale = new Vector3(s, s, 1f);
                 yield return null;
             }
+            t = 0f;
+            while (t < yariDonem)
+            {
+                t += Time.unscaledDeltaTime;
+                float u = Mathf.Clamp01(t / yariDonem);
+                float s = Mathf.Lerp(pic, bazSon, u);
+                rt.localScale = new Vector3(s, s, 1f);
+                yield return null;
+            }
+        }
 
-            Destroy(go);
+        private IEnumerator FadeOut(TextMeshProUGUI txt, float sure)
+        {
+            Color c0 = txt.color;
+            float t = 0f;
+            while (t < sure)
+            {
+                t += Time.unscaledDeltaTime;
+                float u = Mathf.Clamp01(t / sure);
+                Color c = c0; c.a = 1f - u; txt.color = c;
+                yield return null;
+            }
+        }
+
+        private IEnumerator FlightFade(RectTransform rt, TextMeshProUGUI txt, Vector2 p0, Vector2 p1, float sure)
+        {
+            Color c0 = txt.color;
+            float t = 0f;
+            while (t < sure)
+            {
+                t += Time.unscaledDeltaTime;
+                float u = Mathf.Clamp01(t / sure);
+                rt.anchoredPosition = Vector2.Lerp(p0, p1, u);
+                Color c = c0; c.a = 1f - u; txt.color = c;
+                yield return null;
+            }
         }
     }
 }

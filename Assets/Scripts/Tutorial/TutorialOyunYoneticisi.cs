@@ -83,16 +83,16 @@ namespace KumarFarkindalik.Tutorial
 
         // PAKET 4-HOTFIX: T3_TUTMA pedagojik ara modaller (Spin 2 sonrası tahmin, Spin 3 sonrası devam)
         private const string TAHMIN_MODAL =
-            "DİKKATLE İZLE!\n\n" +
-            "2 kez kaybettin değil mi? Çıkmayı düşünüyorsun belki.\n\n" +
-            "Şimdi bir sonraki spin'de SANA KAZANÇ GELECEK. İzle, gör, hisset.\n\n" +
-            "Sistem nasıl seni TUTUYOR, kendi gözlerinle göreceksin.";
+            "<color=#F24D40>DİKKATLE İZLE!</color>\n\n" +
+            "<color=#FFD933>2 kez</color> kaybettin değil mi? Çıkmayı düşünüyorsun belki.\n\n" +
+            "Şimdi bir sonraki spin'de SANA <color=#4DCC59>KAZANÇ GELECEK</color>. İzle, gör, hisset.\n\n" +
+            "Sistem nasıl seni <color=#F24D40>TUTUYOR</color>, kendi gözlerinle göreceksin.";
 
         private const string DEVAM_MODAL =
             "Gördün mü?\n\n" +
-            "Tam çıkacağın anda KAZANÇ geldi. 'İyi ki kalmışım' dedirtti.\n\n" +
-            "Bir kere daha izleyelim — aynı kayıp/kayıp/KAZANÇ döngüsünü tekrar yaşayacaksın.\n\n" +
-            "Bu sefer farkındasın. Bu sefer şüphecisin. Kanıtlayalım.";
+            "Tam çıkacağın anda <color=#4DCC59>KAZANÇ</color> geldi. 'İyi ki kalmışım' dedirtti.\n\n" +
+            "Bir kere daha izleyelim — aynı <color=#F24D40>kayıp/kayıp/KAZANÇ</color> döngüsünü tekrar yaşayacaksın.\n\n" +
+            "Bu sefer <color=#4DCC59>farkındasın</color>. Bu sefer <color=#4DCC59>şüphecisin</color>. Kanıtlayalım.";
 
         /// <summary>
         /// PAKET 3B-fix-4 (Sorun 2): 04 sahnesinde SenaryoYoneticisi GameObject YOK → toplamSpin
@@ -742,9 +742,9 @@ namespace KumarFarkindalik.Tutorial
             if (TutorialModalKopru.Ornek != null)
             {
                 yield return TutorialModalKopru.Ornek.ModalGoster(
-                    "Tutorial tamamlandı. Artık istediğin gibi test edebilirsin. " +
-                    "AYARLAR butonuna basıp panel'i aç, farklı modlar dene, spin at, gör.\n\n" +
-                    "Bağımlılıkla mücadelede yalnız değilsin: Yeşilay Danışma Hattı 0850 222 0 191");
+                    "<color=#4DCC59>Tutorial tamamlandı</color>. Artık istediğin gibi test edebilirsin. " +
+                    "<color=#5BA0FF>AYARLAR</color> butonuna basıp panel'i aç, farklı modlar dene, spin at, gör.\n\n" +
+                    "Bağımlılıkla mücadelede yalnız değilsin: <color=#4DCC59>Yeşilay Danışma Hattı</color> <color=#FFD933>0850 222 0 191</color>");
             }
 
             // 4. Serbest test moduna geç (restore + loop modu)
