@@ -36,9 +36,9 @@ namespace KumarFarkindalik.Tutorial
         public TutorialAdminEnjeksiyonu Enjeksiyon { get; private set; }
 
         private const string T1_METIN =
-            "Hoş geldin. Az önce bir kumar bağımlısının yaşadıklarını gördün. " +
-            "Şimdi sahne arkasını birlikte göreceğiz. Sağ-alttaki AYARLAR butonuna tıkla, " +
-            "manipülasyon panelini açalım.";
+            "Hoş geldin. Az önce bir <color=#F24D40>kumar bağımlısının</color> yaşadıklarını gördün. " +
+            "Şimdi <color=#4DCC59>sahne arkasını</color> birlikte göreceğiz. Sağ-alttaki <color=#5BA0FF>AYARLAR</color> butonuna tıkla, " +
+            "<color=#F24D40>manipülasyon panelini</color> açalım.";
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")] private static extern void PaneliSolaAl();
@@ -378,6 +378,13 @@ namespace KumarFarkindalik.Tutorial
 
                 // PAKET 4-FAZ-2: Bahis kilit (T3+ boyunca 1000 TL sabit, T_SON sonrası açılır)
                 BahisKilitle(true);
+
+                // PAKET 7: Tutorial sırasında WinFeedbackUI BÜYÜK KAZANÇ pop-up'ı KAPAT (basket animasyon ile çakışma)
+                if (oy.winFeedbackUI != null)
+                {
+                    oy.winFeedbackUI.gameObject.SetActive(false);
+                    Debug.Log("[Tutorial] WinFeedbackUI deaktif (BÜYÜK KAZANÇ pop-up gizli)");
+                }
             }
 
             // PAKET 3B-fix-10 (İş 3): Tutorial sırasında dikkat dağıtıcı butonları gizle
@@ -767,6 +774,13 @@ namespace KumarFarkindalik.Tutorial
 
             // Bahis butonlarını AÇ (1000 TL sabit yerine kullanıcı serbest)
             BahisKilitle(false);
+
+            // PAKET 7: WinFeedbackUI restore (serbest test'te BÜYÜK KAZANÇ pop-up tekrar aktif)
+            if (oy != null && oy.winFeedbackUI != null)
+            {
+                oy.winFeedbackUI.gameObject.SetActive(true);
+                Debug.Log("[Tutorial] WinFeedbackUI restore (serbest test BÜYÜK KAZANÇ aktif)");
+            }
 
             // Pattern motoru loop moduna geç (kullanıcı senaryo değişip spin attıkça pattern başa sarar)
             TutorialSenaryoMotoru.LoopModaGec();

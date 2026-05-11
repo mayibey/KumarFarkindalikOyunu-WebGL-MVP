@@ -371,76 +371,76 @@ namespace KumarFarkindalik.Tutorial
         // === Adım metinleri (A=başlangıç, B=aksiyon, C=kapanış) ===
 
         private const string T2_BASLANGIC =
-            "Az önce yaşadığın manipülasyon işte bu panelde kuruluyor. " +
-            "Üç bölüm göreceğiz: Olasılık, Manipülasyon ve Anlık Müdahale. Hadi başlayalım.";
+            "Az önce yaşadığın <color=#F24D40>manipülasyon</color> işte bu panelde kuruluyor. " +
+            "Üç bölüm göreceğiz: <color=#5BA0FF>Olasılık</color>, <color=#5BA0FF>Manipülasyon</color> ve <color=#5BA0FF>Anlık Müdahale</color>. Hadi başlayalım.";
 
         // === T3 — 5 senaryo ===
 
         private const string T3_HOOK_A =
-            "5 oyun modu var. Sırayla her birini deneyip aralarındaki farkı göreceğiz.\n\n" +
-            "İlk senaryo: TAZE KAN (Hook). Yeni gelen oyuncu için tasarlandı — bol kazandırma, " +
-            "yumuşak kayıplar, 'şanslıyım' hissi.";
+            "<color=#FFD933>5 oyun modu</color> var. Sırayla her birini deneyip aralarındaki farkı göreceğiz.\n\n" +
+            "İlk senaryo: <color=#F24D40>TAZE KAN (Hook)</color>. Yeni gelen oyuncu için tasarlandı — " +
+            "<color=#4DCC59>bol kazandırma</color>, <color=#F24D40>yumuşak kayıplar</color>, <color=#FFD933>'şanslıyım'</color> hissi.";
         private const string T3_HOOK_B =
-            "Oyun Modu'ndan 'Taze Kan' seç, Uygula bas. 5 spin at.";
+            "<color=#5BA0FF>Oyun Modu</color>'ndan <color=#5BA0FF>'Taze Kan'</color> seç, <color=#5BA0FF>Uygula</color> bas. <color=#FFD933>5 spin</color> at.";
         private const string T3_HOOK_C =
-            "Gördün mü? Yeni oyuncu hemen kazandı, oyuna bağlandı. Sömürünün başlangıcı — kanca.";
+            "Gördün mü? Yeni oyuncu hemen <color=#4DCC59>kazandı</color>, oyuna bağlandı. <color=#F24D40>Sömürünün başlangıcı</color> — <color=#F24D40>kanca</color>.";
 
         private const string T3_YONTMA_A =
-            "İkinci senaryo: AZ AZ KAYIP (Yontma). Oyuncu farkına varmadan, küçük küçük kaybettirme. " +
-            "Bakiye sessizce erir.";
+            "İkinci senaryo: <color=#F24D40>AZ AZ KAYIP (Yontma)</color>. Oyuncu farkına varmadan, küçük küçük <color=#F24D40>kaybettirme</color>. " +
+            "Bakiye <color=#F24D40>sessizce erir</color>.";
         private const string T3_YONTMA_B =
-            "Oyun Modu'ndan 'Az Az Kayıp' seç, Uygula bas. 5 spin at.";
+            "<color=#5BA0FF>Oyun Modu</color>'ndan <color=#5BA0FF>'Az Az Kayıp'</color> seç, <color=#5BA0FF>Uygula</color> bas. <color=#FFD933>5 spin</color> at.";
         private const string T3_YONTMA_C =
-            "Kazanç hiç gelmedi ya da bahsin altında küçük şey. Oyuncu 'fark etmedim' der. Sessiz sömürü.";
+            "<color=#F24D40>Kazanç hiç gelmedi</color> ya da bahsin altında küçük şey. Oyuncu 'fark etmedim' der. <color=#F24D40>Sessiz sömürü</color>.";
 
         private const string T3_TUTMA_A =
-            "Üçüncü senaryo: KAÇIŞ ENGELLEME (Tutma). Oyuncu çıkmaya niyetlenirse sistem küçük " +
-            "kazanç hediyesi verir.";
+            "Üçüncü senaryo: <color=#F24D40>KAÇIŞ ENGELLEME (Tutma)</color>. Oyuncu çıkmaya niyetlenirse sistem küçük " +
+            "<color=#4DCC59>kazanç hediyesi</color> verir.";
         private const string T3_TUTMA_B =
-            "Oyun Modu'ndan 'Kaçış Engelleme' seç, Uygula bas. 6 spin at.";
+            "<color=#5BA0FF>Oyun Modu</color>'ndan <color=#5BA0FF>'Kaçış Engelleme'</color> seç, <color=#5BA0FF>Uygula</color> bas. <color=#FFD933>6 spin</color> at.";
         private const string T3_TUTMA_C =
             "Gördün mü? <color=#FFD933>2 kez kayıp</color>, sonra <color=#4DCC59>ÖDEME</color>. Yine <color=#FFD933>2 kez kayıp</color>, yine <color=#4DCC59>ÖDEME</color>. " +
             "Sistem seni tam çıkacağın anda küçük kazançla <color=#F24D40>TUTUYOR</color>. " +
             "<color=#F24D40>Asıl manipülasyon budur</color> — <color=#F24D40>kaybetmeni bekletip</color>, küçük hediye vererek bir spin daha attırır.";
 
         private const string T3_KORUMA_A =
-            "Dördüncü senaryo: BAKİYE TÜKETME (Koruma). Ödeme neredeyse durur — kasa korunur, " +
-            "oyuncu son kuruşa kadar kaybeder.";
+            "Dördüncü senaryo: <color=#F24D40>BAKİYE TÜKETME (Koruma)</color>. <color=#F24D40>Ödeme neredeyse durur</color> — kasa korunur, " +
+            "oyuncu <color=#F24D40>son kuruşa kadar kaybeder</color>.";
         private const string T3_KORUMA_B =
-            "Oyun Modu'ndan 'Bakiye Tüketme' seç, Uygula bas. 5 spin at.";
+            "<color=#5BA0FF>Oyun Modu</color>'ndan <color=#5BA0FF>'Bakiye Tüketme'</color> seç, <color=#5BA0FF>Uygula</color> bas. <color=#FFD933>5 spin</color> at.";
         private const string T3_KORUMA_C =
-            "Kazanç yok. Oyuncu son kuruşuna kadar kaybediyor. Senaryonun ilk üç adımı bağladı, " +
-            "son adım sömürdü. Tükeniş aşaması.";
+            "<color=#F24D40>Kazanç yok</color>. Oyuncu <color=#F24D40>son kuruşuna kadar kaybediyor</color>. Senaryonun ilk üç adımı bağladı, " +
+            "son adım sömürdü. <color=#F24D40>Tükeniş aşaması</color>.";
 
         private const string T3_NORMAL_A =
-            "Son senaryo: NORMAL OYUN. Manipülasyon kapalı, oyun kendi kurallarında akıyor. " +
+            "Son senaryo: <color=#4DCC59>NORMAL OYUN</color>. <color=#F24D40>Manipülasyon kapalı</color>, oyun kendi kurallarında akıyor. " +
             "Bunu diğer 4 ile kıyaslayacağız.";
         private const string T3_NORMAL_B =
-            "Oyun Modu'ndan 'Normal' seç, Uygula bas. 5 spin at.";
+            "<color=#5BA0FF>Oyun Modu</color>'ndan <color=#5BA0FF>'Normal'</color> seç, <color=#5BA0FF>Uygula</color> bas. <color=#FFD933>5 spin</color> at.";
         private const string T3_NORMAL_C =
-            "Fark hissettin mi? Diğer 4 senaryo bütün aksiyon kullanıcının dopaminini, parasını, " +
-            "beklentilerini kontrol etmek için kurulmuş. Normal oyun = manipülasyonsuz. " +
-            "Bu farkındalık temel.";
+            "Fark hissettin mi? Diğer 4 senaryo bütün aksiyon kullanıcının <color=#F24D40>dopaminini</color>, parasını, " +
+            "beklentilerini <color=#F24D40>kontrol etmek</color> için kurulmuş. <color=#4DCC59>Normal oyun = manipülasyonsuz</color>. " +
+            "<color=#4DCC59>Bu farkındalık temel</color>.";
 
         // === T4-T11 (mevcut) ===
 
         private const string T4_BASLANGIC =
-            "Olasılık Ayarları bölümü otomatik açıldı. İlk parametre: çarpan ne sıklıkla düşsün.";
+            "<color=#5BA0FF>Olasılık Ayarları</color> bölümü otomatik açıldı. İlk parametre: <color=#5BA0FF>çarpan</color> ne sıklıkla düşsün.";
         private const string T4_AKSIYON =
-            "Çarpan olasılığını %15 yap (default %2). Sonra 3 spin at.";
+            "<color=#5BA0FF>Çarpan olasılığını</color> <color=#FFD933>%15</color> yap (default <color=#FFD933>%2</color>). Sonra <color=#FFD933>3 spin</color> at.";
         private const string T4_KAPANIS =
-            "Çarpanlar şimdi çok daha sık görünüyor. Operatör bunu 'oyun eğlenceli' hissi için " +
-            "kullanır — ama beyninde 'her an büyük kazanç olabilir' yanılgısı yaratır.";
+            "Çarpanlar şimdi çok daha <color=#FFD933>sık</color> görünüyor. <color=#F24D40>Operatör</color> bunu 'oyun eğlenceli' hissi için " +
+            "kullanır — ama beyninde <color=#F24D40>'her an büyük kazanç olabilir' yanılgısı</color> yaratır.";
 
         private const string T5_BASLANGIC =
-            "Şimdi bonus sembolüne bakalım. Yıldız (scatter) sembolü nadir düşer ama operatör " +
-            "sıklığını arttırabilir. Slider'ı maxa kadar arttır, ne olacağını gör.";
+            "Şimdi <color=#5BA0FF>bonus sembolüne</color> bakalım. <color=#FFD933>Yıldız (scatter)</color> sembolü nadir düşer ama <color=#F24D40>operatör</color> " +
+            "sıklığını arttırabilir. Slider'ı <color=#FFD933>maxa</color> kadar arttır, ne olacağını gör.";
         private const string T5_AKSIYON =
-            "Bonus sembolü olasılığını arttır, Uygula bas. 1 spin at.";
+            "<color=#5BA0FF>Bonus sembolü olasılığını</color> arttır, <color=#5BA0FF>Uygula</color> bas. <color=#FFD933>1 spin</color> at.";
         private const string T5_KAPANIS =
-            "Gördün mü? Slider'ı arttırdın → scatter düştü → bonus oyun açıldı. " +
-            "Operatör bunu sana 'sürpriz' gibi sunar ama aslında 'şimdi büyük kazanca yakınsın, " +
-            "devam et' tuzağıdır.";
+            "Gördün mü? Slider'ı arttırdın → <color=#FFD933>scatter</color> düştü → <color=#4DCC59>bonus oyun açıldı</color>. " +
+            "<color=#F24D40>Operatör</color> bunu sana 'sürpriz' gibi sunar ama aslında <color=#F24D40>'şimdi büyük kazanca yakınsın, " +
+            "devam et' tuzağıdır</color>.";
 
         // PAKET 6C2 — T6_YENI_OYUNCU (Hook Fazı toggle)
         private const string T6YO_BASLANGIC =
@@ -461,15 +461,15 @@ namespace KumarFarkindalik.Tutorial
 
         // PAKET 6C3: T6 (Kazandırma) — 5'lik N mantığı, dinamik pattern motor
         private const string T6_BASLANGIC =
-            "Şimdi 'Kazandırma Sıklığı'na bakalım. Bu slider 5 spin'in kaçında kullanıcıya " +
-            "kazanç verileceğini belirler. Slider'ı ayarla — sen seçeceksin.";
+            "Şimdi <color=#5BA0FF>'Kazandırma Sıklığı'</color>'na bakalım. Bu slider <color=#FFD933>5 spin</color>'in kaçında kullanıcıya " +
+            "<color=#4DCC59>kazanç</color> verileceğini belirler. Slider'ı ayarla — <color=#4DCC59>sen seçeceksin</color>.";
         private const string T6_AKSIYON =
-            "Slider'ı kaydır. Slider değeri ÷ 2 = 5'de kaç kazanç. Örneğin slider 6 → 5'de 3 kazanç. " +
-            "Uygula bas, 5 spin at.";
+            "Slider'ı kaydır. Slider değeri ÷ <color=#FFD933>2</color> = <color=#FFD933>5'de kaç kazanç</color>. Örneğin slider <color=#FFD933>6</color> → <color=#FFD933>5'de 3 kazanç</color>. " +
+            "<color=#5BA0FF>Uygula</color> bas, <color=#FFD933>5 spin</color> at.";
         private const string T6_KAPANIS =
-            "Slider 5'de N seçtin. 5 spin'in N tanesi kazanç oldu, kalanı kayıp. " +
-            "Operatör bunu istediği gibi ayarlar — sen 'şanslı bir gün' veya 'şanssız' sanırsın " +
-            "ama her şey ayarlanmıştır.";
+            "Slider <color=#FFD933>5'de N</color> seçtin. <color=#FFD933>5 spin</color>'in <color=#FFD933>N tanesi</color> <color=#4DCC59>kazanç</color> oldu, kalanı <color=#F24D40>kayıp</color>. " +
+            "<color=#F24D40>Operatör</color> bunu istediği gibi ayarlar — sen 'şanslı bir gün' veya 'şanssız' sanırsın " +
+            "ama <color=#F24D40>her şey ayarlanmıştır</color>.";
 
         // PAKET 6D: T7 (Ödeme Aralığı) — 2-aşamalı maks 3x vs min 3-maks 5x karşılaştırma
         private const string T7_BASLANGIC =
@@ -488,15 +488,15 @@ namespace KumarFarkindalik.Tutorial
 
         // PAKET 6C3: T8 (Near Miss) — 5'lik N mantığı, dinamik pattern motor (7-sembol layout)
         private const string T8_BASLANGIC =
-            "Near miss — 'neredeyse kazanıyordun' hissi. Slot oyununun en güçlü tuzaklarından biri. " +
+            "<color=#5BA0FF>Near miss</color> — <color=#F24D40>'neredeyse kazanıyordun' hissi</color>. Slot oyununun en güçlü <color=#F24D40>tuzaklarından</color> biri. " +
             "Slider'ı ayarla, kaç near miss istediğini sen seç.";
         private const string T8_AKSIYON =
-            "Slider 5'de N near miss demek. 5 spin'in N tanesinde 'tam azıcık eksik' kümeler düşecek. " +
-            "Uygula bas, 5 spin at.";
+            "Slider <color=#FFD933>5'de N</color> near miss demek. <color=#FFD933>5 spin</color>'in N tanesinde <color=#F24D40>'tam azıcık eksik'</color> kümeler düşecek. " +
+            "<color=#5BA0FF>Uygula</color> bas, <color=#FFD933>5 spin</color> at.";
         private const string T8_KAPANIS =
-            "Gördün mü? 7 aynı sembol düştü ama 1 EKSİK — cluster 8'den başlıyor. " +
-            "Beynin 'KAZANIYORDUM' der, oysa hiç şansın yoktu. " +
-            "Bu manipülasyon dopamin pompalar — bağımlılığın temel mekanizması.";
+            "Gördün mü? <color=#FFD933>7 aynı sembol</color> düştü ama <color=#F24D40>1 EKSİK</color> — cluster <color=#FFD933>8</color>'den başlıyor. " +
+            "Beynin <color=#F24D40>'KAZANIYORDUM'</color> der, oysa hiç şansın yoktu. " +
+            "Bu <color=#F24D40>manipülasyon dopamin pompalar</color> — <color=#F24D40>bağımlılığın temel mekanizması</color>.";
 
         // PAKET 6D: T9 (Kaçış Frenleme) — 3 kayıp + 1 kazanç deterministik demo
         private const string T9_BASLANGIC =
