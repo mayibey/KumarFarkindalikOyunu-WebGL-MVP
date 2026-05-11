@@ -107,13 +107,18 @@ namespace KumarFarkindalik.Tutorial
 
         // === Public API ===
 
-        public void AdimGoster(int sira, string altBaslik, string[] yapilacaklar)
+        public void AdimGoster(int sira, string altBaslik, string[] yapilacaklar, string altSayac = null)
         {
-            Debug.Log($"[TutorialAdimGoster] AdimGoster: sira={sira}, altBaslik={altBaslik}, yapilacaklar={yapilacaklar?.Length ?? 0}");
+            Debug.Log($"[TutorialAdimGoster] AdimGoster: sira={sira}, altBaslik={altBaslik}, yapilacaklar={yapilacaklar?.Length ?? 0}, altSayac={altSayac ?? "-"}");
             if (_root == null) return;
             _root.SetActive(true);
 
-            if (_sayacText != null) _sayacText.text = $"ADIM {sira}/{TOPLAM_ADIM}";
+            if (_sayacText != null)
+            {
+                _sayacText.text = string.IsNullOrEmpty(altSayac)
+                    ? $"ADIM {sira}/{TOPLAM_ADIM}"
+                    : $"ADIM {sira}/{TOPLAM_ADIM} · {altSayac}";
+            }
             if (_altBaslikText != null) _altBaslikText.text = altBaslik ?? "";
 
             bool yapVar = yapilacaklar != null && yapilacaklar.Length > 0;
@@ -213,9 +218,9 @@ namespace KumarFarkindalik.Tutorial
             panel.GetComponent<Image>().color = BALON_RENK;
             BorderEkle(panel.transform, panelRt.sizeDelta, 2f, ALTIN_RENK);
 
-            // 1. Başlık "ADIM #/11" (top -10)
+            // 1. Başlık "ADIM #/11 · Senaryo X/5" (top -10) — fontSize 22 → 18 (alt sayaç eklendiğinde sığsın)
             _sayacText = MetinYarat(panel.transform, "Baslik", new Vector2(0f, -10f),
-                new Vector2(260f, 30f), 22f, FontStyles.Bold, ALTIN_RENK,
+                new Vector2(260f, 30f), 18f, FontStyles.Bold, ALTIN_RENK,
                 TextAlignmentOptions.Center, "ADIM ?/11");
 
             // 2. Alt başlık (top -45)

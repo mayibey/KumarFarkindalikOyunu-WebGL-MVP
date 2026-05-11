@@ -283,10 +283,10 @@ namespace KumarFarkindalik.Tutorial
                 }
             }
 
-            // === AdimGoster göster (sira + altBaslik + yapılacaklar) ===
-            int sira = (int)v.id;
-            Debug.Log($"[TutorialOyunYoneticisi] AdimGoster.AdimGoster çağrılıyor: sira={sira}");
-            TutorialAdimGoster.Ornek?.AdimGoster(sira, v.altBaslik, v.yapilacaklar);
+            // === AdimGoster göster (sira + altBaslik + yapılacaklar + altSayac) ===
+            int sira = v.sira; // PAKET 3B-fix-5: T3_* için hepsi 3 (override)
+            Debug.Log($"[TutorialOyunYoneticisi] AdimGoster.AdimGoster çağrılıyor: sira={sira}, altSayac={v.altSayac ?? "-"}");
+            TutorialAdimGoster.Ornek?.AdimGoster(sira, v.altBaslik, v.yapilacaklar, v.altSayac);
 
             // === Aktif adım: KosulSagla yield-while ile bekle ===
             // (pasif adımlar Modal A sonrası IleriTiklandi ile zaten çıktı — buraya gelmez)
@@ -307,7 +307,7 @@ namespace KumarFarkindalik.Tutorial
 #endif
                 if (TutorialModalKopru.Ornek != null)
                     yield return TutorialModalKopru.Ornek.ModalGoster(v.mesajKapanis);
-                TutorialAdimGoster.Ornek?.AdimGoster(sira, v.altBaslik, v.yapilacaklar); // sayaç tekrar göster
+                TutorialAdimGoster.Ornek?.AdimGoster(sira, v.altBaslik, v.yapilacaklar, v.altSayac); // sayaç tekrar göster
             }
 
             // === İLERİ aktif (kullanıcı tıklayınca sonraki adım) ===
