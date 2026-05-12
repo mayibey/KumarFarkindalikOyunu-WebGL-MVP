@@ -555,60 +555,35 @@ namespace KumarFarkindalik.Tutorial
                 }
             }
 
-            // PAKET 4-HOTFIX (Bug 2) + 03 REFERANS: Tumble simülasyonu — survivors loop refillGrid
-            // doldurması için ZORUNLU (yoksa boş hücre kalır, sprite render hatalı). Ama 03 anlatıcı
-            // sahnesinin görsel referansına uygun olmak için DusenHucreFrom/To listeleri BOŞ bırakılır.
-            // Sonuç: kalan meyveler sabit kalır (CokmeAkisServisi.CokmeDoldurOynat:350-365 for döngüsü
-            // iterate etmez), sadece üstten yeni meyveler düşer. 03 ile aynı görsel davranış.
-            var patlayanSet = new HashSet<Vector2Int>(clusterPozlari);
-            int[,] refillGrid = new int[SUTUN, SATIR];
-            var yeniSpawn = new List<Vector2Int>();
-
-            for (int x = 0; x < SUTUN; x++)
+            // PAKET 11 — 03 REFERANS PIPELINE: Clone + patlayanlara yeni sembol yaz.
+            // ScriptedSpinUygulayici.cs:87-118 stratejisinin birebir uygulaması:
+            //   1. refillGrid = IlkGrid.Clone() → tüm 30 hücre kopyalanır, survivor'lar pozisyonda kalır
+            //   2. Patlayan hücrelere SecDolguSembol ile yeni meyve yaz (cluster oluşturmasın)
+            //   3. yeniSpawn = patlayan pozisyonlar → CokmeAkisServisi üstten düşme animasyonu uygular
+            //   4. DusenHucreFrom/To boş kalır → gravity yok, survivor'lar yerinde sabit
+            // Önceki sütun-bazlı survivor kayma mantığı survivor'ları yanlış y'lere taşıyordu (bug).
+            int[,] refillGrid = (int[,])kayit.IlkGrid.Clone();
+            var yeniSpawn = new List<Vector2Int>(clusterPozlari.Count);
+            foreach (var p in clusterPozlari)
             {
-                // Sütundaki survivors (patlamayan hücreler, y küçükten büyüğe)
-                var survivors = new List<(int oldY, int sym)>();
-                for (int y = 0; y < SATIR; y++)
-                {
-                    if (!patlayanSet.Contains(new Vector2Int(x, y)))
-                        survivors.Add((y, kayit.IlkGrid[x, y]));
-                }
-
-                // En alttan yukarı doğru yerleştir (y=SATIR-1 alt, y=0 üst — Unity ekran koord)
-                // NOT (03 referans): dusenFrom/dusenTo intentionally doldurulmuyor — kalan meyveler
-                // ekranda sabit kalır, görsel olarak patlayan hücrelere yeniler düşer.
-                int yeniY = SATIR - 1;
-                for (int i = survivors.Count - 1; i >= 0; i--)
-                {
-                    int sym = survivors[i].sym;
-                    refillGrid[x, yeniY] = sym;
-                    yeniY--;
-                }
-
-                // Üst boşluklar → yeni meyveler (hedef sembol DEĞİL, scatter DEĞİL, komşu cluster engelle)
-                while (yeniY >= 0)
-                {
-                    int newSym = SecDolguSembol(refillGrid, SUTUN, SATIR, sembolSayisi, scatterIdx,
-                                                 desen.sembolId, x, yeniY);
-                    refillGrid[x, yeniY] = newSym;
-                    yeniSpawn.Add(new Vector2Int(x, yeniY));
-                    yeniY--;
-                }
+                int newSym = SecDolguSembol(refillGrid, SUTUN, SATIR, sembolSayisi, scatterIdx,
+                                             desen.sembolId, p.x, p.y);
+                refillGrid[p.x, p.y] = newSym;
+                yeniSpawn.Add(p);
             }
 
             // Paytable kazanç hesabı (READ ONLY — paytable'a YAZILMIYOR)
             float payCoef = ta.GetPayForCount(desen.sembolId, desen.adet);
             int turKazanci = Mathf.RoundToInt(payCoef * _oy.BotIcinBahis);
 
-            // PAKET 9-FIX-B: CarpanGridRefillSonrasi'i IlkCarpanGrid'den kopyala — çarpanlar cluster
-            // patladıktan SONRA da grid'de duruyor (cluster pozisyonu DIŞINDA enjekte edildi).
-            // Yoksa text tumble sonrası kaybolur ve görsel "2 çarpandan biri sönüyor" davranışı çıkar.
-            const int CARPAN_SEMBOL_LITERAL = -2; // OyunYoneticisi.CARPAN_SEMBOL private; literal kullanıyoruz
-            var carpanGridSonrasi = new int[SUTUN, SATIR];
-            for (int x = 0; x < SUTUN; x++)
-                for (int y = 0; y < SATIR; y++)
-                    if (refillGrid[x, y] == CARPAN_SEMBOL_LITERAL && kayit.IlkCarpanGrid != null)
-                        carpanGridSonrasi[x, y] = kayit.IlkCarpanGrid[x, y];
+            // PAKET 11 — CarpanGridRefillSonrasi de Clone + patlayanları sıfırla. Survivor pozisyonlardaki
+            // çarpanlar IlkCarpanGrid'den otomatik korunur. Patlayan hücrelerde zaten 0 (cluster dışı
+            // enjeksiyon) ama defansif olarak sıfır set ediyoruz.
+            int[,] carpanGridSonrasi = kayit.IlkCarpanGrid != null
+                ? (int[,])kayit.IlkCarpanGrid.Clone()
+                : new int[SUTUN, SATIR];
+            foreach (var p in clusterPozlari)
+                carpanGridSonrasi[p.x, p.y] = 0;
 
             var adim = new TumbleAdimKaydi
             {

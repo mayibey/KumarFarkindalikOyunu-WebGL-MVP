@@ -971,6 +971,15 @@ public class AnlaticiSeritKopru : MonoBehaviour
         AnlaticiOzelAkisAktif = true;
         try
         {
+            // PAKET 11-FIX: Borç +50K yapıldı → _sonBakiye snapshot güncelle ki A6 ilk spin net'i
+            // yanlış pozitif (bakiye = eski + 50K − 10K bahis → +40K) çıkıp bar yeşillenmesin.
+            // Borç parası "spin kazancı" değil — snapshot reset bunun A6 net hesabına sızmasını engeller.
+            if (_oy != null)
+            {
+                _sonBakiye = _oy.BahisPanelMevcutBakiye();
+                Debug.Log($"[Anlatici] BorcSonrasiModal — _sonBakiye borç sonrası snapshot: {_sonBakiye} TL");
+            }
+
             yield return new WaitForSecondsRealtime(0.5f); // Yükleme paneli kapanma animasyonu
 
             var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
