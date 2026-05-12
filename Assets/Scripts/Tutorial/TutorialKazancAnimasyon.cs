@@ -124,8 +124,12 @@ namespace KumarFarkindalik.Tutorial
 
                 if (delta > 0)
                 {
-                    StartCoroutine(KazancAnimasyon(delta));
-                    Debug.Log($"[TutorialKazancAnim] Kazanç delta=+{delta} TL — basket animasyonu");
+                    // PAKET 12: 03 referans — ScriptedKazancUcusu (düz çizgi Lerp + counting up + BIG WIN
+                    // tier sync). Mevcut basket/Bezier KazancAnimasyon coroutine'i kayıp path için durur,
+                    // kazanç path artık 03'ün güzel akışını kullanır.
+                    int bahis = _oy.BotIcinBahis;
+                    StartCoroutine(KazancUcusuKopru(delta, bahis));
+                    Debug.Log($"[TutorialKazancAnim] Kazanç delta=+{delta} TL — 03 referans uçuş (ScriptedKazancUcusu)");
                 }
                 else if (delta < 0)
                 {
@@ -184,6 +188,17 @@ namespace KumarFarkindalik.Tutorial
             yield return FadeOut(txt, 0.1f);
 
             Destroy(go);
+            AnimasyonAktif = false;
+        }
+
+        // === KAZANÇ — 03 referans köprü (PAKET 12) ===
+        // ScriptedKazancUcusu.TetikleKazancUcusu çağrısının AnimasyonAktif flag sarmalı. Mevcut
+        // KazancAnimasyon coroutine'i (yukarıdaki Bezier basket) artık çağrılmaz — kod ileride referans
+        // için bırakıldı (silinmedi). Tutorial kazanç path'i 03 ile aynı görsele sahip.
+        private IEnumerator KazancUcusuKopru(int kazanc, int bahis)
+        {
+            AnimasyonAktif = true;
+            yield return Senaryo.Scripted.ScriptedKazancUcusu.TetikleKazancUcusu(kazanc, bahis, _oy);
             AnimasyonAktif = false;
         }
 
