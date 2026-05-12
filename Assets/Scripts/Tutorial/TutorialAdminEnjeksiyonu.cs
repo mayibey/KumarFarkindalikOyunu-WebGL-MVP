@@ -94,8 +94,11 @@ namespace KumarFarkindalik.Tutorial
                             && !TutorialOyunYoneticisi.T6IkinciAsamaBasladi)
                         {
                             TutorialOyunYoneticisi.T6IkinciAsamaBasladi = true;
+                            // PAKET 6C2-EXT: Kullanıcı bilinçli toggle bastı — defansif kilit AÇIK
+                            // (artık yeniOyuncu=true mesajları PanelKopru'da yutulmaz).
+                            TutorialOyunYoneticisi.T6YOForceKapaliKilitli = false;
                             TutorialSenaryoMotoru.PatternBaslat("yeniOyuncu_acik");
-                            Debug.Log("[Tutorial T6_YENI_OYUNCU] Toggle açıldı → ikinci pattern başladı");
+                            Debug.Log("[Tutorial T6_YENI_OYUNCU] Toggle açıldı → ikinci pattern başladı + kilit kapandı");
                         }
                     }
                     break;

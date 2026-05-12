@@ -340,7 +340,18 @@ namespace KumarFarkindalik.Tutorial
 
         private void Update()
         {
-            if (!_motorAktif) return;
+            if (!_motorAktif)
+            {
+                // PAKET 6C2-EXT: T6YO aktifken motor pasifse cache bypass uyarısı (saniyede 1).
+                // Beklenen davranış: T6YO branch'i PatternBaslat("yeniOyuncu_kapali") çağırmış olmalı.
+                if (Time.frameCount % 60 == 0)
+                {
+                    var ayDbg = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
+                    if (ayDbg != null && ayDbg.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T6_YENI_OYUNCU)
+                        Debug.LogWarning($"[TutorialSenaryoMotoru] T6YO AKTİF ama motor PASİF — pattern enjekte edilmiyor (_aktifPattern='{_aktifPattern}', _spinIdx={_spinIdx}). Bakiye RNG akışıyla artıyor olabilir.");
+                }
+                return;
+            }
             if (_kayitField == null || _hazirField == null) return;
 
             if (_oy == null)

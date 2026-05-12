@@ -87,6 +87,11 @@ namespace KumarFarkindalik.Tutorial
         public static bool T6AraModalGosterildi { get; set; }
         public static bool T6IkinciAsamaBasladi { get; set; }
 
+        // PAKET 6C2-EXT: T6YO defansif kilit — force kapat sonrası gelen "yeniOyuncu=true"
+        // postMessage'ı PanelKopru tarafında yutar. T6IkinciAsamaBasladi=true (kullanıcı toggle'a
+        // bilerek bastı) anında, veya T6YO dışı bir adıma geçildiğinde otomatik olarak false'a döner.
+        public static bool T6YOForceKapaliKilitli = false;
+
         // PAKET 6D: T8 (Ödeme) + T11 (Çarpan Zorla) 2-aşamalı akış state
         public static bool T8AraModalGosterildi { get; set; }
         public static bool T8IkinciAsamaBasladi { get; set; }
@@ -435,6 +440,10 @@ namespace KumarFarkindalik.Tutorial
             // AdimGoster'ı gizle (modal süresince görünmesin, modal sonra göster)
             TutorialAdimGoster.Ornek?.Gizle();
 
+            // PAKET 6C2-EXT: T6YO defansif kilit — yeni adıma geçişte default false.
+            // T6YO branch'i aşağıda zorla true yapar. Diğer adımlara geçişte kilit otomatik kapanır.
+            T6YOForceKapaliKilitli = false;
+
             // PAKET 6C1/6C2/6C3/8: adım bazlı pattern motor yönetimi
             if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T4)
             {
@@ -459,7 +468,11 @@ namespace KumarFarkindalik.Tutorial
 #if UNITY_WEBGL && !UNITY_EDITOR
                 ToggleKapat("yeniOyuncuToggle");
 #endif
-                Debug.Log("[Tutorial T6YO] Toggle force KAPALI'ya çekildi (UI + Unity state senkron)");
+                // PAKET 6C2-EXT: Force kapat sonrası DEFANSİF KİLİT aktif. Bu noktadan sonra
+                // panel/jslib/preset'ten gelen yeniOyuncu=true mesajları yutulacak (kullanıcı
+                // bilinçli toggle bastığında T6IkinciAsamaBasladi=true ile kilit açılır).
+                T6YOForceKapaliKilitli = true;
+                Debug.Log("[Tutorial T6YO] Toggle force KAPALI'ya çekildi (UI + Unity state senkron) + defansif kilit AKTİF");
                 TutorialSenaryoMotoru.PatternBaslat("yeniOyuncu_kapali");
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T6) // KAZANDIRMA (sira=7)
