@@ -257,10 +257,14 @@ namespace KumarFarkindalik.Tutorial
 
                 if (sonMaddeSpin)
                     tamam = spinTamam;
-                else if (i < paramSayisi)
-                    tamam = ay.AdimSirasindaDegistirildi(v.degisimAnahtarlari[i]);
                 else
-                    tamam = tumAnahtarlarTamam; // "açma/uygula bas" maddesi
+                {
+                    // HOTFIX: AdimSirasindaDegistirildi sadece "key gönderildi mi" — değere bakmıyordu.
+                    // parametreKosulu lambda GERÇEK değer kontrolü yapar (örn carpanOlasilik >= %10,
+                    // aktifSenaryo == "hook", maksCarpan > 0 vb.). Tüm parametre + ara maddeler için
+                    // tek lambda yeşillik kararını verir. parametreKosulu null ise fallback eski mantık.
+                    tamam = v.parametreKosulu?.Invoke() ?? tumAnahtarlarTamam;
+                }
 
                 string prefix = tamam ? "✓ " : "→ ";
                 // PAKET 5: Spin sayacı son maddeye entegre — "5 spin at (2/5)"
