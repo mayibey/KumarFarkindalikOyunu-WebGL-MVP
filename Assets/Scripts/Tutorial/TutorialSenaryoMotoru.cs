@@ -74,18 +74,27 @@ namespace KumarFarkindalik.Tutorial
                 new SpinDesen { sembolId = 0, adet = 8 },   // 200 TL (orijinal 250 → 200)
                 new SpinDesen { sembolId = -1, adet = 0 },
             },
-            // PAKET 6C1 — T5 BONUS SEMBOLÜ: 1 spin, 4 scatter → ScatterEsik (default 4) aşılır → bonus tetiklenir
-            ["bonusTest"] = new[]
+            // PAKET 9 — T5 BONUS SEMBOLÜ 2-aşamalı: %100 → 1 spin (bonus garanti), %0 → 1 spin (bonus yok).
+            // bonusTest_100: 4 scatter düşer → bonus tetiklenir; bonusTest_0: normal kayıp grid → bonus tetiklenmez.
+            ["bonusTest_100"] = new[]
             {
-                new SpinDesen { sembolId = SCATTER_PATTERN_FLAG, adet = 4 },
+                new SpinDesen { sembolId = SCATTER_PATTERN_FLAG, adet = 4 },   // %100 → 4 scatter, bonus
             },
-            // PAKET 8 — T4 ÇARPAN: 3 spin küçük kazançlar (500 TL). Çarpan enjeksiyonu DesenToKayit içinde
-            // carpanUretimOlasiligi (slider değeri) baz alınarak otomatik yapılır (T4+ guard ile aktif).
-            ["carpanTest"] = new[]
+            ["bonusTest_0"] = new[]
             {
-                new SpinDesen { sembolId = 3, adet = 8 },   // 500 TL (x8-9[3]=0.5) + çarpan enjekte
-                new SpinDesen { sembolId = 3, adet = 8 },   // 500 TL + çarpan
-                new SpinDesen { sembolId = 3, adet = 8 },   // 500 TL + çarpan
+                new SpinDesen { sembolId = -1, adet = 0 },                     // %0 → cluster yok, scatter yok, bonus yok
+            },
+            // PAKET 9 — T4 ÇARPAN 2-aşamalı: %100 → 1 spin (çarpan kesin), %0 → 1 spin (çarpan yok).
+            // DesenToKayit içinde çarpan enjeksiyonu _oy.carpanUretimOlasiligi'na göre yapılır:
+            //   slider %100 (1.0) → her aday hücreye çarpan; slider %0 (0.0) → hiç çarpan.
+            // Pattern adı sadece SpinTamamlandi sayacı için ayrım — desen aynı (1 spin × kazançlı cluster).
+            ["carpanTest_100"] = new[]
+            {
+                new SpinDesen { sembolId = 3, adet = 8 },   // 500 TL + çarpan kesin (slider %100)
+            },
+            ["carpanTest_0"] = new[]
+            {
+                new SpinDesen { sembolId = 3, adet = 8 },   // 500 TL + çarpan yok (slider %0)
             },
             // PAKET 6C2 — T6_YENI_OYUNCU aşama 1: toggle KAPALI iken 3 spin (kayıp-küçük kazanç-kayıp, NET kayıp)
             ["yeniOyuncu_kapali"] = new[]
@@ -533,17 +542,26 @@ namespace KumarFarkindalik.Tutorial
                     }
                     if (yerlesen > 0)
                         Debug.Log($"[TutorialSenaryoMotoru] Çarpan enjekte: olasilik={carpanOlasilik:F2}, max={maxCarpan}, yerlesen={yerlesen}");
+
+                    // PAKET 9-FIX-A: NihaiCarpanToplam'ı IlkCarpanDegerleri toplamı ile güncelle.
+                    // Yoksa kayıt default 1 → ödeme katmanı çarpanı 1 alır, "500x13=500" yanlış hesap.
+                    if (kayit.IlkCarpanDegerleri.Count > 0)
+                    {
+                        int toplamCarpan = 0;
+                        foreach (var v in kayit.IlkCarpanDegerleri) toplamCarpan += v;
+                        kayit.NihaiCarpanToplam = toplamCarpan;
+                        Debug.Log($"[TutorialSenaryoMotoru] NihaiCarpanToplam={toplamCarpan} ({kayit.IlkCarpanDegerleri.Count} çarpan toplam)");
+                    }
                 }
             }
 
-            // PAKET 4-HOTFIX (Bug 2): Gravity tumble simülasyonu — CokmeAkisServisi.OynatTumbleAdimi
-            // YeniSpawnEdilenHucreler + DusenHucreFrom/To listelerini kullanarak yukarıdan düşme
-            // animasyonu oynatır. Boş bırakırsak meyveler "zart" beliriyor (Bug 2 root cause).
-            // Algoritma: her sütun bağımsız → survivors aşağı kayar, üst boşluklar yeni meyvelerle.
+            // PAKET 4-HOTFIX (Bug 2) + 03 REFERANS: Tumble simülasyonu — survivors loop refillGrid
+            // doldurması için ZORUNLU (yoksa boş hücre kalır, sprite render hatalı). Ama 03 anlatıcı
+            // sahnesinin görsel referansına uygun olmak için DusenHucreFrom/To listeleri BOŞ bırakılır.
+            // Sonuç: kalan meyveler sabit kalır (CokmeAkisServisi.CokmeDoldurOynat:350-365 for döngüsü
+            // iterate etmez), sadece üstten yeni meyveler düşer. 03 ile aynı görsel davranış.
             var patlayanSet = new HashSet<Vector2Int>(clusterPozlari);
             int[,] refillGrid = new int[SUTUN, SATIR];
-            var dusenFrom = new List<Vector2Int>();
-            var dusenTo = new List<Vector2Int>();
             var yeniSpawn = new List<Vector2Int>();
 
             for (int x = 0; x < SUTUN; x++)
@@ -557,17 +575,13 @@ namespace KumarFarkindalik.Tutorial
                 }
 
                 // En alttan yukarı doğru yerleştir (y=SATIR-1 alt, y=0 üst — Unity ekran koord)
+                // NOT (03 referans): dusenFrom/dusenTo intentionally doldurulmuyor — kalan meyveler
+                // ekranda sabit kalır, görsel olarak patlayan hücrelere yeniler düşer.
                 int yeniY = SATIR - 1;
                 for (int i = survivors.Count - 1; i >= 0; i--)
                 {
-                    int oldY = survivors[i].oldY;
                     int sym = survivors[i].sym;
                     refillGrid[x, yeniY] = sym;
-                    if (oldY != yeniY)
-                    {
-                        dusenFrom.Add(new Vector2Int(x, oldY));
-                        dusenTo.Add(new Vector2Int(x, yeniY));
-                    }
                     yeniY--;
                 }
 
@@ -586,15 +600,24 @@ namespace KumarFarkindalik.Tutorial
             float payCoef = ta.GetPayForCount(desen.sembolId, desen.adet);
             int turKazanci = Mathf.RoundToInt(payCoef * _oy.BotIcinBahis);
 
+            // PAKET 9-FIX-B: CarpanGridRefillSonrasi'i IlkCarpanGrid'den kopyala — çarpanlar cluster
+            // patladıktan SONRA da grid'de duruyor (cluster pozisyonu DIŞINDA enjekte edildi).
+            // Yoksa text tumble sonrası kaybolur ve görsel "2 çarpandan biri sönüyor" davranışı çıkar.
+            const int CARPAN_SEMBOL_LITERAL = -2; // OyunYoneticisi.CARPAN_SEMBOL private; literal kullanıyoruz
+            var carpanGridSonrasi = new int[SUTUN, SATIR];
+            for (int x = 0; x < SUTUN; x++)
+                for (int y = 0; y < SATIR; y++)
+                    if (refillGrid[x, y] == CARPAN_SEMBOL_LITERAL && kayit.IlkCarpanGrid != null)
+                        carpanGridSonrasi[x, y] = kayit.IlkCarpanGrid[x, y];
+
             var adim = new TumbleAdimKaydi
             {
                 TurKazanci = turKazanci,
                 GridRefillSonrasi = refillGrid,
-                CarpanGridRefillSonrasi = new int[SUTUN, SATIR]
+                CarpanGridRefillSonrasi = carpanGridSonrasi
             };
             adim.PatlayanHucreler.AddRange(clusterPozlari);
-            adim.DusenHucreFrom.AddRange(dusenFrom);
-            adim.DusenHucreTo.AddRange(dusenTo);
+            // 03 REFERANS: adim.DusenHucreFrom / DusenHucreTo bırakıldı boş (gravity kapalı).
             adim.YeniSpawnEdilenHucreler.AddRange(yeniSpawn);
 
             // PAKET 6D — T11 aşama 2: cluster KAZANÇ + büyük çarpan kombosu (carpanOdemeToggle açık)

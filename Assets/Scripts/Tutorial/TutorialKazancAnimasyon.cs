@@ -145,7 +145,21 @@ namespace KumarFarkindalik.Tutorial
 
         private IEnumerator KazancAnimasyon(int delta)
         {
+            // PAKET 6A-EXT-3: AnimasyonAktif HEMEN true → SayaciGecikmeliArtir bu animasyonun
+            // tamamen bitmesini bekleyecek (SayaciGecikmeliArtir → !AnimasyonAktif WaitUntil).
             AnimasyonAktif = true;
+
+            // PAKET 6A-EXT-3: BÜYÜK KAZANÇ (WinFeedbackUI) pop-up + counting up devam ederken
+            // basket animasyon başlatılırsa spoiler oluyor. Önce pop-up bitsin (max 5sn timeout).
+            float bekleSure = 0f;
+            while (_oy != null && _oy.winFeedbackUI != null && _oy.winFeedbackUI.GosterimAktif && bekleSure < 5f)
+            {
+                bekleSure += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            if (bekleSure >= 5f)
+                Debug.LogWarning("[TutorialKazancAnim] WinFeedbackUI 5sn doldu, defansif geçiş.");
+
             // HOTFIX: Başlangıç KAZANÇ kutusundan (ekran ortası DEĞIL) → parabolic flight bakiyeye
             Vector2 baslangicPos = KazancKutuLocalPos();
             var go = TmpYarat($"+{delta:N0} TL", KAZANC_RENK, baslangicPos);

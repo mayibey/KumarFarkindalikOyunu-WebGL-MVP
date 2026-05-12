@@ -36,8 +36,8 @@ namespace KumarFarkindalik.Tutorial
         public TutorialAdminEnjeksiyonu Enjeksiyon { get; private set; }
 
         private const string T1_METIN =
-            "Hoş geldin. Az önce bir <color=#F24D40>kumar bağımlısının</color> yaşadıklarını gördün. " +
-            "Şimdi <color=#4DCC59>sahne arkasını</color> birlikte göreceğiz. Sağ-alttaki <color=#5BA0FF>AYARLAR</color> butonuna tıkla, " +
+            "Hoş geldiniz. Az önce bir <color=#F24D40>kumar bağımlısının</color> yaşadıklarını gördük. " +
+            "Şimdi <color=#4DCC59>sahne arkasını</color> birlikte göreceğiz. Sağ-alttaki <color=#5BA0FF>AYARLAR</color> butonuna tıklayın, " +
             "<color=#F24D40>manipülasyon panelini</color> açalım.";
 
         // PAKET 8: T1 karşılama sonrası Normal oyun bilgilendirme — T3_NORMAL adımı kaldırıldı,
@@ -49,7 +49,7 @@ namespace KumarFarkindalik.Tutorial
             "• <color=#F24D40>Az Az Kayıp</color> (Yontma)\n" +
             "• <color=#F24D40>Kaçış Engelleme</color> (Tutma)\n" +
             "• <color=#F24D40>Bakiye Tüketme</color> (Koruma)\n\n" +
-            "Her senaryoda operatörün nasıl müdahale ettiğini <color=#4DCC59>kendi gözlerinle</color> göreceksin.";
+            "Her senaryoda operatörün nasıl müdahale ettiğini <color=#4DCC59>kendi gözlerimizle</color> göreceğiz.";
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")] private static extern void PaneliSolaAl();
@@ -83,6 +83,14 @@ namespace KumarFarkindalik.Tutorial
         private bool _oncekiSpinCalisiyor = false;
         private OyunYoneticisi _oyRef;
 
+        // PAKET 9: T4 (Çarpan Olasılığı) 2-aşamalı akış state — TutorialAdminEnjeksiyonu okur
+        public static bool T4AraModalGosterildi { get; set; }
+        public static bool T4IkinciAsamaBasladi { get; set; }
+
+        // PAKET 9: T5 (Bonus Sembolü) 2-aşamalı akış state
+        public static bool T5AraModalGosterildi { get; set; }
+        public static bool T5IkinciAsamaBasladi { get; set; }
+
         // PAKET 6C2: T6_YENI_OYUNCU 2-aşamalı akış state (TutorialAdminEnjeksiyonu okur)
         public static bool T6AraModalGosterildi { get; set; }
         public static bool T6IkinciAsamaBasladi { get; set; }
@@ -100,16 +108,16 @@ namespace KumarFarkindalik.Tutorial
 
         // PAKET 4-HOTFIX: T3_TUTMA pedagojik ara modaller (Spin 2 sonrası tahmin, Spin 3 sonrası devam)
         private const string TAHMIN_MODAL =
-            "<color=#F24D40>DİKKATLE İZLE!</color>\n\n" +
-            "<color=#FFD933>2 kez</color> kaybettin değil mi? Çıkmayı düşünüyorsun belki.\n\n" +
-            "Şimdi bir sonraki spin'de SANA <color=#4DCC59>KAZANÇ GELECEK</color>. İzle, gör, hisset.\n\n" +
-            "Sistem nasıl seni <color=#F24D40>TUTUYOR</color>, kendi gözlerinle göreceksin.";
+            "<color=#F24D40>DİKKATLE İZLEYELİM!</color>\n\n" +
+            "Oyuncu <color=#FFD933>2 kez</color> kaybetti değil mi? Çıkmayı düşünüyor belki.\n\n" +
+            "Şimdi bir sonraki spin'de OYUNCUYA <color=#4DCC59>KAZANÇ GELECEK</color>. İzleyelim, görelim, hissedelim.\n\n" +
+            "Sistem oyuncuyu nasıl <color=#F24D40>TUTUYOR</color>, kendi gözlerimizle göreceğiz.";
 
         private const string DEVAM_MODAL =
-            "Gördün mü?\n\n" +
-            "Tam çıkacağın anda <color=#4DCC59>KAZANÇ</color> geldi. 'İyi ki kalmışım' dedirtti.\n\n" +
-            "Bir kere daha izleyelim — aynı <color=#F24D40>kayıp/kayıp/KAZANÇ</color> döngüsünü tekrar yaşayacaksın.\n\n" +
-            "Bu sefer <color=#4DCC59>farkındasın</color>. Bu sefer <color=#4DCC59>şüphecisin</color>. Kanıtlayalım.";
+            "Gördük mü?\n\n" +
+            "Oyuncu tam çıkacağı anda <color=#4DCC59>KAZANÇ</color> geldi. 'İyi ki kalmışım' dedirtti.\n\n" +
+            "Bir kere daha izleyelim — aynı <color=#F24D40>kayıp/kayıp/KAZANÇ</color> döngüsü tekrar yaşanacak.\n\n" +
+            "Bu sefer <color=#4DCC59>farkındayız</color>. Bu sefer <color=#4DCC59>şüpheciyiz</color>. Kanıtlayalım.";
 
         /// <summary>
         /// PAKET 3B-fix-4 (Sorun 2): 04 sahnesinde SenaryoYoneticisi GameObject YOK → toplamSpin
@@ -359,13 +367,10 @@ namespace KumarFarkindalik.Tutorial
             if (TutorialAdimGoster.Ornek != null)
                 TutorialAdimGoster.Ornek.OnIleriTiklandi += IleriTiklandi;
 
-            // T1 modal (Karşılama + Normal oyun bilgilendirme)
+            // T1 modal (sadece Karşılama + Ayarlar tıklama davet — T1_NORMAL_INFO T3_HOOK Modal A sonrasına taşındı)
             if (TutorialModalKopru.Ornek != null)
             {
                 yield return TutorialModalKopru.Ornek.ModalGoster(T1_METIN);
-                yield return null; // state stabilize (ardışık ModalGoster yarış güvencesi)
-                // PAKET 8: T3_NORMAL kaldırıldı → Normal oyun kavramı burada açıklanır
-                yield return TutorialModalKopru.Ornek.ModalGoster(T1_NORMAL_INFO);
             }
 
             // T1 sonrası AyarlarButton glow
@@ -444,15 +449,20 @@ namespace KumarFarkindalik.Tutorial
             // T6YO branch'i aşağıda zorla true yapar. Diğer adımlara geçişte kilit otomatik kapanır.
             T6YOForceKapaliKilitli = false;
 
-            // PAKET 6C1/6C2/6C3/8: adım bazlı pattern motor yönetimi
+            // PAKET 6C1/6C2/6C3/8/9: adım bazlı pattern motor yönetimi
             if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T4)
             {
-                // PAKET 8: T4 motor aktif — 3 spin kazanç pattern + çarpan enjeksiyonu (slider değerine göre)
-                TutorialSenaryoMotoru.PatternBaslat("carpanTest");
+                // PAKET 9: T4 2-aşamalı — ilk aşama %100 (1 spin), ikinci aşama %0 (1 spin daha).
+                T4AraModalGosterildi = false;
+                T4IkinciAsamaBasladi = false;
+                TutorialSenaryoMotoru.PatternBaslat("carpanTest_100");
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T5)
             {
-                TutorialSenaryoMotoru.PatternBaslat("bonusTest");
+                // PAKET 9: T5 2-aşamalı — ilk aşama %100 (1 spin, bonus garanti), ikinci aşama %0 (1 spin, bonus yok).
+                T5AraModalGosterildi = false;
+                T5IkinciAsamaBasladi = false;
+                TutorialSenaryoMotoru.PatternBaslat("bonusTest_100");
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T6_YENI_OYUNCU)
             {
@@ -517,9 +527,26 @@ namespace KumarFarkindalik.Tutorial
             Debug.Log($"[TutorialOyunYoneticisi] AdimAkisi başladı: {v.id}");
             _ileriTiklandi = false; // PAKET 3B-fix-6: yeni adım, atla flag'i reset
 
+            // PAKET 9: Geçiş modali — opsiyonel, Modal A'dan ÖNCE gösterilir. T4 için "Olasılık Ayarları"
+            // başlığı; T3 senaryo bloğundan numerik ayarlara köprü. Diğer adımlar mesajGecis null → atlanır.
+            if (TutorialModalKopru.Ornek != null && !string.IsNullOrEmpty(v.mesajGecis))
+            {
+                yield return TutorialModalKopru.Ornek.ModalGoster(v.mesajGecis);
+                yield return null; // ardışık ModalGoster yarış güvencesi
+            }
+
             // === Modal A (mesajBaslangic) — her zaman göster ===
             if (TutorialModalKopru.Ornek != null && !string.IsNullOrEmpty(v.mesajBaslangic))
                 yield return TutorialModalKopru.Ornek.ModalGoster(v.mesajBaslangic);
+
+            // PAKET 8-EXT: T3_HOOK Modal A sonrası Normal oyun + 4 senaryo bilgilendirme modali.
+            // Önce T1 karşılaması sonrası gösteriliyordu; akış pedagojisi için T3_HOOK Modal A
+            // ("5 oyun modu var") ile Modal B ("Taze Kan seç + Uygula") arasına taşındı.
+            if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T3_HOOK && TutorialModalKopru.Ornek != null)
+            {
+                yield return null; // ardışık ModalGoster yarış güvencesi
+                yield return TutorialModalKopru.Ornek.ModalGoster(T1_NORMAL_INFO);
+            }
 
             // Pasif (T2, T_SON): Modal A sonrası otomatik geçiş
             if (!v.aktifMi)
@@ -577,16 +604,9 @@ namespace KumarFarkindalik.Tutorial
                 yield return new WaitForSecondsRealtime(1.5f);
             }
 
-            // PAKET 6C1: T5 bonus yarım kesme — scatter pattern 4 scatter düşürür, OyunYoneticisi
-            // bonus tetikler, 3sn hissedilir, sonra T11 ile aynı reflection cleanup uygulanır.
-            if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T5)
-            {
-                Debug.Log("[Tutorial T5] Scatter bonus tetiklendi, 3sn görsel hissedilecek...");
-                yield return new WaitForSecondsRealtime(3f);
-                T11BonusYarimKes(); // aynı reflection cleanup (bonusAktif=false, bonusHakKalan=0, spinCalisiyor=false)
-                // HOTFIX: bonusEndPanel kapanma + animasyon süresi için yeterli gecikme (Modal C arkada kalmasın)
-                yield return new WaitForSecondsRealtime(1.5f);
-            }
+            // PAKET 9: T5 bonus yarım kesme artık SayaciGecikmeliArtir → TutorialT5BonusModalKontrol →
+            // T5IlkAsamaSonuAkisi içinde yapılıyor (1. spin sonrası, adım bitmeden ara modal göstermek için).
+            // Adım sonu (her iki aşama bitince) ek temizlik gerekmez — bonus state zaten temizlendi.
 
             // === Vurgu kapat + AdimGoster gizle ===
             TutorialAdimGoster.Ornek?.Gizle();
@@ -701,9 +721,54 @@ namespace KumarFarkindalik.Tutorial
             Debug.Log($"[TutorialOyunYoneticisi] Spin tamamlandı (anim state-driven), TutorialSpinSayaci={TutorialSpinSayaci}");
             TutorialSenaryoMotoru.SpinTamamlandi();
             TutorialT3TutmaModalKontrol();
+            TutorialT4CarpanOlasilikModalKontrol();
+            TutorialT5BonusModalKontrol();
             TutorialT6YeniOyuncuModalKontrol();
             TutorialT8OdemeModalKontrol();
             TutorialT11CarpanZorlaModalKontrol();
+        }
+
+        // PAKET 9: T5 (Bonus Sembolü) 1. spin sonrası — bonus yarım kes + ara modal göster.
+        private void TutorialT5BonusModalKontrol()
+        {
+            if (AdimYoneticisi == null) return;
+            if (AdimYoneticisi.mevcutAdim != TutorialAdimYoneticisi.TutorialAdimId.T5) return;
+            if (T5AraModalGosterildi) return;
+
+            int sayac = TutorialSpinSayaci - AdimYoneticisi.AdimBaslangicSpin;
+            if (sayac == 1)
+            {
+                T5AraModalGosterildi = true;
+                Debug.Log("[Tutorial T5 Bonus] Aşama 1 bitti (1 spin %100), bonus yarım kes + ara modal");
+                StartCoroutine(T5IlkAsamaSonuAkisi());
+            }
+        }
+
+        private IEnumerator T5IlkAsamaSonuAkisi()
+        {
+            // Bonus tetiklendi (4 scatter düştü) → 3sn görsel hissedilsin → yarım kes → bonusEndPanel kapanma süresi
+            yield return new WaitForSecondsRealtime(3f);
+            T11BonusYarimKes();
+            yield return new WaitForSecondsRealtime(1.5f);
+            TutorialSenaryoMotoru.Durdur();
+            yield return GosterAraModal(TutorialAdimYoneticisi.T5_ARA_MODAL);
+        }
+
+        // PAKET 9: T4 (Çarpan Olasılığı) 1. spin sonrası ara modal — kullanıcıya slider %0 daveti.
+        private void TutorialT4CarpanOlasilikModalKontrol()
+        {
+            if (AdimYoneticisi == null) return;
+            if (AdimYoneticisi.mevcutAdim != TutorialAdimYoneticisi.TutorialAdimId.T4) return;
+            if (T4AraModalGosterildi) return;
+
+            int sayac = TutorialSpinSayaci - AdimYoneticisi.AdimBaslangicSpin;
+            if (sayac == 1)
+            {
+                T4AraModalGosterildi = true;
+                Debug.Log("[Tutorial T4 Çarpan] Aşama 1 bitti (1 spin %100), ara modal + motor pasif");
+                TutorialSenaryoMotoru.Durdur();
+                StartCoroutine(GosterAraModal(TutorialAdimYoneticisi.T4_ARA_MODAL));
+            }
         }
 
         // PAKET 6A-EXT-2 helper: koşul sağlanana kadar veya maxSn dolana kadar bekle (sonsuza takılma güvencesi).
@@ -828,9 +893,9 @@ namespace KumarFarkindalik.Tutorial
             if (TutorialModalKopru.Ornek != null)
             {
                 yield return TutorialModalKopru.Ornek.ModalGoster(
-                    "<color=#4DCC59>Tutorial tamamlandı</color>. Artık istediğin gibi test edebilirsin. " +
+                    "<color=#4DCC59>Tutorial tamamlandı</color>. Artık istediğiniz gibi test edebilirsiniz. " +
                     "<color=#5BA0FF>AYARLAR</color> butonuna basıp panel'i aç, farklı modlar dene, spin at, gör.\n\n" +
-                    "Bağımlılıkla mücadelede yalnız değilsin: <color=#4DCC59>Yeşilay Danışma Hattı</color> <color=#FFD933>0850 222 0 191</color>");
+                    "Bağımlılıkla mücadelede yalnız değilsiniz: <color=#4DCC59>Yeşilay Danışma Hattı</color> <color=#FFD933>0850 222 0 191</color>");
             }
 
             // 4. Serbest test moduna geç (restore + loop modu)

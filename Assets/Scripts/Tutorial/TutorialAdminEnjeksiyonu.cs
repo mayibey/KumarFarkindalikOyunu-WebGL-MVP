@@ -71,10 +71,40 @@ namespace KumarFarkindalik.Tutorial
             {
                 case "carpanOlasilik":
                     if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var co))
+                    {
                         SonCarpanOlasilik = co;
+                        // PAKET 9: T4 ikinci aşama tetik — kullanıcı slider'ı %0'a çekti (≤5 tolerans).
+                        var ayT4 = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
+                        if (ayT4 != null && ayT4.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T4
+                            && TutorialOyunYoneticisi.T4AraModalGosterildi
+                            && !TutorialOyunYoneticisi.T4IkinciAsamaBasladi
+                            && co <= 5f)
+                        {
+                            TutorialOyunYoneticisi.T4IkinciAsamaBasladi = true;
+                            TutorialSenaryoMotoru.PatternBaslat("carpanTest_0");
+                            Debug.Log("[Tutorial T4 Çarpan] Slider %0 → ikinci pattern başladı (carpanTest_0)");
+                        }
+                    }
                     break;
                 case "carpanZorla":
                     if (int.TryParse(value, out var cz)) SonCarpanZorla = cz;
+                    break;
+                case "bonusOtomatikOran":
+                    // PAKET 9: T5 ikinci aşama tetik — kullanıcı bonus olasılığını çok düşürdü (periyot >= 50).
+                    // panel.html: %0'da 9999 gönderir; %2'de 50; %1'de 100. >=50 hepsini yakalar.
+                    if (int.TryParse(value, out int bonusPeriyot))
+                    {
+                        var ayT5 = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
+                        if (ayT5 != null && ayT5.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T5
+                            && TutorialOyunYoneticisi.T5AraModalGosterildi
+                            && !TutorialOyunYoneticisi.T5IkinciAsamaBasladi
+                            && bonusPeriyot >= 50)
+                        {
+                            TutorialOyunYoneticisi.T5IkinciAsamaBasladi = true;
+                            TutorialSenaryoMotoru.PatternBaslat("bonusTest_0");
+                            Debug.Log($"[Tutorial T5 Bonus] Periyot={bonusPeriyot} (≥50) → ikinci pattern başladı (bonusTest_0)");
+                        }
+                    }
                     break;
                 case "bonusTetikle":
                     BonusTetiklendi = true;

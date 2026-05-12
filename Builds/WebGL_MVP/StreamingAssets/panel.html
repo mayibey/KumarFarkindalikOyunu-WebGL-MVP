@@ -1387,7 +1387,9 @@
     document.getElementById('bonusSembolDeger').textContent = yuzde.toFixed(0);
     if (yuzde <= 0) {
       document.getElementById('bonusSpinHesap').textContent = '∞';
-      // postMessage gönderme — bonus efektif olarak kapalı
+      // PAKET 9: %0 → backend'e yüksek periyot (9999) gönder. Pratikte hiç tetiklenmez ama
+      // Tutorial T5 ikinci aşaması bonusOtomatikSpinPeriyodu ≥ 50 ile bunu yakalayabilsin.
+      unityeGonder('bonusOtomatikOran', 9999);
     } else {
       var spin = Math.max(1, Math.round(100 / yuzde));
       document.getElementById('bonusSpinHesap').textContent = spin;

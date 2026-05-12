@@ -785,12 +785,12 @@ public class AnlaticiSeritKopru : MonoBehaviour
                 "<color=#FFD933>ilk kazanmanın yarattığı bu etki</color> bulunur.";
             // PreA1 üçüncü modal — kullanıcıyı spin atmaya davet + sol panel takip yönlendirmesi.
             const string A1_DAVET =
-                "<b>Şimdi sen dene</b>\n\n" +
-                "Tam <color=#FFD933>10 spin</color> at ve neler olduğunu gör. " +
-                "Bakiyenin nasıl yükseldiğine, kazançların sıklığına dikkat et.\n\n" +
+                "<b>Şimdi deneyelim</b>\n\n" +
+                "Tam <color=#FFD933>10 spin</color> at ve neler olduğunu görelim. " +
+                "Bakiyenin nasıl yükseldiğine, kazançların sıklığına dikkat edelim.\n\n" +
                 "Sol panelde <color=#5BA0FF>SAHNE ARKASI</color> ve " +
-                "<color=#5BA0FF>OYUNCUNUN KAFASI</color> bölümlerini takip et — " +
-                "<color=#4DCC59>sistemin gerçekte ne yaptığını</color> orada göreceksin.";
+                "<color=#5BA0FF>OYUNCUNUN KAFASI</color> bölümlerini takip edelim — " +
+                "<color=#4DCC59>sistemin gerçekte ne yaptığını</color> orada göreceğiz.";
             string mesaj =
                 "Hoş geldiniz. Bu simülasyonda online kumar oyunlarının oyuncuları nasıl etkilediğini birlikte göreceğiz.\n\n" +
                 "<b>Önce oyunu tanıyalım:</b>\n" +
