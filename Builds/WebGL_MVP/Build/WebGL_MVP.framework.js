@@ -9519,18 +9519,44 @@ function dbg(text) {
 
   function _ToggleKapat(idPtr) {
           var iframe = document.getElementById('panelIframe');
-          if (!iframe) return;
+          if (!iframe) { console.warn('[Tutorial] ToggleKapat: panelIframe yok'); return; }
           var id = UTF8ToString(idPtr);
-          try {
-              var doc = iframe.contentDocument;
-              if (!doc) return;
-              var el = doc.getElementById(id);
-              if (el && el.classList.contains('active')) {
-                  el.click(); // toggleDegisti() çağrılır → Unity'ye false gönderilir
-                  console.log('[Tutorial] Toggle KAPATILDI:', id);
+          var deneme = 0;
+          var uygula = function() {
+              try {
+                  var doc = iframe.contentDocument;
+                  var win = iframe.contentWindow;
+                  if (!doc || !win) return false;
+                  var el = doc.getElementById(id);
+                  if (!el) return false;
+  
+                  // 1. Direkt class kaldır (toggleDegisti'yi tetiklemeden — yarış riski sıfır)
+                  el.classList.remove('active');
+  
+                  // 2. Label senkron ("Aktif" → "Kapalı")
+                  var labelId = id.replace('Toggle', 'Label');
+                  var lbl = doc.getElementById(labelId);
+                  if (lbl) lbl.textContent = 'Kapalı';
+  
+                  // 3. Unity'ye direkt false bildir (PanelKopru.yeniOyuncuModu set + OyunYoneticisi davranış kapanır)
+                  if (win.unityeGonder) {
+                      var key = id.replace('Toggle', '');
+                      win.unityeGonder(key, false);
+                  }
+  
+                  console.log('[Tutorial] ToggleKapat (force):', id, '→ class kaldırıldı, label=Kapalı, Unity false');
+                  return true;
+              } catch (e) {
+                  console.warn('[Tutorial] ToggleKapat hata:', e);
+                  return false;
               }
-          } catch (e) {
-              console.warn('[Tutorial] ToggleKapat hata:', e);
+          };
+  
+          if (!uygula()) {
+              // Retry: iframe henüz yüklenmemiş olabilir, 100ms aralık 10 deneme
+              var poll = setInterval(function() {
+                  if (deneme++ > 10 || uygula()) clearInterval(poll);
+              }, 100);
           }
       }
 
