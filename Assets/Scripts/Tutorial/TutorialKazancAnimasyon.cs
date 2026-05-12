@@ -30,6 +30,10 @@ namespace KumarFarkindalik.Tutorial
 
         public static TutorialKazancAnimasyon Ornek { get; private set; }
 
+        // PAKET 6A-EXT: Modal C anim state-driven bekleme için. Coroutine başında true,
+        // bitiminde / Destroy'da false. SayaciGecikmeliArtir WaitUntil ile buna bakar.
+        public static bool AnimasyonAktif { get; private set; }
+
         private static readonly Color KAZANC_RENK = new Color(1f, 0.85f, 0.20f, 1f);
         private static readonly Color KAYIP_RENK  = new Color(0.95f, 0.30f, 0.25f, 1f);
 
@@ -78,6 +82,7 @@ namespace KumarFarkindalik.Tutorial
         private void OnDestroy()
         {
             if (Ornek == this) Ornek = null;
+            AnimasyonAktif = false;
         }
 
         private void CanvasYarat()
@@ -140,6 +145,7 @@ namespace KumarFarkindalik.Tutorial
 
         private IEnumerator KazancAnimasyon(int delta)
         {
+            AnimasyonAktif = true;
             // HOTFIX: Başlangıç KAZANÇ kutusundan (ekran ortası DEĞIL) → parabolic flight bakiyeye
             Vector2 baslangicPos = KazancKutuLocalPos();
             var go = TmpYarat($"+{delta:N0} TL", KAZANC_RENK, baslangicPos);
@@ -164,12 +170,14 @@ namespace KumarFarkindalik.Tutorial
             yield return FadeOut(txt, 0.1f);
 
             Destroy(go);
+            AnimasyonAktif = false;
         }
 
         // === KAYIP — pota dışı animasyon (3 aşama) ===
 
         private IEnumerator KayipAnimasyon(int delta)
         {
+            AnimasyonAktif = true;
             Vector2 baslangicPos = BakiyeLocalPos() + new Vector2(0f, 80f);
             var go = TmpYarat($"{delta:N0} TL", KAYIP_RENK, baslangicPos);
             var rt = go.GetComponent<RectTransform>();
@@ -186,6 +194,7 @@ namespace KumarFarkindalik.Tutorial
             yield return FlightFade(rt, txt, baslangicPos, hedefPos, 0.5f);
 
             Destroy(go);
+            AnimasyonAktif = false;
         }
 
         // === Yardımcılar ===

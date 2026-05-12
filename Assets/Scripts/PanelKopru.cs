@@ -139,9 +139,11 @@ public class PanelKopru : MonoBehaviour
                 break;
 
             case "yakinKacirma":
-                // 0-100 arası float gelir; 10'da N formatına (0-10) ölçekle ve OyunYoneticisi'ne ilet.
+                // UI-5LIK: panel 0-5 ölçek gönderir; backend YakinKacirmaDegeri10da 0-10 ölçek ister → *2 ile çevir.
+                // Tutorial tarafı bu değeri TutorialAdminEnjeksiyonu üzerinden ayrıca yakalar (kendi 0-5 mantığı);
+                // PanelKopru.yakinKacirma static field'i Tutorial T8 koşul kontrolünde (>0) yalnızca varlık testi yapar.
                 yakinKacirma = float.Parse(deger, System.Globalization.CultureInfo.InvariantCulture);
-                int yk10da = Mathf.Clamp(Mathf.RoundToInt(yakinKacirma / 10f), 0, 10);
+                int yk10da = Mathf.Clamp(Mathf.RoundToInt(yakinKacirma * 2f), 0, 10);
                 _oy?.AdminSetYakinKacirma(yk10da);
                 break;
 

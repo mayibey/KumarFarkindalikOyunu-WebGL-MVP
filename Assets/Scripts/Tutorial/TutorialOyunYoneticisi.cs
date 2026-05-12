@@ -664,13 +664,28 @@ namespace KumarFarkindalik.Tutorial
                 yield return TutorialModalKopru.Ornek.ModalGoster(metin);
         }
 
-        // PAKET 6A: Spin bitiş sonrası gecikmeli sayaç++ — Modal C'nin counting up / kazanç UI animation
-        // tamamlanmadan açılmasını engeller (önceki SpinCalisiyorMu transition fix yetersizdi).
+        // PAKET 6A-EXT: Modal C anim state-driven bekleme.
+        // Sabit 0.8sn yetersizdi (counting up / BIG WIN feedback / kazanç animasyonu daha uzun olabilir).
+        // Spin akışı + WinFeedbackUI görünürlüğü + TutorialKazancAnimasyon koroutini tamamen bitene kadar
+        // bekle, üstüne 0.5sn nefes payı ekle.
         private IEnumerator SayaciGecikmeliArtir()
         {
-            yield return new WaitForSecondsRealtime(0.8f);
+            var oy = _oyRef != null ? _oyRef : Object.FindObjectOfType<OyunYoneticisi>();
+            if (oy != null)
+            {
+                yield return new WaitUntil(() => !oy.SpinCalisiyorMu);
+                yield return new WaitUntil(() =>
+                    oy.winFeedbackUI == null || !oy.winFeedbackUI.gameObject.activeInHierarchy);
+                yield return new WaitUntil(() => !TutorialKazancAnimasyon.AnimasyonAktif);
+                yield return new WaitForSecondsRealtime(0.5f);
+            }
+            else
+            {
+                // Defansif: OyunYoneticisi bulunamadıysa eski sabit gecikmeyle ilerle
+                yield return new WaitForSecondsRealtime(0.8f);
+            }
             TutorialSpinSayaci++;
-            Debug.Log($"[TutorialOyunYoneticisi] Spin tamamlandı (0.8sn gecikmeli), TutorialSpinSayaci={TutorialSpinSayaci}");
+            Debug.Log($"[TutorialOyunYoneticisi] Spin tamamlandı (anim state-driven), TutorialSpinSayaci={TutorialSpinSayaci}");
             TutorialSenaryoMotoru.SpinTamamlandi();
             TutorialT3TutmaModalKontrol();
             TutorialT6YeniOyuncuModalKontrol();

@@ -100,25 +100,25 @@ namespace KumarFarkindalik.Tutorial
                     }
                     break;
                 case "kazanmaOrani":
-                    // PAKET 6C3: T7 (Kazandırma) — slider değeri/2 = 5'de N kazanç
+                    // PAKET 6C3 + UI-5LIK: T7 (Kazandırma) — slider 0-5 doğrudan N (artık scale yok)
                     {
                         var ayK = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
                         if (ayK != null && ayK.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T6
                             && int.TryParse(value, out int kazSliderVal))
                         {
-                            int n = Mathf.Clamp(kazSliderVal / 2, 0, 5);
+                            int n = Mathf.Clamp(kazSliderVal, 0, 5);
                             TutorialSenaryoMotoru.DinamikPatternBaslat("kazandirma", n);
                         }
                     }
                     break;
                 case "yakinKacirma":
-                    // PAKET 6C3: T9 (Near Miss) — slider değeri/2 = 5'de N near miss
+                    // PAKET 6C3 + UI-5LIK: T9 (Near Miss) — slider 0-5 doğrudan N (artık scale yok)
                     {
                         var ayN = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
                         if (ayN != null && ayN.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T8
                             && int.TryParse(value, out int nmSliderVal))
                         {
-                            int n = Mathf.Clamp(nmSliderVal / 2, 0, 5);
+                            int n = Mathf.Clamp(nmSliderVal, 0, 5);
                             TutorialSenaryoMotoru.DinamikPatternBaslat("nearMiss", n);
                         }
                     }

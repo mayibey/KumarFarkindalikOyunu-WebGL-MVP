@@ -999,11 +999,11 @@
               <label>Kazandırma sıklığı</label>
               <span class="help-icon" data-tip="kazanmaOrani">?</span>
             </div>
-            <span class="value-display" id="kazanmaOraniDeger">10'da 3</span>
+            <span class="value-display" id="kazanmaOraniDeger">5'de 3</span>
           </div>
-          <input type="range" id="kazanmaOrani" min="0" max="10" step="1" value="3"
+          <input type="range" id="kazanmaOrani" min="0" max="5" step="1" value="3"
                  oninput="kazanmaOraniInputDegisti(this.value)">
-          <div class="ifsa-line">Burada yapılan ayarla oyunculara 10 oyundan kaçında "kazandım" hissinin yaşatılacağı belirlenir.</div>
+          <div class="ifsa-line">Burada yapılan ayarla oyunculara 5 oyundan kaçında "kazandım" hissinin yaşatılacağı belirlenir.</div>
         </div>
 
         <!-- 3. ÖDEME ARALIĞI -->
@@ -1042,11 +1042,11 @@
               <label>Neredeyse Oluyordu Hissi</label>
               <span class="help-icon" data-tip="nearMiss">?</span>
             </div>
-            <span class="value-display" id="yakinKacirmaDeger">10'da 4</span>
+            <span class="value-display" id="yakinKacirmaDeger">5'de 2</span>
           </div>
-          <input type="range" id="yakinKacirma" min="1" max="10" value="4"
+          <input type="range" id="yakinKacirma" min="0" max="5" step="1" value="2"
                  oninput="yakinKacirmaInputDegisti(this.value)">
-          <div class="ifsa-line">Burada yapılan ayarla oyunculara 10 oyundan kaçında "neredeyse kazanıyordum" hissinin yaşatılacağı belirlenir.</div>
+          <div class="ifsa-line">Burada yapılan ayarla oyunculara 5 oyundan kaçında "neredeyse kazanıyordum" hissinin yaşatılacağı belirlenir.</div>
         </div>
 
         <!-- 5. KAÇIŞ FRENLEME -->
@@ -1344,19 +1344,20 @@
     unityeGonder(anahtar, Number(deger));
   }
 
-  // Neredeyse Oluyordu Hissi: HTML slider 1-10, Unity'e yüzde gönder (n * 10)
+  // Neredeyse Oluyordu Hissi: HTML slider 0-5, Unity'e doğrudan N gönder (scale yok)
   function yakinKacirmaInputDegisti(deger) {
     var n = parseInt(deger, 10);
-    document.getElementById('yakinKacirmaDeger').textContent = "10'da " + n;
-    unityeGonder('yakinKacirma', n * 10);
+    if (isNaN(n)) n = 0;
+    document.getElementById('yakinKacirmaDeger').textContent = "5'de " + n;
+    unityeGonder('yakinKacirma', n);
   }
 
-  // Kazandırma Sıklığı: HTML slider 0-10, Unity'e yüzde gönder (n * 10)
+  // Kazandırma Sıklığı: HTML slider 0-5, Unity'e doğrudan N gönder (scale yok)
   function kazanmaOraniInputDegisti(deger) {
     var n = parseInt(deger, 10);
     if (isNaN(n)) n = 0;
-    document.getElementById('kazanmaOraniDeger').textContent = "10'da " + n;
-    unityeGonder('kazanmaOrani', n * 10);
+    document.getElementById('kazanmaOraniDeger').textContent = "5'de " + n;
+    unityeGonder('kazanmaOrani', n);
   }
 
   // Çarpan düşme olasılığı: slider (0-50) + number input (0-100) senkron
@@ -1405,12 +1406,13 @@
   }
 
   // ===== SENARYO UYGULA =====
+  // UI-5LIK: kazanmaOrani + yakinKacirma artık 0-5 ölçekte (eski 0-10 ve 0-100 değerleri /2 ve /20 ile adapte edildi).
   var SENARYOLAR = {
-    normal:  { kazanmaOrani: 3, minCarpan: 1,   maksCarpan: 100, yakinKacirma: 20, yeniOyuncu: false, ardisikKayip: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 0.5, carpanOdeme: false },
-    hook:    { kazanmaOrani: 8, minCarpan: 2,   maksCarpan: 20,  yakinKacirma: 30, yeniOyuncu: true,  ardisikKayip: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 3.3, carpanOdeme: false },
-    yontma:  { kazanmaOrani: 6, minCarpan: 0.5, maksCarpan: 3,   yakinKacirma: 60, yeniOyuncu: false, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: false },
-    tutma:   { kazanmaOrani: 3, minCarpan: 1,   maksCarpan: 50,  yakinKacirma: 40, yeniOyuncu: false, ardisikKayip: 5, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: true  },
-    koruma:  { kazanmaOrani: 2, minCarpan: 0.5, maksCarpan: 2,   yakinKacirma: 90, yeniOyuncu: false, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: false }
+    normal:  { kazanmaOrani: 2, minCarpan: 1,   maksCarpan: 100, yakinKacirma: 1, yeniOyuncu: false, ardisikKayip: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 0.5, carpanOdeme: false },
+    hook:    { kazanmaOrani: 4, minCarpan: 2,   maksCarpan: 20,  yakinKacirma: 2, yeniOyuncu: true,  ardisikKayip: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 3.3, carpanOdeme: false },
+    yontma:  { kazanmaOrani: 3, minCarpan: 0.5, maksCarpan: 3,   yakinKacirma: 3, yeniOyuncu: false, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: false },
+    tutma:   { kazanmaOrani: 2, minCarpan: 1,   maksCarpan: 50,  yakinKacirma: 2, yeniOyuncu: false, ardisikKayip: 5, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: true  },
+    koruma:  { kazanmaOrani: 1, minCarpan: 0.5, maksCarpan: 2,   yakinKacirma: 5, yeniOyuncu: false, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: false }
   };
 
   // Son APPLY edilen state — sayfa açılışta normal preset
@@ -1448,13 +1450,12 @@
   // Tüm input'ları preset'e göre UI olarak güncelle (postMessage YOK)
   function uygulaUI(s) {
     animateValueSet(document.getElementById('kazanmaOrani'), s.kazanmaOrani, function(v) {
-      document.getElementById('kazanmaOraniDeger').textContent = "10'da " + Math.round(v);
+      document.getElementById('kazanmaOraniDeger').textContent = "5'de " + Math.round(v);
     });
     document.getElementById('minCarpan').value  = s.minCarpan;
     document.getElementById('maksCarpan').value = s.maksCarpan;
-    var ykOnda = Math.round(s.yakinKacirma / 10);
-    animateValueSet(document.getElementById('yakinKacirma'), ykOnda, function(v) {
-      document.getElementById('yakinKacirmaDeger').textContent = "10'da " + Math.round(v);
+    animateValueSet(document.getElementById('yakinKacirma'), s.yakinKacirma, function(v) {
+      document.getElementById('yakinKacirmaDeger').textContent = "5'de " + Math.round(v);
     });
     document.getElementById('ardisikKayip').value = s.ardisikKayip;
     setToggleClass('yeniOyuncu', s.yeniOyuncu);
@@ -1523,9 +1524,9 @@
       return;
     }
 
-    // postMessage'lar fire et
+    // postMessage'lar fire et — kazanmaOrani + yakinKacirma artık 0-5 ölçek (scale yok)
     unityeGonder('oyunModu',          secim);
-    unityeGonder('kazanmaOrani',      s.kazanmaOrani * 10);
+    unityeGonder('kazanmaOrani',      s.kazanmaOrani);
     unityeGonder('minCarpan',         s.minCarpan);
     unityeGonder('maksCarpan',        s.maksCarpan);
     unityeGonder('yakinKacirma',      s.yakinKacirma);
@@ -1569,9 +1570,9 @@
 
   function varsayilanaDon() {
     document.getElementById('kazanmaOrani').value            = 3;
-    document.getElementById('kazanmaOraniDeger').textContent = "10'da 3";
-    document.getElementById('yakinKacirma').value            = 4;
-    document.getElementById('yakinKacirmaDeger').textContent = "10'da 4";
+    document.getElementById('kazanmaOraniDeger').textContent = "5'de 3";
+    document.getElementById('yakinKacirma').value            = 2;
+    document.getElementById('yakinKacirmaDeger').textContent = "5'de 2";
     document.getElementById('minCarpan').value               = 0;
     document.getElementById('maksCarpan').value              = 0;
     document.getElementById('ardisikKayip').value            = 8;
@@ -1584,10 +1585,10 @@
   function tumAyarlariUygula() {
     var tumAyarlar = {
       oyunModu:       document.getElementById('oyunModu').value,
-      kazanmaOrani:   Number(document.getElementById('kazanmaOrani').value) * 10,
+      kazanmaOrani:   Number(document.getElementById('kazanmaOrani').value),
       minCarpan:      Number(document.getElementById('minCarpan').value),
       maksCarpan:     Number(document.getElementById('maksCarpan').value),
-      yakinKacirma:   Number(document.getElementById('yakinKacirma').value) * 10,
+      yakinKacirma:   Number(document.getElementById('yakinKacirma').value),
       ardisikKayip:   Number(document.getElementById('ardisikKayip').value),
       yeniOyuncuModu: document.getElementById('yeniOyuncuToggle').classList.contains('active'),
       bonusModu:      document.getElementById('bonusManuel').classList.contains('active') ? 'manuel' : 'otomatik'
@@ -1605,15 +1606,14 @@
   function panelInitNormalApply() {
     var s = SENARYOLAR.normal;
 
-    // UI anlık yaz (animasyonsuz)
+    // UI anlık yaz (animasyonsuz) — kazanmaOrani + yakinKacirma artık 0-5 ölçek
     document.getElementById('oyunModu').value                = 'normal';
     document.getElementById('kazanmaOrani').value            = s.kazanmaOrani;
-    document.getElementById('kazanmaOraniDeger').textContent = "10'da " + s.kazanmaOrani;
+    document.getElementById('kazanmaOraniDeger').textContent = "5'de " + s.kazanmaOrani;
     document.getElementById('minCarpan').value               = s.minCarpan;
     document.getElementById('maksCarpan').value              = s.maksCarpan;
-    var ykOnda = Math.round(s.yakinKacirma / 10);
-    document.getElementById('yakinKacirma').value            = ykOnda;
-    document.getElementById('yakinKacirmaDeger').textContent = "10'da " + ykOnda;
+    document.getElementById('yakinKacirma').value            = s.yakinKacirma;
+    document.getElementById('yakinKacirmaDeger').textContent = "5'de " + s.yakinKacirma;
     document.getElementById('ardisikKayip').value            = s.ardisikKayip;
     setToggleClass('yeniOyuncu',  s.yeniOyuncu);
     setToggleClass('carpanOdeme', s.carpanOdeme);
@@ -1646,9 +1646,9 @@
     if (btn)  btn.classList.remove('apply-btn-pulsing');
     if (hint) hint.style.display = 'none';
 
-    // Unity'e gönder (apply olarak)
+    // Unity'e gönder (apply olarak) — kazanmaOrani 0-5 doğrudan (scale yok)
     unityeGonder('oyunModu',          'normal');
-    unityeGonder('kazanmaOrani',      s.kazanmaOrani * 10);
+    unityeGonder('kazanmaOrani',      s.kazanmaOrani);
     unityeGonder('minCarpan',         s.minCarpan);
     unityeGonder('maksCarpan',        s.maksCarpan);
     unityeGonder('yakinKacirma',      s.yakinKacirma);
@@ -1674,13 +1674,13 @@
       var modu = document.getElementById('oyunModu');
       if (modu && a.aktifSenaryo) { modu.value = a.aktifSenaryo; modAciklamasiniGuncelle(a.aktifSenaryo); }
       var sliderKO = document.getElementById('kazanmaOrani');
-      if (sliderKO) { var koOnda = Math.max(0, Math.min(10, Math.round(a.kazanmaOrani / 10))); sliderKO.value = koOnda; document.getElementById('kazanmaOraniDeger').textContent = "10'da " + koOnda; }
+      if (sliderKO) { var koOnda = Math.max(0, Math.min(5, Math.round(a.kazanmaOrani))); sliderKO.value = koOnda; document.getElementById('kazanmaOraniDeger').textContent = "5'de " + koOnda; }
       var mkMin = document.getElementById('minCarpan');
       if (mkMin) mkMin.value = a.minCarpan || 0;
       var mkMax = document.getElementById('maksCarpan');
       if (mkMax) mkMax.value = a.maksCarpan || 0;
       var sliderYK = document.getElementById('yakinKacirma');
-      if (sliderYK) { var ykOndaG = Math.max(1, Math.min(10, Math.round(a.yakinKacirma / 10))); sliderYK.value = ykOndaG; document.getElementById('yakinKacirmaDeger').textContent = "10'da " + ykOndaG; }
+      if (sliderYK) { var ykOndaG = Math.max(0, Math.min(5, Math.round(a.yakinKacirma))); sliderYK.value = ykOndaG; document.getElementById('yakinKacirmaDeger').textContent = "5'de " + ykOndaG; }
       var akInput = document.getElementById('ardisikKayip');
       if (akInput) akInput.value = a.ardisikKayipLimiti;
       var tog = document.getElementById('yeniOyuncuToggle'), lbl = document.getElementById('yeniOyuncuLabel');
