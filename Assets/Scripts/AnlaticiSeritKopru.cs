@@ -777,16 +777,10 @@ public class AnlaticiSeritKopru : MonoBehaviour
             }
             // PreA1 ek anlatım — A1 aşamasının pedagojik özeti (Hoş geldin sonrası ikinci modal)
             const string A1_ANLATIM =
-                "<color=#5BA0FF>İlk aşamayı (Isındırma ve Umut) anlatayım:</color>\n\n" +
-                "Bu aşamada oyun yeni başlayan oyuncuya <color=#4DCC59>bol kazançlar</color> verecek. " +
-                "Sistem <color=#F24D40>kurban</color> için <color=#5BA0FF>yeni oyuncu modunu</color> açıyor ve ona " +
-                "<color=#4DCC59>bol kazanç</color>, <color=#F24D40>yumuşak kayıplar</color> ve " +
-                "<color=#FFD933>'şanslı bir gün'</color> hissi yaşatacak.\n\n" +
-                "<color=#FFD933>10 spin</color> at ve sonuçlarını gözlemle. Spinlerin çoğu " +
-                "<color=#4DCC59>kazançla</color> bitecek. Beyin <color=#F24D40>dopamin pompalayacak</color>. " +
-                "Oyuncu 'Bu oyunu sevdim, devam edeyim' diyecek.\n\n" +
-                "Bahis <color=#FFD933>500 TL</color>, başlangıç bakiyen <color=#FFD933>50.000 TL</color>. " +
-                "<color=#F24D40>Manipülasyon başlıyor</color> — <color=#4DCC59>izle ve gör</color>.";
+                "İlk kazanç, oyuncu için <color=#F24D40>en tehlikeli başlangıçtır</color>. " +
+                "Beyin bu <color=#4DCC59>olumlu deneyimi</color> güçlü biçimde hatırlar ve kişi " +
+                "<color=#F24D40>oyunda kalmaya devam eder</color>. <color=#F24D40>Uzun süreli oynama</color> " +
+                "davranışının temelinde, <color=#FFD933>ilk kazanmanın yarattığı bu etki</color> bulunur.";
             string mesaj =
                 "Hoş geldiniz. Bu simülasyonda online kumar oyunlarının oyuncuları nasıl etkilediğini birlikte göreceğiz.\n\n" +
                 "<b>Önce oyunu tanıyalım:</b>\n" +
