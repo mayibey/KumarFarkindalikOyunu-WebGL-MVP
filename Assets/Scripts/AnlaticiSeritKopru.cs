@@ -783,6 +783,14 @@ public class AnlaticiSeritKopru : MonoBehaviour
                 "<color=#F24D40>oyunda kalmaya devam eder</color>.\n\n" +
                 "<color=#F24D40>Uzun süreli oynama</color> davranışının temelinde, " +
                 "<color=#FFD933>ilk kazanmanın yarattığı bu etki</color> bulunur.";
+            // PreA1 üçüncü modal — kullanıcıyı spin atmaya davet + sol panel takip yönlendirmesi.
+            const string A1_DAVET =
+                "<b>Şimdi sen dene</b>\n\n" +
+                "Tam <color=#FFD933>10 spin</color> at ve neler olduğunu gör. " +
+                "Bakiyenin nasıl yükseldiğine, kazançların sıklığına dikkat et.\n\n" +
+                "Sol panelde <color=#5BA0FF>SAHNE ARKASI</color> ve " +
+                "<color=#5BA0FF>OYUNCUNUN KAFASI</color> bölümlerini takip et — " +
+                "<color=#4DCC59>sistemin gerçekte ne yaptığını</color> orada göreceksin.";
             string mesaj =
                 "Hoş geldiniz. Bu simülasyonda online kumar oyunlarının oyuncuları nasıl etkilediğini birlikte göreceğiz.\n\n" +
                 "<b>Önce oyunu tanıyalım:</b>\n" +
@@ -803,6 +811,10 @@ public class AnlaticiSeritKopru : MonoBehaviour
             yield return null;
             // PreA1 ek anlatım modal — A1 aşamasının pedagojik özeti
             yield return modal.ModalGoster(A1_ANLATIM, gizleAnlatici: false);
+            // HOTFIX: ardışık ModalGoster yarış riski için bir frame ara
+            yield return null;
+            // PreA1 üçüncü modal — kullanıcıyı 10 spin atmaya davet et
+            yield return modal.ModalGoster(A1_DAVET, gizleAnlatici: false);
         }
         finally
         {
