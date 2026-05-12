@@ -954,12 +954,12 @@
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
         <span style="color:#f4d678; font-size:15px; flex:1;">Bonus sembolü düşme olasılığı</span>
         <span class="help-icon" data-tip="bonusSiklik">?</span>
-        <span class="value-display" style="font-size:18px;">%<span id="bonusSembolDeger">0.5</span></span>
+        <span class="value-display" style="font-size:18px;">%<span id="bonusSembolDeger">2</span></span>
       </div>
-      <input type="range" id="bonusSembolOlasilik" min="0" max="5" step="0.1" value="0.5" style="width:100%;"
+      <input type="range" id="bonusSembolOlasilik" min="0" max="100" step="1" value="2" style="width:100%;"
              oninput="bonusSembolOlasilikDegisti(this.value)">
       <div style="font-size:14px; color:#b8a875; font-style:italic; margin-top:8px;">
-        Her <span id="bonusSpinHesap">200</span> spin'de 1 bonus
+        Her <span id="bonusSpinHesap">50</span> spin'de 1 bonus
       </div>
       </div>
     </div>
@@ -1382,12 +1382,13 @@
   function bonusSembolOlasilikDegisti(deger) {
     var yuzde = parseFloat(deger);
     if (isNaN(yuzde) || yuzde < 0) yuzde = 0;
-    document.getElementById('bonusSembolDeger').textContent = yuzde.toFixed(1);
+    // PAKET 8: slider 0-100 sistem (eski 0-5'ten yükseltildi). toFixed(0) integer gösterim.
+    document.getElementById('bonusSembolDeger').textContent = yuzde.toFixed(0);
     if (yuzde <= 0) {
       document.getElementById('bonusSpinHesap').textContent = '∞';
       // postMessage gönderme — bonus efektif olarak kapalı
     } else {
-      var spin = Math.round(100 / yuzde);
+      var spin = Math.max(1, Math.round(100 / yuzde));
       document.getElementById('bonusSpinHesap').textContent = spin;
       unityeGonder('bonusOtomatikOran', spin);
     }

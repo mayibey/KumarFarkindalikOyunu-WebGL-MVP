@@ -95,7 +95,7 @@ public class KullaniciAdiModal : MonoBehaviour
         vlg.childForceExpandWidth = true; vlg.childForceExpandHeight = false;
 
         // Başlık
-        AddTxt(icVlgGo.transform, "Adın", 24, C("#FAC775"), bold: true,
+        AddTxt(icVlgGo.transform, "Adınız", 24, C("#FAC775"), bold: true,
                prefH: 36, bottomSpace: 8);
 
         // Açıklama

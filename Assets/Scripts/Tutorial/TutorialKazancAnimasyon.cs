@@ -140,7 +140,8 @@ namespace KumarFarkindalik.Tutorial
 
         private IEnumerator KazancAnimasyon(int delta)
         {
-            Vector2 baslangicPos = SpinTahtaLocalPos();
+            // HOTFIX: Başlangıç KAZANÇ kutusundan (ekran ortası DEĞIL) → parabolic flight bakiyeye
+            Vector2 baslangicPos = KazancKutuLocalPos();
             var go = TmpYarat($"+{delta:N0} TL", KAZANC_RENK, baslangicPos);
             var rt = go.GetComponent<RectTransform>();
             var txt = go.GetComponent<TextMeshProUGUI>();
@@ -193,6 +194,13 @@ namespace KumarFarkindalik.Tutorial
         {
             if (_oy == null || _oy.slotGridRoot == null) return new Vector2(0f, 100f);
             return WorldToCanvasLocal(_oy.slotGridRoot.position) + new Vector2(0f, 50f); // tahta üstü
+        }
+
+        // HOTFIX: Kazanç animasyonu artık KAZANÇ kutusundan çıkar (ekran ortası yerine üst KAZANÇ text'i)
+        private Vector2 KazancKutuLocalPos()
+        {
+            if (_oy == null || _oy.kazancText == null) return SpinTahtaLocalPos(); // fallback
+            return WorldToCanvasLocal(_oy.kazancText.transform.position);
         }
 
         private Vector2 BakiyeLocalPos()

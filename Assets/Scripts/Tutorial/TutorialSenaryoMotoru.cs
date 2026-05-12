@@ -79,6 +79,14 @@ namespace KumarFarkindalik.Tutorial
             {
                 new SpinDesen { sembolId = SCATTER_PATTERN_FLAG, adet = 4 },
             },
+            // PAKET 8 — T4 ÇARPAN: 3 spin küçük kazançlar (500 TL). Çarpan enjeksiyonu DesenToKayit içinde
+            // carpanUretimOlasiligi (slider değeri) baz alınarak otomatik yapılır (T4+ guard ile aktif).
+            ["carpanTest"] = new[]
+            {
+                new SpinDesen { sembolId = 3, adet = 8 },   // 500 TL (x8-9[3]=0.5) + çarpan enjekte
+                new SpinDesen { sembolId = 3, adet = 8 },   // 500 TL + çarpan
+                new SpinDesen { sembolId = 3, adet = 8 },   // 500 TL + çarpan
+            },
             // PAKET 6C2 — T6_YENI_OYUNCU aşama 1: toggle KAPALI iken 3 spin (kayıp-küçük kazanç-kayıp, NET kayıp)
             ["yeniOyuncu_kapali"] = new[]
             {
@@ -231,6 +239,8 @@ namespace KumarFarkindalik.Tutorial
             _aktifPattern = mod;
             _spinIdx = 0;
             _motorAktif = true;
+            // HOTFIX: Yarış güvencesi — önceki adımdan kalan referansı temizle
+            _sonInjekteEttigimKayit = null;
 
             // Cache temizle ki sonraki precompute Tutorial pattern ile dolsun (override)
             var oy = Object.FindObjectOfType<OyunYoneticisi>();

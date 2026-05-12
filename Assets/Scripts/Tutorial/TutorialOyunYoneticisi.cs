@@ -40,6 +40,17 @@ namespace KumarFarkindalik.Tutorial
             "Şimdi <color=#4DCC59>sahne arkasını</color> birlikte göreceğiz. Sağ-alttaki <color=#5BA0FF>AYARLAR</color> butonuna tıkla, " +
             "<color=#F24D40>manipülasyon panelini</color> açalım.";
 
+        // PAKET 8: T1 karşılama sonrası Normal oyun bilgilendirme — T3_NORMAL adımı kaldırıldı,
+        // bu kavram tek bir modal ile başta açıklanır.
+        private const string T1_NORMAL_INFO =
+            "<color=#4DCC59>Normal oyun</color>: <color=#5BA0FF>manipülasyon kapalı</color>, oyun kendi kurallarında akar — adil <color=#FFD933>RTP</color> ile.\n\n" +
+            "Sonra <color=#F24D40>4 manipülasyon senaryosunu</color> göreceğiz:\n" +
+            "• <color=#F24D40>Taze Kan</color> (Hook)\n" +
+            "• <color=#F24D40>Az Az Kayıp</color> (Yontma)\n" +
+            "• <color=#F24D40>Kaçış Engelleme</color> (Tutma)\n" +
+            "• <color=#F24D40>Bakiye Tüketme</color> (Koruma)\n\n" +
+            "Her senaryoda operatörün nasıl müdahale ettiğini <color=#4DCC59>kendi gözlerinle</color> göreceksin.";
+
 #if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")] private static extern void PaneliSolaAl();
         [DllImport("__Internal")] private static extern void DropdownTooltipEkle();
@@ -343,9 +354,14 @@ namespace KumarFarkindalik.Tutorial
             if (TutorialAdimGoster.Ornek != null)
                 TutorialAdimGoster.Ornek.OnIleriTiklandi += IleriTiklandi;
 
-            // T1 modal
+            // T1 modal (Karşılama + Normal oyun bilgilendirme)
             if (TutorialModalKopru.Ornek != null)
+            {
                 yield return TutorialModalKopru.Ornek.ModalGoster(T1_METIN);
+                yield return null; // state stabilize (ardışık ModalGoster yarış güvencesi)
+                // PAKET 8: T3_NORMAL kaldırıldı → Normal oyun kavramı burada açıklanır
+                yield return TutorialModalKopru.Ornek.ModalGoster(T1_NORMAL_INFO);
+            }
 
             // T1 sonrası AyarlarButton glow
             if (ayarlarBtn != null)
@@ -380,12 +396,10 @@ namespace KumarFarkindalik.Tutorial
                 // PAKET 4-FAZ-2: Bahis kilit (T3+ boyunca 1000 TL sabit, T_SON sonrası açılır)
                 BahisKilitle(true);
 
-                // PAKET 7: Tutorial sırasında WinFeedbackUI BÜYÜK KAZANÇ pop-up'ı KAPAT (basket animasyon ile çakışma)
-                if (oy.winFeedbackUI != null)
-                {
-                    oy.winFeedbackUI.gameObject.SetActive(false);
-                    Debug.Log("[Tutorial] WinFeedbackUI deaktif (BÜYÜK KAZANÇ pop-up gizli)");
-                }
+                // PAKET 7+HOTFIX: WinFeedbackUI deaktif KALDIRILDI — basket animasyon artık KAZANÇ kutusundan
+                // başlıyor (ekran ortası değil) → BÜYÜK KAZANÇ pop-up ile çakışma yok, ikisi paralel görünebilir
+                // (kazanç kutusu üstte, BÜYÜK KAZANÇ ekran merkezinde, basket parabolic flight ile bakiyeye iner).
+                // SerbestTestModunaGec restore satırı da artık no-op (deaktif yapılmamıştı).
             }
 
             // PAKET 3B-fix-10 (İş 3): Tutorial sırasında dikkat dağıtıcı butonları gizle
@@ -421,8 +435,13 @@ namespace KumarFarkindalik.Tutorial
             // AdimGoster'ı gizle (modal süresince görünmesin, modal sonra göster)
             TutorialAdimGoster.Ornek?.Gizle();
 
-            // PAKET 6C1/6C2/6C3: adım bazlı pattern motor yönetimi
-            if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T5)
+            // PAKET 6C1/6C2/6C3/8: adım bazlı pattern motor yönetimi
+            if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T4)
+            {
+                // PAKET 8: T4 motor aktif — 3 spin kazanç pattern + çarpan enjeksiyonu (slider değerine göre)
+                TutorialSenaryoMotoru.PatternBaslat("carpanTest");
+            }
+            else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T5)
             {
                 TutorialSenaryoMotoru.PatternBaslat("bonusTest");
             }
@@ -541,7 +560,8 @@ namespace KumarFarkindalik.Tutorial
                 Debug.Log("[Tutorial T11] Bonus tetiklendi, 3sn görsel hissedilecek...");
                 yield return new WaitForSecondsRealtime(3f);
                 T11BonusYarimKes();
-                yield return new WaitForSecondsRealtime(0.3f); // state stabilize + UI refresh
+                // HOTFIX: bonusEndPanel fade animasyonu (~1.65sn) + UI refresh için yeterli gecikme
+                yield return new WaitForSecondsRealtime(1.5f);
             }
 
             // PAKET 6C1: T5 bonus yarım kesme — scatter pattern 4 scatter düşürür, OyunYoneticisi
@@ -551,7 +571,8 @@ namespace KumarFarkindalik.Tutorial
                 Debug.Log("[Tutorial T5] Scatter bonus tetiklendi, 3sn görsel hissedilecek...");
                 yield return new WaitForSecondsRealtime(3f);
                 T11BonusYarimKes(); // aynı reflection cleanup (bonusAktif=false, bonusHakKalan=0, spinCalisiyor=false)
-                yield return new WaitForSecondsRealtime(0.3f);
+                // HOTFIX: bonusEndPanel kapanma + animasyon süresi için yeterli gecikme (Modal C arkada kalmasın)
+                yield return new WaitForSecondsRealtime(1.5f);
             }
 
             // === Vurgu kapat + AdimGoster gizle ===
@@ -728,7 +749,12 @@ namespace KumarFarkindalik.Tutorial
             bonusHakKalanField?.SetValue(oy, 0);
             spinCalisiyorField?.SetValue(oy, false);
 
-            Debug.Log("[Tutorial T11] Bonus yarım kesildi: bonusAktif=false, bonusHakKalan=0, spinCalisiyor=false");
+            // HOTFIX (T5+T11): Bonus özet ekranı (BonusEndPanel) yarım kesme sırasında Modal C arkasında
+            // kalıyor olabiliyor. Elle kapat. Plus bonusStartPanel (intro paneli) açıksa onu da kapat.
+            if (oy.bonusEndPanel != null) oy.bonusEndPanel.SetActive(false);
+            if (oy.bonusStartPanel != null) oy.bonusStartPanel.SetActive(false);
+
+            Debug.Log("[Tutorial T11] Bonus yarım kesildi: bonusAktif=false, bonusHakKalan=0, spinCalisiyor=false, bonusEndPanel/StartPanel kapatıldı");
         }
 
         // === T_SON kapanış akışı ===
