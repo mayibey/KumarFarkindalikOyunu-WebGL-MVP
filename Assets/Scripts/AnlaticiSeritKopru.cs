@@ -218,8 +218,9 @@ public class AnlaticiSeritKopru : MonoBehaviour
     private static readonly int[] _onerilenBahisler = new int[] { 500, 1000, 1500, 2500, 4000, 10000, 1500 };
 
     /// <summary>Aşama başına spin eşiği. PAKET 10: A4 8→5 (asset zaten 5 spin tanımlı, son spin 100x MegaWin).
-    /// A6 hızlı yıkım: 5 spin × 10K bahis = 50K borç tükenir. Aşama 7 = 999 (dinamik).</summary>
-    private static readonly int[] _asamaSpinSayisi = new int[] { 10, 10, 8, 5, 10, 5, 999 };
+    /// PAKET 11: A5 10→4 (Spin 4 = BonusTetik son spin; bonus oyun A6'ya manuel geçer, 5. spin asset'te
+    /// var ama normal akışta erişilmez). A6 hızlı yıkım: 5 spin × 10K bahis = 50K borç tükenir. A7 = 999.</summary>
+    private static readonly int[] _asamaSpinSayisi = new int[] { 10, 10, 8, 5, 4, 5, 999 };
 
     [System.Serializable]
     public class AsamaAyari

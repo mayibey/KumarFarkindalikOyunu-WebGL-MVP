@@ -190,7 +190,7 @@
   ];
   var aktifAsama = 0, aktifSpin = 0, SPIN_PER_ASAMA = 10, bakiyeNet = 0, toplamSpin = 0;
   // Aşama spin eşiği (Unity → JSON state.hedefSpin). Aşama 7 = 999 (dinamik tükeniş), görsel max 10.
-  var ASAMA_SPIN_HEDEF = [10, 10, 8, 8, 10, 10, 999];
+  var ASAMA_SPIN_HEDEF = [10, 10, 8, 5, 4, 5, 999]; // PAKET 11: A4=5, A5=4 (BonusTetik son spin), A6=5 (C# _asamaSpinSayisi ile senkron)
   var hedefSpin = 10;
   var ASAMA7_GORSEL_MAX = 10;
   var spinNetleri = []; // mevcut aşamadaki spin başına net (+/-) TL
