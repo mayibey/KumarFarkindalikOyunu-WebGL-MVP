@@ -9517,6 +9517,23 @@ function dbg(text) {
           }, 100);
       }
 
+  function _ToggleKapat(idPtr) {
+          var iframe = document.getElementById('panelIframe');
+          if (!iframe) return;
+          var id = UTF8ToString(idPtr);
+          try {
+              var doc = iframe.contentDocument;
+              if (!doc) return;
+              var el = doc.getElementById(id);
+              if (el && el.classList.contains('active')) {
+                  el.click(); // toggleDegisti() çağrılır → Unity'ye false gönderilir
+                  console.log('[Tutorial] Toggle KAPATILDI:', id);
+              }
+          } catch (e) {
+              console.warn('[Tutorial] ToggleKapat hata:', e);
+          }
+      }
+
   function _TumVurgulariKapat() {
           var iframe = document.getElementById('panelIframe');
           if (!iframe) return;
@@ -9553,6 +9570,12 @@ function dbg(text) {
                       }
                       el.classList.add('apply-btn-pulsing');
                   });
+                  // HOTFIX: İlk vurgu elementine smooth scroll — accordion açılınca kullanıcı görür
+                  if (els.length > 0) {
+                      setTimeout(function() {
+                          try { els[0].scrollIntoView({behavior: 'smooth', block: 'center'}); } catch(e) {}
+                      }, 300); // accordion açılma animasyonu (~250ms) sonrası scroll
+                  }
                   return true;
               } catch (e) { return false; }
           };
@@ -18446,6 +18469,7 @@ var wasmImports = {
   "PaneliAc": _PaneliAc,
   "PaneliKapat": _PaneliKapat,
   "PaneliSolaAl": _PaneliSolaAl,
+  "ToggleKapat": _ToggleKapat,
   "TumVurgulariKapat": _TumVurgulariKapat,
   "TutorialPaneliKapat": _TutorialPaneliKapat,
   "VurguAc": _VurguAc,

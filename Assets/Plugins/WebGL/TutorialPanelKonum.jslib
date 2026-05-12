@@ -105,6 +105,12 @@ mergeInto(LibraryManager.library, {
                     }
                     el.classList.add('apply-btn-pulsing');
                 });
+                // HOTFIX: İlk vurgu elementine smooth scroll — accordion açılınca kullanıcı görür
+                if (els.length > 0) {
+                    setTimeout(function() {
+                        try { els[0].scrollIntoView({behavior: 'smooth', block: 'center'}); } catch(e) {}
+                    }, 300); // accordion açılma animasyonu (~250ms) sonrası scroll
+                }
                 return true;
             } catch (e) { return false; }
         };
@@ -141,6 +147,26 @@ mergeInto(LibraryManager.library, {
     TutorialPaneliKapat: function() {
         var ov = document.getElementById('panelOverlay');
         if (ov) ov.remove();
+    },
+
+    // === HOTFIX (T6YO): Panel.html toggle elementini ZORLA KAPAT (active class kaldır) ===
+    // T6_YENI_OYUNCU başlangıcında yeniOyuncuToggle "active" iken pedagoji bozuluyordu.
+    // Bu fonksiyon toggle 'active' ise click ile state'i değiştirir + Unity'ye unityeGonder eder.
+    ToggleKapat: function(idPtr) {
+        var iframe = document.getElementById('panelIframe');
+        if (!iframe) return;
+        var id = UTF8ToString(idPtr);
+        try {
+            var doc = iframe.contentDocument;
+            if (!doc) return;
+            var el = doc.getElementById(id);
+            if (el && el.classList.contains('active')) {
+                el.click(); // toggleDegisti() çağrılır → Unity'ye false gönderilir
+                console.log('[Tutorial] Toggle KAPATILDI:', id);
+            }
+        } catch (e) {
+            console.warn('[Tutorial] ToggleKapat hata:', e);
+        }
     },
 
     // === Dropdown auto-revert: Uygula basılmadan blur/focus loss olursa eski değere geri dön ===

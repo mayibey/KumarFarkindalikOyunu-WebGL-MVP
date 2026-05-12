@@ -44,6 +44,7 @@ namespace KumarFarkindalik.Tutorial
         [DllImport("__Internal")] private static extern void PaneliSolaAl();
         [DllImport("__Internal")] private static extern void DropdownTooltipEkle();
         [DllImport("__Internal")] private static extern void DropdownAutoRevertEkle(); // PAKET 5: Uygula basmadan kaçınca revert
+        [DllImport("__Internal")] private static extern void ToggleKapat(string id); // HOTFIX T6YO: yeniOyuncuToggle force kapat
         [DllImport("__Internal")] private static extern void VurguAc(string selector);
         [DllImport("__Internal")] private static extern void VurguKapat(string selector);
         [DllImport("__Internal")] private static extern void TumVurgulariKapat();
@@ -429,6 +430,17 @@ namespace KumarFarkindalik.Tutorial
             {
                 T6AraModalGosterildi = false;
                 T6IkinciAsamaBasladi = false;
+                // HOTFIX: yeniOyuncuModu DEFAULT TRUE. T6YO başında ZORLA KAPALI'ya çek:
+                // 1) PanelKopru state false
+                // 2) OyunYoneticisi davranışı false (büyük kazanç modunu kapat)
+                // 3) Panel.html UI senkron — toggle 'active' class kaldır
+                PanelKopru.yeniOyuncuModu = false;
+                var oyT6 = Object.FindObjectOfType<OyunYoneticisi>();
+                if (oyT6 != null) oyT6.AdminSetYeniOyuncuModu(false);
+#if UNITY_WEBGL && !UNITY_EDITOR
+                ToggleKapat("yeniOyuncuToggle");
+#endif
+                Debug.Log("[Tutorial T6YO] Toggle force KAPALI'ya çekildi (UI + Unity state senkron)");
                 TutorialSenaryoMotoru.PatternBaslat("yeniOyuncu_kapali");
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T6) // KAZANDIRMA (sira=7)
