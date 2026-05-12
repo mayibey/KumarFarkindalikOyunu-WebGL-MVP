@@ -134,6 +134,11 @@ public class WinFeedbackUI : MonoBehaviour
     private bool _gosterimAktif = false;
     private int _hedefKazanc;
 
+    /// <summary>BIG WIN+ pop-up gosterimi suanda ekranda mi? Tutorial SayaciGecikmeliArtir
+    /// bu property'yi yoklayarak panel kapandiktan SONRA sayaci ilerletir (gameObject.activeInHierarchy
+    /// daimi true oldugu icin onun yerine bu kullanilmali).</summary>
+    public bool GosterimAktif => _gosterimAktif;
+
     public void ShowWin(int kazanc, int bahis)
     {
         if (panelCanvasGroup == null || baslikText == null || kazancText == null) return;

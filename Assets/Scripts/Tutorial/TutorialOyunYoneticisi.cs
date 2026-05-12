@@ -664,19 +664,19 @@ namespace KumarFarkindalik.Tutorial
                 yield return TutorialModalKopru.Ornek.ModalGoster(metin);
         }
 
-        // PAKET 6A-EXT: Modal C anim state-driven bekleme.
-        // Sabit 0.8sn yetersizdi (counting up / BIG WIN feedback / kazanç animasyonu daha uzun olabilir).
-        // Spin akışı + WinFeedbackUI görünürlüğü + TutorialKazancAnimasyon koroutini tamamen bitene kadar
-        // bekle, üstüne 0.5sn nefes payı ekle.
+        // PAKET 6A-EXT-2: Modal C anim state-driven bekleme — timeout'lu + GosterimAktif property.
+        // Önceki versiyon WaitUntil(winFeedbackUI.gameObject.activeInHierarchy=false) sonsuza takılıyordu;
+        // gameObject root'u Tutorial boyunca daimi aktif (child panelCanvasGroup açılır/kapanır).
+        // FIX: GosterimAktif property kullan + her bekleme için 3sn timeout güvencesi.
         private IEnumerator SayaciGecikmeliArtir()
         {
             var oy = _oyRef != null ? _oyRef : Object.FindObjectOfType<OyunYoneticisi>();
             if (oy != null)
             {
-                yield return new WaitUntil(() => !oy.SpinCalisiyorMu);
-                yield return new WaitUntil(() =>
-                    oy.winFeedbackUI == null || !oy.winFeedbackUI.gameObject.activeInHierarchy);
-                yield return new WaitUntil(() => !TutorialKazancAnimasyon.AnimasyonAktif);
+                yield return BekleVeyaTimeout(() => !oy.SpinCalisiyorMu, 3f);
+                yield return BekleVeyaTimeout(() =>
+                    oy.winFeedbackUI == null || !oy.winFeedbackUI.GosterimAktif, 3f);
+                yield return BekleVeyaTimeout(() => !TutorialKazancAnimasyon.AnimasyonAktif, 3f);
                 yield return new WaitForSecondsRealtime(0.5f);
             }
             else
@@ -691,6 +691,19 @@ namespace KumarFarkindalik.Tutorial
             TutorialT6YeniOyuncuModalKontrol();
             TutorialT8OdemeModalKontrol();
             TutorialT11CarpanZorlaModalKontrol();
+        }
+
+        // PAKET 6A-EXT-2 helper: koşul sağlanana kadar veya maxSn dolana kadar bekle (sonsuza takılma güvencesi).
+        private IEnumerator BekleVeyaTimeout(System.Func<bool> kosul, float maxSn)
+        {
+            float t = 0f;
+            while (!kosul() && t < maxSn)
+            {
+                t += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            if (t >= maxSn)
+                Debug.LogWarning($"[TutorialOyunYoneticisi] BekleVeyaTimeout: {maxSn}sn doldu, koşul sağlanmadı (defansif geçiş).");
         }
 
         // PAKET 6D: T8 (Ödeme) 3. spin sonrası ara modal — kullanıcıya MIN/MAKS ayarlama daveti
