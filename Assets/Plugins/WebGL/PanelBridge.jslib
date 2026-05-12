@@ -376,9 +376,12 @@ mergeInto(LibraryManager.library, {
         if (p) p.remove();
     },
 
-    // ═══ A5 Cazip Popup — Sahte kutlama havai fişek (DOM Canvas + partikül) ═══
+    // ═══ A5 Cazip Popup + Tebrikler Popup — Sahte kutlama havai fişek (DOM Canvas + partikül) ═══
     HavaiFisekBaslat: function() {
-        if (document.getElementById('havaiFisekCanvas')) return; // zaten aktif
+        // PAKET 10-FIX: Önceki canvas (A5 bonus tuzağından kalan, partiküller henüz bitmemiş) DOM'da
+        // olabilir → early return tebrikler popup için havai fişeği gizlerdi. Eski varsa KALDIR + yeniden başlat.
+        var existing = document.getElementById('havaiFisekCanvas');
+        if (existing) { existing.remove(); console.log('[HavaiFisek] Eski canvas silindi, yeniden başlatılıyor'); }
 
         var canvas = document.createElement('canvas');
         canvas.id = 'havaiFisekCanvas';

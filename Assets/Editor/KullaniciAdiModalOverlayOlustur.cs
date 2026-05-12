@@ -84,7 +84,7 @@ public static class KullaniciAdiModalOverlayOlustur
         icImg.raycastTarget = false;
 
         // Başlık
-        var baslik = OlusturText("Baslik", modalRt, "Adın", 56, Hex("f4d678"), TextAlignmentOptions.Center, FontStyles.Bold);
+        var baslik = OlusturText("Baslik", modalRt, "Adınız", 56, Hex("f4d678"), TextAlignmentOptions.Center, FontStyles.Bold);
         var baslikRt = (RectTransform)baslik.transform;
         baslikRt.anchorMin = baslikRt.anchorMax = new Vector2(0.5f, 1f);
         baslikRt.pivot = new Vector2(0.5f, 1f);
@@ -171,7 +171,7 @@ public static class KullaniciAdiModalOverlayOlustur
         rapor.AppendLine("    KararatmaOverlay [Image #000 a=0.7, raycastTarget=true]");
         rapor.AppendLine("    ModalPanel [Image #d4a857, CanvasGroup, KullaniciAdiModalKontrol]");
         rapor.AppendLine("      IcZemin [Image #1a1410]");
-        rapor.AppendLine("      Baslik [TMP 'Adın' 56pt #f4d678 bold]");
+        rapor.AppendLine("      Baslik [TMP 'Adınız' 56pt #f4d678 bold]");
         rapor.AppendLine("      AltAciklama [TMP 22pt #aaa9a5]");
         rapor.AppendLine("      IsimInput [Image #0a0a0a, TMP_InputField]");
         rapor.AppendLine("      BaslaButton [Image #d4a857, Button, TMP 'BAŞLA' 32pt bold]");

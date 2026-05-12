@@ -49,12 +49,23 @@ public class AnlaticiSeritKopru : MonoBehaviour
         }
         BonusBitisOnaylandi = false;
         BonusBitisAcik = true; // Spin butonu bu süre boyunca engellensin
+        Debug.Log($"[BonusBitis] BonusBitisGoster çağrıldı, tutar={tutar} TL");
 #if UNITY_WEBGL && !UNITY_EDITOR
-        try { BonusBitisPopupAc(tutar); }
-        catch (System.Exception e) { Debug.LogWarning("[BonusBitis] hata: " + e.Message); }
-        // Tebrikler popup açılışında havai fişek (3sn otomatik dururuyor — ScriptedBonusTuzagiPopup ile aynı görsel dil).
-        try { HavaiFisekBaslat(); }
-        catch (System.Exception e) { Debug.LogWarning("[BonusBitis-HavaiFisek] hata: " + e.Message); }
+        // PAKET 10-FIX: Havai fişek ÖNCE (canvas DOM'a girsin), popup SONRA (canvas üstüne otursun).
+        // Önceki sıra (popup → havai fişek) bazı durumlarda canvas'ın görünmemesine neden oluyordu.
+        try
+        {
+            HavaiFisekBaslat();
+            Debug.Log("[BonusBitis] HavaiFisekBaslat çağrıldı (jslib)");
+        }
+        catch (System.Exception e) { Debug.LogError("[BonusBitis-HavaiFisek] hata: " + e); }
+
+        try
+        {
+            BonusBitisPopupAc(tutar);
+            Debug.Log("[BonusBitis] BonusBitisPopupAc çağrıldı (jslib)");
+        }
+        catch (System.Exception e) { Debug.LogError("[BonusBitis-Popup] hata: " + e); }
 #else
         Debug.Log("[BonusBitis] Tutar: " + tutar);
         // Editor fallback: anında onay (test akışı bloklanmasın)
@@ -178,6 +189,26 @@ public class AnlaticiSeritKopru : MonoBehaviour
     private int _sonUygulananAsama = -1; // YENI: aşama değişimi tespiti için
     private long _sonBakiye = 50000; // bir önceki spin sonu bakiye — spin başına net delta için
     private readonly List<int> _asamaSpinNet = new List<int>(); // mevcut aşamadaki spin başına net (+/-) TL
+
+    // PAKET 10: Geçmiş aşamaların spin net'leri — kullanıcı HTML panelden ◀ ▶ ile önceki aşamaya
+    // dönerse o aşamanın çubukları geri getirilir. Aşama geçişinde SnapshotMevcutAsama() ile dolar,
+    // HtmlAsamaDegisti'de TryGetValue ile yüklenir. Save/Restore üzerinden persistence.
+    private readonly System.Collections.Generic.Dictionary<int, List<int>> _tumAsamaSpinNet
+        = new System.Collections.Generic.Dictionary<int, List<int>>();
+
+    private void SnapshotMevcutAsama()
+    {
+        _tumAsamaSpinNet[_aktifAsama] = new List<int>(_asamaSpinNet);
+    }
+
+    // PAKET 10: Save için Dictionary<int,List<int>> → List<AsamaSpinNetKayit> (JsonUtility uyumlu).
+    private List<AsamaSpinNetKayit> TumAsamaSpinNetIcinSerializeEt()
+    {
+        var liste = new List<AsamaSpinNetKayit>(_tumAsamaSpinNet.Count);
+        foreach (var kv in _tumAsamaSpinNet)
+            liste.Add(new AsamaSpinNetKayit { asama = kv.Key, spinNet = new List<int>(kv.Value) });
+        return liste;
+    }
     private const int BASLANGIC_BAKIYE = 50000;
     private const int ASAMA7_GORSEL_MAX_CUBUK = 10; // Asama 7 dinamik (999 spin) — HTML max 10 çubuk göster
     private static AnlaticiSeritKopru _ornek;
@@ -186,8 +217,9 @@ public class AnlaticiSeritKopru : MonoBehaviour
     /// Pedagojik eğri: 50K → 60K → 75K → 70K → 55K → 30K → 10K → 0 (~61 spin).</summary>
     private static readonly int[] _onerilenBahisler = new int[] { 500, 1000, 1500, 2500, 4000, 10000, 1500 };
 
-    /// <summary>Aşama başına spin eşiği. A6 hızlı yıkım: 5 spin × 10K bahis = 50K borç tükenir. Aşama 7 = 999 (dinamik).</summary>
-    private static readonly int[] _asamaSpinSayisi = new int[] { 10, 10, 8, 8, 10, 5, 999 };
+    /// <summary>Aşama başına spin eşiği. PAKET 10: A4 8→5 (asset zaten 5 spin tanımlı, son spin 100x MegaWin).
+    /// A6 hızlı yıkım: 5 spin × 10K bahis = 50K borç tükenir. Aşama 7 = 999 (dinamik).</summary>
+    private static readonly int[] _asamaSpinSayisi = new int[] { 10, 10, 8, 5, 10, 5, 999 };
 
     [System.Serializable]
     public class AsamaAyari
@@ -414,11 +446,28 @@ public class AnlaticiSeritKopru : MonoBehaviour
         Debug.Log($"[AnlaticiTANI] SpinTamamlandi sonu — _aktifSpin={_aktifSpin}, hedefSpin={hedefSpin}, _aktifAsama={_aktifAsama}");
         if (_aktifSpin >= hedefSpin)
         {
+            // PAKET 10: A4 (aktifAsama==3) son spin = Spin 5 (100x MegaWin) — aşama geçişi tetiğini
+            // BURADA YAPMA. Önce A4S5CarpanModalAkisi modal'larını oynat, modal sonunda manuel A5
+            // geçişi yapılır. Aksi halde A4S5 modal + A5GecisAkisi paralel çalışır (race).
+            if (_aktifAsama == 3)
+            {
+                Debug.Log("[Anlatici] A4 son spin (5/5) — aşama geçişi A4S5CarpanModalAkisi içine ertelendi.");
+                if (!_a4S5CarpanModalGosterildi)
+                {
+                    _a4S5CarpanModalGosterildi = true;
+                    StartCoroutine(A4S5CarpanModalAkisi());
+                }
+                Guncelle();
+                return;
+            }
+
             Debug.Log($"[AnlaticiTANI] hedefSpin'e ulaşıldı, _aktifAsama < 6 mı? {_aktifAsama < 6}");
             if (_aktifAsama < 6)
             {
                 // Önce son spin çubuğunu rengiyle göster (HTML render)
                 Guncelle();
+                // PAKET 10: Eski aşamanın spin net'ini cache'e al (kullanıcı geri ◀ tıklarsa görsün)
+                SnapshotMevcutAsama();
                 _aktifAsama++;
                 Debug.Log($"[AnlaticiTANI] _aktifAsama++ → {_aktifAsama} (yeni asama)");
                 _aktifSpin = 0;
@@ -496,6 +545,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
                 {
                     // A5 sonu yumuşak geçiş: önce eğitmen modal "para arayışı", ardından yükleme paneli
                     Debug.Log($"[Anlatici] A5 sonu bakiye yetersiz ({simdiBakiye} < {sonrakiBahis}) → A6 yumuşak geçiş + para arayışı modal.");
+                    SnapshotMevcutAsama(); // PAKET 10: A5 spin net'ini cache'e al (geri ◀ için)
                     _aktifAsama = 5;
                     _aktifSpin = 0;
                     _asamaSpinNet.Clear();
@@ -519,6 +569,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
                 else if (_aktifAsama < 4)
                 {
                     Debug.Log($"[Anlatici] A1-A4 erken bakiye tükendi ({simdiBakiye} < {sonrakiBahis}), Aşama 7 (Tükeniş) zorla atlanıyor.");
+                    SnapshotMevcutAsama(); // PAKET 10: eski aşamanın spin net'ini cache'e al
                     _aktifAsama = 6;
                     _aktifSpin = 0;
                     _sonUygulananAsama = -1;
@@ -633,13 +684,18 @@ public class AnlaticiSeritKopru : MonoBehaviour
         Debug.Log($"[Anlatici] Tükeniş: net={net} TL, toplam {_toplamSpin} spin");
     }
 
-    /// <summary>HTML panelde ◀ ▶ veya nokta tıklamasıyla manuel aşama değişimi.</summary>
+    /// <summary>HTML panelde ◀ ▶ veya nokta tıklamasıyla manuel aşama değişimi.
+    /// PAKET 10: Eski aşamayı cache'e alır, hedef aşamanın geçmiş çubuklarını yükler.</summary>
     public void HtmlAsamaDegisti(int yeniAsama)
     {
         if (yeniAsama < 0 || yeniAsama > 6) return;
+        SnapshotMevcutAsama(); // PAKET 10: ◀ ▶ öncesi mevcut aşamayı koru
         _aktifAsama = yeniAsama;
         _aktifSpin = 0;
-        _asamaSpinNet.Clear(); // manuel aşama değişiminde de çubuklar sıfır
+        _asamaSpinNet.Clear();
+        // PAKET 10: Hedef aşamanın geçmiş çubukları varsa geri yükle
+        if (_tumAsamaSpinNet.TryGetValue(yeniAsama, out var gecmis))
+            _asamaSpinNet.AddRange(gecmis);
         AsamayiUygula(yeniAsama);
         Guncelle();
     }
@@ -676,6 +732,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
         _sonUygulananAsama = -1; // KRİTİK: yeniAsama=true olsun, bahis 100'e tekrar set
         _sonBakiye = BASLANGIC_BAKIYE;
         _asamaSpinNet.Clear();
+        _tumAsamaSpinNet.Clear(); // PAKET 10: tam reset — geçmiş aşama cache'i de temizlenir
 
         // 3. Aşama 1 zorla uygula (egilim 100, maxCarpan 2x, otomatik bahis 100)
         AsamayiUygula(0);
@@ -1088,6 +1145,21 @@ public class AnlaticiSeritKopru : MonoBehaviour
         {
             AnlaticiOzelAkisBitir();
         }
+
+        // PAKET 10: Modal akışı bitti → manuel A4→A5 geçişi. SpinAtildi'de A4 aşama geçişi SKIP
+        // edildiği için burası geçişin GERÇEK tetiklendiği nokta. Race yok: modal sıra, geçiş sonra.
+        SnapshotMevcutAsama();           // A4 spin net'lerini cache'le (geri ◀ için)
+        _aktifAsama = 4;                 // A5 indeksi (0-tabanlı)
+        _aktifSpin = 0;
+        _asamaSpinNet.Clear();
+        AsamayiUygula(_aktifAsama);
+        Debug.Log("[Anlatici] A4S5 modal akışı bitti → A5 geçişi manuel olarak yapıldı.");
+        if (!_a5GecisModalGosterildi)
+        {
+            _a5GecisModalGosterildi = true;
+            StartCoroutine(A5GecisAkisi());
+        }
+        Guncelle();
     }
 
     /// <summary>
@@ -1244,6 +1316,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
             sonBakiye = _sonBakiye,
             baslangicBakiye = _baslangicBakiye,
             asamaSpinNet = new System.Collections.Generic.List<int>(_asamaSpinNet),
+            tumAsamaSpinNet = TumAsamaSpinNetIcinSerializeEt(),
 
             yuklemePaneliAcildiBuOturum = _yuklemePaneliAcildiBuOturum,
             donguModalGosterildi = _donguModalGosterildi,
@@ -1338,6 +1411,12 @@ public class AnlaticiSeritKopru : MonoBehaviour
         // Mevcut SpinAtildi/Reset pattern'iyle tutarlı: Clear + AddRange.
         _asamaSpinNet.Clear();
         if (s.asamaSpinNet != null) _asamaSpinNet.AddRange(s.asamaSpinNet);
+        // PAKET 10: Geçmiş aşamaların spin net'leri restore — kullanıcı geri ◀ tıklarsa bar'ları görür.
+        _tumAsamaSpinNet.Clear();
+        if (s.tumAsamaSpinNet != null)
+            foreach (var e in s.tumAsamaSpinNet)
+                if (e != null && e.spinNet != null)
+                    _tumAsamaSpinNet[e.asama] = new List<int>(e.spinNet);
 
         // === Aşama uygula + admin override ===
         // AsamayiUygula içinde anlatıcı profilinin egilim/maxOdeme'si (a.egilim, bahis × a.maxCarpani) yazılır.

@@ -27,6 +27,10 @@ public class KumarSaveData
     public long sonBakiye;
     public long baslangicBakiye;
     public List<int> asamaSpinNet = new List<int>();
+    // PAKET 10: Geçmiş aşamaların spin net'i — kullanıcı manuel aşama değişimi (◀ ▶) ile
+    // önceki aşamalara dönerse progress bar'ları görebilsin. JsonUtility Dictionary
+    // desteklemez → List<AsamaSpinNetKayit> wrapper.
+    public List<AsamaSpinNetKayit> tumAsamaSpinNet = new List<AsamaSpinNetKayit>();
 
     // ===== Modal flag'leri (9) — restore'dan sonra modal TEKRAR oynamasın =====
     public bool yuklemePaneliAcildiBuOturum;
@@ -55,4 +59,13 @@ public class KumarSaveData
     // ===== Admin parametreleri (Anlatıcı dinamik set ediyor) =====
     public int adminEgilim;
     public int adminMaxOdeme;
+}
+
+/// <summary>PAKET 10: KumarSaveData.tumAsamaSpinNet için JsonUtility uyumlu wrapper —
+/// Dictionary&lt;int,List&lt;int&gt;&gt; serileştirilemez, List&lt;AsamaSpinNetKayit&gt; yapılır.</summary>
+[System.Serializable]
+public class AsamaSpinNetKayit
+{
+    public int asama;
+    public List<int> spinNet = new List<int>();
 }
