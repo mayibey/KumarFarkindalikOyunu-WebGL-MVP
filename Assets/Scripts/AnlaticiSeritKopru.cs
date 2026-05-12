@@ -777,10 +777,12 @@ public class AnlaticiSeritKopru : MonoBehaviour
             }
             // PreA1 ek anlatım — A1 aşamasının pedagojik özeti (Hoş geldin sonrası ikinci modal)
             const string A1_ANLATIM =
+                "<b>İlk aşama: <i>Isındırma ve Umut</i></b>\n\n" +
                 "İlk kazanç, oyuncu için <color=#F24D40>en tehlikeli başlangıçtır</color>. " +
                 "Beyin bu <color=#4DCC59>olumlu deneyimi</color> güçlü biçimde hatırlar ve kişi " +
-                "<color=#F24D40>oyunda kalmaya devam eder</color>. <color=#F24D40>Uzun süreli oynama</color> " +
-                "davranışının temelinde, <color=#FFD933>ilk kazanmanın yarattığı bu etki</color> bulunur.";
+                "<color=#F24D40>oyunda kalmaya devam eder</color>.\n\n" +
+                "<color=#F24D40>Uzun süreli oynama</color> davranışının temelinde, " +
+                "<color=#FFD933>ilk kazanmanın yarattığı bu etki</color> bulunur.";
             string mesaj =
                 "Hoş geldiniz. Bu simülasyonda online kumar oyunlarının oyuncuları nasıl etkilediğini birlikte göreceğiz.\n\n" +
                 "<b>Önce oyunu tanıyalım:</b>\n" +
@@ -797,6 +799,8 @@ public class AnlaticiSeritKopru : MonoBehaviour
                 "Hadi başlayalım: ilk aşama <i>'Isındırma ve Umut'</i>.";
             // gizleAnlatici: false → modal "Sol panel" anlatırken kullanıcının paneli görmesi gerekiyor.
             yield return modal.ModalGoster(mesaj, gizleAnlatici: false);
+            // HOTFIX: Modal state'i temizlensin diye 1 frame bekle (ardışık ModalGoster yarış riski)
+            yield return null;
             // PreA1 ek anlatım modal — A1 aşamasının pedagojik özeti
             yield return modal.ModalGoster(A1_ANLATIM, gizleAnlatici: false);
         }
