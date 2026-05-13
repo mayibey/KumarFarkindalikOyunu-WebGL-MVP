@@ -867,6 +867,8 @@ namespace KumarFarkindalik.Tutorial
             if (sayac == 1)
             {
                 T5AraModalGosterildi = true;
+                // PAKET 14-FAZ5 (İş 4): Yapılacaklar 1. madde "%0 ayarla"'ya geç (dinamik aşama).
+                AdimYoneticisi.YapilacakMaddesiniGuncelle(0, "Bonus %0 ayarla");
                 Debug.Log("[Tutorial T5 Bonus] Aşama 1 bitti (1 spin %100), bonus yarım kes + ara modal");
                 StartCoroutine(T5IlkAsamaSonuAkisi());
             }
@@ -874,11 +876,11 @@ namespace KumarFarkindalik.Tutorial
 
         private IEnumerator T5IlkAsamaSonuAkisi()
         {
-            // PAKET 14-FAZ4 (İş 2A): 1sn → 0sn. SayaciGecikmeliArtir zaten spin animasyonu bitmiş +
-            // 0.5sn ek delay sonrası tetikler. Burada ek bekleme → bonus oyun başlama animasyonu
-            // grid'i değiştirme süresi. Anında T11BonusYarimKes → 4 scatter ekranda kalır.
+            // PAKET 14-FAZ5 (İş 2): Bonus pop-up'ı görünür süre. T11BonusYarimKes ÖNCE çağrılıyor
+            // (Update polling İş 3 ile birlikte bonus state daha erken kesiliyor). 2sn bekleme →
+            // kullanıcı bonus tetik görselini hisseder, sonra modal C açılır.
             T11BonusYarimKes();
-            yield return new WaitForSecondsRealtime(1.5f);
+            yield return new WaitForSecondsRealtime(2f);
             TutorialSenaryoMotoru.Durdur();
             yield return GosterAraModal(TutorialAdimYoneticisi.T5_ARA_MODAL);
         }
@@ -894,6 +896,8 @@ namespace KumarFarkindalik.Tutorial
             if (sayac == 1)
             {
                 T4AraModalGosterildi = true;
+                // PAKET 14-FAZ5 (İş 4): Yapılacaklar 1. madde "%0 ayarla"'ya geç.
+                AdimYoneticisi.YapilacakMaddesiniGuncelle(0, "Çarpan %0 ayarla");
                 Debug.Log("[Tutorial T4 Çarpan] Aşama 1 bitti (1 spin %100), ara modal + motor pasif");
                 TutorialSenaryoMotoru.Durdur();
                 StartCoroutine(GosterAraModal(TutorialAdimYoneticisi.T4_ARA_MODAL));

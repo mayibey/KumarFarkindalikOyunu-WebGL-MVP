@@ -1385,10 +1385,12 @@
     if (isNaN(yuzde) || yuzde < 0) yuzde = 0;
     // PAKET 8: slider 0-100 sistem (eski 0-5'ten yükseltildi). toFixed(0) integer gösterim.
     document.getElementById('bonusSembolDeger').textContent = yuzde.toFixed(0);
+    // PAKET 14-FAZ5 (İş 1): Yüzdeyi DİREKT gönder. periyot=round(100/yuzde) %67-100 arası hep 1 dönüyordu
+    // (yuvarlama) → Tutorial T5 ==1 sınırı %67'de bile geçiyordu. Yuzde direkt karşılaştırılır.
+    unityeGonder('bonusYuzde', yuzde);
     if (yuzde <= 0) {
       document.getElementById('bonusSpinHesap').textContent = '∞';
-      // PAKET 9: %0 → backend'e yüksek periyot (9999) gönder. Pratikte hiç tetiklenmez ama
-      // Tutorial T5 ikinci aşaması bonusOtomatikSpinPeriyodu ≥ 50 ile bunu yakalayabilsin.
+      // PAKET 9: %0 → backend'e yüksek periyot (9999) gönder. Pratikte hiç tetiklenmez.
       unityeGonder('bonusOtomatikOran', 9999);
     } else {
       var spin = Math.max(1, Math.round(100 / yuzde));

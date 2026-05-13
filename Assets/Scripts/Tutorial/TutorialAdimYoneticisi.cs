@@ -81,6 +81,16 @@ namespace KumarFarkindalik.Tutorial
             Debug.Log($"[TutorialAdimYoneticisi] İkinci aşama sayaç reset: adim={mevcutAdim}, baslangic={_adimBaslangicSpin}, gerekliSpin={yeniGerekliSpin}");
         }
 
+        // PAKET 14-FAZ5 (İş 4): yapilacaklar[idx] dinamik güncelleme. TutorialAdimGoster.IlerlemeGuncelle
+        // her frame v.yapilacaklar[i] okuduğu için mutate otomatik UI refresh olur.
+        public void YapilacakMaddesiniGuncelle(int idx, string yeniMetin)
+        {
+            if (!_adimlar.TryGetValue(mevcutAdim, out var v)) return;
+            if (v.yapilacaklar == null || idx < 0 || idx >= v.yapilacaklar.Length) return;
+            v.yapilacaklar[idx] = yeniMetin;
+            Debug.Log($"[TutorialAdimYoneticisi] yapilacaklar[{idx}]='{yeniMetin}' (adim={mevcutAdim})");
+        }
+
         public bool KosulSagla(int mevcutSpin)
         {
             if (!_adimlar.TryGetValue(mevcutAdim, out var v)) return true;
@@ -201,9 +211,9 @@ namespace KumarFarkindalik.Tutorial
                 mesajAksiyon = T4_AKSIYON,
                 mesajKapanis = T4_KAPANIS,
                 altBaslik = "ÇARPAN OLASILIĞI",
-                // PAKET 9: 2-aşamalı — %100 1 spin + %0 1 spin daha = toplam 2 spin
-                // PAKET 14-FAZ4 (İş 3+4): Metin kısa "Çarpan %100 ve %0 ayarla" (UI taşma önlendi).
-                yapilacaklar = new[] { "Çarpan %100 ve %0 ayarla", "2 spin at" },
+                // PAKET 14-FAZ5 (İş 4): Aşamaya göre dinamik. Default ilk aşama metni; T4AraModalGosterildi
+                // olunca TutorialOyunYoneticisi.YapilacakMaddesiniGuncelle ile "%0 ayarla"'ya geçer.
+                yapilacaklar = new[] { "Çarpan %100 ayarla", "2 spin at" },
                 sira = 4,
                 vurguSelectorlari = new[] { "#carpanOlasilik", "#carpanOlasilikInput" },
                 gerekliSpin = 2,
@@ -223,18 +233,17 @@ namespace KumarFarkindalik.Tutorial
                 mesajAksiyon = T5_AKSIYON,
                 mesajKapanis = T5_KAPANIS,
                 altBaslik = "BONUS SEMBOLÜ",
-                // PAKET 9: 2-aşamalı — %100 1 spin (bonus garanti) + %0 1 spin (bonus yok) = toplam 2 spin
-                // PAKET 14-FAZ4 (İş 3+4): Metin kısa "Bonus %100 ve %0 ayarla" (UI taşma önlendi).
-                yapilacaklar = new[] { "Bonus %100 ve %0 ayarla", "2 spin at" },
+                // PAKET 14-FAZ5 (İş 4): Aşamaya göre dinamik (T4 ile aynı pattern).
+                yapilacaklar = new[] { "Bonus %100 ayarla", "2 spin at" },
                 sira = 5,
                 vurguSelectorlari = new[] { "#bonusSembolOlasilik" },
                 gerekliSpin = 2,
-                // PAKET 14-FAZ4 (İş 1): Sınır SIKI — panel.html %100 → spin=1, %0 → 9999.
-                // Eski 1-2 toleransı %50'yi kabul ediyordu (spin=2). Şimdi tam ==1 / ==9999.
+                // PAKET 14-FAZ5 (İş 1): yuzde DİREKT. Periyot=round(100/yuzde) %67-100 hep 1 dönüyordu.
+                // panel.html "bonusYuzde" event'i ile yuzde TutorialAdminEnjeksiyonu.SonBonusYuzdesi'ne yansır.
                 parametreKosulu = () => TutorialOyunYoneticisi.T5AraModalGosterildi
-                    ? PanelKopru.bonusOtomatikSpinPeriyodu == 9999
-                    : PanelKopru.bonusOtomatikSpinPeriyodu == 1,
-                degisimAnahtarlari = new[] { "bonusOtomatikOran" },
+                    ? TutorialAdminEnjeksiyonu.SonBonusYuzdesi <= 0.5f
+                    : TutorialAdminEnjeksiyonu.SonBonusYuzdesi >= 99.5f,
+                degisimAnahtarlari = new[] { "bonusYuzde" },
             };
 
             _adimlar[TutorialAdimId.T6_YENI_OYUNCU] = new AdimVerisi

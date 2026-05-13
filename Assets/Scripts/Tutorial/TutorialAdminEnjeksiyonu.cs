@@ -20,6 +20,8 @@ namespace KumarFarkindalik.Tutorial
         // PAKET 14-FAZ2: T7 Ödeme dinamik min/maks (bahis çarpanı) — slider eventleri ayrı geldiği için cache.
         public static float SonMinCarpan = 0f;
         public static float SonMaksCarpan = 0f;
+        // PAKET 14-FAZ5 (İş 1): Bonus slider yüzdesi DİREKT — periyot yuvarlama hatası (%67 vs %100 ikisi de spin=1).
+        public static float SonBonusYuzdesi = 0f;
 
         private TutorialAdimYoneticisi _ay;
         private bool _eventBagli;
@@ -45,6 +47,7 @@ namespace KumarFarkindalik.Tutorial
             BonusTetiklendi = false;
             SonMinCarpan = 0f;
             SonMaksCarpan = 0f;
+            SonBonusYuzdesi = 0f;
 
             // PAKET 3B-fix-14: OyunYoneticisi private field reflection cache
             _bonusAktifField = typeof(OyunYoneticisi).GetField("bonusAktif",
@@ -121,26 +124,28 @@ namespace KumarFarkindalik.Tutorial
                 case "carpanZorla":
                     if (int.TryParse(value, out var cz)) SonCarpanZorla = cz;
                     break;
-                case "bonusOtomatikOran":
-                    // PAKET 9: T5 ikinci aşama tetik — kullanıcı bonus olasılığını çok düşürdü (periyot >= 50).
-                    // panel.html: %0'da 9999 gönderir; %2'de 50; %1'de 100. >=50 hepsini yakalar.
-                    if (int.TryParse(value, out int bonusPeriyot))
+                case "bonusYuzde":
+                    // PAKET 14-FAZ5 (İş 1): Bonus slider yüzdesini DİREKT yakala (periyot yuvarlamasından bağımsız).
+                    // T5 ikinci aşama tetik artık yuzde<=0.5 ile (%0). İlk aşama disable kontrolü yuzde>=99.5 ile.
+                    if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out float yuzde))
                     {
-                        var ayT5 = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
-                        if (ayT5 != null && ayT5.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T5
+                        SonBonusYuzdesi = yuzde;
+                        var ayT5y = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
+                        if (ayT5y != null && ayT5y.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T5
                             && TutorialOyunYoneticisi.T5AraModalGosterildi
                             && !TutorialOyunYoneticisi.T5IkinciAsamaBasladi
-                            && bonusPeriyot == 9999) // PAKET 14-FAZ4: TAM %0 sınırı (panel.html %0→9999)
+                            && yuzde <= 0.5f) // TAM %0
                         {
                             TutorialOyunYoneticisi.T5IkinciAsamaBasladi = true;
-                            // PAKET 14-FAZ3 (İş 4): T11BonusYarimKes spinCalisiyor=false set'i Update polling'i
-                            // tekrar tetikleyip sayacı 1→2 fantom artırıyor. AdimBaslangicSpin'i şu anki sayaca
-                            // alıp gerekliSpin=1 yaparak ikinci aşama için 1 SPIN DAHA garanti et.
                             TutorialOyunYoneticisi.Ornek?.AdimYoneticisi?.IkinciAsamaIcinSayaciResetle(1);
                             TutorialSenaryoMotoru.PatternBaslat("bonusTest_0");
-                            Debug.Log($"[Tutorial T5 Bonus] Periyot={bonusPeriyot} (≥50) → ikinci pattern başladı (bonusTest_0) + sayaç reset");
+                            Debug.Log($"[Tutorial T5 Bonus] Yuzde={yuzde:F1} (TAM %0) → ikinci pattern başladı + sayaç reset");
                         }
                     }
+                    break;
+                case "bonusOtomatikOran":
+                    // Periyot artık sadece OyunYoneticisi'ne ayar olarak iletilir (PanelKopru'da yakalanıyor).
+                    // T5 tetik mantığı bonusYuzde'ye taşındı (yuvarlama bug fix).
                     break;
                 case "bonusTetikle":
                     BonusTetiklendi = true;
@@ -275,6 +280,20 @@ namespace KumarFarkindalik.Tutorial
                     _bonusAktifField.SetValue(_oy, false);
                     _bonusHakKalanField.SetValue(_oy, 0);
                     Debug.Log("[Tutorial] Bonus state reflection ile temizlendi (Bug C — 04'te cleanup kaynagi yok)");
+                }
+
+                // PAKET 14-FAZ5 (İş 3): T5 ilk aşama — bonus tetiklenirse ANINDA kes. Bonus oyun pipeline
+                // grid'i bonus grid'iyle yeniliyor, 4 scatter görseli kayboluyor. bonusAktif=true olduğu
+                // ilk frame'de reflection ile false yap → pipeline pre-empt edilir, scatter'lar grid'de kalır.
+                bool t5IlkAsama = _ay.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T5
+                                  && !TutorialOyunYoneticisi.T5IkinciAsamaBasladi;
+                if (t5IlkAsama && bonusAktif && _bonusAktifField != null && _bonusHakKalanField != null)
+                {
+                    _bonusAktifField.SetValue(_oy, false);
+                    _bonusHakKalanField.SetValue(_oy, 0);
+                    if (_oy.bonusEndPanel != null) _oy.bonusEndPanel.SetActive(false);
+                    if (_oy.bonusStartPanel != null) _oy.bonusStartPanel.SetActive(false);
+                    Debug.Log("[Tutorial T5] Bonus tetiklendi → anında reset (grid koru, scatter kalsın)");
                 }
             }
 
