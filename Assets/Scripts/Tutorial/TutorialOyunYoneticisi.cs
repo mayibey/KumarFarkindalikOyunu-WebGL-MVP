@@ -628,6 +628,9 @@ namespace KumarFarkindalik.Tutorial
                 var oyT6 = Object.FindObjectOfType<OyunYoneticisi>();
                 // PAKET 14-FAZ13: maxOdeme=99999 set'i Tutorial başına (PanelAcildiSonrasi) taşındı.
                 // T6YO branch'inde duplicate yapmaya gerek yok — tüm Tutorial boyunca 99999 etkili.
+                // PAKET 14-FAZ15: T6YO'da çarpan kapat — T4'ten kalan carpanUretimiAktif=true ise pattern
+                // 2500 × çarpan x10+ = 25K+ TL kontrol dışı ödemeler oluyordu. Saf 2500/3000 enjekte için.
+                if (oyT6 != null) oyT6.carpanUretimiAktif = false;
 #if UNITY_WEBGL && !UNITY_EDITOR
                 ToggleKapat("yeniOyuncuToggle");
 #endif
