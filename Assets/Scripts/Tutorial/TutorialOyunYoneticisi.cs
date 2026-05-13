@@ -594,9 +594,12 @@ namespace KumarFarkindalik.Tutorial
 #if UNITY_WEBGL && !UNITY_EDITOR
                 ToggleKapat("yeniOyuncuToggle");
 #endif
-                // Pattern motoru DURDUR — kullanıcı toggle açana kadar bekle (RNG akışı pasif).
-                TutorialSenaryoMotoru.Durdur();
-                Debug.Log("[Tutorial T6YO] Giriş — toggle KAPALI, pattern bekleme modunda (kullanıcı toggle açacak).");
+                // PAKET 14-FAZ9: Pattern motoru ÖNCEDEN aktive et — kullanıcı toggle açıp HIZLICA spin atarsa
+                // pre-compute akışı RNG kullanmasın, motor zaten hazır olsun. SpinKilitli toggle açana kadar
+                // true (lambda yeniOyuncuModu==true gerek) → spin engellenir, pattern güvenli bekler.
+                // Toggle açtığında AdminEnjeksiyonu PatternBaslat'ı idempotent restart yapar (sorun değil).
+                TutorialSenaryoMotoru.PatternBaslat("yeniOyuncu_acik");
+                Debug.Log("[Tutorial T6YO] Giriş — toggle KAPALI, pattern yeniOyuncu_acik önceden aktif (toggle açılınca enjekte hazır).");
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T6) // KAZANDIRMA (sira=7)
             {
