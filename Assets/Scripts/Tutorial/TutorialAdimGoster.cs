@@ -34,6 +34,11 @@ namespace KumarFarkindalik.Tutorial
         // PAKET 3B-fix-15: Yapılacaklar listesi satır renkleri (tamamlandı yeşil, beklemede beyaz)
         private static readonly Color SATIR_BEYAZ  = new Color(1f, 1f, 1f, 1f);
         private static readonly Color SATIR_YESIL  = new Color(0.30f, 0.80f, 0.35f, 1f);    // #4DCC59
+        // PAKET 14-FAZ14: Spin geçmişi mini bar segment renkleri (03 anlatici.html ile aynı palet)
+        private static readonly Color SEG_BOS    = new Color(1f, 1f, 1f, 0.12f);    // rgba beyaz/12%
+        private static readonly Color SEG_KAZANC = new Color(0.365f, 0.835f, 0.365f, 1f);  // #5DD55D
+        private static readonly Color SEG_KAYIP  = new Color(1f, 0.333f, 0.333f, 1f);      // #FF5555
+        private static readonly Color SEG_NOTR   = new Color(0.376f, 0.647f, 0.980f, 1f);  // #60A5FA
 
         private const int TOPLAM_ADIM = 12; // PAKET 6C2: T6_YENI_OYUNCU eklendi (11 → 12)
         private const float PULSE_PERIYOT = 2.5f;
@@ -51,6 +56,10 @@ namespace KumarFarkindalik.Tutorial
         private GameObject _ilerlemeBlok;
         private TextMeshProUGUI _parametreText;
         private TextMeshProUGUI _spinText;
+        // PAKET 14-FAZ14: Spin geçmişi mini bar (03 anlatici.html .spin-bar pattern'i)
+        private GameObject _spinGecmisiBlok;
+        private Image[] _spinSegmentler = new Image[0];
+        private int _spinSegmentSayisi = 0;
         private Button _ileriButton;
         private Image _ileriButtonImg;
         private TextMeshProUGUI _ileriButtonTxt;
@@ -129,6 +138,10 @@ namespace KumarFarkindalik.Tutorial
             bool yapVar = yapilacaklar != null && yapilacaklar.Length > 0;
             if (_yapilacaklarBlok != null) _yapilacaklarBlok.SetActive(yapVar);
             if (_ilerlemeBlok != null) _ilerlemeBlok.SetActive(yapVar);
+
+            // PAKET 14-FAZ14: Spin geçmişi mini bar — gerekliSpin>0 ise segment'leri yarat, değilse gizle
+            int gerekliSpin = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi?.MevcutAdimVerisi?.gerekliSpin ?? 0;
+            SpinGecmisiKur(gerekliSpin);
 
             if (yapVar)
             {
@@ -213,6 +226,70 @@ namespace KumarFarkindalik.Tutorial
             if (_root == null || !_root.activeSelf) return;
             if (_yapilacaklarBlok == null || !_yapilacaklarBlok.activeSelf) return;
             YapilacaklarRenkGuncelle();
+            SpinGecmisiRenkGuncelle();
+        }
+
+        // PAKET 14-FAZ14: Spin geçmişi mini bar — gerekliSpin sayısına göre dinamik segment Image children.
+        // 03 anlatici.html .spin-bar pattern'i (yatay flex, 8px height, 4px gap).
+        private void SpinGecmisiKur(int gerekliSpin)
+        {
+            if (_spinGecmisiBlok == null) return;
+            // Önceki segment'leri yok et
+            for (int i = 0; i < _spinSegmentler.Length; i++)
+                if (_spinSegmentler[i] != null) UnityEngine.Object.Destroy(_spinSegmentler[i].gameObject);
+
+            if (gerekliSpin <= 0)
+            {
+                _spinSegmentler = new Image[0];
+                _spinSegmentSayisi = 0;
+                _spinGecmisiBlok.SetActive(false);
+                return;
+            }
+            _spinGecmisiBlok.SetActive(true);
+            _spinSegmentSayisi = gerekliSpin;
+            _spinSegmentler = new Image[gerekliSpin];
+
+            const float TOPLAM_GENISLIK = 240f;
+            const float GAP = 4f;
+            float segGenislik = (TOPLAM_GENISLIK - GAP * (gerekliSpin - 1)) / gerekliSpin;
+            float baslangicX = -TOPLAM_GENISLIK / 2f;
+            for (int i = 0; i < gerekliSpin; i++)
+            {
+                var sgGo = new GameObject($"Segment_{i}",
+                    typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+                sgGo.transform.SetParent(_spinGecmisiBlok.transform, false);
+                var rt = sgGo.GetComponent<RectTransform>();
+                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
+                rt.pivot = new Vector2(0f, 1f);
+                rt.sizeDelta = new Vector2(segGenislik, 8f);
+                rt.anchoredPosition = new Vector2(baslangicX + i * (segGenislik + GAP), -16f);
+                var img = sgGo.GetComponent<Image>();
+                img.color = SEG_BOS;
+                img.raycastTarget = false;
+                _spinSegmentler[i] = img;
+            }
+        }
+
+        private void SpinGecmisiRenkGuncelle()
+        {
+            if (_spinSegmentler == null || _spinSegmentler.Length == 0) return;
+            var netList = TutorialOyunYoneticisi.AktifAdimSpinNetleri;
+            if (netList == null) return;
+            for (int i = 0; i < _spinSegmentler.Length; i++)
+            {
+                if (_spinSegmentler[i] == null) continue;
+                Color hedef;
+                if (i < netList.Count)
+                {
+                    int net = netList[i];
+                    if (net > 0) hedef = SEG_KAZANC;
+                    else if (net < 0) hedef = SEG_KAYIP;
+                    else hedef = SEG_NOTR;
+                }
+                else hedef = SEG_BOS;
+                if (_spinSegmentler[i].color != hedef)
+                    _spinSegmentler[i].color = hedef;
+            }
         }
 
         /// <summary>
@@ -384,6 +461,21 @@ namespace KumarFarkindalik.Tutorial
             // PAKET 5: 1. Ayraç + ILERLEME BLOK + 2. Ayraç KALDIRILDI.
             // _ilerlemeBlok, _parametreText, _spinText field'ları null kalır (IlerlemeGuncelle null check ile safe).
             // Spin sayacı son yapılacaklar maddesine entegre — YapilacaklarRenkGuncelle dinamik günceller.
+
+            // === PAKET 14-FAZ14: SPİN GEÇMİŞİ MİNİ BAR ===
+            // Yapılacaklar blok altı, İLERİ butonun üstü. 03 anlatici.html .spin-bar pattern'i.
+            _spinGecmisiBlok = new GameObject("SpinGecmisiBlok", typeof(RectTransform));
+            _spinGecmisiBlok.transform.SetParent(panel.transform, false);
+            var sgRt = _spinGecmisiBlok.GetComponent<RectTransform>();
+            sgRt.anchorMin = sgRt.anchorMax = new Vector2(0.5f, 1f);
+            sgRt.pivot = new Vector2(0.5f, 1f);
+            sgRt.sizeDelta = new Vector2(260f, 26f);
+            sgRt.anchoredPosition = new Vector2(0f, -252f);
+            // Başlık (sol kenar, küçük)
+            MetinYarat(_spinGecmisiBlok.transform, "Baslik_SpinGecmisi", new Vector2(0f, 0f),
+                new Vector2(240f, 12f), 10f, FontStyles.Bold, BEYAZ,
+                TextAlignmentOptions.Left, "Spin Geçmişi");
+            // Segment'ler dinamik AdimGoster() çağrısında SpinGecmisiKur ile yaratılır.
 
             // === İLERİ butonu ===
             var btnGo = new GameObject("IleriButon",

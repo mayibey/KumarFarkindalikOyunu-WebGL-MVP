@@ -111,6 +111,13 @@ namespace KumarFarkindalik.Tutorial
         // (her açma-kapama döngüsünde tekrar pattern yenilemesin).
         public static bool T6IlkAsamaPatternBasladi { get; set; }
 
+        // PAKET 14-FAZ14: Aktif adımın spin net listesi (03'teki ilerleme çubuğu pattern'i).
+        // Her spin sonu net (kazanç - bahis) eklenir, adım değişiminde temizlenir.
+        // TutorialAdimGoster mini bar segment renklerini bu listeden okur.
+        public static System.Collections.Generic.List<int> AktifAdimSpinNetleri =
+            new System.Collections.Generic.List<int>();
+        private static int _oncekiOturumKazanc = 0;
+
         // PAKET 6D: T8 (Ödeme) + T11 (Çarpan Zorla) 2-aşamalı akış state
         public static bool T8AraModalGosterildi { get; set; }
         public static bool T8IkinciAsamaBasladi { get; set; }
@@ -456,7 +463,9 @@ namespace KumarFarkindalik.Tutorial
 
         private IEnumerator PanelAcildiSonrasi()
         {
-            yield return new WaitForSeconds(1.5f); // panel.html iframe yüklenip hazırlansın
+            // PAKET 14-FAZ12: 1.5sn → 0.3sn. Modal ile panel eş zamanlı açılsın — iframe genelde cache'li,
+            // yükleme hızlı. Çok agresif olursa (0sn) ilk açılışta iframe hazır olmadan T2 başlayabilir.
+            yield return new WaitForSeconds(0.3f);
 
             // PAKET 3B-fix-10 (İş 1): Tutorial = "ayar etkisi gösterimi" sahnesi.
             // 50K bakiye + 1000 TL bahis → büyük rakamlarla çalış, ayar değişimi belirgin hissedilsin.
@@ -475,7 +484,16 @@ namespace KumarFarkindalik.Tutorial
                 // PAKET 3B-fix-13 (Bug 1): Tutorial boyunca otomatik bonus tetiklenmesini engelle.
                 // T11 manuel bonus AdminManuelBonusBaslat ile scatter'dan bağımsız çalışır.
                 oy.scatterChanceNormal = 0f;
-                Debug.Log("[TutorialOyunYoneticisi] Bakiye=50000 + Bahis=1000 + scatterChanceNormal=0 (eğitim modu).");
+                // PAKET 14-FAZ13: maxOdeme=99999 Tutorial geneline taşındı (T6YO branch'inden). Tüm Tutorial
+                // pattern hedefleri (hook 2500/3000, tutma 2000, T6YO 2500/3000) limit-aware bypass.
+                if (!_maxOdemeCachelendi)
+                {
+                    _orijinalMaxOdeme = oy.GetAdminMaxOdeme();
+                    _maxOdemeCachelendi = true;
+                    Debug.Log($"[Tutorial] Original maxOdeme cache: {_orijinalMaxOdeme}");
+                }
+                oy.AdminSetMaxOdeme(99999);
+                Debug.Log("[TutorialOyunYoneticisi] Bakiye=50000 + Bahis=1000 + scatter=0 + maxOdeme=99999 (eğitim modu).");
 
                 // PAKET 4-FAZ-2: Bahis kilit (T3+ boyunca 1000 TL sabit, T_SON sonrası açılır)
                 BahisKilitle(true);
@@ -521,6 +539,12 @@ namespace KumarFarkindalik.Tutorial
 
             // PAKET 14-FAZ8: T6YO 1.aşama tetik bayrağı — yeni adıma geçişte reset (kalıntı önlemi).
             T6IlkAsamaPatternBasladi = false;
+
+            // PAKET 14-FAZ14: Spin geçmişi net listesi her adım başında sıfırlanır + OturumKazanc cache reset
+            // (yeni adımın spin sayacı için referans).
+            AktifAdimSpinNetleri.Clear();
+            var oyAdim = Object.FindObjectOfType<OyunYoneticisi>();
+            _oncekiOturumKazanc = oyAdim != null ? oyAdim.OturumKazanc : 0;
 
             // PAKET 6C1/6C2/6C3/8/9: adım bazlı pattern motor yönetimi
             // PAKET 13: T3 senaryoları için defansif PatternBaslat — panel event-driven (AdminEnjeksiyonu
@@ -602,21 +626,8 @@ namespace KumarFarkindalik.Tutorial
                 T6IlkAsamaPatternBasladi = false;
                 PanelKopru.yeniOyuncuModu = false;
                 var oyT6 = Object.FindObjectOfType<OyunYoneticisi>();
-                // PAKET 14-FAZ11: AdminSetYeniOyuncuModu(false) çağrısı KALDIRILDI — yan etki olarak
-                // AdminSetMaxOdeme(_yeniOyuncuOncekiMax=0) çağrıyordu → maxOdeme=0 → 1.spin sonrası
-                // başka path AdminSetYeniOyuncuModu(true) çağırınca maxOdeme=1000 zorlanıyordu.
-                // Yerine doğrudan AdminSetMaxOdeme(99999) — pattern hedefleri (2500/3000) limit aşmaz.
-                if (oyT6 != null)
-                {
-                    if (!_maxOdemeCachelendi)
-                    {
-                        _orijinalMaxOdeme = oyT6.GetAdminMaxOdeme();
-                        _maxOdemeCachelendi = true;
-                        Debug.Log($"[Tutorial T6YO] Original maxOdeme cache: {_orijinalMaxOdeme}");
-                    }
-                    oyT6.AdminSetMaxOdeme(99999);
-                    Debug.Log("[Tutorial T6YO] maxOdeme = 99999 (Tutorial pattern hedefleri limit aşmasın).");
-                }
+                // PAKET 14-FAZ13: maxOdeme=99999 set'i Tutorial başına (PanelAcildiSonrasi) taşındı.
+                // T6YO branch'inde duplicate yapmaya gerek yok — tüm Tutorial boyunca 99999 etkili.
 #if UNITY_WEBGL && !UNITY_EDITOR
                 ToggleKapat("yeniOyuncuToggle");
 #endif
@@ -764,6 +775,11 @@ namespace KumarFarkindalik.Tutorial
             TumVurgulariKapat();
 #endif
 
+            // PAKET 14-FAZ13 (İş 4): Modal C öncesi defansif 1sn bekleme — son spin animasyonu (tumble,
+            // kazanç gösterimi) tamamlandığını garanti et. SayaciGecikmeliArtir 3sn timeout sonrası sayacı
+            // artırabiliyor (animasyon bitmeden), Modal C erken açılıyordu (T3_YONTMA 5.spin örneği).
+            yield return new WaitForSecondsRealtime(1f);
+
             // === Modal C (pedagojik özet — atlasa da gösterilsin) ===
             if (TutorialModalKopru.Ornek != null && !string.IsNullOrEmpty(v.mesajKapanis))
                 yield return TutorialModalKopru.Ornek.ModalGoster(v.mesajKapanis);
@@ -876,6 +892,16 @@ namespace KumarFarkindalik.Tutorial
                 yield return new WaitForSecondsRealtime(0.8f);
             }
             TutorialSpinSayaci++;
+            // PAKET 14-FAZ14: Net hesap (yeniKazanc - bahis) + spin geçmişi listesine ekle (mini bar segment kaynağı).
+            if (oy != null)
+            {
+                int spinKazanc = oy.OturumKazanc - _oncekiOturumKazanc;
+                int bahis = oy.BotIcinBahis;
+                int net = spinKazanc - bahis;
+                AktifAdimSpinNetleri.Add(net);
+                _oncekiOturumKazanc = oy.OturumKazanc;
+                Debug.Log($"[Tutorial Bar] Spin {AktifAdimSpinNetleri.Count}: kazanc={spinKazanc}, bahis={bahis}, net={net}");
+            }
             Debug.Log($"[TutorialOyunYoneticisi] Spin tamamlandı (anim state-driven), TutorialSpinSayaci={TutorialSpinSayaci}");
             TutorialSenaryoMotoru.SpinTamamlandi();
             TutorialT3TutmaModalKontrol();

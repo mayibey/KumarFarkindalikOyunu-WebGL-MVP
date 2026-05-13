@@ -1553,7 +1553,12 @@
     if (hint) hint.style.display = 'none';
 
     modAciklamasiniGuncelle(secim);
-    showToast(secim + ' modu uygulandı');
+    // PAKET 14-FAZ12: Dropdown'da gösterilen Türkçe adı kullan (önceki internal key "hook" vs.)
+    var dropdownEl = document.getElementById('oyunModu');
+    var secimAd = dropdownEl && dropdownEl.selectedIndex >= 0
+      ? dropdownEl.options[dropdownEl.selectedIndex].text
+      : secim;
+    showToast(secimAd + ' uygulandı');
   }
 
   function bonusModuDegistir(mod) {
