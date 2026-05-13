@@ -328,12 +328,18 @@ namespace KumarFarkindalik.Tutorial
 
         public static List<ScriptedSpinKaydi> UretYeniOyuncuAcikSpinleri()
         {
-            // 3 spin: Hin12(2500) / Muz12(5000, PayTable_12+[5]=5.0) / kayıp = 7500 NET +4500
+            // PAKET 14-FAZ34.1 BUG 4 FIX: Önceki tasarım (Hin12/Muz12/kayıp NET +4500) abartılıydı;
+            // ayrıca 2.spinde Muz 12 yine Hindistan görünüyordu (sembol indeks veya cluster pozisyon bug).
+            // Yeni tasarım: 3 farklı meyve mütevazı kazanç, kayıp YOK:
+            //   Spin 1: Hindistan 12 (sym=3, PayTable_12+[3]=2.5) → ham 2500
+            //   Spin 2: Muz 10 (sym=5, PayTable_10_11[5]=2.0) → ham 2000
+            //   Spin 3: Karpuz 10 (sym=4, PayTable_10_11[4]=1.5) → ham 1500
+            //   Toplam 6000 - 3000 bahis = NET +3000 (abartı yok, 3 farklı meyve)
             return new List<ScriptedSpinKaydi>
             {
-                UretCokAdetKazancKayit(3, 12, 2500),
-                UretCokAdetKazancKayit(5, 12, 5000),  // gerçek paytable_12+[5]=5.0
-                UretKayipKayit(),
+                UretCokAdetKazancKayit(3, 12, 2500),  // Hindistan 12
+                UretCokAdetKazancKayit(5, 10, 2000),  // Muz 10
+                UretCokAdetKazancKayit(4, 10, 1500),  // Karpuz 10
             };
         }
 

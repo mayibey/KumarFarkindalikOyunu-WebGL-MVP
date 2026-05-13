@@ -961,7 +961,12 @@ namespace KumarFarkindalik.Tutorial
                 yield return BekleVeyaTimeout(() =>
                     oy.winFeedbackUI == null || !oy.winFeedbackUI.GosterimAktif, 3f);
                 yield return BekleVeyaTimeout(() => !TutorialKazancAnimasyon.AnimasyonAktif, 3f);
-                yield return new WaitForSecondsRealtime(0.5f);
+                // PAKET 14-FAZ34.1 BUG 1+2 FIX: Scripted akışta bakiye güncellemesi gecikebiliyor — wait süresi
+                // arttırıldı + 2 ek frame WaitForEndOfFrame eklendi. AktifAdimSpinNetleri.Add'in net hesabı
+                // BakiyePanelMevcutBakiye()'nin kazanç eklenmiş halini görmesi garanti edilir.
+                yield return new WaitForSecondsRealtime(1.0f);
+                yield return new WaitForEndOfFrame();
+                yield return new WaitForEndOfFrame();
             }
             else
             {
@@ -980,8 +985,10 @@ namespace KumarFarkindalik.Tutorial
                 long simdikiBakiye = oy.BahisPanelMevcutBakiye();
                 int net = (int)(simdikiBakiye - _oncekiBakiye);
                 AktifAdimSpinNetleri.Add(net);
+                // PAKET 14-FAZ34.1 BUG 1+2 FIX: önceki bakiye + simdiki bakiye + net üçünü birlikte logla
+                // (timing teşhisi için — eğer bakiye değişmemişse scripted akış kazanç eklenmesi geç).
+                Debug.Log($"[Tutorial Bar] Spin {AktifAdimSpinNetleri.Count}: oncekiBakiye={_oncekiBakiye}, simdikiBakiye={simdikiBakiye}, net={net}, segmentRengi={(net > 0 ? "KAZANC" : net < 0 ? "KAYIP" : "NOTR")}");
                 _oncekiBakiye = simdikiBakiye;
-                Debug.Log($"[Tutorial Bar] Spin {AktifAdimSpinNetleri.Count}: simdikiBakiye={simdikiBakiye}, net={net}");
             }
             Debug.Log($"[TutorialOyunYoneticisi] Spin tamamlandı (anim state-driven), TutorialSpinSayaci={TutorialSpinSayaci}");
             TutorialSenaryoMotoru.SpinTamamlandi();

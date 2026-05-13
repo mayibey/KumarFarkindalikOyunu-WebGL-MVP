@@ -1683,11 +1683,32 @@
 
   // PAKET 14-FAZ34 İş 6: Tutorial adım bazlı disabled — aktif selector listesi haricindeki tüm
   // input/select/button gri+disabled. Liste boş ise tüm UI disable (T1, T2, T_SON başlangıç/kapanış).
+  // PAKET 14-FAZ34.1 BUG 3 FIX: HER_ZAMAN_AKTIF listesi — Uygula + Varsayılana dön DAİMA enabled
+  // (kullanıcının ayar onayı vermesi engellenmesin, her adımda Uygula erişilebilir).
   function ayarlariKilitle(aktifSelectorlar) {
     var aktif = aktifSelectorlar || [];
+    var HER_ZAMAN_AKTIF_IDS = ['senaryoUygulaBtn'];
+    var HER_ZAMAN_AKTIF_CLASSES = ['btn-secondary'];
     var hepsi = document.querySelectorAll('input, select, button, .toggle-switch');
     for (var i = 0; i < hepsi.length; i++) {
       var el = hepsi[i];
+      // HARD EXCLUDE: Uygula + Varsayılana dön daima aktif
+      var hardActive = false;
+      for (var hi = 0; hi < HER_ZAMAN_AKTIF_IDS.length; hi++) {
+        if (el.id === HER_ZAMAN_AKTIF_IDS[hi]) { hardActive = true; break; }
+      }
+      if (!hardActive) {
+        for (var hc = 0; hc < HER_ZAMAN_AKTIF_CLASSES.length; hc++) {
+          if (el.classList && el.classList.contains(HER_ZAMAN_AKTIF_CLASSES[hc])) { hardActive = true; break; }
+        }
+      }
+      if (hardActive) {
+        el.disabled = false;
+        el.style.opacity = '1';
+        el.style.pointerEvents = 'auto';
+        continue;
+      }
+      // Normal kilit: aktif selector listesinde mi
       var eslesti = false;
       for (var j = 0; j < aktif.length; j++) {
         var sel = aktif[j];
