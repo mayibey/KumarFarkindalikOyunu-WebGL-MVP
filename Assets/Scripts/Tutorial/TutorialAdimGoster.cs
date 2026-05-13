@@ -35,8 +35,10 @@ namespace KumarFarkindalik.Tutorial
         // PAKET 3B-fix-15: Yapılacaklar listesi satır renkleri (tamamlandı yeşil, beklemede beyaz)
         private static readonly Color SATIR_BEYAZ  = new Color(1f, 1f, 1f, 1f);
         private static readonly Color SATIR_YESIL  = new Color(0.30f, 0.80f, 0.35f, 1f);    // #4DCC59
-        // PAKET 14-FAZ14: Spin geçmişi mini bar segment renkleri (03 anlatici.html ile aynı palet)
-        private static readonly Color SEG_BOS    = new Color(1f, 1f, 1f, 0.12f);    // rgba beyaz/12%
+        // PAKET 14-FAZ14: Spin geçmişi mini bar segment renkleri (03 anlatici.html paleti adapte)
+        // PAKET 14-FAZ19: SEG_BOS gri tonlu opak yapıldı — eski beyaz/12% navy zemine karıştığında
+        // SEG_NOTR (mavi) ile karıştırılıyordu. Koyu gri opak → net "boş slot" hissi.
+        private static readonly Color SEG_BOS    = new Color(0.32f, 0.32f, 0.34f, 0.85f);  // koyu gri opak
         private static readonly Color SEG_KAZANC = new Color(0.365f, 0.835f, 0.365f, 1f);  // #5DD55D
         private static readonly Color SEG_KAYIP  = new Color(1f, 0.333f, 0.333f, 1f);      // #FF5555
         private static readonly Color SEG_NOTR   = new Color(0.376f, 0.647f, 0.980f, 1f);  // #60A5FA
