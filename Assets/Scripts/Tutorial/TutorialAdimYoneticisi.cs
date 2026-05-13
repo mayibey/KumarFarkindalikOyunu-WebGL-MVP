@@ -254,13 +254,18 @@ namespace KumarFarkindalik.Tutorial
                 mesajAksiyon = T6YO_AKSIYON,
                 mesajKapanis = T6YO_KAPANIS,
                 altBaslik = "YENİ OYUNCU MODU",
-                // PAKET 6C2: 2-aşamalı adım — 3 spin (kapalı) + toggle + 3 spin (açık) = 6 spin total
-                yapilacaklar = new[] { "Yeni Oyuncu Modu'nu aç", "6 spin at" },
+                // PAKET 14-FAZ6: 2-aşamalı koşul (T4/T5 pattern). 1.aşama toggle KAPALI bekle (yeniOyuncuModu
+                // zorla false), 2.aşama toggle AÇIK bekle. Faz 3 lambda kontrolü 1.aşamayı broken bırakmıştı.
+                yapilacaklar = new[] { "3 spin at", "Yeni Oyuncu Modu'nu aç" },
                 sira = 6,
                 vurguSelectorlari = new[] { "#yeniOyuncuToggle" },
                 gerekliSpin = 6,
-                parametreKosulu = () => PanelKopru.yeniOyuncuModu,
-                degisimAnahtarlari = new[] { "yeniOyuncu" },
+                parametreKosulu = () => TutorialOyunYoneticisi.T6AraModalGosterildi
+                    ? PanelKopru.yeniOyuncuModu        // 2.aşama: toggle açılmalı
+                    : !PanelKopru.yeniOyuncuModu,      // 1.aşama: toggle kapalı (default zorla false)
+                // degisimAnahtarlari KALDIRILDI — 1.aşamada kullanıcı toggle'a dokunmasa bile
+                // parametreKosulu lambda yeterli (default kapalı durumu zaten geçerli).
+                degisimAnahtarlari = null,
             };
 
             _adimlar[TutorialAdimId.T6] = new AdimVerisi
