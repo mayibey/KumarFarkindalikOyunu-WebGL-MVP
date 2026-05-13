@@ -403,7 +403,7 @@ namespace KumarFarkindalik.Tutorial
             _panelRt = panel.GetComponent<RectTransform>();
             _panelRt.anchorMin = _panelRt.anchorMax = new Vector2(0.5f, 0.5f);
             _panelRt.pivot = new Vector2(0.5f, 0.5f);
-            _panelRt.sizeDelta = new Vector2(280f, 290f); // PAKET 14-FAZ15: Spin geçmişi barı için 260→290
+            _panelRt.sizeDelta = new Vector2(280f, 330f); // PAKET 14-FAZ16: 290→330 (spin barı + İLERİ buton çakışma fix)
             _panelRt.anchoredPosition = new Vector2(801.18f, 222f);
             panel.GetComponent<Image>().color = BALON_RENK;
 
@@ -463,16 +463,16 @@ namespace KumarFarkindalik.Tutorial
             // Spin sayacı son yapılacaklar maddesine entegre — YapilacaklarRenkGuncelle dinamik günceller.
 
             // === PAKET 14-FAZ16: SPİN GEÇMİŞİ MİNİ BAR ===
-            // Panel direct child. Pos y=-242 → yapilacaklar bloku alt sınırı (-240) + 2px margin.
-            // Alt -272 → İLERİ buton üst panel-top'tan -250'ye 22px margin (çakışma yok).
-            // Başlık parent center'a sabitlenmiş — önceki x=-115 parent dışına taşıyordu.
+            // Panel direct child. Panel 330 height, top anchor (0.5,1) pivot (0.5,1).
+            // Pos y=-250 → yapılacaklar bloku alt (-240) + 10px margin. Alt y=-280.
+            // İLERİ buton üst panel-top'tan -290 → 10px margin (çakışma yok).
             _spinGecmisiBlok = new GameObject("SpinGecmisiBlok", typeof(RectTransform));
             _spinGecmisiBlok.transform.SetParent(panel.transform, false);
             var sgRt = _spinGecmisiBlok.GetComponent<RectTransform>();
             sgRt.anchorMin = sgRt.anchorMax = new Vector2(0.5f, 1f);
             sgRt.pivot = new Vector2(0.5f, 1f);
             sgRt.sizeDelta = new Vector2(260f, 30f);
-            sgRt.anchoredPosition = new Vector2(0f, -242f);
+            sgRt.anchoredPosition = new Vector2(0f, -250f);
             // Başlık (parent ile aynı genişlik, merkez hizalı — kutu içinde kalır)
             MetinYarat(_spinGecmisiBlok.transform, "Baslik_SpinGecmisi", new Vector2(0f, 0f),
                 new Vector2(260f, 14f), 11f, FontStyles.Bold, BEYAZ,
