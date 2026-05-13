@@ -1540,8 +1540,11 @@
     unityeGonder('ardisikKayip',      s.ardisikKayip);
     unityeGonder('yeniOyuncu',        s.yeniOyuncu);
     unityeGonder('bonusModu',         s.bonusModu);
-    if (s.bonusSembolOlasilik > 0)
-      unityeGonder('bonusOtomatikOran', Math.round(100 / s.bonusSembolOlasilik));
+    // PAKET 14-FAZ24: bonusOtomatikOran preset gönderimi KALDIRILDI. Slider değişiminde kullanıcı değeri
+    // (bonusYuzde + bonusOtomatikOran) zaten ANINDA Unity'e gönderiliyor. senaryoUygula preset 200 değerini
+    // ezdiriyordu → T5 kullanıcı %100 (spin=1) ayarı 200'e dönüyordu, bonus tetiklenmiyordu.
+    // if (s.bonusSembolOlasilik > 0)
+    //   unityeGonder('bonusOtomatikOran', Math.round(100 / s.bonusSembolOlasilik));
     unityeGonder('carpanOdeme',       s.carpanOdeme);
 
     // savedState güncelle
