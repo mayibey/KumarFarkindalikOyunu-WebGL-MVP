@@ -907,7 +907,7 @@
           <option value="tutma">Kaçış Engelleme Modu</option>
           <option value="koruma">Bakiye Tüketme Modu</option>
         </select>
-        <button class="btn-primary" id="senaryoUygulaBtn" onclick="senaryoUygula()">Uygula</button>
+        <!-- PAKET 14-FAZ17: Üst Uygula butonu kaldırıldı — tek "Uygula" buton panel footer'da (id senaryoUygulaBtn'i taşındı). -->
         <span id="pendingHint" style="display:none; color:#b8a875; font-size:14px; margin-left:10px; font-style:italic; align-self:center;">değişiklikler bekliyor</span>
       </div>
       <div class="mod-aciklama-line" id="modAciklama"></div>
@@ -1130,7 +1130,8 @@
 
   <div class="panel-footer">
     <button class="btn-secondary" onclick="varsayilanaDon()">Varsayılana dön</button>
-    <button class="btn-primary" style="padding:14px 36px;font-size:20px;" onclick="tumAyarlariUygula()">Tüm ayarları uygula</button>
+    <!-- PAKET 14-FAZ17: Tek "Uygula" buton — id senaryoUygulaBtn (Tutorial vurguları korunur). -->
+    <button class="btn-primary" id="senaryoUygulaBtn" style="padding:14px 36px;font-size:20px;" onclick="senaryoUygula()">Uygula</button>
   </div>
 
 </div>
