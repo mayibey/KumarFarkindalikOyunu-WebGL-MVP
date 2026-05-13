@@ -541,6 +541,15 @@ namespace KumarFarkindalik.Tutorial
             // RNG cache ToplamHamKazanc'ı Tutorial hedefiyle tesadüfen eşleşse bile artık skip etmez.
             bool hazir = (bool)_hazirField.GetValue(_oy);
             var mevcutKayit = _kayitField.GetValue(_oy) as SpinSimulasyonKaydi;
+
+            // PAKET 14-FAZ32 (diyagnoz): Update polling state — saniyede 1 (60fps → her 60 frame)
+            if (Time.frameCount % 60 == 0)
+            {
+                int mevcutHash = mevcutKayit != null ? mevcutKayit.GetHashCode() : 0;
+                int sonHash = _sonInjekteEttigimKayit != null ? _sonInjekteEttigimKayit.GetHashCode() : 0;
+                Debug.Log($"[TutorialMotor.Update] aktif={_motorAktif}, pattern={_aktifPattern}, idx={_spinIdx}/{pattern.Length}, hazir={hazir}, mevcutKayit#={mevcutHash}, sonInjekte#={sonHash}, esit={System.Object.ReferenceEquals(mevcutKayit, _sonInjekteEttigimKayit)}, enjekte={KayitEnjekteEdildi}");
+            }
+
             if (hazir && mevcutKayit != null && System.Object.ReferenceEquals(mevcutKayit, _sonInjekteEttigimKayit))
             {
                 // PAKET 14-FAZ28: Kayıt zaten bizim → flag idempotent true (race koruması)
@@ -549,7 +558,15 @@ namespace KumarFarkindalik.Tutorial
             }
 
             var yeniKayit = DesenToKayit(desen);
-            if (yeniKayit == null) return;
+            if (yeniKayit == null)
+            {
+                Debug.LogWarning($"[TutorialMotor] DesenToKayit NULL döndü — pattern={_aktifPattern}, idx={idx}, sembol={desen.sembolId}, adet={desen.adet}");
+                return;
+            }
+
+            // PAKET 14-FAZ32 (diyagnoz): SetValue önce/sonra referans takip — override başarısı doğrula
+            var oncekiKayit = _kayitField.GetValue(_oy) as SpinSimulasyonKaydi;
+            int oncekiHash = oncekiKayit != null ? oncekiKayit.GetHashCode() : 0;
 
             _kayitField.SetValue(_oy, yeniKayit);
             _hazirField.SetValue(_oy, true);
@@ -557,9 +574,12 @@ namespace KumarFarkindalik.Tutorial
             // PAKET 14-FAZ28: Enjekte tamamlandı → SpinKilitli serbest (TutorialAdminEnjeksiyonu check geçer)
             KayitEnjekteEdildi = true;
 
-            Debug.Log($"[TutorialSenaryoMotoru] Spin enjekte (loop={_loopAktif}): pattern={_aktifPattern}, " +
-                      $"idx={idx}/{pattern.Length - 1}, sembol={desen.sembolId}, adet={desen.adet}, " +
-                      $"hedefKazanc={yeniKayit.ToplamHamKazanc} TL → KayitEnjekteEdildi=true");
+            var sonrakiKayit = _kayitField.GetValue(_oy) as SpinSimulasyonKaydi;
+            int sonrakiHash = sonrakiKayit != null ? sonrakiKayit.GetHashCode() : 0;
+            bool overrideOK = System.Object.ReferenceEquals(sonrakiKayit, yeniKayit);
+
+            Debug.Log($"[TutorialMotor] Spin enjekte: pattern={_aktifPattern}, idx={idx}/{pattern.Length - 1}, sembol={desen.sembolId}, adet={desen.adet}, hedefKazanc={yeniKayit.ToplamHamKazanc} TL");
+            Debug.Log($"[TutorialMotor.SetValue] oncekiKayit#={oncekiHash} → yeniKayit#={sonrakiHash}, overrideOK={overrideOK}, KayitEnjekteEdildi=true");
         }
 
         // === Heuristic: mevcut kayıt bizim ürettiğimiz Tutorial kayıt mı? ===
@@ -585,13 +605,24 @@ namespace KumarFarkindalik.Tutorial
 
         private SpinSimulasyonKaydi DesenToKayit(SpinDesen desen)
         {
-            if (_oy == null || _oy.tumbleAyarlari == null) return null;
+            if (_oy == null || _oy.tumbleAyarlari == null)
+            {
+                Debug.LogWarning($"[DesenToKayit ENTER] BAIL: _oy null={_oy == null}, tumbleAyarlari null={(_oy != null && _oy.tumbleAyarlari == null)}");
+                return null;
+            }
 
             var ta = _oy.tumbleAyarlari;
             const int SUTUN = 6;
             const int SATIR = 5;
             int sembolSayisi = ta.PayTable_8_9 != null ? ta.PayTable_8_9.Length : 9;
             int scatterIdx = ta.ScatterIndex;
+
+            // PAKET 14-FAZ32 (diyagnoz): DesenToKayit girişi — desen alanları + ortam state
+            int carpanPozLen = desen.carpanPozlari != null ? desen.carpanPozlari.Length : 0;
+            int carpanDegLen = desen.carpanDegerleri != null ? desen.carpanDegerleri.Length : 0;
+            int scatterPozLen = desen.scatterPozlari != null ? desen.scatterPozlari.Length : 0;
+            bool sabitCarpanCheck = carpanPozLen > 0 && carpanDegLen > 0;
+            Debug.Log($"[DesenToKayit ENTER] sembol={desen.sembolId}, adet={desen.adet}, carpanPozLen={carpanPozLen}, carpanDegLen={carpanDegLen}, sabitCarpan={sabitCarpanCheck}, scatterPozLen={scatterPozLen}, bahis={_oy.BotIcinBahis}, scatterIdx={scatterIdx}, sembolSayisi={sembolSayisi}, carpanUretimiAktif={_oy.carpanUretimiAktif}, carpanOlasilik={_oy.carpanUretimOlasiligi:F2}");
 
             var kayit = new SpinSimulasyonKaydi
             {
@@ -798,6 +829,24 @@ namespace KumarFarkindalik.Tutorial
 
             kayit.Adimlar.Add(adim);
             kayit.ToplamHamKazanc = turKazanci;
+
+            // PAKET 14-FAZ32 (diyagnoz): KAZANÇ path EXIT — grid + çarpan özeti
+            var sayaclar = new Dictionary<int, int>();
+            for (int xx = 0; xx < SUTUN; xx++)
+                for (int yy = 0; yy < SATIR; yy++)
+                {
+                    int s = kayit.IlkGrid[xx, yy];
+                    if (!sayaclar.ContainsKey(s)) sayaclar[s] = 0;
+                    sayaclar[s]++;
+                }
+            var gridOzet = new System.Text.StringBuilder();
+            foreach (var kv in sayaclar) gridOzet.Append($"{kv.Key}:{kv.Value} ");
+            var carpanOzet = new System.Text.StringBuilder();
+            for (int xx = 0; xx < SUTUN; xx++)
+                for (int yy = 0; yy < SATIR; yy++)
+                    if (kayit.IlkCarpanGrid[xx, yy] > 0)
+                        carpanOzet.Append($"({xx},{yy})={kayit.IlkCarpanGrid[xx, yy]}x ");
+            Debug.Log($"[DesenToKayit EXIT] ham={kayit.ToplamHamKazanc}, carpanToplam={kayit.NihaiCarpanToplam}, gridOzet=[{gridOzet}], carpanlar=[{carpanOzet}]");
 
             return kayit;
         }

@@ -490,8 +490,17 @@ namespace KumarFarkindalik.Tutorial
                 // policy bandına uymuyor → cache discard → fresh RNG simülasyonu (ARMUT 8 + 8+2x çarpan = 2000).
                 // AdminNormalOyunUygula: _senaryoPresetAktif=false, _aktifAdminSenaryoIndex=-1,
                 // _minOdemeTL=0, _maxOdemeTL=0, SpinPolitikasiniYenile (NormalSenaryo), cache temizle.
+                // PAKET 14-FAZ32 (diyagnoz): admin state önce/sonra reflection ile inspect
+                int oncekiMaxOdeme = oy.GetAdminMaxOdeme();
+                bool oncekiPreset = (bool)(typeof(OyunYoneticisi).GetField("_senaryoPresetAktif", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(oy) ?? false);
+                bool oncekiCarpan = oy.carpanUretimiAktif;
+                Debug.Log($"[PanelAcildi ÖNCE] maxOdeme={oncekiMaxOdeme}, presetAktif={oncekiPreset}, carpanUretimiAktif={oncekiCarpan}");
+
                 oy.AdminNormalOyunUygula();
-                Debug.Log("[Tutorial] AdminNormalOyunUygula çağrıldı — admin senaryo preset reset, policy=Normal.");
+                int araMaxOdeme = oy.GetAdminMaxOdeme();
+                bool araPreset = (bool)(typeof(OyunYoneticisi).GetField("_senaryoPresetAktif", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(oy) ?? false);
+                bool araCarpan = oy.carpanUretimiAktif;
+                Debug.Log($"[PanelAcildi ARA] AdminNormalOyunUygula sonrası → maxOdeme={araMaxOdeme}, presetAktif={araPreset}, carpanUretimiAktif={araCarpan}");
 
                 oy.AnlaticiBakiyeyiSifirla(50000);
                 oy.AdminBahisAyarla(1000);
@@ -510,6 +519,10 @@ namespace KumarFarkindalik.Tutorial
                     Debug.Log($"[Tutorial] Original maxOdeme cache: {_orijinalMaxOdeme}");
                 }
                 oy.AdminSetMaxOdeme(99999);
+                int sonMaxOdeme = oy.GetAdminMaxOdeme();
+                bool sonPreset = (bool)(typeof(OyunYoneticisi).GetField("_senaryoPresetAktif", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(oy) ?? false);
+                bool sonCarpan = oy.carpanUretimiAktif;
+                Debug.Log($"[PanelAcildi SONRA] AdminSetMaxOdeme(99999) sonrası → maxOdeme={sonMaxOdeme}, presetAktif={sonPreset}, carpanUretimiAktif={sonCarpan}");
                 Debug.Log("[TutorialOyunYoneticisi] Bakiye=50000 + Bahis=1000 + scatter=0 + maxOdeme=99999 (eğitim modu).");
 
                 // PAKET 4-FAZ-2: Bahis kilit (T3+ boyunca 1000 TL sabit, T_SON sonrası açılır)
