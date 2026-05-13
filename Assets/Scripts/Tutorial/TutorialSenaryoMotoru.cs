@@ -112,9 +112,9 @@ namespace KumarFarkindalik.Tutorial
             },
             ["yeniOyuncu_acik"] = new[]
             {
-                new SpinDesen { sembolId = 3, adet = 12 },   // 2500 TL (x12+[3]=2.5)
-                new SpinDesen { sembolId = -1, adet = 0 },   // Kayıp
-                new SpinDesen { sembolId = 4, adet = 12 },   // 3000 TL (x12+[4]=3.0) → 5500 TL kazanç, +2500 net
+                new SpinDesen { sembolId = 3, adet = 12 },   // 2500 TL hindistan (x12+[3]=2.5)
+                new SpinDesen { sembolId = 5, adet = 12 },   // 2000 TL muz (farklı meyve, x12+[5]=2.0)
+                new SpinDesen { sembolId = -1, adet = 0 },   // Kayıp — 3.spin kayıp, net +2500 TL
             },
             // PAKET 14-FAZ2: T7 Ödeme aralığı artık DİNAMİK (DinamikOdemePatternBaslat ile paytable
             // taramasından üretilir). Eski sabit "odeme_dusukMaks" ve "odeme_aralik3_5" KALDIRILDI.

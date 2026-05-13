@@ -59,6 +59,7 @@ namespace KumarFarkindalik.Tutorial
         // PAKET 14-FAZ14: Spin geçmişi mini bar (03 anlatici.html .spin-bar pattern'i)
         private GameObject _spinGecmisiBlok;
         private Image[] _spinSegmentler = new Image[0];
+        private TextMeshProUGUI[] _spinTLEtiketler = new TextMeshProUGUI[0];
         private int _spinSegmentSayisi = 0;
         private Button _ileriButton;
         private Image _ileriButtonImg;
@@ -238,9 +239,14 @@ namespace KumarFarkindalik.Tutorial
             for (int i = 0; i < _spinSegmentler.Length; i++)
                 if (_spinSegmentler[i] != null) UnityEngine.Object.Destroy(_spinSegmentler[i].gameObject);
 
+            // Önceki TMP etiketleri yok et
+            for (int i = 0; i < _spinTLEtiketler.Length; i++)
+                if (_spinTLEtiketler[i] != null) UnityEngine.Object.Destroy(_spinTLEtiketler[i].gameObject);
+
             if (gerekliSpin <= 0)
             {
                 _spinSegmentler = new Image[0];
+                _spinTLEtiketler = new TextMeshProUGUI[0];
                 _spinSegmentSayisi = 0;
                 _spinGecmisiBlok.SetActive(false);
                 return;
@@ -248,6 +254,7 @@ namespace KumarFarkindalik.Tutorial
             _spinGecmisiBlok.SetActive(true);
             _spinSegmentSayisi = gerekliSpin;
             _spinSegmentler = new Image[gerekliSpin];
+            _spinTLEtiketler = new TextMeshProUGUI[gerekliSpin];
 
             const float TOPLAM_GENISLIK = 240f;
             const float GAP = 4f;
@@ -255,6 +262,8 @@ namespace KumarFarkindalik.Tutorial
             float baslangicX = -TOPLAM_GENISLIK / 2f;
             for (int i = 0; i < gerekliSpin; i++)
             {
+                float segX = baslangicX + i * (segGenislik + GAP);
+                // Segment (renkli bar parçası)
                 var sgGo = new GameObject($"Segment_{i}",
                     typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
                 sgGo.transform.SetParent(_spinGecmisiBlok.transform, false);
@@ -262,11 +271,18 @@ namespace KumarFarkindalik.Tutorial
                 rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
                 rt.pivot = new Vector2(0f, 1f);
                 rt.sizeDelta = new Vector2(segGenislik, 8f);
-                rt.anchoredPosition = new Vector2(baslangicX + i * (segGenislik + GAP), -16f);
+                rt.anchoredPosition = new Vector2(segX, -16f);
                 var img = sgGo.GetComponent<Image>();
                 img.color = SEG_BOS;
                 img.raycastTarget = false;
                 _spinSegmentler[i] = img;
+
+                // PAKET 14-FAZ16: TL etiketi (segment altı, ortalı). Dolu segment'lerde net TL gösterir.
+                var tlTmp = MetinYarat(_spinGecmisiBlok.transform, $"TL_{i}",
+                    new Vector2(segX + segGenislik / 2f, -26f),
+                    new Vector2(segGenislik + 2f, 12f), 8f, FontStyles.Bold, BEYAZ,
+                    TextAlignmentOptions.Center, "");
+                _spinTLEtiketler[i] = tlTmp;
             }
         }
 
@@ -279,16 +295,19 @@ namespace KumarFarkindalik.Tutorial
             {
                 if (_spinSegmentler[i] == null) continue;
                 Color hedef;
+                string tlText;
                 if (i < netList.Count)
                 {
                     int net = netList[i];
-                    if (net > 0) hedef = SEG_KAZANC;
-                    else if (net < 0) hedef = SEG_KAYIP;
-                    else hedef = SEG_NOTR;
+                    if (net > 0) { hedef = SEG_KAZANC; tlText = "+" + net.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("tr-TR")); }
+                    else if (net < 0) { hedef = SEG_KAYIP; tlText = net.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("tr-TR")); }
+                    else { hedef = SEG_NOTR; tlText = "0"; }
                 }
-                else hedef = SEG_BOS;
+                else { hedef = SEG_BOS; tlText = ""; }
                 if (_spinSegmentler[i].color != hedef)
                     _spinSegmentler[i].color = hedef;
+                if (i < _spinTLEtiketler.Length && _spinTLEtiketler[i] != null && _spinTLEtiketler[i].text != tlText)
+                    _spinTLEtiketler[i].text = tlText;
             }
         }
 
@@ -463,16 +482,16 @@ namespace KumarFarkindalik.Tutorial
             // Spin sayacı son yapılacaklar maddesine entegre — YapilacaklarRenkGuncelle dinamik günceller.
 
             // === PAKET 14-FAZ16: SPİN GEÇMİŞİ MİNİ BAR ===
-            // Panel direct child. Panel 330 height, top anchor (0.5,1) pivot (0.5,1).
-            // Pos y=-250 → yapılacaklar bloku alt (-240) + 10px margin. Alt y=-280.
-            // İLERİ buton üst panel-top'tan -290 → 10px margin (çakışma yok).
+            // Panel direct child. Yapilacaklar İÇERİĞİ altı (3.madde alt y=-196, 4px margin).
+            // Bar height 40 → TMP TL etiketleri segment üstünde göstermek için yüksek.
+            // Bar alt y=-240. İLERİ buton üst (panel-top'tan -290 panel 330'da) → 50px margin.
             _spinGecmisiBlok = new GameObject("SpinGecmisiBlok", typeof(RectTransform));
             _spinGecmisiBlok.transform.SetParent(panel.transform, false);
             var sgRt = _spinGecmisiBlok.GetComponent<RectTransform>();
             sgRt.anchorMin = sgRt.anchorMax = new Vector2(0.5f, 1f);
             sgRt.pivot = new Vector2(0.5f, 1f);
-            sgRt.sizeDelta = new Vector2(260f, 30f);
-            sgRt.anchoredPosition = new Vector2(0f, -250f);
+            sgRt.sizeDelta = new Vector2(260f, 40f);
+            sgRt.anchoredPosition = new Vector2(0f, -200f);
             // Başlık (parent ile aynı genişlik, merkez hizalı — kutu içinde kalır)
             MetinYarat(_spinGecmisiBlok.transform, "Baslik_SpinGecmisi", new Vector2(0f, 0f),
                 new Vector2(260f, 14f), 11f, FontStyles.Bold, BEYAZ,

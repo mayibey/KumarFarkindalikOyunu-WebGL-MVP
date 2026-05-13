@@ -112,11 +112,12 @@ namespace KumarFarkindalik.Tutorial
         public static bool T6IlkAsamaPatternBasladi { get; set; }
 
         // PAKET 14-FAZ14: Aktif adımın spin net listesi (03'teki ilerleme çubuğu pattern'i).
-        // Her spin sonu net (kazanç - bahis) eklenir, adım değişiminde temizlenir.
-        // TutorialAdimGoster mini bar segment renklerini bu listeden okur.
+        // Her spin sonu net (bakiye farkı) eklenir, adım değişiminde temizlenir.
+        // PAKET 14-FAZ16: OturumKazanc yerine BahisPanelMevcutBakiye fark hesabı (03 AnlaticiSeritKopru:437
+        // referansı). OturumKazanc bahis çıkarmayı tam yakalayamıyordu, 2000 brüt kazanç KIRMIZI görünüyordu.
         public static System.Collections.Generic.List<int> AktifAdimSpinNetleri =
             new System.Collections.Generic.List<int>();
-        private static int _oncekiOturumKazanc = 0;
+        private static long _oncekiBakiye = 0;
 
         // PAKET 6D: T8 (Ödeme) + T11 (Çarpan Zorla) 2-aşamalı akış state
         public static bool T8AraModalGosterildi { get; set; }
@@ -540,11 +541,11 @@ namespace KumarFarkindalik.Tutorial
             // PAKET 14-FAZ8: T6YO 1.aşama tetik bayrağı — yeni adıma geçişte reset (kalıntı önlemi).
             T6IlkAsamaPatternBasladi = false;
 
-            // PAKET 14-FAZ14: Spin geçmişi net listesi her adım başında sıfırlanır + OturumKazanc cache reset
-            // (yeni adımın spin sayacı için referans).
+            // PAKET 14-FAZ14: Spin geçmişi net listesi her adım başında sıfırlanır + bakiye cache reset.
+            // PAKET 14-FAZ16: 03 referansı — net = simdikiBakiye - oncekiBakiye (bahis çıkarma + kazanç ekleme tek farkta).
             AktifAdimSpinNetleri.Clear();
             var oyAdim = Object.FindObjectOfType<OyunYoneticisi>();
-            _oncekiOturumKazanc = oyAdim != null ? oyAdim.OturumKazanc : 0;
+            _oncekiBakiye = oyAdim != null ? oyAdim.BahisPanelMevcutBakiye() : 0L;
 
             // PAKET 6C1/6C2/6C3/8/9: adım bazlı pattern motor yönetimi
             // PAKET 13: T3 senaryoları için defansif PatternBaslat — panel event-driven (AdminEnjeksiyonu
@@ -895,15 +896,15 @@ namespace KumarFarkindalik.Tutorial
                 yield return new WaitForSecondsRealtime(0.8f);
             }
             TutorialSpinSayaci++;
-            // PAKET 14-FAZ14: Net hesap (yeniKazanc - bahis) + spin geçmişi listesine ekle (mini bar segment kaynağı).
+            // PAKET 14-FAZ16: Bakiye farkı (03 AnlaticiSeritKopru:437 referansı). Bahis ZATEN bakiye'den çıkıyor,
+            // kazanç ZATEN bakiye'ye ekleniyor → tek fark = spin'in NET kazanç/kaybı (formül 1-1).
             if (oy != null)
             {
-                int spinKazanc = oy.OturumKazanc - _oncekiOturumKazanc;
-                int bahis = oy.BotIcinBahis;
-                int net = spinKazanc - bahis;
+                long simdikiBakiye = oy.BahisPanelMevcutBakiye();
+                int net = (int)(simdikiBakiye - _oncekiBakiye);
                 AktifAdimSpinNetleri.Add(net);
-                _oncekiOturumKazanc = oy.OturumKazanc;
-                Debug.Log($"[Tutorial Bar] Spin {AktifAdimSpinNetleri.Count}: kazanc={spinKazanc}, bahis={bahis}, net={net}");
+                _oncekiBakiye = simdikiBakiye;
+                Debug.Log($"[Tutorial Bar] Spin {AktifAdimSpinNetleri.Count}: simdikiBakiye={simdikiBakiye}, net={net}");
             }
             Debug.Log($"[TutorialOyunYoneticisi] Spin tamamlandı (anim state-driven), TutorialSpinSayaci={TutorialSpinSayaci}");
             TutorialSenaryoMotoru.SpinTamamlandi();
