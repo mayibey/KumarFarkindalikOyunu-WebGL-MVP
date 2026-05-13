@@ -462,21 +462,21 @@ namespace KumarFarkindalik.Tutorial
             // _ilerlemeBlok, _parametreText, _spinText field'ları null kalır (IlerlemeGuncelle null check ile safe).
             // Spin sayacı son yapılacaklar maddesine entegre — YapilacaklarRenkGuncelle dinamik günceller.
 
-            // === PAKET 14-FAZ15: SPİN GEÇMİŞİ MİNİ BAR ===
-            // Panel direct child. Panel height 290 → top anchor (0.5,1) pivot (0.5,1) pos -250.
-            // Yapilacaklar alt sınırı -240, bar üst -250 → 10px margin. İLERİ buton üst (panel alt + 40 = -250
-            // panel center'da) sağ köşede, bar dikey alt -280 → İLERİ üstünden aşağıda, çakışma yok.
+            // === PAKET 14-FAZ16: SPİN GEÇMİŞİ MİNİ BAR ===
+            // Panel direct child. Pos y=-242 → yapilacaklar bloku alt sınırı (-240) + 2px margin.
+            // Alt -272 → İLERİ buton üst panel-top'tan -250'ye 22px margin (çakışma yok).
+            // Başlık parent center'a sabitlenmiş — önceki x=-115 parent dışına taşıyordu.
             _spinGecmisiBlok = new GameObject("SpinGecmisiBlok", typeof(RectTransform));
             _spinGecmisiBlok.transform.SetParent(panel.transform, false);
             var sgRt = _spinGecmisiBlok.GetComponent<RectTransform>();
             sgRt.anchorMin = sgRt.anchorMax = new Vector2(0.5f, 1f);
             sgRt.pivot = new Vector2(0.5f, 1f);
             sgRt.sizeDelta = new Vector2(260f, 30f);
-            sgRt.anchoredPosition = new Vector2(0f, -250f);
-            // Başlık (sol kenar)
-            MetinYarat(_spinGecmisiBlok.transform, "Baslik_SpinGecmisi", new Vector2(-115f, 0f),
-                new Vector2(130f, 14f), 11f, FontStyles.Bold, BEYAZ,
-                TextAlignmentOptions.Left, "Spin Geçmişi");
+            sgRt.anchoredPosition = new Vector2(0f, -242f);
+            // Başlık (parent ile aynı genişlik, merkez hizalı — kutu içinde kalır)
+            MetinYarat(_spinGecmisiBlok.transform, "Baslik_SpinGecmisi", new Vector2(0f, 0f),
+                new Vector2(260f, 14f), 11f, FontStyles.Bold, BEYAZ,
+                TextAlignmentOptions.Center, "Spin Geçmişi");
             // Segment'ler dinamik AdimGoster() çağrısında SpinGecmisiKur ile yaratılır.
 
             // === İLERİ butonu ===
