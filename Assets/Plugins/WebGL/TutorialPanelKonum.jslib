@@ -149,6 +149,41 @@ mergeInto(LibraryManager.library, {
         if (ov) ov.remove();
     },
 
+    // === PAKET 14-FAZ7 (T6YO ters): Toggle ZORLA AÇ (active class ekle + label "Aktif" + Unity true bildir) ===
+    ToggleAc: function(idPtr) {
+        var iframe = document.getElementById('panelIframe');
+        if (!iframe) { console.warn('[Tutorial] ToggleAc: panelIframe yok'); return; }
+        var id = UTF8ToString(idPtr);
+        var deneme = 0;
+        var uygula = function() {
+            try {
+                var doc = iframe.contentDocument;
+                var win = iframe.contentWindow;
+                if (!doc || !win) return false;
+                var el = doc.getElementById(id);
+                if (!el) return false;
+                el.classList.add('active');
+                var labelId = id.replace('Toggle', 'Label');
+                var lbl = doc.getElementById(labelId);
+                if (lbl) lbl.textContent = 'Aktif';
+                if (win.unityeGonder) {
+                    var key = id.replace('Toggle', '');
+                    win.unityeGonder(key, true);
+                }
+                console.log('[Tutorial] ToggleAc (force):', id, '→ class eklendi, label=Aktif, Unity true');
+                return true;
+            } catch (e) {
+                console.warn('[Tutorial] ToggleAc hata:', e);
+                return false;
+            }
+        };
+        if (!uygula()) {
+            var poll = setInterval(function() {
+                if (deneme++ > 10 || uygula()) clearInterval(poll);
+            }, 100);
+        }
+    },
+
     // === HOTFIX2 (T6YO): Panel.html toggle elementini ZORLA KAPAT (3 katmanlı senkron) ===
     // Önceki el.click() programatik tıklama timing/onclick attribute uyumsuzluk olabiliyordu.
     // Bu versiyon DOĞRUDAN class kaldırır + label senkron + unityeGonder false. Plus retry pattern.

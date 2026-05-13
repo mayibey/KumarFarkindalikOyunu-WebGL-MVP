@@ -9520,6 +9520,40 @@ function dbg(text) {
           }, 100);
       }
 
+  function _ToggleAc(idPtr) {
+          var iframe = document.getElementById('panelIframe');
+          if (!iframe) { console.warn('[Tutorial] ToggleAc: panelIframe yok'); return; }
+          var id = UTF8ToString(idPtr);
+          var deneme = 0;
+          var uygula = function() {
+              try {
+                  var doc = iframe.contentDocument;
+                  var win = iframe.contentWindow;
+                  if (!doc || !win) return false;
+                  var el = doc.getElementById(id);
+                  if (!el) return false;
+                  el.classList.add('active');
+                  var labelId = id.replace('Toggle', 'Label');
+                  var lbl = doc.getElementById(labelId);
+                  if (lbl) lbl.textContent = 'Aktif';
+                  if (win.unityeGonder) {
+                      var key = id.replace('Toggle', '');
+                      win.unityeGonder(key, true);
+                  }
+                  console.log('[Tutorial] ToggleAc (force):', id, '→ class eklendi, label=Aktif, Unity true');
+                  return true;
+              } catch (e) {
+                  console.warn('[Tutorial] ToggleAc hata:', e);
+                  return false;
+              }
+          };
+          if (!uygula()) {
+              var poll = setInterval(function() {
+                  if (deneme++ > 10 || uygula()) clearInterval(poll);
+              }, 100);
+          }
+      }
+
   function _ToggleKapat(idPtr) {
           var iframe = document.getElementById('panelIframe');
           if (!iframe) { console.warn('[Tutorial] ToggleKapat: panelIframe yok'); return; }
@@ -18498,6 +18532,7 @@ var wasmImports = {
   "PaneliAc": _PaneliAc,
   "PaneliKapat": _PaneliKapat,
   "PaneliSolaAl": _PaneliSolaAl,
+  "ToggleAc": _ToggleAc,
   "ToggleKapat": _ToggleKapat,
   "TumVurgulariKapat": _TumVurgulariKapat,
   "TutorialPaneliKapat": _TutorialPaneliKapat,

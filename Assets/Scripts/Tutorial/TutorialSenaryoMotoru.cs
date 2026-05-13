@@ -101,19 +101,20 @@ namespace KumarFarkindalik.Tutorial
             {
                 new SpinDesen { sembolId = 3, adet = 8 },   // 500 TL + çarpan yok (slider %0)
             },
-            // PAKET 6C2 — T6_YENI_OYUNCU aşama 1: toggle KAPALI iken 3 spin (kayıp-küçük kazanç-kayıp, NET kayıp)
+            // PAKET 14-FAZ7 — T6_YENI_OYUNCU TERS senaryo:
+            // 1.aşama (toggle AÇIK): yeniOyuncu_acik — 3 spin, 2 kazanç + 1 kayıp (NET kazanç, kanca pedagojisi)
+            // 2.aşama (toggle KAPALI): yeniOyuncu_kapali — 3 spin HEPSİ kayıp (gerçek RTP, sömürü ortaya çıkar)
             ["yeniOyuncu_kapali"] = new[]
             {
                 new SpinDesen { sembolId = -1, adet = 0 },   // Kayıp
-                new SpinDesen { sembolId = 3, adet = 8 },    // 500 TL (x8-9[3]=0.5)
                 new SpinDesen { sembolId = -1, adet = 0 },   // Kayıp
+                new SpinDesen { sembolId = -1, adet = 0 },   // Kayıp (hepsi → -3000 TL net)
             },
-            // PAKET 6C2 — T6_YENI_OYUNCU aşama 2: toggle AÇIK iken 3 spin (kazanç-kayıp-kazanç, NET kazanç)
             ["yeniOyuncu_acik"] = new[]
             {
                 new SpinDesen { sembolId = 3, adet = 12 },   // 2500 TL (x12+[3]=2.5)
                 new SpinDesen { sembolId = -1, adet = 0 },   // Kayıp
-                new SpinDesen { sembolId = 4, adet = 12 },   // 3000 TL (x12+[4]=3.0)
+                new SpinDesen { sembolId = 4, adet = 12 },   // 3000 TL (x12+[4]=3.0) → 5500 TL kazanç, +2500 net
             },
             // PAKET 14-FAZ2: T7 Ödeme aralığı artık DİNAMİK (DinamikOdemePatternBaslat ile paytable
             // taramasından üretilir). Eski sabit "odeme_dusukMaks" ve "odeme_aralik3_5" KALDIRILDI.

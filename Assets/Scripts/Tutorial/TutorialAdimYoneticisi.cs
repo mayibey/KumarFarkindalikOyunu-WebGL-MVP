@@ -254,17 +254,14 @@ namespace KumarFarkindalik.Tutorial
                 mesajAksiyon = T6YO_AKSIYON,
                 mesajKapanis = T6YO_KAPANIS,
                 altBaslik = "YENİ OYUNCU MODU",
-                // PAKET 14-FAZ6: 2-aşamalı koşul (T4/T5 pattern). 1.aşama toggle KAPALI bekle (yeniOyuncuModu
-                // zorla false), 2.aşama toggle AÇIK bekle. Faz 3 lambda kontrolü 1.aşamayı broken bırakmıştı.
-                yapilacaklar = new[] { "3 spin at", "Yeni Oyuncu Modu'nu aç" },
+                // PAKET 14-FAZ7: T6YO TERS senaryo — 1.aşama AÇIK (kazandır), 2.aşama KAPALI (kaybetir).
+                yapilacaklar = new[] { "6 spin at" },
                 sira = 6,
                 vurguSelectorlari = new[] { "#yeniOyuncuToggle" },
                 gerekliSpin = 6,
                 parametreKosulu = () => TutorialOyunYoneticisi.T6AraModalGosterildi
-                    ? PanelKopru.yeniOyuncuModu        // 2.aşama: toggle açılmalı
-                    : !PanelKopru.yeniOyuncuModu,      // 1.aşama: toggle kapalı (default zorla false)
-                // degisimAnahtarlari KALDIRILDI — 1.aşamada kullanıcı toggle'a dokunmasa bile
-                // parametreKosulu lambda yeterli (default kapalı durumu zaten geçerli).
+                    ? !PanelKopru.yeniOyuncuModu       // 2.aşama: toggle KAPATILMALI
+                    : PanelKopru.yeniOyuncuModu,       // 1.aşama: toggle AÇIK (default zorla true)
                 degisimAnahtarlari = null,
             };
 
@@ -492,22 +489,23 @@ namespace KumarFarkindalik.Tutorial
             "'bonus geliyor' hissi yaratmak için yükseltir, kasayı korumak için sıfırlar. " +
             "Oyuncunun beyninde <color=#F24D40>'biraz daha oynarsam bonus gelecek' yanılgısı</color> bu mekanizmayla üretilir.";
 
-        // PAKET 6C2 — T6_YENI_OYUNCU (Hook Fazı toggle)
+        // PAKET 14-FAZ7 — T6_YENI_OYUNCU TERS: önce AÇIK (bol kazanç) → kullanıcı kapatır → KAPALI (kayıp)
         private const string T6YO_BASLANGIC =
             "Şimdi <color=#F24D40>operatörün GİZLİ silahını</color> göreceğiz: <color=#5BA0FF>Yeni Oyuncu Modu</color>.\n\n" +
-            "Bu toggle açıkken sistem oyuncuyu 'yeni gelen' sayar — ona ÖZEL bir rejim uygular: " +
+            "Bu toggle ŞU AN <color=#4DCC59>AÇIK</color> ve sistem oyuncuyu 'yeni gelen' sayıyor — ona ÖZEL bir rejim: " +
             "<color=#4DCC59>bol kazandırma</color>, <color=#F24D40>yumuşak kayıplar</color>. <color=#FFD933>'Şanslı bir gün'</color> hissi.";
         private const string T6YO_AKSIYON =
-            "Önce <color=#FFD933>3 spin</color> at (toggle <color=#F24D40>KAPALI</color> iken — fark için referans). " +
-            "Sonra <color=#5BA0FF>Manipülasyon Ayarları</color>'nda <color=#5BA0FF>'Yeni Oyuncu Modu'</color> toggle'ını AÇ ve <color=#FFD933>3 spin</color> daha at.";
+            "Önce <color=#FFD933>3 spin</color> at (toggle <color=#4DCC59>AÇIK</color> — sistem oyuncuyu kazandırıyor). " +
+            "Sonra <color=#5BA0FF>Manipülasyon Ayarları</color>'nda <color=#5BA0FF>'Yeni Oyuncu Modu'</color> toggle'ını KAPAT ve <color=#FFD933>3 spin</color> daha at.";
         public const string T6YO_ARA_MODAL =
-            "<color=#FFD933>3 spin</color> attık (toggle kapalı). Sonuç: <color=#F24D40>NET kayıp</color> — normal RTP davranışı.\n\n" +
-            "Şimdi <color=#5BA0FF>Manipülasyon Ayarları</color>'nda <color=#5BA0FF>'Yeni Oyuncu Modu'</color> toggle'ını AÇ. " +
-            "Ardından <color=#FFD933>3 spin</color> daha at. <color=#4DCC59>Fark net olacak</color>.";
+            "<color=#FFD933>3 spin</color> attık (toggle açık). Sonuç: <color=#4DCC59>BOL KAZANÇ</color> — sistem oyuncuyu çekiyor.\n\n" +
+            "Şimdi <color=#5BA0FF>Manipülasyon Ayarları</color>'nda <color=#5BA0FF>'Yeni Oyuncu Modu'</color> toggle'ını <color=#F24D40>KAPAT</color>. " +
+            "Ardından <color=#FFD933>3 spin</color> daha at. <color=#F24D40>Gerçek ortaya çıkacak</color>.";
         private const string T6YO_KAPANIS =
-            "Gördük mü? Aynı slot, aynı bahis. <color=#5BA0FF>Toggle KAPALI</color> → <color=#F24D40>NET kayıp</color>, <color=#5BA0FF>AÇIK</color> → <color=#4DCC59>NET kazanç</color>. " +
-            "<color=#F24D40>Operatör</color> oyuncuyu 'yeni' diye işaretler, sistem ona <color=#4DCC59>hediye verir</color>, oyuncu <color=#FFD933>'şanslı bir gün'</color> sanır.\n\n" +
-            "Bu <color=#F24D40>manipülasyonun</color> adı <color=#F24D40>HOOK FAZI</color> — yeni oyuncu için tasarlanmış <color=#F24D40>kanca</color>.";
+            "Gördük mü? Aynı slot, aynı bahis. <color=#4DCC59>Toggle AÇIK</color> → <color=#4DCC59>BOL KAZANÇ</color>, <color=#F24D40>KAPALI</color> → <color=#F24D40>NET KAYIP</color>.\n\n" +
+            "Yeni Oyuncu Modu AÇIKKEN <color=#F24D40>sömürü farkedilmez</color>; oyuncu 'şanslı' sanır, oyuna bağlanır. " +
+            "Mod KAPANINCA <color=#F24D40>gerçek RTP</color> ortaya çıkar — kayıplar başlar.\n\n" +
+            "Bu <color=#F24D40>manipülasyonun</color> adı <color=#F24D40>HOOK FAZI</color> — yeni oyuncuyu sisteme kilitleyen <color=#F24D40>kanca</color>.";
 
         // PAKET 6C3: T6 (Kazandırma) — 5'lik N mantığı, dinamik pattern motor
         private const string T6_BASLANGIC =

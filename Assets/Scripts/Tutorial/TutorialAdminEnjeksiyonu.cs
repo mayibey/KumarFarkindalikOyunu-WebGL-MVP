@@ -156,8 +156,8 @@ namespace KumarFarkindalik.Tutorial
                     TutorialSenaryoMotoru.PatternBaslat(value);
                     break;
                 case "yeniOyuncu":
-                    // PAKET 6C2: T6_YENI_OYUNCU aşama 2 — toggle açıldığında ikinci pattern başlat
-                    if (value == "True" || value == "true")
+                    // PAKET 14-FAZ7: T6YO TERS — toggle KAPATILDIĞINDA 2.aşama tetiklenir.
+                    if (value == "False" || value == "false")
                     {
                         var ay2 = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
                         if (ay2 != null && ay2.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T6_YENI_OYUNCU
@@ -165,11 +165,10 @@ namespace KumarFarkindalik.Tutorial
                             && !TutorialOyunYoneticisi.T6IkinciAsamaBasladi)
                         {
                             TutorialOyunYoneticisi.T6IkinciAsamaBasladi = true;
-                            // PAKET 6C2-EXT: Kullanıcı bilinçli toggle bastı — defansif kilit AÇIK
-                            // (artık yeniOyuncu=true mesajları PanelKopru'da yutulmaz).
-                            TutorialOyunYoneticisi.T6YOForceKapaliKilitli = false;
-                            TutorialSenaryoMotoru.PatternBaslat("yeniOyuncu_acik");
-                            Debug.Log("[Tutorial T6_YENI_OYUNCU] Toggle açıldı → ikinci pattern başladı + kilit kapandı");
+                            // Kullanıcı bilinçli toggle KAPATTI — defansif kilit aç (yeniOyuncu=false artık yutulmaz).
+                            TutorialOyunYoneticisi.T6YOForceAcikKilitli = false;
+                            TutorialSenaryoMotoru.PatternBaslat("yeniOyuncu_kapali");
+                            Debug.Log("[Tutorial T6_YENI_OYUNCU TERS] Toggle kapatıldı → ikinci pattern başladı (kayıp) + kilit kapandı");
                         }
                     }
                     break;
