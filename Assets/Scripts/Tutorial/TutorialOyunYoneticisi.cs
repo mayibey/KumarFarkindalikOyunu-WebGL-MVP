@@ -77,6 +77,10 @@ namespace KumarFarkindalik.Tutorial
         private static float _orijinalScatterChance = 0.005f;
         private static int _orijinalBonusOtomatikPeriyot = 0;
         private static int _orijinalBahis = 10;
+        // PAKET 14-FAZ11: T6YO için maxOdeme orijinal değer cache + restore. T6YO girişinde 99999 set edilir
+        // (yeniOyuncu_acik pattern 2500/3000 TL hedefli, limit-aware kayıp grid'e çevirmesin). T_SON sonrası restore.
+        private static int _orijinalMaxOdeme = 0;
+        private static bool _maxOdemeCachelendi = false;
 
         // PAKET 14 (İş 4): T5 bonus tetik spin'i (bonusTest_100, ToplamHamKazanc=0) PlayKayipHorn
         // çalıyor (DonusAkis "net<=0 → kayıp ses"). T5 başında klibi cache+null, T6_YENI_OYUNCU
@@ -164,6 +168,14 @@ namespace KumarFarkindalik.Tutorial
             if (scene.buildIndex != TUTORIAL_SAHNE_BUILD_INDEX)
             {
                 if (Ornek != null) Object.Destroy(Ornek.gameObject);
+                // PAKET 14-FAZ11: Tutorial sahnesi dışına çıkışta maxOdeme restore (T_SON akışına gitmediyse).
+                if (_maxOdemeCachelendi)
+                {
+                    var oyExit = Object.FindObjectOfType<OyunYoneticisi>();
+                    if (oyExit != null) oyExit.AdminSetMaxOdeme(_orijinalMaxOdeme);
+                    _maxOdemeCachelendi = false;
+                    Debug.Log($"[Tutorial] Defansif restore (sahne çıkışı): maxOdeme={_orijinalMaxOdeme}");
+                }
                 return;
             }
             if (Ornek != null) return;
@@ -590,7 +602,21 @@ namespace KumarFarkindalik.Tutorial
                 T6IlkAsamaPatternBasladi = false;
                 PanelKopru.yeniOyuncuModu = false;
                 var oyT6 = Object.FindObjectOfType<OyunYoneticisi>();
-                if (oyT6 != null) oyT6.AdminSetYeniOyuncuModu(false);
+                // PAKET 14-FAZ11: AdminSetYeniOyuncuModu(false) çağrısı KALDIRILDI — yan etki olarak
+                // AdminSetMaxOdeme(_yeniOyuncuOncekiMax=0) çağrıyordu → maxOdeme=0 → 1.spin sonrası
+                // başka path AdminSetYeniOyuncuModu(true) çağırınca maxOdeme=1000 zorlanıyordu.
+                // Yerine doğrudan AdminSetMaxOdeme(99999) — pattern hedefleri (2500/3000) limit aşmaz.
+                if (oyT6 != null)
+                {
+                    if (!_maxOdemeCachelendi)
+                    {
+                        _orijinalMaxOdeme = oyT6.GetAdminMaxOdeme();
+                        _maxOdemeCachelendi = true;
+                        Debug.Log($"[Tutorial T6YO] Original maxOdeme cache: {_orijinalMaxOdeme}");
+                    }
+                    oyT6.AdminSetMaxOdeme(99999);
+                    Debug.Log("[Tutorial T6YO] maxOdeme = 99999 (Tutorial pattern hedefleri limit aşmasın).");
+                }
 #if UNITY_WEBGL && !UNITY_EDITOR
                 ToggleKapat("yeniOyuncuToggle");
 #endif
@@ -1053,6 +1079,13 @@ namespace KumarFarkindalik.Tutorial
                 // Restore: scatter + periyot original değerlerine geri
                 oy.scatterChanceNormal = _orijinalScatterChance;
                 oy.AdminSetBonusOtomatikSpinPeriyodu(_orijinalBonusOtomatikPeriyot);
+                // PAKET 14-FAZ11: maxOdeme restore (T6YO girişinde 99999 set edilmişti).
+                if (_maxOdemeCachelendi)
+                {
+                    oy.AdminSetMaxOdeme(_orijinalMaxOdeme);
+                    _maxOdemeCachelendi = false;
+                    Debug.Log($"[Tutorial] Restore: maxOdeme={_orijinalMaxOdeme}");
+                }
                 Debug.Log($"[Tutorial] Restore: scatter={_orijinalScatterChance}, periyot={_orijinalBonusOtomatikPeriyot}");
             }
 
