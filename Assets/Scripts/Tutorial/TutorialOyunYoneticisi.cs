@@ -103,11 +103,9 @@ namespace KumarFarkindalik.Tutorial
         public static bool T6AraModalGosterildi { get; set; }
         public static bool T6IkinciAsamaBasladi { get; set; }
 
-        // PAKET 14-FAZ7: T6YO TERS — senaryo "önce AÇIK göster, sonra KAPAT".
-        // Force aç sonrası gelen "yeniOyuncu=false" postMessage'ı PanelKopru'da yutar (kullanıcı
-        // 1.aşamada kapatamasın). Ara modal sonrası T6IkinciAsamaBasladi=true ile kilit açılır,
-        // kullanıcı toggle'ı kapatabilir.
-        public static bool T6YOForceAcikKilitli = false;
+        // PAKET 14-FAZ8: T6YO — kullanıcı toggle AÇTIĞINDA 1.aşama tek seferlik tetiklensin
+        // (her açma-kapama döngüsünde tekrar pattern yenilemesin).
+        public static bool T6IlkAsamaPatternBasladi { get; set; }
 
         // PAKET 6D: T8 (Ödeme) + T11 (Çarpan Zorla) 2-aşamalı akış state
         public static bool T8AraModalGosterildi { get; set; }
@@ -166,9 +164,6 @@ namespace KumarFarkindalik.Tutorial
             if (scene.buildIndex != TUTORIAL_SAHNE_BUILD_INDEX)
             {
                 if (Ornek != null) Object.Destroy(Ornek.gameObject);
-                // PAKET 14-FAZ7: Defansif static reset — Tutorial sahnesinden çıkışta T6YO kilidi
-                // garantili sıfırlanır (T6YO ortasında anormal sahne geçişi senaryosu için güvenlik).
-                T6YOForceAcikKilitli = false;
                 return;
             }
             if (Ornek != null) return;
@@ -190,6 +185,11 @@ namespace KumarFarkindalik.Tutorial
             // edildi ama static property true kaldı). 04'te SpinButton bu flag'i okuyup kilit kalıyor.
             // Property private setter olduğu için reflection ile reset.
             ScriptedModalKopruModalAcikReset();
+
+            // PAKET 14-FAZ8: T6YO 2-aşama bayrakları önceki oturumdan kalıntı reset
+            T6AraModalGosterildi = false;
+            T6IkinciAsamaBasladi = false;
+            T6IlkAsamaPatternBasladi = false;
 
             AdimYoneticisi = gameObject.AddComponent<TutorialAdimYoneticisi>();
             Enjeksiyon = gameObject.AddComponent<TutorialAdminEnjeksiyonu>();
@@ -507,9 +507,8 @@ namespace KumarFarkindalik.Tutorial
             // AdimGoster'ı gizle (modal süresince görünmesin, modal sonra göster)
             TutorialAdimGoster.Ornek?.Gizle();
 
-            // PAKET 14-FAZ7: T6YO defansif kilit — yeni adıma geçişte default false.
-            // T6YO branch'i aşağıda zorla true yapar. Diğer adımlara geçişte kilit otomatik kapanır.
-            T6YOForceAcikKilitli = false;
+            // PAKET 14-FAZ8: T6YO 1.aşama tetik bayrağı — yeni adıma geçişte reset (kalıntı önlemi).
+            T6IlkAsamaPatternBasladi = false;
 
             // PAKET 6C1/6C2/6C3/8/9: adım bazlı pattern motor yönetimi
             // PAKET 13: T3 senaryoları için defansif PatternBaslat — panel event-driven (AdminEnjeksiyonu
@@ -585,19 +584,19 @@ namespace KumarFarkindalik.Tutorial
                     _spinSonucKayipClipCachelendi = false;
                     Debug.Log("[Tutorial T6YO] spinSonucKayipClip restore edildi (OyunYoneticisi + BonusUIServisi).");
                 }
-                // PAKET 14-FAZ7: T6YO TERS — senaryo "önce AÇIK göster, sonra KAPAT".
-                // 1.aşama: yeniOyuncuModu=TRUE zorla (bol kazanç), kullanıcı toggle'ı kapatamasın.
-                PanelKopru.yeniOyuncuModu = true;
+                // PAKET 14-FAZ8: T6YO TEMİZ AKIŞ — toggle KAPALI başla, kullanıcı AÇINCA 1.aşama
+                // pattern (yeniOyuncu_acik, 2 kazanç + 1 kayıp), ara modal sonrası kullanıcı KAPATINCA
+                // 2.aşama pattern (yeniOyuncu_kapali, 3 kayıp). Kilit yok — kullanıcı serbestçe yönetir.
+                T6IlkAsamaPatternBasladi = false;
+                PanelKopru.yeniOyuncuModu = false;
                 var oyT6 = Object.FindObjectOfType<OyunYoneticisi>();
-                if (oyT6 != null) oyT6.AdminSetYeniOyuncuModu(true);
+                if (oyT6 != null) oyT6.AdminSetYeniOyuncuModu(false);
 #if UNITY_WEBGL && !UNITY_EDITOR
-                ToggleAc("yeniOyuncuToggle");
+                ToggleKapat("yeniOyuncuToggle");
 #endif
-                // Force aç sonrası DEFANSİF KİLİT — yeniOyuncu=false mesajları yutulur. Ara modal
-                // sonrası kullanıcı toggle'ı kapatınca T6IkinciAsamaBasladi=true ile kilit açılır.
-                T6YOForceAcikKilitli = true;
-                Debug.Log("[Tutorial T6YO] Toggle force AÇIK çekildi (önce kazanç pedagojisi) + defansif kilit AKTİF");
-                TutorialSenaryoMotoru.PatternBaslat("yeniOyuncu_acik");
+                // Pattern motoru DURDUR — kullanıcı toggle açana kadar bekle (RNG akışı pasif).
+                TutorialSenaryoMotoru.Durdur();
+                Debug.Log("[Tutorial T6YO] Giriş — toggle KAPALI, pattern bekleme modunda (kullanıcı toggle açacak).");
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T6) // KAZANDIRMA (sira=7)
             {
@@ -955,7 +954,8 @@ namespace KumarFarkindalik.Tutorial
             }
         }
 
-        // PAKET 6C2: T6_YENI_OYUNCU 3. spin sonrası ara modal — kullanıcıya toggle'ı açma daveti
+        // PAKET 6C2: T6_YENI_OYUNCU 3. spin sonrası ara modal
+        // PAKET 14-FAZ8: Yapılacaklar 1. madde "Yeni Oyuncu Modu'nu aç" → "Yeni Oyuncu Modu'nu kapat" mutate.
         private void TutorialT6YeniOyuncuModalKontrol()
         {
             if (AdimYoneticisi == null) return;
@@ -966,8 +966,8 @@ namespace KumarFarkindalik.Tutorial
             if (sayac == 3)
             {
                 T6AraModalGosterildi = true;
-                Debug.Log("[Tutorial T6_YENI_OYUNCU] Aşama 1 bitti (3 spin), ara modal açılıyor + motor pasif");
-                // Motor pasif — kullanıcı toggle'ı açana kadar bekleyecek (AyarDegisti yeniOyuncu_acik başlatır)
+                AdimYoneticisi.YapilacakMaddesiniGuncelle(0, "Yeni Oyuncu Modu'nu kapat");
+                Debug.Log("[Tutorial T6_YENI_OYUNCU] Aşama 1 bitti (3 spin kazanç), ara modal + motor pasif + yapilacak[0]='kapat'");
                 TutorialSenaryoMotoru.Durdur();
                 StartCoroutine(GosterAraModal(TutorialAdimYoneticisi.T6YO_ARA_MODAL));
             }

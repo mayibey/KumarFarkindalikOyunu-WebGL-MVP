@@ -154,16 +154,10 @@ public class PanelKopru : MonoBehaviour
 
             case "yeniOyuncu":
                 {
-                    bool yeniValue = deger == "True" || deger == "true";
-                    // PAKET 14-FAZ7: T6YO TERS senaryo defansif kilit. Force AÇ sonrasında gelen
-                    // 'false' mesajlarını yut (1.aşamada kullanıcı toggle'ı kapatmaya çalışırsa engel).
-                    // Ara modal sonrası AdminEnjeksiyonu kilidi açar, true mesajları her zaman geçer.
-                    if (!yeniValue && KumarFarkindalik.Tutorial.TutorialOyunYoneticisi.T6YOForceAcikKilitli)
-                    {
-                        Debug.Log("[PanelKopru] T6YO kilit aktif — yeniOyuncu=false yutuldu");
-                        break;
-                    }
-                    yeniOyuncuModu = yeniValue;
+                    // PAKET 14-FAZ8: T6YO temiz akış — yutma kilidi kaldırıldı. Tutorial mantığı tetik
+                    // koşullarını (T6AraModalGosterildi, T6IlkAsamaPatternBasladi/T6IkinciAsamaBasladi)
+                    // AdminEnjeksiyonu tarafında kontrol ediyor.
+                    yeniOyuncuModu = deger == "True" || deger == "true";
                     _oy?.AdminSetYeniOyuncuModu(yeniOyuncuModu);
                 }
                 break;

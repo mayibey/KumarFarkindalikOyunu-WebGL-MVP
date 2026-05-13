@@ -156,19 +156,30 @@ namespace KumarFarkindalik.Tutorial
                     TutorialSenaryoMotoru.PatternBaslat(value);
                     break;
                 case "yeniOyuncu":
-                    // PAKET 14-FAZ7: T6YO TERS — toggle KAPATILDIĞINDA 2.aşama tetiklenir.
-                    if (value == "False" || value == "false")
+                    // PAKET 14-FAZ8: T6YO ÇİFT YÖN TETİK
+                    //   AÇMA  → 1.aşama (yeniOyuncu_acik, 3 spin: 2 kazanç + 1 kayıp)
+                    //   KAPATMA → 2.aşama (yeniOyuncu_kapali, 3 spin: hepsi kayıp) — ara modal sonrası
                     {
-                        var ay2 = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
-                        if (ay2 != null && ay2.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T6_YENI_OYUNCU
-                            && TutorialOyunYoneticisi.T6AraModalGosterildi
-                            && !TutorialOyunYoneticisi.T6IkinciAsamaBasladi)
+                        bool yeniDeger = value == "True" || value == "true";
+                        var ayY = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
+                        if (ayY != null && ayY.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T6_YENI_OYUNCU)
                         {
-                            TutorialOyunYoneticisi.T6IkinciAsamaBasladi = true;
-                            // Kullanıcı bilinçli toggle KAPATTI — defansif kilit aç (yeniOyuncu=false artık yutulmaz).
-                            TutorialOyunYoneticisi.T6YOForceAcikKilitli = false;
-                            TutorialSenaryoMotoru.PatternBaslat("yeniOyuncu_kapali");
-                            Debug.Log("[Tutorial T6_YENI_OYUNCU TERS] Toggle kapatıldı → ikinci pattern başladı (kayıp) + kilit kapandı");
+                            if (yeniDeger
+                                && !TutorialOyunYoneticisi.T6AraModalGosterildi
+                                && !TutorialOyunYoneticisi.T6IlkAsamaPatternBasladi)
+                            {
+                                TutorialOyunYoneticisi.T6IlkAsamaPatternBasladi = true;
+                                TutorialSenaryoMotoru.PatternBaslat("yeniOyuncu_acik");
+                                Debug.Log("[Tutorial T6YO] Toggle AÇILDI → 1.aşama pattern başladı (yeniOyuncu_acik)");
+                            }
+                            else if (!yeniDeger
+                                     && TutorialOyunYoneticisi.T6AraModalGosterildi
+                                     && !TutorialOyunYoneticisi.T6IkinciAsamaBasladi)
+                            {
+                                TutorialOyunYoneticisi.T6IkinciAsamaBasladi = true;
+                                TutorialSenaryoMotoru.PatternBaslat("yeniOyuncu_kapali");
+                                Debug.Log("[Tutorial T6YO] Toggle KAPATILDI → 2.aşama pattern başladı (yeniOyuncu_kapali)");
+                            }
                         }
                     }
                     break;

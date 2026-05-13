@@ -254,14 +254,16 @@ namespace KumarFarkindalik.Tutorial
                 mesajAksiyon = T6YO_AKSIYON,
                 mesajKapanis = T6YO_KAPANIS,
                 altBaslik = "YENİ OYUNCU MODU",
-                // PAKET 14-FAZ7: T6YO TERS senaryo — 1.aşama AÇIK (kazandır), 2.aşama KAPALI (kaybetir).
-                yapilacaklar = new[] { "6 spin at" },
+                // PAKET 14-FAZ8: T6YO TEMİZ — 1.aşama kullanıcı AÇAR (kazanç), ara modal sonrası KAPATIR (kayıp).
+                // yapilacaklar 2 madde — TutorialT6YeniOyuncuModalKontrol içinde 1.madde dinamik mutate edilir
+                // (ara modal sonrası "kapat"'a geçer).
+                yapilacaklar = new[] { "Yeni Oyuncu Modu'nu aç", "6 spin at" },
                 sira = 6,
                 vurguSelectorlari = new[] { "#yeniOyuncuToggle" },
                 gerekliSpin = 6,
                 parametreKosulu = () => TutorialOyunYoneticisi.T6AraModalGosterildi
                     ? !PanelKopru.yeniOyuncuModu       // 2.aşama: toggle KAPATILMALI
-                    : PanelKopru.yeniOyuncuModu,       // 1.aşama: toggle AÇIK (default zorla true)
+                    : PanelKopru.yeniOyuncuModu,       // 1.aşama: toggle AÇILMALI (giriş kapalı, kullanıcı açacak)
                 degisimAnahtarlari = null,
             };
 
@@ -489,14 +491,14 @@ namespace KumarFarkindalik.Tutorial
             "'bonus geliyor' hissi yaratmak için yükseltir, kasayı korumak için sıfırlar. " +
             "Oyuncunun beyninde <color=#F24D40>'biraz daha oynarsam bonus gelecek' yanılgısı</color> bu mekanizmayla üretilir.";
 
-        // PAKET 14-FAZ7 — T6_YENI_OYUNCU TERS: önce AÇIK (bol kazanç) → kullanıcı kapatır → KAPALI (kayıp)
+        // PAKET 14-FAZ8 — T6_YENI_OYUNCU: kullanıcı toggle AÇAR (bol kazanç) → ara modal → KAPATIR (kayıp)
         private const string T6YO_BASLANGIC =
             "Şimdi <color=#F24D40>operatörün GİZLİ silahını</color> göreceğiz: <color=#5BA0FF>Yeni Oyuncu Modu</color>.\n\n" +
-            "Bu toggle ŞU AN <color=#4DCC59>AÇIK</color> ve sistem oyuncuyu 'yeni gelen' sayıyor — ona ÖZEL bir rejim: " +
+            "Bu toggle açıkken sistem oyuncuyu 'yeni gelen' sayar — ona ÖZEL bir rejim uygular: " +
             "<color=#4DCC59>bol kazandırma</color>, <color=#F24D40>yumuşak kayıplar</color>. <color=#FFD933>'Şanslı bir gün'</color> hissi.";
         private const string T6YO_AKSIYON =
-            "Önce <color=#FFD933>3 spin</color> at (toggle <color=#4DCC59>AÇIK</color> — sistem oyuncuyu kazandırıyor). " +
-            "Sonra <color=#5BA0FF>Manipülasyon Ayarları</color>'nda <color=#5BA0FF>'Yeni Oyuncu Modu'</color> toggle'ını KAPAT ve <color=#FFD933>3 spin</color> daha at.";
+            "<color=#5BA0FF>Manipülasyon Ayarları</color>'nda <color=#5BA0FF>'Yeni Oyuncu Modu'</color> toggle'ını <color=#4DCC59>AÇ</color> ve <color=#FFD933>3 spin</color> at " +
+            "(sistem oyuncuyu kazandıracak). Sonra toggle'ı <color=#F24D40>KAPAT</color> ve <color=#FFD933>3 spin</color> daha at — fark netleşecek.";
         public const string T6YO_ARA_MODAL =
             "<color=#FFD933>3 spin</color> attık (toggle açık). Sonuç: <color=#4DCC59>BOL KAZANÇ</color> — sistem oyuncuyu çekiyor.\n\n" +
             "Şimdi <color=#5BA0FF>Manipülasyon Ayarları</color>'nda <color=#5BA0FF>'Yeni Oyuncu Modu'</color> toggle'ını <color=#F24D40>KAPAT</color>. " +
