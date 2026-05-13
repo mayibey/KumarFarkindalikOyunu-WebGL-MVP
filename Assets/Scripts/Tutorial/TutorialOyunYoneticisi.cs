@@ -435,6 +435,10 @@ namespace KumarFarkindalik.Tutorial
                             Debug.Log("[TutorialOyunYoneticisi] Spin parametre bekleniyor — uyarı: " + eksikMsg);
                             return;
                         }
+                        // PAKET 14-FAZ27: Her spin başlangıcında RNG state'i sabit seed'e reset — Tutorial deterministik.
+                        // Unity engine RNG (pre-compute Simulasyon.cs) + Tutorial pattern RNG ikisi de aynı yerden başlar.
+                        UnityEngine.Random.InitState(12345);
+                        TutorialSenaryoMotoru.RngResetle();
                         // PAKET 4-HOTFIX (Bug 1): Sayaç ve SpinTamamlandi() artık tıklamada değil,
                         // spin animasyonu bittiğinde Update polling ile tetiklenir (Modal C erken açılma fix).
                         _spinBekliyor = true;
@@ -485,6 +489,9 @@ namespace KumarFarkindalik.Tutorial
                 // PAKET 3B-fix-13 (Bug 1): Tutorial boyunca otomatik bonus tetiklenmesini engelle.
                 // T11 manuel bonus AdminManuelBonusBaslat ile scatter'dan bağımsız çalışır.
                 oy.scatterChanceNormal = 0f;
+                // PAKET 14-FAZ26: bonusOtomatikSpinPeriyodu Tutorial geneli kapalı (0). T5 pattern motor
+                // 4 scatter düşürür → bonus tetik kontrollü. Otomatik periyot (slider %100 → 1) sabote etmesin.
+                oy.AdminSetBonusOtomatikSpinPeriyodu(0);
                 // PAKET 14-FAZ13: maxOdeme=99999 Tutorial geneline taşındı (T6YO branch'inden). Tüm Tutorial
                 // pattern hedefleri (hook 2500/3000, tutma 2000, T6YO 2500/3000) limit-aware bypass.
                 if (!_maxOdemeCachelendi)

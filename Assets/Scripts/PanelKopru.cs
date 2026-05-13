@@ -175,9 +175,22 @@ public class PanelKopru : MonoBehaviour
                 bonusModu = deger;
                 break;
 
+            case "bonusYuzde":
+                // PAKET 14-FAZ26: TutorialAdminEnjeksiyonu.AyarDegisti event subscriber zaten yakalıyor
+                // (SonBonusYuzdesi static field). Burada "Bilinmeyen ayar" warning çıkmasın diye no-op case.
+                break;
+
             case "bonusOtomatikOran":
                 if (int.TryParse(deger, out int oran))
                 {
+                    // PAKET 14-FAZ26: Tutorial sahnesinde (build idx 3) bonusOtomatikSpinPeriyodu kullanıcı
+                    // slider hareketinde değişmesin. T5 slider %100 → periyot=1 → otomatik bonus tetiği
+                    // pattern motoru ile çakışıyor (4 scatter düşmeden bonus oyun açılıyor).
+                    if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex == 3)
+                    {
+                        Debug.Log($"[PanelKopru] Tutorial sahnesi (idx 3) — bonusOtomatikOran={oran} BYPASS (pattern motor yönetiyor)");
+                        break;
+                    }
                     bonusOtomatikSpinPeriyodu = oran;
                     _oy?.AdminSetBonusOtomatikSpinPeriyodu(oran);
                 }

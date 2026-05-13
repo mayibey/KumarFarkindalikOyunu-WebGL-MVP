@@ -160,7 +160,16 @@ namespace KumarFarkindalik.Tutorial
         private static float _dinamikMaks = 0f;
 
         // System.Random instance (Unity Random.seed'e DOKUNMAZ — 03'e sızmaz)
-        private static readonly System.Random _rng = new System.Random(12345);
+        // PAKET 14-FAZ27: readonly KALDIRILDI — RngResetle() public method ile reset için.
+        private static System.Random _rng = new System.Random(12345);
+
+        // PAKET 14-FAZ27: Her Tutorial spin başında RNG state'i sıfırla (deterministik garanti).
+        // Pattern motor _rng tüketimi sıralı → her spin AYNI seed konumundan başlar → AYNI dolgu meyveleri,
+        // AYNI cluster pozisyonları, AYNI çarpan değerleri. Tüm oyuncular AYNI Tutorial deneyimi yaşar.
+        public static void RngResetle()
+        {
+            _rng = new System.Random(12345);
+        }
 
         // Reflection cache
         private OyunYoneticisi _oy;
