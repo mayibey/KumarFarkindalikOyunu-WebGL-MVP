@@ -582,6 +582,8 @@ namespace KumarFarkindalik.Tutorial
             var ay = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
             bool carpanIzinli = ay != null
                                 && (int)ay.mevcutAdim >= (int)TutorialAdimYoneticisi.TutorialAdimId.T4;
+            // PAKET 14-FAZ25 (debug): Çarpan enjekte branch koşulları her spin için görünür
+            Debug.Log($"[T4 DEBUG] mevcutAdim={ay?.mevcutAdim}, carpanIzinli={carpanIzinli}, carpanUretimiAktif={_oy.carpanUretimiAktif}, carpanUretimOlasiligi={_oy.carpanUretimOlasiligi:F2}, maxCarpanAdedi={_oy.maxCarpanAdedi}");
             if (carpanIzinli && _oy.carpanUretimiAktif)
             {
                 float carpanOlasilik = _oy.carpanUretimOlasiligi;

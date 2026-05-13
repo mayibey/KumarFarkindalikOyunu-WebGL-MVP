@@ -585,7 +585,7 @@ namespace KumarFarkindalik.Tutorial
                 if (oyT4 != null)
                 {
                     oyT4.carpanUretimiAktif = true;
-                    Debug.Log("[Tutorial T4] carpanUretimiAktif = true (defansif aktiflik)");
+                    Debug.Log($"[Tutorial T4 ADIMDEGISTI] carpanUretimiAktif={oyT4.carpanUretimiAktif}, carpanUretimOlasiligi={oyT4.carpanUretimOlasiligi:F2}, maxCarpanAdedi={oyT4.maxCarpanAdedi}");
                 }
                 TutorialSenaryoMotoru.PatternBaslat("carpanTest_100");
             }

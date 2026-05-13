@@ -196,6 +196,8 @@ public class PanelKopru : MonoBehaviour
                     // ediyor; DesenToKayit'ın okuduğu float carpanUretimOlasiligi default 0.15f kalıyor.
                     // Slider %100 yapsa bile çarpan düşmüyordu — gerçek mekanik field'ı da set et.
                     if (_oy != null) _oy.carpanUretimOlasiligi = Mathf.Clamp01(olasilik / 100f);
+                    // PAKET 14-FAZ25 (debug): Slider event gerçekten geliyor mu + field set sonrası değer
+                    Debug.Log($"[PanelKopru carpanOlasilik] olasilik={olasilik}, carpanUretimOlasiligi={_oy?.carpanUretimOlasiligi:F2}");
                 }
                 break;
 
