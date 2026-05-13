@@ -158,8 +158,8 @@ namespace KumarFarkindalik.Tutorial
                     if (i < yapilacaklar.Length)
                     {
                         // PAKET 3B-fix-15: Yeni adımda renk + prefix RESET (önceki adımın yeşilleri silinir)
-                        // PAKET 14-FAZ19: "→" font fallback kare gösterimi → "•" (U+2022 bullet, evrensel destek)
-                        _yapilacakSatirlari[i].text = "• " + yapilacaklar[i];
+                        // PAKET 14-FAZ21: Prefix HER İKİ DURUMDA da "- " sabit, sadece renk değişimi (beyaz→yeşil).
+                        _yapilacakSatirlari[i].text = "- " + yapilacaklar[i];
                         _yapilacakSatirlari[i].color = SATIR_BEYAZ;
                         _yapilacakSatirlari[i].gameObject.SetActive(true);
                     }
@@ -405,8 +405,8 @@ namespace KumarFarkindalik.Tutorial
                     tamam = TutorialAdminEnjeksiyonu.UygulamaOnaylandi;
                 }
 
-                // PAKET 14-FAZ19: "→" font kare fallback bug → "•" prefix (evrensel). "✓" SDF font destekli.
-                string prefix = tamam ? "✓ " : "• ";
+                // PAKET 14-FAZ21: Prefix HER İKİ DURUMDA da "- " sabit, sadece renk değişimi (beyaz→yeşil).
+                string prefix = "- ";
                 // PAKET 5: Spin sayacı son maddeye entegre — "5 spin at (2/5)"
                 string asilMetin = v.yapilacaklar[i];
                 if (sonMaddeSpin)

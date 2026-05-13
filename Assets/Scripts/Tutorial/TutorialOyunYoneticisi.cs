@@ -784,16 +784,28 @@ namespace KumarFarkindalik.Tutorial
             // T5IlkAsamaSonuAkisi içinde yapılıyor (1. spin sonrası, adım bitmeden ara modal göstermek için).
             // Adım sonu (her iki aşama bitince) ek temizlik gerekmez — bonus state zaten temizlendi.
 
-            // === Vurgu kapat + AdimGoster gizle ===
-            TutorialAdimGoster.Ornek?.Gizle();
+            // === Vurgu kapat (AdimGoster gizleme KALDIRILDI — modal C sırasında sağ panel görünür kalsın) ===
+            // PAKET 14-FAZ22: TutorialAdimGoster.Ornek?.Gizle() kaldırıldı — eski tasarımdan kalma, modal
+            // açıldığında sağ panel kaybolmasın. AdimDegisti yeni adıma geçişte zaten Gizle çağırıyor.
 #if UNITY_WEBGL && !UNITY_EDITOR
             TumVurgulariKapat();
 #endif
 
-            // PAKET 14-FAZ13 (İş 4): Modal C öncesi defansif 1sn bekleme — son spin animasyonu (tumble,
-            // kazanç gösterimi) tamamlandığını garanti et. SayaciGecikmeliArtir 3sn timeout sonrası sayacı
-            // artırabiliyor (animasyon bitmeden), Modal C erken açılıyordu (T3_YONTMA 5.spin örneği).
-            yield return new WaitForSecondsRealtime(1f);
+            // PAKET 14-FAZ22: Modal C öncesi GERÇEK animasyon bitiş bekle — sabit 1sn yetersizdi.
+            // SayaciGecikmeliArtir ile aynı zincir: spinCalisiyor, BIG WIN pop-up, kazanç animasyon.
+            var oyKapanis = Object.FindObjectOfType<OyunYoneticisi>();
+            if (oyKapanis != null)
+            {
+                yield return BekleVeyaTimeout(() => !oyKapanis.SpinCalisiyorMu, 3f);
+                yield return BekleVeyaTimeout(() =>
+                    oyKapanis.winFeedbackUI == null || !oyKapanis.winFeedbackUI.GosterimAktif, 5f);
+                yield return BekleVeyaTimeout(() => !TutorialKazancAnimasyon.AnimasyonAktif, 3f);
+                yield return new WaitForSecondsRealtime(0.5f); // ek tampon
+            }
+            else
+            {
+                yield return new WaitForSecondsRealtime(1f);
+            }
 
             // === Modal C (pedagojik özet — atlasa da gösterilsin) ===
             if (TutorialModalKopru.Ornek != null && !string.IsNullOrEmpty(v.mesajKapanis))
@@ -909,11 +921,12 @@ namespace KumarFarkindalik.Tutorial
             TutorialSpinSayaci++;
             // PAKET 14-FAZ16: Bakiye farkı (03 AnlaticiSeritKopru:437 referansı). Bahis ZATEN bakiye'den çıkıyor,
             // kazanç ZATEN bakiye'ye ekleniyor → tek fark = spin'in NET kazanç/kaybı (formül 1-1).
-            // PAKET 14-FAZ20: Bakiye spin finalize edilmeden 0 fark dönüyordu → 1sn timeout ile değişim bekle.
+            // PAKET 14-FAZ22: BekleVeyaTimeout(bakiye != baslangic) KALDIRILDI — spin başı bahis çıkarma ANINDA
+            // snapshot yakalanıyordu → kazanç eklenmeden net=-1000 yerine net=0 hesaplanıyordu (3.spin mavi).
+            // Yukarıdaki spinCalisiyor + WinFeedbackUI + TutorialKazancAnimasyon zinciri + 0.5sn tampon
+            // bakiye'nin finalize olmasını zaten garanti ediyor.
             if (oy != null)
             {
-                long baslangic = _oncekiBakiye;
-                yield return BekleVeyaTimeout(() => oy.BahisPanelMevcutBakiye() != baslangic, 1f);
                 long simdikiBakiye = oy.BahisPanelMevcutBakiye();
                 int net = (int)(simdikiBakiye - _oncekiBakiye);
                 AktifAdimSpinNetleri.Add(net);
