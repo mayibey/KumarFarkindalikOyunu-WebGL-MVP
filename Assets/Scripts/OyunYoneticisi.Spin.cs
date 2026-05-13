@@ -198,6 +198,8 @@ public partial class OyunYoneticisi
         if (KumarFarkindalik.Tutorial.TutorialModalKopru.ModalAcik) { Debug.Log("[SpinButon-DEBUG] RETURN: TutorialModalKopru.ModalAcik=true"); return; }
         // Tutorial parametre bekleyen adım — Space tuşu (mouse overlay tarafından yutulmuyor) için global guard + uyarı.
         if (KumarFarkindalik.Tutorial.TutorialOyunYoneticisi.SpinKilitli) { KumarFarkindalik.Tutorial.TutorialOyunYoneticisi.Ornek?.SpinKilitliUyariGoster(); return; }
+        // BIG/MEGA/EPIC WIN pop-up sayma animasyonu sürerken Space spin'i arka planda atıyordu — pop-up bitene kadar yut.
+        if (winFeedbackUI != null && winFeedbackUI.GosterimAktif) { Debug.Log("[SpinButon-DEBUG] RETURN: WinFeedbackUI.GosterimAktif=true"); return; }
         if (ScriptedDusunceBalonu.BalonAcik) { Debug.Log("[SpinButon-DEBUG] RETURN: ScriptedDusunceBalonu.BalonAcik=true"); return; }
         if (AnlaticiSeritKopru.BonusBitisAcik) { Debug.Log("[SpinButon-DEBUG] RETURN: AnlaticiSeritKopru.BonusBitisAcik=true"); return; }
         // Race condition fix: A* özel akış coroutine'i (modal + WaitForSeconds delay) sürüyorsa engelle.

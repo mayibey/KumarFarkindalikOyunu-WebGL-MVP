@@ -68,13 +68,15 @@ namespace KumarFarkindalik.Tutorial
                 new SpinDesen { sembolId = -1, adet = 0 },
                 new SpinDesen { sembolId = 5, adet = 10 },  // 2000 TL tutucu
             },
-            // T3_KORUMA: 5 spin — 0/300/0/200/0 (orijinal 330/250 paytable adımıyla tutturulamaz → revize)
+            // PAKET 14-FAZ2: T3_KORUMA — 5/5 kayıp (bakiye tüketme pedagojisi).
+            // Net: 5 spin × 1000 bahis = -5000 TL. Hiç "kurtarıcı kazanç" yok → kullanıcı korumanın
+            // gerçekte ne kadar agresif olabileceğini hissetsin.
             ["koruma"] = new[]
             {
                 new SpinDesen { sembolId = -1, adet = 0 },
-                new SpinDesen { sembolId = 1, adet = 8 },   // 300 TL (orijinal 330 → 300; pedagoji aynı)
                 new SpinDesen { sembolId = -1, adet = 0 },
-                new SpinDesen { sembolId = 0, adet = 8 },   // 200 TL (orijinal 250 → 200)
+                new SpinDesen { sembolId = -1, adet = 0 },
+                new SpinDesen { sembolId = -1, adet = 0 },
                 new SpinDesen { sembolId = -1, adet = 0 },
             },
             // PAKET 9 — T5 BONUS SEMBOLÜ 2-aşamalı: %100 → 1 spin (bonus garanti), %0 → 1 spin (bonus yok).
@@ -113,20 +115,8 @@ namespace KumarFarkindalik.Tutorial
                 new SpinDesen { sembolId = -1, adet = 0 },   // Kayıp
                 new SpinDesen { sembolId = 4, adet = 12 },   // 3000 TL (x12+[4]=3.0)
             },
-            // PAKET 6D — T8 (Ödeme) aşama 1: maks 3x dar aralık (kazançlar <3000, biri kayıp)
-            ["odeme_dusukMaks"] = new[]
-            {
-                new SpinDesen { sembolId = 3, adet = 8 },    // 500 TL (0.5x)
-                new SpinDesen { sembolId = -1, adet = 0 },   // Kayıp
-                new SpinDesen { sembolId = 4, adet = 8 },    // 600 TL (0.6x)
-            },
-            // PAKET 6D — T8 aşama 2: 3-5x garanti aralık (kazanç kesin, kayıp yok)
-            ["odeme_aralik3_5"] = new[]
-            {
-                new SpinDesen { sembolId = 4, adet = 12 },   // 3000 TL (3.0x — min)
-                new SpinDesen { sembolId = 5, adet = 12 },   // 5000 TL (5.0x — maks)
-                new SpinDesen { sembolId = 4, adet = 12 },   // 3000 TL
-            },
+            // PAKET 14-FAZ2: T7 Ödeme aralığı artık DİNAMİK (DinamikOdemePatternBaslat ile paytable
+            // taramasından üretilir). Eski sabit "odeme_dusukMaks" ve "odeme_aralik3_5" KALDIRILDI.
             // PAKET 6D — T10 (Kaçış): 3 kayıp + 1 kazanç (limit anında otomatik frenleme)
             ["kacisFrenle"] = new[]
             {
@@ -162,8 +152,11 @@ namespace KumarFarkindalik.Tutorial
 
         // PAKET 6C3: Dinamik pattern state (T7 Kazandırma + T9 Near Miss — 5'de N mantığı)
         private static int _dinamikN = 3;
-        private static string _dinamikMod = "";          // "kazandirma" / "nearMiss"
+        private static string _dinamikMod = "";          // "kazandirma" / "nearMiss" / "odeme"
         private static SpinDesen[] _dinamikPattern;      // cache (her PatternBaslat'ta yeniden üretilir)
+        // PAKET 14-FAZ2: T7 Ödeme dinamik aralık (min/maks bahis çarpanı, panel.html minCarpan/maksCarpan)
+        private static float _dinamikMin = 0f;
+        private static float _dinamikMaks = 0f;
 
         // System.Random instance (Unity Random.seed'e DOKUNMAZ — 03'e sızmaz)
         private static readonly System.Random _rng = new System.Random(12345);
@@ -288,8 +281,8 @@ namespace KumarFarkindalik.Tutorial
         }
 
         // PAKET 6C3: Dinamik pattern başlat (T7 Kazandırma + T9 Near Miss)
-        // mod: "kazandirma" → N adet 500-600 TL kazanç + (5-N) kayıp shuffle
-        // mod: "nearMiss"  → N adet 7-sembol near miss + (5-N) kayıp shuffle
+        // mod: "kazandirma" → N adet küçük kazanç + (5-N) kayıp (KAZANÇLAR BAŞTA, deterministik sıra)
+        // mod: "nearMiss"  → N adet 7-sembol near miss + (5-N) kayıp (NEAR MISS'LER BAŞTA)
         public static void DinamikPatternBaslat(string mod, int n)
         {
             _dinamikMod = mod;
@@ -298,6 +291,7 @@ namespace KumarFarkindalik.Tutorial
             _aktifPattern = "dinamik";
             _spinIdx = 0;
             _motorAktif = true;
+            _sonInjekteEttigimKayit = null;
 
             var oy = Object.FindObjectOfType<OyunYoneticisi>();
             oy?.ScriptedSenaryoCacheTazele();
@@ -305,15 +299,37 @@ namespace KumarFarkindalik.Tutorial
             Debug.Log($"[TutorialSenaryoMotoru] Dinamik pattern başladı: mod={mod}, N={_dinamikN}/5, desen sayısı={_dinamikPattern.Length}");
         }
 
+        // PAKET 14-FAZ2: T7 Ödeme aralığı dinamik pattern başlat.
+        // 5 spin × paytable taramasından random (sembolId, adet) — payCoef ∈ [minBahisCarpani, maksBahisCarpani].
+        // Aralık dışı kombinasyon yoksa o spin için kayıp deseni.
+        public static void DinamikOdemePatternBaslat(float minBahisCarpani, float maksBahisCarpani)
+        {
+            _dinamikMod = "odeme";
+            _dinamikMin = minBahisCarpani;
+            _dinamikMaks = maksBahisCarpani;
+            _dinamikPattern = UretOdemeDesenler(minBahisCarpani, maksBahisCarpani);
+            _aktifPattern = "dinamik";
+            _spinIdx = 0;
+            _motorAktif = true;
+            _sonInjekteEttigimKayit = null;
+
+            var oy = Object.FindObjectOfType<OyunYoneticisi>();
+            oy?.ScriptedSenaryoCacheTazele();
+
+            Debug.Log($"[TutorialSenaryoMotoru] Ödeme dinamik pattern başladı: aralık=[{minBahisCarpani:F1}-{maksBahisCarpani:F1}]× bahis, {_dinamikPattern.Length} spin");
+        }
+
         private static SpinDesen[] UretDinamikDesenler(string mod, int n)
         {
+            // PAKET 14-FAZ2: shuffle KALDIRILDI. Kullanıcı slider'da N seçince N kazanç BAŞTA,
+            // (5-N) kayıp SONDA ardışık çıksın → "5'de 3 → K/K/K/x/x" deterministik pedagoji.
             var liste = new List<SpinDesen>();
             int kazancAdedi = Mathf.Clamp(n, 0, 5);
             int kayipAdedi = 5 - kazancAdedi;
 
             if (mod == "kazandirma")
             {
-                // N kazanç desen (500/300/600 TL random — paytable uyumlu küçük kazançlar)
+                // N kazanç desen (500/300/600 TL random tip — paytable uyumlu küçük kazançlar)
                 for (int i = 0; i < kazancAdedi; i++)
                 {
                     int tip = _rng.Next(3);
@@ -339,12 +355,52 @@ namespace KumarFarkindalik.Tutorial
                     liste.Add(new SpinDesen { sembolId = -1, adet = 0 });
             }
 
-            // Fisher-Yates shuffle (sıralama karışık olsun)
-            for (int i = liste.Count - 1; i > 0; i--)
+            return liste.ToArray();
+        }
+
+        // PAKET 14-FAZ2: T7 Ödeme — paytable taramasıyla [min, maks] aralığında 5 spin üret.
+        // Her spin: aralıkta olan tüm (sym 0..6, adet ∈ {8,9,10,11,12}) kombinasyonları → random seç.
+        // Aralık dışı (paytable hiç eşleşmiyor) → kayıp deseni.
+        private static SpinDesen[] UretOdemeDesenler(float minCarpan, float maksCarpan)
+        {
+            var liste = new List<SpinDesen>(5);
+            var oy = Object.FindObjectOfType<OyunYoneticisi>();
+            var ta = oy != null ? oy.tumbleAyarlari : null;
+            if (ta == null || ta.PayTable_8_9 == null)
             {
-                int j = _rng.Next(0, i + 1);
-                var tmp = liste[i]; liste[i] = liste[j]; liste[j] = tmp;
+                for (int i = 0; i < 5; i++)
+                    liste.Add(new SpinDesen { sembolId = -1, adet = 0 });
+                return liste.ToArray();
             }
+
+            int sembolSayisi = ta.PayTable_8_9.Length;
+            int scatterIdx = ta.ScatterIndex;
+            int[] adetler = { 8, 9, 10, 11, 12 };
+
+            // Aday kombinasyon havuzu (payCoef aralık içinde olanlar)
+            var adaylar = new List<SpinDesen>();
+            for (int sym = 0; sym < sembolSayisi; sym++)
+            {
+                if (sym == scatterIdx) continue;
+                foreach (int adet in adetler)
+                {
+                    float payCoef = ta.GetPayForCount(sym, adet);
+                    if (payCoef >= minCarpan && payCoef <= maksCarpan)
+                        adaylar.Add(new SpinDesen { sembolId = sym, adet = adet });
+                }
+            }
+
+            if (adaylar.Count == 0)
+            {
+                Debug.LogWarning($"[TutorialSenaryoMotoru] Ödeme aralığı [{minCarpan}-{maksCarpan}] paytable'da eşleşmedi → 5 kayıp");
+                for (int i = 0; i < 5; i++)
+                    liste.Add(new SpinDesen { sembolId = -1, adet = 0 });
+                return liste.ToArray();
+            }
+
+            for (int i = 0; i < 5; i++)
+                liste.Add(adaylar[_rng.Next(adaylar.Count)]);
+
             return liste.ToArray();
         }
 

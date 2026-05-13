@@ -562,10 +562,18 @@ namespace KumarFarkindalik.Tutorial
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T7) // ÖDEME ARALIĞI (sira=8, UI "T8")
             {
-                // PAKET 6D: 2-aşamalı maks 3x → min/maks 3-5x
+                // PAKET 14-FAZ2: Artık DİNAMİK. Giriş anında motor pasif — kullanıcı slider'dan
+                // min/maks set edince TutorialAdminEnjeksiyonu.TryDinamikOdemePatternBaslat tetiklenir.
+                // carpanUretimiAktif=false → RNG akışında 5000 × çarpan = 8000+ TL kaçağı önlenir.
                 T8AraModalGosterildi = false;
                 T8IkinciAsamaBasladi = false;
-                TutorialSenaryoMotoru.PatternBaslat("odeme_dusukMaks");
+                TutorialSenaryoMotoru.Durdur();
+                var oyT7 = Object.FindObjectOfType<OyunYoneticisi>();
+                if (oyT7 != null) oyT7.carpanUretimiAktif = false;
+                // Min/maks cache reset (önceki adımdan kalıntı tetik vermesin)
+                TutorialAdminEnjeksiyonu.SonMinCarpan = 0f;
+                TutorialAdminEnjeksiyonu.SonMaksCarpan = 0f;
+                Debug.Log("[Tutorial T7 Ödeme] Giriş → motor pasif + carpan kapalı, slider eventi bekleniyor.");
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T9) // KAÇIŞ FRENLEME (sira=10, UI "T10")
             {

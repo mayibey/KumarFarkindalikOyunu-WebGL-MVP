@@ -17,6 +17,9 @@ namespace KumarFarkindalik.Tutorial
         public static float SonCarpanOlasilik;  // 0-100 (panel.html %)
         public static int SonCarpanZorla;       // panel.html "carpanZorla" 500 vb.
         public static bool BonusTetiklendi;     // panel.html "bonusTetikle" tek-seferlik flag
+        // PAKET 14-FAZ2: T7 Ödeme dinamik min/maks (bahis çarpanı) — slider eventleri ayrı geldiği için cache.
+        public static float SonMinCarpan = 0f;
+        public static float SonMaksCarpan = 0f;
 
         private TutorialAdimYoneticisi _ay;
         private bool _eventBagli;
@@ -40,6 +43,8 @@ namespace KumarFarkindalik.Tutorial
             SonCarpanOlasilik = 0f;
             SonCarpanZorla = 0;
             BonusTetiklendi = false;
+            SonMinCarpan = 0f;
+            SonMaksCarpan = 0f;
 
             // PAKET 3B-fix-14: OyunYoneticisi private field reflection cache
             _bonusAktifField = typeof(OyunYoneticisi).GetField("bonusAktif",
@@ -57,6 +62,26 @@ namespace KumarFarkindalik.Tutorial
                 PanelKopru.OnAyarDegisti -= AyarDegisti;
                 _eventBagli = false;
             }
+        }
+
+        // PAKET 14-FAZ2: T7 Ödeme dinamik pattern tetikleyici.
+        // min ve maks ayrı ayrı geldiği için her event'te çağrılır; min>0 && maks>=min && T7 adımında ise
+        // paytable taramasıyla 5 spinlik desen üretir. Ara modal sonrası ikinci aşama bayrağı da set olur.
+        private static void TryDinamikOdemePatternBaslat()
+        {
+            var ay = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
+            if (ay == null) return;
+            if (ay.mevcutAdim != TutorialAdimYoneticisi.TutorialAdimId.T7) return;
+            float min = SonMinCarpan;
+            float maks = SonMaksCarpan;
+            if (min <= 0f || maks <= 0f || maks < min) return;
+
+            // Ara modal sonrası ikinci aşama bayrağını işaretle (UI durumu eski mantıkla uyumlu)
+            if (TutorialOyunYoneticisi.T8AraModalGosterildi && !TutorialOyunYoneticisi.T8IkinciAsamaBasladi)
+                TutorialOyunYoneticisi.T8IkinciAsamaBasladi = true;
+
+            TutorialSenaryoMotoru.DinamikOdemePatternBaslat(min, maks);
+            Debug.Log($"[Tutorial T7 Ödeme] Dinamik pattern tetiklendi: aralık=[{min:F1}-{maks:F1}]× bahis");
         }
 
         private void AyarDegisti(string key, string value)
@@ -163,21 +188,20 @@ namespace KumarFarkindalik.Tutorial
                         }
                     }
                     break;
-                case "maksCarpan":
-                    // PAKET 6D: T7 (Ödeme) aşama 2 — kullanıcı MIN=3, MAKS=5 ayarladığında ikinci pattern
+                case "minCarpan":
+                    // PAKET 14-FAZ2: T7 Ödeme — min slider değişti, cache + dinamik pattern dene.
+                    if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out float minCarp))
                     {
-                        var ayO = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
-                        if (ayO != null && ayO.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T7
-                            && TutorialOyunYoneticisi.T8AraModalGosterildi
-                            && !TutorialOyunYoneticisi.T8IkinciAsamaBasladi
-                            && float.TryParse(value, System.Globalization.NumberStyles.Float,
-                                              System.Globalization.CultureInfo.InvariantCulture, out float maks)
-                            && maks >= 4.5f && maks <= 5.5f)
-                        {
-                            TutorialOyunYoneticisi.T8IkinciAsamaBasladi = true;
-                            TutorialSenaryoMotoru.PatternBaslat("odeme_aralik3_5");
-                            Debug.Log("[Tutorial T8 Ödeme] MAKS=5 set → ikinci pattern başladı");
-                        }
+                        SonMinCarpan = minCarp;
+                        TryDinamikOdemePatternBaslat();
+                    }
+                    break;
+                case "maksCarpan":
+                    // PAKET 14-FAZ2: T7 Ödeme — maks slider değişti, cache + dinamik pattern dene.
+                    if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out float maksCarp))
+                    {
+                        SonMaksCarpan = maksCarp;
+                        TryDinamikOdemePatternBaslat();
                     }
                     break;
                 case "carpanOdeme":
