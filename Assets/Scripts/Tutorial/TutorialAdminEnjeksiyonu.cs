@@ -103,7 +103,7 @@ namespace KumarFarkindalik.Tutorial
                         if (ayT4 != null && ayT4.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T4
                             && TutorialOyunYoneticisi.T4AraModalGosterildi
                             && !TutorialOyunYoneticisi.T4IkinciAsamaBasladi
-                            && co <= 5f)
+                            && co <= 0.5f) // PAKET 14-FAZ4: TAM %0 sınırı
                         {
                             TutorialOyunYoneticisi.T4IkinciAsamaBasladi = true;
                             // PAKET 14 (İş 3): Motor pattern enjeksiyon race ile RNG path geçerse
@@ -130,7 +130,7 @@ namespace KumarFarkindalik.Tutorial
                         if (ayT5 != null && ayT5.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T5
                             && TutorialOyunYoneticisi.T5AraModalGosterildi
                             && !TutorialOyunYoneticisi.T5IkinciAsamaBasladi
-                            && bonusPeriyot >= 50)
+                            && bonusPeriyot == 9999) // PAKET 14-FAZ4: TAM %0 sınırı (panel.html %0→9999)
                         {
                             TutorialOyunYoneticisi.T5IkinciAsamaBasladi = true;
                             // PAKET 14-FAZ3 (İş 4): T11BonusYarimKes spinCalisiyor=false set'i Update polling'i

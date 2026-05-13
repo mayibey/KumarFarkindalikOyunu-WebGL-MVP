@@ -874,10 +874,9 @@ namespace KumarFarkindalik.Tutorial
 
         private IEnumerator T5IlkAsamaSonuAkisi()
         {
-            // PAKET 14-FAZ3 (İş 3): 3sn → 1sn. Bonus oyun başlama animasyonu içinde bonus grid yüklenip
-            // 4 scatter ekrandan kayboluyordu. 1sn'de "bonus tetiklendi" hissi alınır, bonus grid
-            // yüklenmeden yarım kes → scatter'lar grid'de görünür kalır.
-            yield return new WaitForSecondsRealtime(1f);
+            // PAKET 14-FAZ4 (İş 2A): 1sn → 0sn. SayaciGecikmeliArtir zaten spin animasyonu bitmiş +
+            // 0.5sn ek delay sonrası tetikler. Burada ek bekleme → bonus oyun başlama animasyonu
+            // grid'i değiştirme süresi. Anında T11BonusYarimKes → 4 scatter ekranda kalır.
             T11BonusYarimKes();
             yield return new WaitForSecondsRealtime(1.5f);
             TutorialSenaryoMotoru.Durdur();

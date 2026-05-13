@@ -202,14 +202,16 @@ namespace KumarFarkindalik.Tutorial
                 mesajKapanis = T4_KAPANIS,
                 altBaslik = "ÇARPAN OLASILIĞI",
                 // PAKET 9: 2-aşamalı — %100 1 spin + %0 1 spin daha = toplam 2 spin
-                yapilacaklar = new[] { "Çarpan olasılığını ayarla (%100 → %0)", "2 spin at" },
+                // PAKET 14-FAZ4 (İş 3+4): Metin kısa "Çarpan %100 ve %0 ayarla" (UI taşma önlendi).
+                yapilacaklar = new[] { "Çarpan %100 ve %0 ayarla", "2 spin at" },
                 sira = 4,
                 vurguSelectorlari = new[] { "#carpanOlasilik", "#carpanOlasilikInput" },
                 gerekliSpin = 2,
-                // PAKET 9: aşamaya göre dinamik — ilk aşama %100 (>=95), ara modal sonrası %0 (<=5).
+                // PAKET 14-FAZ4 (İş 1): Sınır SIKI — 95/5 toleransı %94/%6'yı kabul ediyordu.
+                // %100 ve %0 için 0.5 tolerans (float yuvarlama güvencesi).
                 parametreKosulu = () => TutorialOyunYoneticisi.T4AraModalGosterildi
-                    ? TutorialAdminEnjeksiyonu.SonCarpanOlasilik <= 5f
-                    : TutorialAdminEnjeksiyonu.SonCarpanOlasilik >= 95f,
+                    ? TutorialAdminEnjeksiyonu.SonCarpanOlasilik <= 0.5f
+                    : TutorialAdminEnjeksiyonu.SonCarpanOlasilik >= 99.5f,
                 degisimAnahtarlari = new[] { "carpanOlasilik" },
             };
 
@@ -222,14 +224,16 @@ namespace KumarFarkindalik.Tutorial
                 mesajKapanis = T5_KAPANIS,
                 altBaslik = "BONUS SEMBOLÜ",
                 // PAKET 9: 2-aşamalı — %100 1 spin (bonus garanti) + %0 1 spin (bonus yok) = toplam 2 spin
-                yapilacaklar = new[] { "Bonus olasılığını ayarla (%100 → %0)", "2 spin at" },
+                // PAKET 14-FAZ4 (İş 3+4): Metin kısa "Bonus %100 ve %0 ayarla" (UI taşma önlendi).
+                yapilacaklar = new[] { "Bonus %100 ve %0 ayarla", "2 spin at" },
                 sira = 5,
                 vurguSelectorlari = new[] { "#bonusSembolOlasilik" },
                 gerekliSpin = 2,
-                // PAKET 9: aşamaya göre dinamik. İlk aşama %100 → periyot 1-2; ikinci aşama %0 → periyot ≥50.
+                // PAKET 14-FAZ4 (İş 1): Sınır SIKI — panel.html %100 → spin=1, %0 → 9999.
+                // Eski 1-2 toleransı %50'yi kabul ediyordu (spin=2). Şimdi tam ==1 / ==9999.
                 parametreKosulu = () => TutorialOyunYoneticisi.T5AraModalGosterildi
-                    ? PanelKopru.bonusOtomatikSpinPeriyodu >= 50
-                    : (PanelKopru.bonusOtomatikSpinPeriyodu > 0 && PanelKopru.bonusOtomatikSpinPeriyodu <= 2),
+                    ? PanelKopru.bonusOtomatikSpinPeriyodu == 9999
+                    : PanelKopru.bonusOtomatikSpinPeriyodu == 1,
                 degisimAnahtarlari = new[] { "bonusOtomatikOran" },
             };
 
