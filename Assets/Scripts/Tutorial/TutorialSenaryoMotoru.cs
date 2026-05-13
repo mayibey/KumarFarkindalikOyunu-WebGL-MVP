@@ -293,11 +293,19 @@ namespace KumarFarkindalik.Tutorial
             // PAKET 14-FAZ28: Enjekte henüz yapılmadı → SpinKilitli=true (Update polling yapana kadar)
             KayitEnjekteEdildi = false;
 
-            // Cache temizle ki sonraki precompute Tutorial pattern ile dolsun (override)
+            // PAKET 14-FAZ31: Defansif admin state reset — ara adım/modal state'i bozmuş olabilir.
+            // TryConsumeOncedenHesaplanan policy validation Tutorial kaydını discard etmesin diye
+            // her pattern başında Normal Oyun mode + maxOdeme=99999 garanti et.
             var oy = Object.FindObjectOfType<OyunYoneticisi>();
+            if (oy != null)
+            {
+                oy.AdminNormalOyunUygula();
+                oy.AdminSetMaxOdeme(99999);
+            }
+            // Cache temizle ki sonraki precompute Tutorial pattern ile dolsun (override)
             oy?.ScriptedSenaryoCacheTazele();
 
-            Debug.Log($"[TutorialSenaryoMotoru] Pattern '{mod}' başladı — {_patternlar[mod].Length} spin. KayitEnjekteEdildi=false (race fix).");
+            Debug.Log($"[TutorialSenaryoMotoru] Pattern '{mod}' başladı — {_patternlar[mod].Length} spin. KayitEnjekteEdildi=false, admin state RESET (race fix + cache validation bypass).");
         }
 
         /// <summary>ButtonCevir click sonrası çağır (kullanıcı SPIN'i tükettiği anda spinIdx ilerlesin).</summary>
@@ -344,7 +352,13 @@ namespace KumarFarkindalik.Tutorial
             // PAKET 14-FAZ28: Enjekte henüz yapılmadı → SpinKilitli=true
             KayitEnjekteEdildi = false;
 
+            // PAKET 14-FAZ31: Defansif admin state reset (cache validation bypass)
             var oy = Object.FindObjectOfType<OyunYoneticisi>();
+            if (oy != null)
+            {
+                oy.AdminNormalOyunUygula();
+                oy.AdminSetMaxOdeme(99999);
+            }
             oy?.ScriptedSenaryoCacheTazele();
 
             Debug.Log($"[TutorialSenaryoMotoru] Dinamik pattern başladı: mod={mod}, N={_dinamikN}/5, desen sayısı={_dinamikPattern.Length}");
@@ -366,7 +380,13 @@ namespace KumarFarkindalik.Tutorial
             // PAKET 14-FAZ28: Enjekte henüz yapılmadı → SpinKilitli=true
             KayitEnjekteEdildi = false;
 
+            // PAKET 14-FAZ31: Defansif admin state reset (cache validation bypass)
             var oy = Object.FindObjectOfType<OyunYoneticisi>();
+            if (oy != null)
+            {
+                oy.AdminNormalOyunUygula();
+                oy.AdminSetMaxOdeme(99999);
+            }
             oy?.ScriptedSenaryoCacheTazele();
 
             Debug.Log($"[TutorialSenaryoMotoru] Ödeme dinamik pattern başladı: aralık=[{minBahisCarpani:F1}-{maksBahisCarpani:F1}]× bahis, {_dinamikPattern.Length} spin");

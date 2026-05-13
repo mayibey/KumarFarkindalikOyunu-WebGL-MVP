@@ -484,6 +484,15 @@ namespace KumarFarkindalik.Tutorial
                 _orijinalBahis = oy.BotIcinBahis;
                 Debug.Log($"[Tutorial] Original cache: scatter={_orijinalScatterChance}, periyot={_orijinalBonusOtomatikPeriyot}, bahis={_orijinalBahis}");
 
+                // PAKET 14-FAZ31: Admin state'i Normal Oyun moduna resetle — Tutorial başlangıcında
+                // admin senaryo preset (S2/S3 vb.) aktif kalabiliyordu → TryConsumeOncedenHesaplanan
+                // OncedenHesaplanmisNormalSpinOdemeYenidenDogrulansinMi=true → Tutorial kaydı 5000 TL
+                // policy bandına uymuyor → cache discard → fresh RNG simülasyonu (ARMUT 8 + 8+2x çarpan = 2000).
+                // AdminNormalOyunUygula: _senaryoPresetAktif=false, _aktifAdminSenaryoIndex=-1,
+                // _minOdemeTL=0, _maxOdemeTL=0, SpinPolitikasiniYenile (NormalSenaryo), cache temizle.
+                oy.AdminNormalOyunUygula();
+                Debug.Log("[Tutorial] AdminNormalOyunUygula çağrıldı — admin senaryo preset reset, policy=Normal.");
+
                 oy.AnlaticiBakiyeyiSifirla(50000);
                 oy.AdminBahisAyarla(1000);
                 // PAKET 3B-fix-13 (Bug 1): Tutorial boyunca otomatik bonus tetiklenmesini engelle.
