@@ -340,6 +340,13 @@ namespace KumarFarkindalik.Tutorial
             if (parametreTamam && v.parametreKosulu != null)
                 parametreTamam = v.parametreKosulu.Invoke();
 
+            // PAKET 14-FAZ28: Race fix — pattern motor aktif AMA Tutorial kaydı henüz cache'e enjekte
+            // edilmediyse SpinKilitli=true tut. Aksi halde kullanıcı pre-compute'un UnityEngine.Random
+            // çıktısıyla spin oynatır (T4 çarpan pozisyon/değer farklı, T5 4 scatter düşmüyor).
+            // Pattern bitmiş veya zaten motor pasifse (T1, T2, T_SON) kontrol atlanır.
+            if (parametreTamam && TutorialSenaryoMotoru.MotorAktif && !TutorialSenaryoMotoru.KayitEnjekteEdildi)
+                parametreTamam = false;
+
             TutorialAdimGoster.Ornek.IlerlemeGuncelle(delta, v.gerekliSpin, parametreTamam);
 
             // PAKET 3B-fix-11 (Sorun 2): SPIN butonu interactable=true bırak (listener guard handle ediyor + uyarı).
