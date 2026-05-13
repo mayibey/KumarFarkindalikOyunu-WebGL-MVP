@@ -32,6 +32,12 @@ namespace KumarFarkindalik.Tutorial
             // PAKET 6D — T11 (Çarpan Zorla) demo: çarpan grid'e CARPAN_SEMBOL yerleştir
             public bool carpanZorla;
             public int carpanDeger; // örn 500
+            // PAKET 14-FAZ29: SABİT çarpan pattern — RNG'siz, her oyuncu AYNI pozisyon + değer.
+            // null/boş ise eski RNG mantığı (carpanUretimOlasiligi'na göre).
+            public Vector2Int[] carpanPozlari;
+            public int[] carpanDegerleri;
+            // PAKET 14-FAZ29: SABİT scatter pattern — RNG'siz pozisyon. null/boş ise Fisher-Yates RNG.
+            public Vector2Int[] scatterPozlari;
         }
 
         // Pattern dictionary — bahis=1000 TL, tumble YOK (tek paytable hit / tek tumble adımı)
@@ -81,21 +87,37 @@ namespace KumarFarkindalik.Tutorial
             },
             // PAKET 9 — T5 BONUS SEMBOLÜ 2-aşamalı: %100 → 1 spin (bonus garanti), %0 → 1 spin (bonus yok).
             // bonusTest_100: 4 scatter düşer → bonus tetiklenir; bonusTest_0: normal kayıp grid → bonus tetiklenmez.
+            // PAKET 14-FAZ29: scatterPozlari SABİT 4 pozisyon — her oyuncu AYNI yıldız dağılımı.
             ["bonusTest_100"] = new[]
             {
-                new SpinDesen { sembolId = SCATTER_PATTERN_FLAG, adet = 4 },   // %100 → 4 scatter, bonus
+                new SpinDesen
+                {
+                    sembolId = SCATTER_PATTERN_FLAG, adet = 4,
+                    scatterPozlari = new[]
+                    {
+                        new Vector2Int(1, 1),
+                        new Vector2Int(4, 2),
+                        new Vector2Int(2, 3),
+                        new Vector2Int(5, 0),
+                    }
+                },
             },
             ["bonusTest_0"] = new[]
             {
                 new SpinDesen { sembolId = -1, adet = 0 },                     // %0 → cluster yok, scatter yok, bonus yok
             },
             // PAKET 9 — T4 ÇARPAN 2-aşamalı: %100 → 1 spin (çarpan kesin), %0 → 1 spin (çarpan yok).
-            // DesenToKayit içinde çarpan enjeksiyonu _oy.carpanUretimOlasiligi'na göre yapılır:
-            //   slider %100 (1.0) → her aday hücreye çarpan; slider %0 (0.0) → hiç çarpan.
-            // Pattern adı sadece SpinTamamlandi sayacı için ayrım — desen aynı (1 spin × kazançlı cluster).
+            // PAKET 14-FAZ29: carpanPozlari/Degerleri SABİT — RNG'siz, deterministik 2 çarpan
+            //   pozisyon (2,3) → 5x, (4,1) → 10x. Her oyuncu AYNI çarpan deneyimi yaşar.
+            // carpanTest_0: arrayler boş → çarpan yerleştirilmez (carpanUretimOlasiligi=0 path).
             ["carpanTest_100"] = new[]
             {
-                new SpinDesen { sembolId = 3, adet = 8 },   // 500 TL + çarpan kesin (slider %100)
+                new SpinDesen
+                {
+                    sembolId = 3, adet = 8,   // 500 TL + 2 sabit çarpan
+                    carpanPozlari = new[] { new Vector2Int(2, 3), new Vector2Int(4, 1) },
+                    carpanDegerleri = new[] { 5, 10 }
+                },
             },
             ["carpanTest_0"] = new[]
             {
@@ -562,9 +584,10 @@ namespace KumarFarkindalik.Tutorial
             };
 
             // PAKET 6C1 — Scatter pattern (T5 bonus testi): 'adet' kadar scatter + dolgu meyve, cluster yok
+            // PAKET 14-FAZ29: scatterPozlari varsa RNG'siz sabit yerleştirme
             if (desen.sembolId == SCATTER_PATTERN_FLAG)
             {
-                DolduScatterPattern(kayit.IlkGrid, SUTUN, SATIR, sembolSayisi, scatterIdx, desen.adet);
+                DolduScatterPattern(kayit.IlkGrid, SUTUN, SATIR, sembolSayisi, scatterIdx, desen.adet, desen.scatterPozlari);
                 kayit.ToplamHamKazanc = 0;
                 Debug.Log($"[TutorialSenaryoMotoru] Scatter pattern: {desen.adet} scatter yerleştirildi → bonus tetiklenmeli");
                 return kayit;
@@ -631,53 +654,76 @@ namespace KumarFarkindalik.Tutorial
             Debug.Log($"[T4 DEBUG] mevcutAdim={ay?.mevcutAdim}, carpanIzinli={carpanIzinli}, carpanUretimiAktif={_oy.carpanUretimiAktif}, carpanUretimOlasiligi={_oy.carpanUretimOlasiligi:F2}, maxCarpanAdedi={_oy.maxCarpanAdedi}");
             if (carpanIzinli && _oy.carpanUretimiAktif)
             {
-                float carpanOlasilik = _oy.carpanUretimOlasiligi;
-                int maxCarpan = Mathf.Max(1, _oy.maxCarpanAdedi);
-                if (carpanOlasilik > 0.001f)
+                const int CARPAN_SEMBOL_LOCAL = -2; // OyunYoneticisi.CARPAN_SEMBOL ile aynı
+                var clusterSet = new HashSet<Vector2Int>(clusterPozlari);
+
+                // PAKET 14-FAZ29: SABİT çarpan path — pattern'de carpanPozlari/Degerleri varsa RNG'siz yerleştir.
+                bool sabitCarpanVar = desen.carpanPozlari != null && desen.carpanPozlari.Length > 0
+                                       && desen.carpanDegerleri != null && desen.carpanDegerleri.Length > 0;
+                if (sabitCarpanVar)
                 {
-                    const int CARPAN_SEMBOL_LOCAL = -2; // OyunYoneticisi.CARPAN_SEMBOL ile aynı
-                    int[] dogalHavuz = { 2, 3, 5, 8, 10 }; // Fields.cs:557 doğal havuz {2,3,5,8,10}
-
-                    // Cluster hücreleri set (çarpan kazanç sembolüne yerleşmesin → cluster bozulmasın)
-                    var clusterSet = new HashSet<Vector2Int>(clusterPozlari);
-
-                    // Dolgu hücrelerini shuffle ile gez
-                    var adaylar = new List<Vector2Int>();
-                    for (int y = 0; y < SATIR; y++)
-                        for (int x = 0; x < SUTUN; x++)
-                            if (!clusterSet.Contains(new Vector2Int(x, y)))
-                                adaylar.Add(new Vector2Int(x, y));
-                    for (int i = adaylar.Count - 1; i > 0; i--)
+                    int yerlesenSabit = 0;
+                    int n = Mathf.Min(desen.carpanPozlari.Length, desen.carpanDegerleri.Length);
+                    for (int i = 0; i < n; i++)
                     {
-                        int j = _rng.Next(0, i + 1);
-                        var tmp = adaylar[i]; adaylar[i] = adaylar[j]; adaylar[j] = tmp;
+                        var p = desen.carpanPozlari[i];
+                        if (p.x < 0 || p.x >= SUTUN || p.y < 0 || p.y >= SATIR) continue;
+                        if (clusterSet.Contains(p)) continue; // cluster üstüne yazma
+                        int v = desen.carpanDegerleri[i];
+                        if (v <= 0) continue;
+                        kayit.IlkGrid[p.x, p.y] = CARPAN_SEMBOL_LOCAL;
+                        kayit.IlkCarpanGrid[p.x, p.y] = v;
+                        kayit.IlkCarpanDegerleri.Add(v);
+                        yerlesenSabit++;
                     }
-
-                    int yerlesen = 0;
-                    foreach (var p in adaylar)
+                    Debug.Log($"[TutorialSenaryoMotoru] SABİT çarpan yerleştirildi (RNG'siz): {yerlesenSabit} adet");
+                }
+                else
+                {
+                    float carpanOlasilik = _oy.carpanUretimOlasiligi;
+                    int maxCarpan = Mathf.Max(1, _oy.maxCarpanAdedi);
+                    if (carpanOlasilik > 0.001f)
                     {
-                        if (yerlesen >= maxCarpan) break;
-                        if (_rng.NextDouble() < carpanOlasilik)
+                        int[] dogalHavuz = { 2, 3, 5, 8, 10 }; // Fields.cs:557 doğal havuz {2,3,5,8,10}
+
+                        // Dolgu hücrelerini shuffle ile gez
+                        var adaylar = new List<Vector2Int>();
+                        for (int y = 0; y < SATIR; y++)
+                            for (int x = 0; x < SUTUN; x++)
+                                if (!clusterSet.Contains(new Vector2Int(x, y)))
+                                    adaylar.Add(new Vector2Int(x, y));
+                        for (int i = adaylar.Count - 1; i > 0; i--)
                         {
-                            kayit.IlkGrid[p.x, p.y] = CARPAN_SEMBOL_LOCAL;
-                            int carpanDegeri = dogalHavuz[_rng.Next(dogalHavuz.Length)];
-                            kayit.IlkCarpanGrid[p.x, p.y] = carpanDegeri;
-                            kayit.IlkCarpanDegerleri.Add(carpanDegeri);
-                            yerlesen++;
+                            int j = _rng.Next(0, i + 1);
+                            var tmp = adaylar[i]; adaylar[i] = adaylar[j]; adaylar[j] = tmp;
                         }
-                    }
-                    if (yerlesen > 0)
-                        Debug.Log($"[TutorialSenaryoMotoru] Çarpan enjekte: olasilik={carpanOlasilik:F2}, max={maxCarpan}, yerlesen={yerlesen}");
 
-                    // PAKET 9-FIX-A: NihaiCarpanToplam'ı IlkCarpanDegerleri toplamı ile güncelle.
-                    // Yoksa kayıt default 1 → ödeme katmanı çarpanı 1 alır, "500x13=500" yanlış hesap.
-                    if (kayit.IlkCarpanDegerleri.Count > 0)
-                    {
-                        int toplamCarpan = 0;
-                        foreach (var v in kayit.IlkCarpanDegerleri) toplamCarpan += v;
-                        kayit.NihaiCarpanToplam = toplamCarpan;
-                        Debug.Log($"[TutorialSenaryoMotoru] NihaiCarpanToplam={toplamCarpan} ({kayit.IlkCarpanDegerleri.Count} çarpan toplam)");
+                        int yerlesen = 0;
+                        foreach (var p in adaylar)
+                        {
+                            if (yerlesen >= maxCarpan) break;
+                            if (_rng.NextDouble() < carpanOlasilik)
+                            {
+                                kayit.IlkGrid[p.x, p.y] = CARPAN_SEMBOL_LOCAL;
+                                int carpanDegeri = dogalHavuz[_rng.Next(dogalHavuz.Length)];
+                                kayit.IlkCarpanGrid[p.x, p.y] = carpanDegeri;
+                                kayit.IlkCarpanDegerleri.Add(carpanDegeri);
+                                yerlesen++;
+                            }
+                        }
+                        if (yerlesen > 0)
+                            Debug.Log($"[TutorialSenaryoMotoru] Çarpan enjekte (RNG): olasilik={carpanOlasilik:F2}, max={maxCarpan}, yerlesen={yerlesen}");
                     }
+                }
+
+                // PAKET 9-FIX-A: NihaiCarpanToplam'ı IlkCarpanDegerleri toplamı ile güncelle.
+                // Yoksa kayıt default 1 → ödeme katmanı çarpanı 1 alır, "500x13=500" yanlış hesap.
+                if (kayit.IlkCarpanDegerleri.Count > 0)
+                {
+                    int toplamCarpan = 0;
+                    foreach (var v in kayit.IlkCarpanDegerleri) toplamCarpan += v;
+                    kayit.NihaiCarpanToplam = toplamCarpan;
+                    Debug.Log($"[TutorialSenaryoMotoru] NihaiCarpanToplam={toplamCarpan} ({kayit.IlkCarpanDegerleri.Count} çarpan toplam)");
                 }
             }
 
@@ -848,49 +894,78 @@ namespace KumarFarkindalik.Tutorial
         }
 
         // PAKET 6C1: T5 scatter pattern — 'scatterAdet' kadar scatter yerleştir + kalanı meyve (cluster yok)
+        // PAKET 14-FAZ29: sabitPozlar dolu ise RNG'siz yerleştir; null/boş ise eski Fisher-Yates yolu.
+        // Dolgu meyveler her iki yolda da _rng ile (seed 12345, RngResetle ile deterministik).
         private void DolduScatterPattern(int[,] grid, int sutun, int satir, int sembolSayisi,
-                                          int scatterIdx, int scatterAdet)
+                                          int scatterIdx, int scatterAdet, Vector2Int[] sabitPozlar = null)
         {
             int hucre = sutun * satir;
-            var pozlar = new List<Vector2Int>(hucre);
-            for (int y = 0; y < satir; y++)
-                for (int x = 0; x < sutun; x++)
-                    pozlar.Add(new Vector2Int(x, y));
-            // Fisher-Yates shuffle
-            for (int i = pozlar.Count - 1; i > 0; i--)
+            int adet = Mathf.Clamp(scatterAdet, 0, hucre);
+            var scatterSet = new HashSet<Vector2Int>();
+
+            if (sabitPozlar != null && sabitPozlar.Length > 0)
             {
-                int j = _rng.Next(0, i + 1);
-                var tmp = pozlar[i]; pozlar[i] = pozlar[j]; pozlar[j] = tmp;
+                // SABİT yerleştirme — RNG'siz
+                int yerlesen = 0;
+                for (int i = 0; i < sabitPozlar.Length && yerlesen < adet; i++)
+                {
+                    var p = sabitPozlar[i];
+                    if (p.x < 0 || p.x >= sutun || p.y < 0 || p.y >= satir) continue;
+                    if (scatterSet.Contains(p)) continue; // duplicate koruma
+                    grid[p.x, p.y] = scatterIdx;
+                    scatterSet.Add(p);
+                    yerlesen++;
+                }
+                Debug.Log($"[TutorialSenaryoMotoru] SABİT scatter yerleştirildi (RNG'siz): {yerlesen} pozisyon");
+            }
+            else
+            {
+                // RNG yolu (geriye dönük) — Fisher-Yates shuffle
+                var pozlar = new List<Vector2Int>(hucre);
+                for (int y = 0; y < satir; y++)
+                    for (int x = 0; x < sutun; x++)
+                        pozlar.Add(new Vector2Int(x, y));
+                for (int i = pozlar.Count - 1; i > 0; i--)
+                {
+                    int j = _rng.Next(0, i + 1);
+                    var tmp = pozlar[i]; pozlar[i] = pozlar[j]; pozlar[j] = tmp;
+                }
+                for (int i = 0; i < adet; i++)
+                {
+                    grid[pozlar[i].x, pozlar[i].y] = scatterIdx;
+                    scatterSet.Add(pozlar[i]);
+                }
             }
 
-            int adet = Mathf.Clamp(scatterAdet, 0, hucre);
-            for (int i = 0; i < adet; i++)
-                grid[pozlar[i].x, pozlar[i].y] = scatterIdx;
-
+            // Dolgu meyveler — kalan hücreler _rng ile (cluster yok kuralı: MAX_PER_DOLGU=5)
             const int MAX_PER_DOLGU = 5;
             int[] sembolAdet = new int[sembolSayisi];
-            sembolAdet[scatterIdx] = adet;
-            for (int i = adet; i < pozlar.Count; i++)
+            sembolAdet[scatterIdx] = scatterSet.Count;
+            for (int y = 0; y < satir; y++)
             {
-                int sec = -1;
-                for (int t = 0; t < sembolSayisi * 3; t++)
+                for (int x = 0; x < sutun; x++)
                 {
-                    int s = _rng.Next(0, sembolSayisi);
-                    if (s == scatterIdx) continue;
-                    if (sembolAdet[s] >= MAX_PER_DOLGU) continue;
-                    sec = s; break;
-                }
-                if (sec < 0)
-                {
-                    for (int s = 0; s < sembolSayisi; s++)
+                    if (scatterSet.Contains(new Vector2Int(x, y))) continue;
+                    int sec = -1;
+                    for (int t = 0; t < sembolSayisi * 3; t++)
                     {
+                        int s = _rng.Next(0, sembolSayisi);
                         if (s == scatterIdx) continue;
-                        if (sembolAdet[s] < MAX_PER_DOLGU + 2) { sec = s; break; }
+                        if (sembolAdet[s] >= MAX_PER_DOLGU) continue;
+                        sec = s; break;
                     }
+                    if (sec < 0)
+                    {
+                        for (int s = 0; s < sembolSayisi; s++)
+                        {
+                            if (s == scatterIdx) continue;
+                            if (sembolAdet[s] < MAX_PER_DOLGU + 2) { sec = s; break; }
+                        }
+                    }
+                    if (sec < 0) sec = 0;
+                    grid[x, y] = sec;
+                    sembolAdet[sec]++;
                 }
-                if (sec < 0) sec = 0;
-                grid[pozlar[i].x, pozlar[i].y] = sec;
-                sembolAdet[sec]++;
             }
         }
 

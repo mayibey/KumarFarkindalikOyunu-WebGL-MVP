@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Runtime.InteropServices;
 
 /// <summary>
@@ -120,6 +121,15 @@ public class PanelKopru : MonoBehaviour
         {
             case "oyunModu":
                 aktifSenaryo = deger;
+                // PAKET 14-FAZ29: Tutorial sahnesinde (build idx 3) SenaryoUygula SKIP.
+                // SenaryoUygula "normal" branch'i AdminNormalOyunUygula çağırıyor → kullanıcı T4 %100
+                // sliderından gelen carpanUretimOlasiligi=1.00 default 0.15'e EZİLİYORDU. Tutorial
+                // pattern motoru zaten ayrı yoldan (TutorialAdminEnjeksiyonu → PatternBaslat) tetikleniyor.
+                if (SceneManager.GetActiveScene().buildIndex == 3)
+                {
+                    Debug.Log($"[PanelKopru] Tutorial sahnesi → SenaryoUygula BYPASS (kullanıcı slider değerleri korunur). senaryo={deger}");
+                    break;
+                }
                 SenaryoUygula(deger);
                 break;
 
