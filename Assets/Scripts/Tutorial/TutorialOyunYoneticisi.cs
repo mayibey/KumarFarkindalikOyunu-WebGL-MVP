@@ -970,6 +970,9 @@ namespace KumarFarkindalik.Tutorial
             }
             Debug.Log($"[TutorialOyunYoneticisi] Spin tamamlandı (anim state-driven), TutorialSpinSayaci={TutorialSpinSayaci}");
             TutorialSenaryoMotoru.SpinTamamlandi();
+            // PAKET 14-FAZ33.1: Tutorial scripted pattern idx ilerletmesi gerçek spin tamamlandığında.
+            // Pre-compute coroutine yeniden tetiklenirse aynı kayıt döner; sadece burada idx++.
+            TutorialScriptedYoneticisi.Ornek?.SpinTamamlandi();
             TutorialT3TutmaModalKontrol();
             TutorialT4CarpanOlasilikModalKontrol();
             TutorialT5BonusModalKontrol();

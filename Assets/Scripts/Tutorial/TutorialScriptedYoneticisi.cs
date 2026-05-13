@@ -110,7 +110,9 @@ namespace KumarFarkindalik.Tutorial
             Debug.Log($"[TutorialScriptedYoneticisi] AsamaSet('{patternAdi}') — Aktif=true, {_patternSpinleri[patternAdi].Count} spin hazır.");
         }
 
-        /// <summary>OyunYoneticisi.Spin.cs Tutorial branch'inden çağrılır. Sıradaki scripted kaydı döndürür, idx ilerletir.</summary>
+        /// <summary>OyunYoneticisi.Spin.cs Tutorial branch'inden çağrılır. Sıradaki scripted kaydı döndürür.
+        /// PAKET 14-FAZ33.1: idx ilerletmesi BURADA YAPILMAZ — pre-compute yeniden tetiklenirse aynı kayıt
+        /// döner. Gerçek kullanıcı spin tamamlandığında <see cref="SpinTamamlandi"/> çağrılır → o zaman idx++.</summary>
         public ScriptedSpinKaydi SonrakiSpiniAl(bool bonusSpin)
         {
             // Bonus spin Tutorial'da T5 bonus pipeline'a giderse OyunYoneticisi BonusDongusu kendi handle eder.
@@ -122,16 +124,36 @@ namespace KumarFarkindalik.Tutorial
             var liste = _patternSpinleri[_aktifPattern];
             if (_spinIdx >= liste.Count)
             {
-                // Pattern tükendi — Aktif=false, pattern motor devreye girer (geri kalan adımlar için)
+                // Pattern tükenmiş (SpinTamamlandi son spinden sonra Aktif'i false yapmadıysa defansif)
                 Aktif = false;
-                Debug.Log($"[TutorialScriptedYoneticisi] Pattern '{_aktifPattern}' tükendi (idx={_spinIdx}/{liste.Count}) → Aktif=false.");
+                Debug.Log($"[TutorialScriptedYoneticisi] Pattern '{_aktifPattern}' zaten tükenmiş (idx={_spinIdx}/{liste.Count}) → Aktif=false.");
                 return null;
             }
 
             var kayit = liste[_spinIdx];
-            _spinIdx++;
-            Debug.Log($"[TutorialScriptedYoneticisi] SonrakiSpiniAl: pattern={_aktifPattern}, idx={_spinIdx - 1}/{liste.Count - 1}, brüt={kayit.brutOdeme} TL");
+            Debug.Log($"[TutorialScriptedYoneticisi] SonrakiSpiniAl: pattern={_aktifPattern}, idx={_spinIdx}/{liste.Count - 1}, brüt={kayit.brutOdeme} TL (idx ilerletilmedi — SpinTamamlandi bekliyor)");
             return kayit;
+        }
+
+        /// <summary>PAKET 14-FAZ33.1: Gerçek kullanıcı spin animasyonu bittiğinde TutorialOyunYoneticisi tarafından
+        /// çağrılır. Pre-compute coroutine çağrılarından bağımsız olarak pattern idx'i sadece burada ilerler.
+        /// Tüm spinler tükendiğinde Aktif=false → pattern motor fallback'i devralır.</summary>
+        public void SpinTamamlandi()
+        {
+            if (!Aktif || string.IsNullOrEmpty(_aktifPattern)) return;
+            if (_patternSpinleri == null || !_patternSpinleri.ContainsKey(_aktifPattern)) return;
+
+            _spinIdx++;
+            var liste = _patternSpinleri[_aktifPattern];
+            if (_spinIdx >= liste.Count)
+            {
+                Aktif = false;
+                Debug.Log($"[TutorialScriptedYoneticisi] SpinTamamlandi → idx={_spinIdx}/{liste.Count} TÜKENDI → Aktif=false (pattern motor devralır).");
+            }
+            else
+            {
+                Debug.Log($"[TutorialScriptedYoneticisi] SpinTamamlandi → idx={_spinIdx}/{liste.Count} (sonraki spin için scripted kayıt hazır).");
+            }
         }
 
         /// <summary>Pattern motoruna geri dönmek için (T_SON veya hata durumu). AsamaSet ile aynı sonuç ama explicit niyet.</summary>
