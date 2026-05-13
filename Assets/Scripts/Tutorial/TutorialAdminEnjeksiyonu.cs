@@ -22,6 +22,9 @@ namespace KumarFarkindalik.Tutorial
         public static float SonMaksCarpan = 0f;
         // PAKET 14-FAZ5 (İş 1): Bonus slider yüzdesi DİREKT — periyot yuvarlama hatası (%67 vs %100 ikisi de spin=1).
         public static float SonBonusYuzdesi = 0f;
+        // PAKET 14-FAZ18: Uygula butonuna basıldı mı — slider değişimi tek başına spin açmasın, Uygula zorunlu.
+        // panel.html senaryoUygula() içinde unityeGonder('uygulamaOnayi', true) ile set olur.
+        public static bool UygulamaOnaylandi = false;
 
         private TutorialAdimYoneticisi _ay;
         private bool _eventBagli;
@@ -48,6 +51,7 @@ namespace KumarFarkindalik.Tutorial
             SonMinCarpan = 0f;
             SonMaksCarpan = 0f;
             SonBonusYuzdesi = 0f;
+            UygulamaOnaylandi = false;
 
             // PAKET 3B-fix-14: OyunYoneticisi private field reflection cache
             _bonusAktifField = typeof(OyunYoneticisi).GetField("bonusAktif",
@@ -154,6 +158,12 @@ namespace KumarFarkindalik.Tutorial
                     // PAKET 4-FAZ-1: Tutorial T3 scripted spin motoru tetikleyici
                     // value = "hook" / "yontma" / "tutma" / "koruma" / "normal"
                     TutorialSenaryoMotoru.PatternBaslat(value);
+                    break;
+                case "uygulamaOnayi":
+                    // PAKET 14-FAZ18: panel.html "Uygula" butonu basıldı — slider değişimi tek başına yetmiyor,
+                    // bu event olmadan parametreTamam=false (SpinKilitli=true).
+                    UygulamaOnaylandi = true;
+                    Debug.Log("[Tutorial] UygulamaOnaylandi=true (Uygula butonu basıldı).");
                     break;
                 case "yeniOyuncu":
                     // PAKET 14-FAZ8: T6YO ÇİFT YÖN TETİK
@@ -316,10 +326,13 @@ namespace KumarFarkindalik.Tutorial
 
             // Parametre tamamlandı mı (degisimAnahtarlari'nın HEPSİ değişmiş mi + parametreKosulu lambda doğru)
             bool parametreTamam = true;
-            if (v.degisimAnahtarlari != null)
+            if (v.degisimAnahtarlari != null && v.degisimAnahtarlari.Length > 0)
             {
                 foreach (var k in v.degisimAnahtarlari)
                     if (!_ay.AdimSirasindaDegistirildi(k)) { parametreTamam = false; break; }
+                // PAKET 14-FAZ18: degisimAnahtarlari VAR ise Uygula butonu basılma da ZORUNLU
+                // (slider hareketi tek başına spin açmasın). T6YO ve degisimAnahtarlari=null adımları etkilenmez.
+                if (parametreTamam && !UygulamaOnaylandi) parametreTamam = false;
             }
             // PAKET 14-FAZ3 (İş 1): parametreKosulu lambda dahil edilmeli — slider'a sadece dokunmak yetmez,
             // DOĞRU değere (T4 ilk aşama %100, ikinci %0; T5 ilk periyot 1-2, ikinci ≥50) çekilmeli.

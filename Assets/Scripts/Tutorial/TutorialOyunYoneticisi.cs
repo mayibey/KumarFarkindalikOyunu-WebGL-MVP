@@ -529,6 +529,11 @@ namespace KumarFarkindalik.Tutorial
 
         private void AdimDegisti(AdimVerisi v)
         {
+            // PAKET 14-FAZ19: Adım geçiş RACE — yeni adımın UygulamaOnaylandi/degisimAnahtarlari state'leri
+            // Update polling tarafından hesaplanana kadar (1 frame) önceki adımdan kalma parametreTamam=true
+            // kalabilir. Geçişin ANINDA SpinKilitli=true zorla → kullanıcı boş pencerede spin atamaz.
+            SpinKilitli = true;
+
             HatirlatmaServisi.Ornek?.AktiviteHaberVer(); // PAKET 3B-fix-9 (Feature 3) — yeni adım, timer reset
 
             // Önceki adımın vurgularını temizle
@@ -540,6 +545,8 @@ namespace KumarFarkindalik.Tutorial
 
             // PAKET 14-FAZ8: T6YO 1.aşama tetik bayrağı — yeni adıma geçişte reset (kalıntı önlemi).
             T6IlkAsamaPatternBasladi = false;
+            // PAKET 14-FAZ18: Uygula onayı her adım başında reset — yeni adımda Uygula tekrar gerekli.
+            TutorialAdminEnjeksiyonu.UygulamaOnaylandi = false;
 
             // PAKET 14-FAZ14: Spin geçmişi net listesi her adım başında sıfırlanır + bakiye cache reset.
             // PAKET 14-FAZ16: 03 referansı — net = simdikiBakiye - oncekiBakiye (bahis çıkarma + kazanç ekleme tek farkta).

@@ -1530,6 +1530,8 @@
     }
 
     // postMessage'lar fire et — kazanmaOrani + yakinKacirma artık 0-5 ölçek (scale yok)
+    // PAKET 14-FAZ18: Uygula onayı sinyali — Tutorial slider değişimi tek başına spin açmasın.
+    unityeGonder('uygulamaOnayi',     true);
     unityeGonder('oyunModu',          secim);
     unityeGonder('kazanmaOrani',      s.kazanmaOrani);
     unityeGonder('minCarpan',         s.minCarpan);

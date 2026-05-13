@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Scripting;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace KumarFarkindalik.Tutorial
@@ -59,8 +60,11 @@ namespace KumarFarkindalik.Tutorial
         // PAKET 14-FAZ14: Spin geçmişi mini bar (03 anlatici.html .spin-bar pattern'i)
         private GameObject _spinGecmisiBlok;
         private Image[] _spinSegmentler = new Image[0];
-        private TextMeshProUGUI[] _spinTLEtiketler = new TextMeshProUGUI[0];
         private int _spinSegmentSayisi = 0;
+        // PAKET 14-FAZ18: Hover tooltip (03 anlatici.html .spin-seg[data-tooltip]:hover pattern'i).
+        private GameObject _spinHoverTooltip;
+        private TextMeshProUGUI _spinHoverTooltipTMP;
+        private int[] _spinSegmentNetler = new int[0]; // segment[i] net değeri, hover'da gösterilir
         private Button _ileriButton;
         private Image _ileriButtonImg;
         private TextMeshProUGUI _ileriButtonTxt;
@@ -152,7 +156,8 @@ namespace KumarFarkindalik.Tutorial
                     if (i < yapilacaklar.Length)
                     {
                         // PAKET 3B-fix-15: Yeni adımda renk + prefix RESET (önceki adımın yeşilleri silinir)
-                        _yapilacakSatirlari[i].text = "→ " + yapilacaklar[i];
+                        // PAKET 14-FAZ19: "→" font fallback kare gösterimi → "•" (U+2022 bullet, evrensel destek)
+                        _yapilacakSatirlari[i].text = "• " + yapilacaklar[i];
                         _yapilacakSatirlari[i].color = SATIR_BEYAZ;
                         _yapilacakSatirlari[i].gameObject.SetActive(true);
                     }
@@ -239,22 +244,19 @@ namespace KumarFarkindalik.Tutorial
             for (int i = 0; i < _spinSegmentler.Length; i++)
                 if (_spinSegmentler[i] != null) UnityEngine.Object.Destroy(_spinSegmentler[i].gameObject);
 
-            // Önceki TMP etiketleri yok et
-            for (int i = 0; i < _spinTLEtiketler.Length; i++)
-                if (_spinTLEtiketler[i] != null) UnityEngine.Object.Destroy(_spinTLEtiketler[i].gameObject);
-
             if (gerekliSpin <= 0)
             {
                 _spinSegmentler = new Image[0];
-                _spinTLEtiketler = new TextMeshProUGUI[0];
+                _spinSegmentNetler = new int[0];
                 _spinSegmentSayisi = 0;
                 _spinGecmisiBlok.SetActive(false);
+                if (_spinHoverTooltip != null) _spinHoverTooltip.SetActive(false);
                 return;
             }
             _spinGecmisiBlok.SetActive(true);
             _spinSegmentSayisi = gerekliSpin;
             _spinSegmentler = new Image[gerekliSpin];
-            _spinTLEtiketler = new TextMeshProUGUI[gerekliSpin];
+            _spinSegmentNetler = new int[gerekliSpin];
 
             const float TOPLAM_GENISLIK = 240f;
             const float GAP = 4f;
@@ -263,7 +265,7 @@ namespace KumarFarkindalik.Tutorial
             for (int i = 0; i < gerekliSpin; i++)
             {
                 float segX = baslangicX + i * (segGenislik + GAP);
-                // Segment (renkli bar parçası)
+                // Segment (renkli bar parçası) — PAKET 14-FAZ18: raycastTarget=true (hover yakalama)
                 var sgGo = new GameObject($"Segment_{i}",
                     typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
                 sgGo.transform.SetParent(_spinGecmisiBlok.transform, false);
@@ -274,16 +276,48 @@ namespace KumarFarkindalik.Tutorial
                 rt.anchoredPosition = new Vector2(segX, -16f);
                 var img = sgGo.GetComponent<Image>();
                 img.color = SEG_BOS;
-                img.raycastTarget = false;
+                img.raycastTarget = true;
                 _spinSegmentler[i] = img;
 
-                // PAKET 14-FAZ16: TL etiketi (segment altı, ortalı). Dolu segment'lerde net TL gösterir.
-                var tlTmp = MetinYarat(_spinGecmisiBlok.transform, $"TL_{i}",
-                    new Vector2(segX + segGenislik / 2f, -26f),
-                    new Vector2(segGenislik + 2f, 12f), 8f, FontStyles.Bold, BEYAZ,
-                    TextAlignmentOptions.Center, "");
-                _spinTLEtiketler[i] = tlTmp;
+                // PAKET 14-FAZ18: EventTrigger PointerEnter/Exit — hover tooltip göster/gizle
+                int sIdx = i; // closure capture
+                var trigger = sgGo.AddComponent<EventTrigger>();
+                var enter = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
+                enter.callback.AddListener(_ => HoverTooltipGoster(sIdx, segX + segGenislik / 2f));
+                trigger.triggers.Add(enter);
+                var exit = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
+                exit.callback.AddListener(_ => HoverTooltipGizle());
+                trigger.triggers.Add(exit);
             }
+        }
+
+        // PAKET 14-FAZ18: Hover tooltip göster — segment üstünde +/- TL gösterimi.
+        private void HoverTooltipGoster(int segIdx, float segMerkezX)
+        {
+            if (_spinHoverTooltip == null || _spinHoverTooltipTMP == null) return;
+            if (segIdx < 0 || segIdx >= _spinSegmentNetler.Length) return;
+            // Sadece dolu segment için tooltip
+            var netList = TutorialOyunYoneticisi.AktifAdimSpinNetleri;
+            if (netList == null || segIdx >= netList.Count) return;
+            int net = _spinSegmentNetler[segIdx];
+            string tlText = net > 0
+                ? "+" + net.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("tr-TR")) + " TL"
+                : net < 0
+                    ? net.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("tr-TR")) + " TL"
+                    : "0 TL";
+            _spinHoverTooltipTMP.text = tlText;
+            // Tooltip pozisyonu: spin geçmişi bloku panel y=-200, segment'ler bar içinde y=-16 (bar pivot top → segment alt -24)
+            // Panel y = bar y(-200) + segment y(-16) - 4 (margin) = -220 (tooltip pivot bottom (0.5, 0), tooltip altı bu Y'de)
+            // segMerkezX bar koordinatları (parent _spinGecmisiBlok). Tooltip parent panel → x offset bar pos + segMerkezX = 0 + segMerkezX
+            var thRt = _spinHoverTooltip.GetComponent<RectTransform>();
+            thRt.anchoredPosition = new Vector2(segMerkezX, -212f); // bar y -200 + segment y -12 (segment üst)
+            _spinHoverTooltip.transform.SetAsLastSibling();
+            _spinHoverTooltip.SetActive(true);
+        }
+
+        private void HoverTooltipGizle()
+        {
+            if (_spinHoverTooltip != null) _spinHoverTooltip.SetActive(false);
         }
 
         private void SpinGecmisiRenkGuncelle()
@@ -295,19 +329,17 @@ namespace KumarFarkindalik.Tutorial
             {
                 if (_spinSegmentler[i] == null) continue;
                 Color hedef;
-                string tlText;
                 if (i < netList.Count)
                 {
                     int net = netList[i];
-                    if (net > 0) { hedef = SEG_KAZANC; tlText = "+" + net.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("tr-TR")); }
-                    else if (net < 0) { hedef = SEG_KAYIP; tlText = net.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("tr-TR")); }
-                    else { hedef = SEG_NOTR; tlText = "0"; }
+                    _spinSegmentNetler[i] = net; // hover tooltip için cache
+                    if (net > 0) hedef = SEG_KAZANC;
+                    else if (net < 0) hedef = SEG_KAYIP;
+                    else hedef = SEG_NOTR;
                 }
-                else { hedef = SEG_BOS; tlText = ""; }
+                else hedef = SEG_BOS;
                 if (_spinSegmentler[i].color != hedef)
                     _spinSegmentler[i].color = hedef;
-                if (i < _spinTLEtiketler.Length && _spinTLEtiketler[i] != null && _spinTLEtiketler[i].text != tlText)
-                    _spinTLEtiketler[i].text = tlText;
             }
         }
 
@@ -362,7 +394,8 @@ namespace KumarFarkindalik.Tutorial
                     tamam = v.parametreKosulu?.Invoke() ?? tumAnahtarlarTamam;
                 }
 
-                string prefix = tamam ? "✓ " : "→ ";
+                // PAKET 14-FAZ19: "→" font kare fallback bug → "•" prefix (evrensel). "✓" SDF font destekli.
+                string prefix = tamam ? "✓ " : "• ";
                 // PAKET 5: Spin sayacı son maddeye entegre — "5 spin at (2/5)"
                 string asilMetin = v.yapilacaklar[i];
                 if (sonMaddeSpin)
@@ -473,30 +506,50 @@ namespace KumarFarkindalik.Tutorial
             for (int i = 0; i < 3; i++)
             {
                 _yapilacakSatirlari[i] = MetinYarat(_yapilacaklarBlok.transform, $"Yap{i}",
-                    new Vector2(10f, -34f - i * 32f), new Vector2(230f, 28f), 16f,
-                    FontStyles.Normal, GRI, TextAlignmentOptions.Left, "");
+                    new Vector2(10f, -34f - i * 38f), new Vector2(255f, 36f), 15f,
+                    FontStyles.Normal, GRI, TextAlignmentOptions.TopLeft, "");
+                // PAKET 14-FAZ19: Word-wrap aç — uzun metinler alt satıra geçsin, "..." kesme yok.
+                _yapilacakSatirlari[i].enableWordWrapping = true;
+                _yapilacakSatirlari[i].overflowMode = TextOverflowModes.Overflow;
             }
 
             // PAKET 5: 1. Ayraç + ILERLEME BLOK + 2. Ayraç KALDIRILDI.
             // _ilerlemeBlok, _parametreText, _spinText field'ları null kalır (IlerlemeGuncelle null check ile safe).
             // Spin sayacı son yapılacaklar maddesine entegre — YapilacaklarRenkGuncelle dinamik günceller.
 
-            // === PAKET 14-FAZ16: SPİN GEÇMİŞİ MİNİ BAR ===
-            // Panel direct child. Yapilacaklar İÇERİĞİ altı (3.madde alt y=-196, 4px margin).
-            // Bar height 40 → TMP TL etiketleri segment üstünde göstermek için yüksek.
-            // Bar alt y=-240. İLERİ buton üst (panel-top'tan -290 panel 330'da) → 50px margin.
+            // === PAKET 14-FAZ18: SPİN GEÇMİŞİ MİNİ BAR + HOVER TOOLTIP ===
+            // Panel direct child. Yapilacaklar İÇERİĞİ altı (4px margin).
+            // Bar height 30 (sabit TL etiketler kaldırıldı, hover tooltip ile gösterilir — 03 stili).
             _spinGecmisiBlok = new GameObject("SpinGecmisiBlok", typeof(RectTransform));
             _spinGecmisiBlok.transform.SetParent(panel.transform, false);
             var sgRt = _spinGecmisiBlok.GetComponent<RectTransform>();
             sgRt.anchorMin = sgRt.anchorMax = new Vector2(0.5f, 1f);
             sgRt.pivot = new Vector2(0.5f, 1f);
-            sgRt.sizeDelta = new Vector2(260f, 40f);
+            sgRt.sizeDelta = new Vector2(260f, 30f);
             sgRt.anchoredPosition = new Vector2(0f, -200f);
             // Başlık (parent ile aynı genişlik, merkez hizalı — kutu içinde kalır)
             MetinYarat(_spinGecmisiBlok.transform, "Baslik_SpinGecmisi", new Vector2(0f, 0f),
                 new Vector2(260f, 14f), 11f, FontStyles.Bold, BEYAZ,
                 TextAlignmentOptions.Center, "Spin Geçmişi");
             // Segment'ler dinamik AdimGoster() çağrısında SpinGecmisiKur ile yaratılır.
+
+            // PAKET 14-FAZ18: Hover tooltip (panel direct child, segment'lerin üstünde render → SetAsLastSibling).
+            _spinHoverTooltip = new GameObject("SpinHoverTooltip",
+                typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            _spinHoverTooltip.transform.SetParent(panel.transform, false);
+            var thRt = _spinHoverTooltip.GetComponent<RectTransform>();
+            thRt.anchorMin = thRt.anchorMax = new Vector2(0.5f, 1f);
+            thRt.pivot = new Vector2(0.5f, 0f);
+            thRt.sizeDelta = new Vector2(70f, 22f);
+            thRt.anchoredPosition = new Vector2(0f, -200f);
+            var thImg = _spinHoverTooltip.GetComponent<Image>();
+            thImg.color = new Color(0.06f, 0.10f, 0.14f, 0.95f); // koyu navy
+            thImg.raycastTarget = false;
+            BorderEkle(_spinHoverTooltip.transform, thRt.sizeDelta, 1f, ALTIN_KOYU);
+            _spinHoverTooltipTMP = MetinYarat(_spinHoverTooltip.transform, "TooltipText",
+                new Vector2(0f, -2f), new Vector2(66f, 18f), 11f, FontStyles.Bold, BEYAZ,
+                TextAlignmentOptions.Center, "");
+            _spinHoverTooltip.SetActive(false);
 
             // === İLERİ butonu ===
             var btnGo = new GameObject("IleriButon",
