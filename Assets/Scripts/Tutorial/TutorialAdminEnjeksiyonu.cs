@@ -281,18 +281,19 @@ namespace KumarFarkindalik.Tutorial
                     Debug.Log("[Tutorial] Bonus state reflection ile temizlendi (Bug C — 04'te cleanup kaynagi yok)");
                 }
 
-                // PAKET 14-FAZ5 (İş 3): T5 ilk aşama — bonus tetiklenirse ANINDA kes. Bonus oyun pipeline
-                // grid'i bonus grid'iyle yeniliyor, 4 scatter görseli kayboluyor. bonusAktif=true olduğu
-                // ilk frame'de reflection ile false yap → pipeline pre-empt edilir, scatter'lar grid'de kalır.
+                // PAKET 14-FAZ5 (İş 3): T5 ilk aşama — bonus tetiklenirse ANINDA state reset (grid pipeline
+                // bonus grid'iyle yenilemesin, 4 scatter görseli korunsun).
+                // PAKET 14-FAZ8: Panel SetActive(false) KALDIRILDI — pop-up'ın ShowBonusStartMessage
+                // coroutine'i en az 2sn görünür kalmalı ("BONUS OYUN BAŞLADI" pedagojik mesaj).
+                // bonusAktif=false yapmak coroutine'i durdurmaz; sadece bonus oyun grid yenilenmesini engeller.
+                // Panel cleanup T11BonusYarimKes'te 3sn sonra yapılır (pop-up bitiş süresinin ardından).
                 bool t5IlkAsama = _ay.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T5
                                   && !TutorialOyunYoneticisi.T5IkinciAsamaBasladi;
                 if (t5IlkAsama && bonusAktif && _bonusAktifField != null && _bonusHakKalanField != null)
                 {
                     _bonusAktifField.SetValue(_oy, false);
                     _bonusHakKalanField.SetValue(_oy, 0);
-                    if (_oy.bonusEndPanel != null) _oy.bonusEndPanel.SetActive(false);
-                    if (_oy.bonusStartPanel != null) _oy.bonusStartPanel.SetActive(false);
-                    Debug.Log("[Tutorial T5] Bonus tetiklendi → anında reset (grid koru, scatter kalsın)");
+                    Debug.Log("[Tutorial T5] Bonus tetiklendi → state reset (grid koru, pop-up doğal süresinde)");
                 }
             }
 

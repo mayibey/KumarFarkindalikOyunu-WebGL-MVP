@@ -878,10 +878,13 @@ namespace KumarFarkindalik.Tutorial
 
         private IEnumerator T5IlkAsamaSonuAkisi()
         {
-            // PAKET 14-FAZ7 (İş 1): 2sn → 3sn. "BONUS OYUN BAŞLADI" pop-up'ı kullanıcı tarafından
-            // okunabilir kadar görünür kalır (önceki 2sn yetersizdi, pop-up jet hızıyla kapanıyordu).
-            T11BonusYarimKes();
+            // PAKET 14-FAZ8: Sıralama değişti — ÖNCE 3sn bekle (ShowBonusStartMessage doğal 2sn+ pop-up
+            // görünür, "BONUS OYUN BAŞLADI" pedagojik mesaj okunur), SONRA T11BonusYarimKes ile
+            // panel'ler kapatılır. Önceki sıralama (T11BonusYarimKes önce) pop-up'ı anında kapatıyordu.
+            // Update polling Faz 5 fix'i bonus state'i zaten reset etmiş, bonus oyun grid yenilenmesi
+            // engellenmiş → bu 3sn zarfında 4 scatter ekranda kalır + pop-up görünür.
             yield return new WaitForSecondsRealtime(3f);
+            T11BonusYarimKes();
             TutorialSenaryoMotoru.Durdur();
             yield return GosterAraModal(TutorialAdimYoneticisi.T5_ARA_MODAL);
         }
