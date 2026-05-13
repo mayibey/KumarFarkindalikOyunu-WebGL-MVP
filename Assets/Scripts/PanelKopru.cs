@@ -154,11 +154,20 @@ public class PanelKopru : MonoBehaviour
 
             case "yeniOyuncu":
                 {
-                    // PAKET 14-FAZ8: T6YO temiz akış — yutma kilidi kaldırıldı. Tutorial mantığı tetik
-                    // koşullarını (T6AraModalGosterildi, T6IlkAsamaPatternBasladi/T6IkinciAsamaBasladi)
-                    // AdminEnjeksiyonu tarafında kontrol ediyor.
                     yeniOyuncuModu = deger == "True" || deger == "true";
-                    _oy?.AdminSetYeniOyuncuModu(yeniOyuncuModu);
+                    // PAKET 14-FAZ10: T6YO sırasında AdminSetYeniOyuncuModu çağrısı BYPASS — bu method
+                    // maxOdeme=1000 set ediyor; yeniOyuncu_acik pattern hedefleri 2500/3000 TL limit-aware
+                    // kayıp grid'e çeviriliyordu. Tutorial T6YO adımındaysa state'i sadece PanelKopru'da
+                    // güncelle (parametreKosulu lambda PanelKopru.yeniOyuncuModu okur), OyunYoneticisi
+                    // davranışına dokunma → pattern hedefleri enjekte edilebilir.
+                    bool t6yoAktif = KumarFarkindalik.Tutorial.TutorialOyunYoneticisi.Ornek != null
+                        && KumarFarkindalik.Tutorial.TutorialOyunYoneticisi.Ornek.AdimYoneticisi != null
+                        && KumarFarkindalik.Tutorial.TutorialOyunYoneticisi.Ornek.AdimYoneticisi.mevcutAdim
+                            == KumarFarkindalik.Tutorial.TutorialAdimYoneticisi.TutorialAdimId.T6_YENI_OYUNCU;
+                    if (!t6yoAktif)
+                        _oy?.AdminSetYeniOyuncuModu(yeniOyuncuModu);
+                    else
+                        Debug.Log("[PanelKopru] T6YO aktif — AdminSetYeniOyuncuModu bypass (maxOdeme limiti uygulanmaz, pattern hedefleri korunur)");
                 }
                 break;
 

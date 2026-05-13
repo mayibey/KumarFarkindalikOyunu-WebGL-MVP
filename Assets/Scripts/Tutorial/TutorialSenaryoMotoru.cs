@@ -559,6 +559,8 @@ namespace KumarFarkindalik.Tutorial
                 float onPayCoef = ta.GetPayForCount(desen.sembolId, desen.adet);
                 int turKazanciOnHesap = Mathf.RoundToInt(onPayCoef * _oy.BotIcinBahis);
                 int maxOdeme = _oy.GetAdminMaxOdeme();
+                // PAKET 14-FAZ10 (debug): Tutorial T6YO için pattern hedef vs limit ilişkisini görünür yap.
+                Debug.Log($"[TutorialSenaryoMotoru] LIMIT CHECK: pattern={_aktifPattern}, idx={_spinIdx}, sym={desen.sembolId}, adet={desen.adet}, payCoef={onPayCoef:F2}, hedef={turKazanciOnHesap} TL, maxOdeme={maxOdeme} TL, aşar={(maxOdeme > 0 && turKazanciOnHesap > maxOdeme)}");
                 if (maxOdeme > 0 && turKazanciOnHesap > maxOdeme)
                 {
                     DolduClusterSiz(kayit.IlkGrid, SUTUN, SATIR, sembolSayisi, scatterIdx);
