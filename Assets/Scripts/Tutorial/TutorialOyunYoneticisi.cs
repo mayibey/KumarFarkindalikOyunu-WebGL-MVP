@@ -260,11 +260,49 @@ namespace KumarFarkindalik.Tutorial
         private string ParametreEksikMesaj()
         {
             var v = AdimYoneticisi?.MevcutAdimVerisi;
-            if (v?.yapilacaklar == null || v.yapilacaklar.Length == 0)
+            if (v == null) return "Önce talimatları tamamla";
+
+            // PAKET 14-FAZ3 (İş 1): T4/T5 için aşamaya göre dinamik mesaj
+            if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T4)
+            {
+                return T4AraModalGosterildi
+                    ? "Çarpan olasılığını %0 yap ve Uygula bas"
+                    : "Çarpan olasılığını %100 yap ve Uygula bas";
+            }
+            if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T5)
+            {
+                return T5AraModalGosterildi
+                    ? "Bonus olasılığını %0 yap ve Uygula bas"
+                    : "Bonus olasılığını %100 yap ve Uygula bas";
+            }
+
+            if (v.yapilacaklar == null || v.yapilacaklar.Length == 0)
                 return "Önce talimatları tamamla";
             if (v.yapilacaklar.Length >= 2)
                 return $"Önce {v.yapilacaklar[0]} + {v.yapilacaklar[1]}";
             return $"Önce {v.yapilacaklar[0]}";
+        }
+
+        // PAKET 14-FAZ3 (İş 2): OyunYoneticisi._bonusUIServisi (private field) → BonusUIServisi.SetSpinSonucKayipClip
+        // çağrısı reflection ile yapılır. Tutorial T5 bonus tetik spin'inde horn'un BonusUIServisi yolundan
+        // çalmasını engelleyip T6'da restore eder.
+        private static void BonusUIServisiKayipClipAyarla(OyunYoneticisi oy, AudioClip clip)
+        {
+            if (oy == null) return;
+            try
+            {
+                var field = typeof(OyunYoneticisi).GetField("_bonusUIServisi",
+                    BindingFlags.NonPublic | BindingFlags.Instance);
+                var servis = field?.GetValue(oy);
+                if (servis == null) { Debug.LogWarning("[Tutorial] _bonusUIServisi reflection null"); return; }
+                var metod = servis.GetType().GetMethod("SetSpinSonucKayipClip",
+                    BindingFlags.Public | BindingFlags.Instance);
+                metod?.Invoke(servis, new object[] { clip });
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("[Tutorial] BonusUIServisi kayıp clip set hata: " + e.Message);
+            }
         }
 
         // Space tuşu parametre bekleyen adımda yutulduğunda overlay click ile aynı uyarıyı tetikler.
@@ -516,7 +554,11 @@ namespace KumarFarkindalik.Tutorial
                     _orijinalSpinSonucKayipClip = oyT5Sound.spinSonucKayipClip;
                     _spinSonucKayipClipCachelendi = true;
                     oyT5Sound.spinSonucKayipClip = null;
-                    Debug.Log("[Tutorial T5] spinSonucKayipClip cache+null — bonus tetik spin'inde horn engellendi.");
+                    // PAKET 14-FAZ3 (İş 2): BonusUIServisi'nin AYRI bir kopyası var (Awake'te SetSpinSonucKayipClip
+                    // ile set ediliyor). Sadece OyunYoneticisi.spinSonucKayipClip null'lamak yetmiyor —
+                    // bonus toplam 0 path'inde BonusUIServisi._spinSonucKayipClip hâlâ canlı kalıyor.
+                    BonusUIServisiKayipClipAyarla(oyT5Sound, null);
+                    Debug.Log("[Tutorial T5] spinSonucKayipClip cache+null (OyunYoneticisi + BonusUIServisi).");
                 }
                 TutorialSenaryoMotoru.PatternBaslat("bonusTest_100");
             }
@@ -529,9 +571,14 @@ namespace KumarFarkindalik.Tutorial
                 if (_spinSonucKayipClipCachelendi)
                 {
                     var oyT6Sound = Object.FindObjectOfType<OyunYoneticisi>();
-                    if (oyT6Sound != null) oyT6Sound.spinSonucKayipClip = _orijinalSpinSonucKayipClip;
+                    if (oyT6Sound != null)
+                    {
+                        oyT6Sound.spinSonucKayipClip = _orijinalSpinSonucKayipClip;
+                        // PAKET 14-FAZ3 (İş 2): BonusUIServisi'nin de restore et.
+                        BonusUIServisiKayipClipAyarla(oyT6Sound, _orijinalSpinSonucKayipClip);
+                    }
                     _spinSonucKayipClipCachelendi = false;
-                    Debug.Log("[Tutorial T6YO] spinSonucKayipClip restore edildi.");
+                    Debug.Log("[Tutorial T6YO] spinSonucKayipClip restore edildi (OyunYoneticisi + BonusUIServisi).");
                 }
                 // HOTFIX: yeniOyuncuModu DEFAULT TRUE. T6YO başında ZORLA KAPALI'ya çek:
                 // 1) PanelKopru state false
@@ -827,8 +874,10 @@ namespace KumarFarkindalik.Tutorial
 
         private IEnumerator T5IlkAsamaSonuAkisi()
         {
-            // Bonus tetiklendi (4 scatter düştü) → 3sn görsel hissedilsin → yarım kes → bonusEndPanel kapanma süresi
-            yield return new WaitForSecondsRealtime(3f);
+            // PAKET 14-FAZ3 (İş 3): 3sn → 1sn. Bonus oyun başlama animasyonu içinde bonus grid yüklenip
+            // 4 scatter ekrandan kayboluyordu. 1sn'de "bonus tetiklendi" hissi alınır, bonus grid
+            // yüklenmeden yarım kes → scatter'lar grid'de görünür kalır.
+            yield return new WaitForSecondsRealtime(1f);
             T11BonusYarimKes();
             yield return new WaitForSecondsRealtime(1.5f);
             TutorialSenaryoMotoru.Durdur();

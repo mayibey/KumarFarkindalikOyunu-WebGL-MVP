@@ -133,8 +133,12 @@ namespace KumarFarkindalik.Tutorial
                             && bonusPeriyot >= 50)
                         {
                             TutorialOyunYoneticisi.T5IkinciAsamaBasladi = true;
+                            // PAKET 14-FAZ3 (İş 4): T11BonusYarimKes spinCalisiyor=false set'i Update polling'i
+                            // tekrar tetikleyip sayacı 1→2 fantom artırıyor. AdimBaslangicSpin'i şu anki sayaca
+                            // alıp gerekliSpin=1 yaparak ikinci aşama için 1 SPIN DAHA garanti et.
+                            TutorialOyunYoneticisi.Ornek?.AdimYoneticisi?.IkinciAsamaIcinSayaciResetle(1);
                             TutorialSenaryoMotoru.PatternBaslat("bonusTest_0");
-                            Debug.Log($"[Tutorial T5 Bonus] Periyot={bonusPeriyot} (≥50) → ikinci pattern başladı (bonusTest_0)");
+                            Debug.Log($"[Tutorial T5 Bonus] Periyot={bonusPeriyot} (≥50) → ikinci pattern başladı (bonusTest_0) + sayaç reset");
                         }
                     }
                     break;
@@ -280,13 +284,18 @@ namespace KumarFarkindalik.Tutorial
             int spin = TutorialAdimYoneticisi.MevcutSpinAl();
             int delta = spin - _ay.AdimBaslangicSpin;
 
-            // Parametre tamamlandı mı (degisimAnahtarlari'nın HEPSİ değişmiş mi)
+            // Parametre tamamlandı mı (degisimAnahtarlari'nın HEPSİ değişmiş mi + parametreKosulu lambda doğru)
             bool parametreTamam = true;
             if (v.degisimAnahtarlari != null)
             {
                 foreach (var k in v.degisimAnahtarlari)
                     if (!_ay.AdimSirasindaDegistirildi(k)) { parametreTamam = false; break; }
             }
+            // PAKET 14-FAZ3 (İş 1): parametreKosulu lambda dahil edilmeli — slider'a sadece dokunmak yetmez,
+            // DOĞRU değere (T4 ilk aşama %100, ikinci %0; T5 ilk periyot 1-2, ikinci ≥50) çekilmeli.
+            // Aksi halde SpinKilitli false olur, kullanıcı %100 olmadan spin atabilir.
+            if (parametreTamam && v.parametreKosulu != null)
+                parametreTamam = v.parametreKosulu.Invoke();
 
             TutorialAdimGoster.Ornek.IlerlemeGuncelle(delta, v.gerekliSpin, parametreTamam);
 

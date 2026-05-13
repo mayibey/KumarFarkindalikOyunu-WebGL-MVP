@@ -70,6 +70,17 @@ namespace KumarFarkindalik.Tutorial
             _adimSirasindaDegisenler.Add(key);
         }
 
+        // PAKET 14-FAZ3 (İş 4): T5 (ve gelecekte T4) ikinci aşama girişinde çağrılır — AdimBaslangicSpin'i
+        // mevcut sayaca alır + gerekliSpin'i ikinci aşama hedefi ile değiştirir. Böylece bonus yarım kes
+        // sırasında sayaç fantom artmış olsa bile, ikinci aşama için TAM yeniGerekli spin gerekir.
+        public void IkinciAsamaIcinSayaciResetle(int yeniGerekliSpin)
+        {
+            _adimBaslangicSpin = MevcutSpinAl();
+            if (_adimlar.TryGetValue(mevcutAdim, out var v))
+                v.gerekliSpin = yeniGerekliSpin;
+            Debug.Log($"[TutorialAdimYoneticisi] İkinci aşama sayaç reset: adim={mevcutAdim}, baslangic={_adimBaslangicSpin}, gerekliSpin={yeniGerekliSpin}");
+        }
+
         public bool KosulSagla(int mevcutSpin)
         {
             if (!_adimlar.TryGetValue(mevcutAdim, out var v)) return true;
