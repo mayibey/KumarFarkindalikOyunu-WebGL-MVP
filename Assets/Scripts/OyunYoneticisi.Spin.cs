@@ -376,6 +376,24 @@ public partial class OyunYoneticisi
 
     private SpinSimulasyonKaydi SimuleEtVeKaydetImpl(int odenebilirLimit, bool bonusSpin)
     {
+        // PAKET 14-FAZ33 — TUTORIAL SCRIPTED MODE (build idx 3): KumarFarkindalik.Tutorial.TutorialScriptedYoneticisi
+        // aktifse RNG bypass + cache validation bypass. ScriptedSpinUygulayici altyapısı (03 referans) Tutorial
+        // T4/T5 pattern motor saatler süren bug'larını çözmek için. Tutorial namespace içinde Aktif=false ise
+        // pattern motor (TutorialSenaryoMotoru) eski path çalışır (fallback). 03 sahnesinde (idx 2) bu branch
+        // koşulu FALSE → ATLANIR, 03 davranışı %100 KORUNUR.
+        if (SceneManager.GetActiveScene().buildIndex == 3
+            && KumarFarkindalik.Tutorial.TutorialScriptedYoneticisi.Aktif
+            && KumarFarkindalik.Tutorial.TutorialScriptedYoneticisi.Ornek != null)
+        {
+            var tutorialKayit = KumarFarkindalik.Tutorial.TutorialScriptedYoneticisi.Ornek.SonrakiSpiniAl(bonusSpin);
+            if (tutorialKayit != null)
+            {
+                int gercekBahisT = _ekonomiServisi != null ? _ekonomiServisi.Bahis : tutorialKayit.bahis;
+                Debug.Log($"[TutorialScripted] Spin RNG bypass, brüt {tutorialKayit.brutOdeme} TL (bahis={gercekBahisT})");
+                return ScriptedSpinUygulayici.UygulaKaydi(tutorialKayit, this, gercekBahisT);
+            }
+        }
+
         // SCRIPTED MODE — anlatıcı sahnesinde (build idx 2) scripted senaryo aktifse RNG bypass.
         // - Normal spin (bonusSpin=false): aşama+spin sırasından kayıt al (asamaSpinleri[asamaIdx].spinler[spinIdx]).
         // - Bonus spin (bonusSpin=true && _scriptedBonusBahisOverride): bonusSpinleri[bonusIdx] al → motor RTP devre dışı,

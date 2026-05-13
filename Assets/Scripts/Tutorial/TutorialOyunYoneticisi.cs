@@ -616,6 +616,10 @@ namespace KumarFarkindalik.Tutorial
                     oyT4.carpanUretimiAktif = true;
                     Debug.Log($"[Tutorial T4 ADIMDEGISTI] carpanUretimiAktif={oyT4.carpanUretimiAktif}, carpanUretimOlasiligi={oyT4.carpanUretimOlasiligi:F2}, maxCarpanAdedi={oyT4.maxCarpanAdedi}");
                 }
+                // PAKET 14-FAZ33: ScriptedSpinUygulayici altyapısı devralır (03 referans).
+                // TutorialScriptedYoneticisi varsa AsamaSet → Aktif=true, OyunYoneticisi.Spin.cs Tutorial branch'i tetiklenir.
+                // Yoksa (yeni dosya yüklenmediyse) PatternBaslat eski pattern motor path'i çalıştırır (fallback).
+                TutorialScriptedYoneticisi.Ornek?.AsamaSet("carpanTest_100");
                 TutorialSenaryoMotoru.PatternBaslat("carpanTest_100");
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T5)
@@ -641,6 +645,8 @@ namespace KumarFarkindalik.Tutorial
                     BonusUIServisiKayipClipAyarla(oyT5Sound, null);
                     Debug.Log("[Tutorial T5] spinSonucKayipClip cache+null (OyunYoneticisi + BonusUIServisi).");
                 }
+                // PAKET 14-FAZ33: ScriptedSpinUygulayici altyapısı T5 bonusTest için.
+                TutorialScriptedYoneticisi.Ornek?.AsamaSet("bonusTest_100");
                 TutorialSenaryoMotoru.PatternBaslat("bonusTest_100");
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T6_YENI_OYUNCU)

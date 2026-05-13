@@ -120,6 +120,8 @@ namespace KumarFarkindalik.Tutorial
                             // false ikinci aşamayı kesin garanti eder.
                             var oyT4Capac = Object.FindObjectOfType<OyunYoneticisi>();
                             if (oyT4Capac != null) oyT4Capac.carpanUretimiAktif = false;
+                            // PAKET 14-FAZ33: ScriptedSpinUygulayici altyapısı T4 ikinci aşama
+                            TutorialScriptedYoneticisi.Ornek?.AsamaSet("carpanTest_0");
                             TutorialSenaryoMotoru.PatternBaslat("carpanTest_0");
                             Debug.Log("[Tutorial T4 Çarpan] Slider %0 → ikinci pattern başladı (carpanTest_0) + carpanUretimiAktif=false");
                         }
@@ -142,6 +144,8 @@ namespace KumarFarkindalik.Tutorial
                         {
                             TutorialOyunYoneticisi.T5IkinciAsamaBasladi = true;
                             TutorialOyunYoneticisi.Ornek?.AdimYoneticisi?.IkinciAsamaIcinSayaciResetle(1);
+                            // PAKET 14-FAZ33: ScriptedSpinUygulayici altyapısı T5 ikinci aşama
+                            TutorialScriptedYoneticisi.Ornek?.AsamaSet("bonusTest_0");
                             TutorialSenaryoMotoru.PatternBaslat("bonusTest_0");
                             Debug.Log($"[Tutorial T5 Bonus] Yuzde={yuzde:F1} (TAM %0) → ikinci pattern başladı + sayaç reset");
                         }
