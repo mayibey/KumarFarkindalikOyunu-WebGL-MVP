@@ -120,11 +120,10 @@ namespace KumarFarkindalik.Tutorial
             ModalAcik = true; // Spin butonu bu süre boyunca engellenir
             Debug.Log("[ModalKopru-DEBUG] ModalAcik=true SET edildi (try öncesi)");
 
-            // Anlatici HTML iframe yönetimi: TÜM modal akışları için ArkayaAt çağrılır
-            // (panel translateX(-100px) + opacity:0.4 + pointer-events:none — display:none yerine).
-            // gizleAnlatici parametresi geriye uyumluluk için signature'da kalır ama davranış birleşti:
-            // Pre-A1 (false) ve diğer modallar (true) artık aynı pattern'de panel'i sola kaydırır.
-            AnlaticiSeritKopru.Ornek?.ArkayaAt();
+            // PAKET 14-FAZ20: ArkayaAt çağrısı KALDIRILDI. Tutorial sahnesinde modal açıldığında
+            // ayar paneli (panel.html iframe) sola kayıp opaklığı düşüyordu — kullanıcı modal okurken
+            // panel görünmez oluyordu. Tutorial pedagojisi panel açık + modal yan yana ister.
+            // AnlaticiSeritKopru.Ornek?.ArkayaAt();
 
             try
             {
@@ -184,10 +183,9 @@ namespace KumarFarkindalik.Tutorial
                 Debug.Log("[ModalKopru-DEBUG] ModalGoster finally — ModalAcik=false SET ediliyor");
                 ModalAcik = false; // Spin butonu tekrar serbest
 
-                // Anlatici iframe state geri yükleme — TÜM modallar için OneAl
-                // (transform:none + opacity:1 + pointer-events:auto). gizleAnlatici parametresi
-                // davranışı etkilemez (geriye uyumluluk için signature korundu).
-                AnlaticiSeritKopru.Ornek?.OneAl();
+                // PAKET 14-FAZ20: OneAl çağrısı KALDIRILDI (ArkayaAt da kaldırıldığı için gereksiz).
+                // Panel hep önde + opak kalır.
+                // AnlaticiSeritKopru.Ornek?.OneAl();
                 Debug.Log("[ModalKopru-DEBUG] ModalGoster END — ModalAcik=" + ModalAcik);
             }
         }

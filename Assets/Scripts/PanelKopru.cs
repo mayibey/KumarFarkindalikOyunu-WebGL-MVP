@@ -190,7 +190,13 @@ public class PanelKopru : MonoBehaviour
 
             case "carpanOlasilik":
                 if (int.TryParse(deger, out int olasilik))
+                {
                     _oy?.AdminSetCarpanOlasilik(olasilik);
+                    // PAKET 14-FAZ21: AdminSetCarpanOlasilik sadece carpanOlasilikYuzde (UI int field) set
+                    // ediyor; DesenToKayit'ın okuduğu float carpanUretimOlasiligi default 0.15f kalıyor.
+                    // Slider %100 yapsa bile çarpan düşmüyordu — gerçek mekanik field'ı da set et.
+                    if (_oy != null) _oy.carpanUretimOlasiligi = Mathf.Clamp01(olasilik / 100f);
+                }
                 break;
 
             case "maxCarpanTekSpin":

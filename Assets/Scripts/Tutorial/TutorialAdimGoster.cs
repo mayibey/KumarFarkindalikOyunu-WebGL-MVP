@@ -386,14 +386,23 @@ namespace KumarFarkindalik.Tutorial
                                     && yapilacakSayisi > paramSayisi;
 
                 if (sonMaddeSpin)
+                {
                     tamam = spinTamam;
+                }
+                else if (i < paramSayisi)
+                {
+                    // PAKET 14-FAZ20: Parametre madde — değişti VE lambda (gerçek değer) DOĞRU ise YEŞİL.
+                    // T3 madde 0 "Oyun Modu seç": dropdown seçildi + aktifSenaryo==senaryo
+                    // T4 madde 0 "Çarpan %100 ayarla": slider'a dokundu + SonCarpanOlasilik>=99.5
+                    bool degisimOK = ay.AdimSirasindaDegistirildi(v.degisimAnahtarlari[i]);
+                    bool lambdaOK = v.parametreKosulu?.Invoke() ?? true;
+                    tamam = degisimOK && lambdaOK;
+                }
                 else
                 {
-                    // HOTFIX: AdimSirasindaDegistirildi sadece "key gönderildi mi" — değere bakmıyordu.
-                    // parametreKosulu lambda GERÇEK değer kontrolü yapar (örn carpanOlasilik >= %10,
-                    // aktifSenaryo == "hook", maksCarpan > 0 vb.). Tüm parametre + ara maddeler için
-                    // tek lambda yeşillik kararını verir. parametreKosulu null ise fallback eski mantık.
-                    tamam = v.parametreKosulu?.Invoke() ?? tumAnahtarlarTamam;
+                    // PAKET 14-FAZ20: Uygula maddesi (paramSayisi ile sonMaddeSpin arası) — UygulamaOnaylandi.
+                    // T3 madde 1 "Uygula bas": kullanıcı Uygula butonuna basınca YEŞİL.
+                    tamam = TutorialAdminEnjeksiyonu.UygulamaOnaylandi;
                 }
 
                 // PAKET 14-FAZ19: "→" font kare fallback bug → "•" prefix (evrensel). "✓" SDF font destekli.

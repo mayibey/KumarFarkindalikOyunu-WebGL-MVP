@@ -594,6 +594,10 @@ namespace KumarFarkindalik.Tutorial
                 // PAKET 9: T5 2-aşamalı — ilk aşama %100 (1 spin, bonus garanti), ikinci aşama %0 (1 spin, bonus yok).
                 T5AraModalGosterildi = false;
                 T5IkinciAsamaBasladi = false;
+                // PAKET 14-FAZ21: T4'ten kalma carpanUretimiAktif=true T5 scatter pattern grid'ine müdahale
+                // ediyordu. T5 bonus sembol pedagojisinde çarpan istenmiyor — kapat.
+                var oyT5Carpan = Object.FindObjectOfType<OyunYoneticisi>();
+                if (oyT5Carpan != null) oyT5Carpan.carpanUretimiAktif = false;
                 // PAKET 14 (İş 4): Bonus tetik spin'inde ToplamHamKazanc=0 → PlayKayipHorn çalıyor.
                 // spinSonucKayipClip'i cache + null → T5 sırasında horn çalmaz. T6_YENI_OYUNCU başında restore.
                 var oyT5Sound = Object.FindObjectOfType<OyunYoneticisi>();
@@ -905,8 +909,11 @@ namespace KumarFarkindalik.Tutorial
             TutorialSpinSayaci++;
             // PAKET 14-FAZ16: Bakiye farkı (03 AnlaticiSeritKopru:437 referansı). Bahis ZATEN bakiye'den çıkıyor,
             // kazanç ZATEN bakiye'ye ekleniyor → tek fark = spin'in NET kazanç/kaybı (formül 1-1).
+            // PAKET 14-FAZ20: Bakiye spin finalize edilmeden 0 fark dönüyordu → 1sn timeout ile değişim bekle.
             if (oy != null)
             {
+                long baslangic = _oncekiBakiye;
+                yield return BekleVeyaTimeout(() => oy.BahisPanelMevcutBakiye() != baslangic, 1f);
                 long simdikiBakiye = oy.BahisPanelMevcutBakiye();
                 int net = (int)(simdikiBakiye - _oncekiBakiye);
                 AktifAdimSpinNetleri.Add(net);
@@ -936,7 +943,9 @@ namespace KumarFarkindalik.Tutorial
                 T5AraModalGosterildi = true;
                 // PAKET 14-FAZ5 (İş 4): Yapılacaklar 1. madde "%0 ayarla"'ya geç (dinamik aşama).
                 AdimYoneticisi.YapilacakMaddesiniGuncelle(0, "Bonus %0 ayarla");
-                Debug.Log("[Tutorial T5 Bonus] Aşama 1 bitti (1 spin %100), bonus yarım kes + ara modal");
+                // PAKET 14-FAZ21: İkinci aşama için Uygula yeniden gerekli — flag reset.
+                TutorialAdminEnjeksiyonu.UygulamaOnaylandi = false;
+                Debug.Log("[Tutorial T5 Bonus] Aşama 1 bitti (1 spin %100), bonus yarım kes + ara modal + UygulamaOnaylandi=false");
                 StartCoroutine(T5IlkAsamaSonuAkisi());
             }
         }
@@ -967,7 +976,9 @@ namespace KumarFarkindalik.Tutorial
                 T4AraModalGosterildi = true;
                 // PAKET 14-FAZ5 (İş 4): Yapılacaklar 1. madde "%0 ayarla"'ya geç.
                 AdimYoneticisi.YapilacakMaddesiniGuncelle(0, "Çarpan %0 ayarla");
-                Debug.Log("[Tutorial T4 Çarpan] Aşama 1 bitti (1 spin %100), ara modal + motor pasif");
+                // PAKET 14-FAZ21: İkinci aşama için Uygula yeniden gerekli — flag reset.
+                TutorialAdminEnjeksiyonu.UygulamaOnaylandi = false;
+                Debug.Log("[Tutorial T4 Çarpan] Aşama 1 bitti (1 spin %100), ara modal + motor pasif + UygulamaOnaylandi=false");
                 TutorialSenaryoMotoru.Durdur();
                 StartCoroutine(GosterAraModal(TutorialAdimYoneticisi.T4_ARA_MODAL));
             }
