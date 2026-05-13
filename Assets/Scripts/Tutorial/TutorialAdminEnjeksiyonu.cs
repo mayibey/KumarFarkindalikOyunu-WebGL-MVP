@@ -87,6 +87,8 @@ namespace KumarFarkindalik.Tutorial
             if (TutorialOyunYoneticisi.T8AraModalGosterildi && !TutorialOyunYoneticisi.T8IkinciAsamaBasladi)
                 TutorialOyunYoneticisi.T8IkinciAsamaBasladi = true;
 
+            // PAKET 14-FAZ34 İş 5: ScriptedSpinUygulayici altyapısı T7 Ödeme için.
+            TutorialScriptedYoneticisi.Ornek?.AsamaSetOdemeAraligi(min, maks);
             TutorialSenaryoMotoru.DinamikOdemePatternBaslat(min, maks);
             Debug.Log($"[Tutorial T7 Ödeme] Dinamik pattern tetiklendi: aralık=[{min:F1}-{maks:F1}]× bahis");
         }
@@ -161,6 +163,15 @@ namespace KumarFarkindalik.Tutorial
                 case "oyunModu":
                     // PAKET 4-FAZ-1: Tutorial T3 scripted spin motoru tetikleyici
                     // value = "hook" / "yontma" / "tutma" / "koruma" / "normal"
+                    // PAKET 14-FAZ34 İş 7: ScriptedSpinUygulayici altyapısı T3 senaryolar için.
+                    switch (value)
+                    {
+                        case "hook":   TutorialScriptedYoneticisi.Ornek?.AsamaSetHook(); break;
+                        case "yontma": TutorialScriptedYoneticisi.Ornek?.AsamaSetYontma(); break;
+                        case "tutma":  TutorialScriptedYoneticisi.Ornek?.AsamaSetTutma(); break;
+                        case "koruma": TutorialScriptedYoneticisi.Ornek?.AsamaSetKoruma(); break;
+                        case "normal": TutorialScriptedYoneticisi.Ornek?.DeaktifEt(); break;
+                    }
                     TutorialSenaryoMotoru.PatternBaslat(value);
                     break;
                 case "uygulamaOnayi":
@@ -183,6 +194,8 @@ namespace KumarFarkindalik.Tutorial
                                 && !TutorialOyunYoneticisi.T6IlkAsamaPatternBasladi)
                             {
                                 TutorialOyunYoneticisi.T6IlkAsamaPatternBasladi = true;
+                                // PAKET 14-FAZ34 İş 8: ScriptedSpinUygulayici altyapısı T6YO açık için.
+                                TutorialScriptedYoneticisi.Ornek?.AsamaSetYeniOyuncuAcik();
                                 TutorialSenaryoMotoru.PatternBaslat("yeniOyuncu_acik");
                                 Debug.Log("[Tutorial T6YO] Toggle AÇILDI → 1.aşama pattern başladı (yeniOyuncu_acik)");
                             }
@@ -191,6 +204,8 @@ namespace KumarFarkindalik.Tutorial
                                      && !TutorialOyunYoneticisi.T6IkinciAsamaBasladi)
                             {
                                 TutorialOyunYoneticisi.T6IkinciAsamaBasladi = true;
+                                // PAKET 14-FAZ34 İş 8: ScriptedSpinUygulayici altyapısı T6YO kapalı için.
+                                TutorialScriptedYoneticisi.Ornek?.AsamaSetYeniOyuncuKapali();
                                 TutorialSenaryoMotoru.PatternBaslat("yeniOyuncu_kapali");
                                 Debug.Log("[Tutorial T6YO] Toggle KAPATILDI → 2.aşama pattern başladı (yeniOyuncu_kapali)");
                             }
@@ -205,6 +220,8 @@ namespace KumarFarkindalik.Tutorial
                             && int.TryParse(value, out int kazSliderVal))
                         {
                             int n = Mathf.Clamp(kazSliderVal, 0, 5);
+                            // PAKET 14-FAZ34: ScriptedSpinUygulayici altyapısı T6 Kazandırma için.
+                            TutorialScriptedYoneticisi.Ornek?.AsamaSetKazanmaSikligi(n);
                             TutorialSenaryoMotoru.DinamikPatternBaslat("kazandirma", n);
                         }
                     }
@@ -217,6 +234,8 @@ namespace KumarFarkindalik.Tutorial
                             && int.TryParse(value, out int nmSliderVal))
                         {
                             int n = Mathf.Clamp(nmSliderVal, 0, 5);
+                            // PAKET 14-FAZ34 İş 3: ScriptedSpinUygulayici altyapısı T8 Near Miss için.
+                            TutorialScriptedYoneticisi.Ornek?.AsamaSetNearMiss(n);
                             TutorialSenaryoMotoru.DinamikPatternBaslat("nearMiss", n);
                         }
                     }
@@ -247,6 +266,8 @@ namespace KumarFarkindalik.Tutorial
                             && !TutorialOyunYoneticisi.T11IkinciAsamaBasladi)
                         {
                             TutorialOyunYoneticisi.T11IkinciAsamaBasladi = true;
+                            // PAKET 14-FAZ34 İş 9: ScriptedSpinUygulayici altyapısı T10 carpanZorla_acik için.
+                            TutorialScriptedYoneticisi.Ornek?.AsamaSetCarpanZorlaAcik();
                             TutorialSenaryoMotoru.PatternBaslat("carpanZorla_acikOdeme");
                             Debug.Log("[Tutorial T11 Çarpan Zorla] carpanOdemeToggle açıldı → ikinci pattern başladı");
                         }

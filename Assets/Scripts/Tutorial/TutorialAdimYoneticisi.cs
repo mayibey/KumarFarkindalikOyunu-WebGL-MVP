@@ -49,6 +49,10 @@ namespace KumarFarkindalik.Tutorial
             _adimSirasindaDegisenler.Clear();
             Debug.Log($"[TutorialAdimYoneticisi] Adım geçti: {yeni} (başlangıç spin={_adimBaslangicSpin})");
             OnAdimDegisti?.Invoke(_adimlar[yeni]);
+
+            // PAKET 14-FAZ34 İş 6: Adım bazlı yönetici paneli disabled — mevcut vurguSelectorlari listesi
+            // "aktif kalacak" elementler olarak yeniden kullanılır. Liste boş ise TÜM UI gri (T1, T2, T_SON).
+            TutorialPanelKilit.KilitliAyarlariGonder(_adimlar[yeni].vurguSelectorlari);
         }
 
         public void IleriTiklandi()

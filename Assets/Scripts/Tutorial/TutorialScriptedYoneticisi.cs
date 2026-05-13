@@ -156,6 +156,176 @@ namespace KumarFarkindalik.Tutorial
             }
         }
 
+        /// <summary>PAKET 14-FAZ34: T6 Kazandırma Sıklığı — N kazanç + (5-N) kayıp dinamik liste oluştur + shuffle.
+        /// Her oturumda farklı sıra (UnityEngine.Random), pedagojik tutarlılık için yine N adet kazanç garanti.
+        /// _aktifPattern = "kazanma" jenerik etiket, _patternSpinleri["kazanma"] her çağrıda yeniden doldurulur.</summary>
+        public void AsamaSetKazanmaSikligi(int N)
+        {
+            N = Mathf.Clamp(N, 0, 5);
+            var liste = new List<ScriptedSpinKaydi>(5);
+            for (int i = 0; i < N; i++) liste.Add(TutorialAsamaListesiUreteci.UretKazancKayit());
+            for (int i = 0; i < 5 - N; i++) liste.Add(TutorialAsamaListesiUreteci.UretKayipKayit());
+
+            // Fisher-Yates shuffle (UnityEngine.Random — her oturum farklı sıra)
+            for (int i = liste.Count - 1; i > 0; i--)
+            {
+                int j = Random.Range(0, i + 1);
+                var tmp = liste[i]; liste[i] = liste[j]; liste[j] = tmp;
+            }
+
+            if (_patternSpinleri == null)
+                _patternSpinleri = new Dictionary<string, List<ScriptedSpinKaydi>>();
+            _patternSpinleri["kazanma"] = liste;
+            _aktifPattern = "kazanma";
+            _spinIdx = 0;
+            Aktif = true;
+
+            var oy = Object.FindObjectOfType<OyunYoneticisi>();
+            oy?.ScriptedSenaryoCacheTazele();
+
+            Debug.Log($"[TutorialScriptedYoneticisi] AsamaSetKazanmaSikligi(N={N}) — {N} kazanç + {5 - N} kayıp shuffle, Aktif=true.");
+        }
+
+        /// <summary>PAKET 14-FAZ34 İş 3: T8 Near Miss Sıklığı — N near-miss + (5-N) normal kayıp listesi + shuffle.
+        /// Near miss: 7 bitişik Hindistan (cluster eşik 8'in altında, ödeme yok ama "neredeyse" hissi).
+        /// Normal: UretKayipKayit dolgu grid (saf kayıp).</summary>
+        public void AsamaSetNearMiss(int N)
+        {
+            N = Mathf.Clamp(N, 0, 5);
+            var liste = new List<ScriptedSpinKaydi>(5);
+            for (int i = 0; i < N; i++) liste.Add(TutorialAsamaListesiUreteci.UretNearMissKayit());
+            for (int i = 0; i < 5 - N; i++) liste.Add(TutorialAsamaListesiUreteci.UretKayipKayit());
+
+            // Fisher-Yates shuffle (UnityEngine.Random — her oturum farklı sıra)
+            for (int i = liste.Count - 1; i > 0; i--)
+            {
+                int j = Random.Range(0, i + 1);
+                var tmp = liste[i]; liste[i] = liste[j]; liste[j] = tmp;
+            }
+
+            if (_patternSpinleri == null)
+                _patternSpinleri = new Dictionary<string, List<ScriptedSpinKaydi>>();
+            _patternSpinleri["nearMiss"] = liste;
+            _aktifPattern = "nearMiss";
+            _spinIdx = 0;
+            Aktif = true;
+
+            var oy = Object.FindObjectOfType<OyunYoneticisi>();
+            oy?.ScriptedSenaryoCacheTazele();
+
+            Debug.Log($"[TutorialScriptedYoneticisi] AsamaSetNearMiss(N={N}) — {N} near-miss + {5 - N} normal shuffle, Aktif=true.");
+        }
+
+        /// <summary>PAKET 14-FAZ34 İş 4: T9 Kaçış Frenleme — N kayıp + 1 kazanç (başabaş) + (4-N) doldurma.
+        /// SHUFFLE YOK — sıra önemli: önce kayıplar → kazanç → "tam kaçacaktım ama kazandım" pedagojisi.
+        /// N max 3 (kullanıcı 4-5 girse de clamp 1-3).</summary>
+        public void AsamaSetKacis(int N)
+        {
+            N = Mathf.Clamp(N, 1, 3);
+            var liste = new List<ScriptedSpinKaydi>(4);
+            for (int i = 0; i < N; i++) liste.Add(TutorialAsamaListesiUreteci.UretKayipKayit());
+            liste.Add(TutorialAsamaListesiUreteci.UretKacisKazancKayit());
+            for (int i = 0; i < 3 - N; i++) liste.Add(TutorialAsamaListesiUreteci.UretKayipKayit());
+
+            if (_patternSpinleri == null)
+                _patternSpinleri = new Dictionary<string, List<ScriptedSpinKaydi>>();
+            _patternSpinleri["kacis"] = liste;
+            _aktifPattern = "kacis";
+            _spinIdx = 0;
+            Aktif = true;
+
+            var oy = Object.FindObjectOfType<OyunYoneticisi>();
+            oy?.ScriptedSenaryoCacheTazele();
+
+            Debug.Log($"[TutorialScriptedYoneticisi] AsamaSetKacis(N={N}) — {N} kayıp + 1 kazanç + {3 - N} doldurma (sıralı), Aktif=true.");
+        }
+
+        /// <summary>PAKET 14-FAZ34 İş 5: T7 Ödeme Aralığı — paytable_8_9 taraması ile minCarpan/maxCarpan
+        /// aralığındaki (sembol,8-adet) kombinasyonlar pool oluştur → 5 random spin üret. Tumble: 1 cluster patlar.
+        /// Aralık dışı kombinasyon yoksa 5 kayıp spin.</summary>
+        public void AsamaSetOdemeAraligi(float minCarpan, float maksCarpan)
+        {
+            var oy = Object.FindObjectOfType<OyunYoneticisi>();
+            var ta = oy != null ? oy.tumbleAyarlari : null;
+            var liste = new List<ScriptedSpinKaydi>(5);
+
+            if (ta == null || ta.PayTable_8_9 == null)
+            {
+                for (int i = 0; i < 5; i++) liste.Add(TutorialAsamaListesiUreteci.UretKayipKayit());
+                Debug.LogWarning("[TutorialScriptedYoneticisi] AsamaSetOdemeAraligi: tumbleAyarlari NULL → 5 kayıp fallback.");
+            }
+            else
+            {
+                int sembolSayisi = ta.PayTable_8_9.Length;
+                int scatterIdx = ta.ScatterIndex;
+                var aday = new List<(int sembol, long brut)>();
+                for (int s = 0; s < sembolSayisi; s++)
+                {
+                    if (s == scatterIdx) continue;
+                    float payCoef = ta.PayTable_8_9[s];
+                    if (payCoef >= minCarpan && payCoef <= maksCarpan)
+                        aday.Add((s, (long)Mathf.RoundToInt(payCoef * 1000)));
+                }
+
+                if (aday.Count == 0)
+                {
+                    Debug.LogWarning($"[TutorialScriptedYoneticisi] AsamaSetOdemeAraligi [{minCarpan}-{maksCarpan}] paytable_8_9'da eşleşmedi → 5 kayıp.");
+                    for (int i = 0; i < 5; i++) liste.Add(TutorialAsamaListesiUreteci.UretKayipKayit());
+                }
+                else
+                {
+                    for (int i = 0; i < 5; i++)
+                    {
+                        var sec = aday[Random.Range(0, aday.Count)];
+                        liste.Add(TutorialAsamaListesiUreteci.UretOdemeKayit(sec.sembol, sec.brut));
+                    }
+                    Debug.Log($"[TutorialScriptedYoneticisi] AsamaSetOdemeAraligi: pool={aday.Count} sembol, 5 random spin üretildi.");
+                }
+            }
+
+            if (_patternSpinleri == null)
+                _patternSpinleri = new Dictionary<string, List<ScriptedSpinKaydi>>();
+            _patternSpinleri["odeme"] = liste;
+            _aktifPattern = "odeme";
+            _spinIdx = 0;
+            Aktif = true;
+
+            oy?.ScriptedSenaryoCacheTazele();
+            Debug.Log($"[TutorialScriptedYoneticisi] AsamaSetOdemeAraligi(min={minCarpan}, maks={maksCarpan}) — Aktif=true.");
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // PAKET 14-FAZ34 İş 7/8/9: T3 senaryolar + T6YO + T10 Çarpan Zorla AsamaSet metodları.
+        // Tümünde SHUFFLE YOK — pedagojik sıra önemli.
+        // ─────────────────────────────────────────────────────────────────────────
+
+        public void AsamaSetHook()     => AsamaSetHardcoded("hook",    TutorialAsamaListesiUreteci.UretHookSpinleri());
+        public void AsamaSetYontma()   => AsamaSetHardcoded("yontma",  TutorialAsamaListesiUreteci.UretYontmaSpinleri());
+        public void AsamaSetTutma()    => AsamaSetHardcoded("tutma",   TutorialAsamaListesiUreteci.UretTutmaSpinleri());
+        public void AsamaSetKoruma()   => AsamaSetHardcoded("koruma",  TutorialAsamaListesiUreteci.UretKorumaSpinleri());
+        public void AsamaSetYeniOyuncuAcik()   => AsamaSetHardcoded("yeniOyuncu_acik",   TutorialAsamaListesiUreteci.UretYeniOyuncuAcikSpinleri());
+        public void AsamaSetYeniOyuncuKapali() => AsamaSetHardcoded("yeniOyuncu_kapali", TutorialAsamaListesiUreteci.UretYeniOyuncuKapaliSpinleri());
+
+        public void AsamaSetCarpanZorlaKapali()
+            => AsamaSetHardcoded("carpanZorla_kapali", new List<ScriptedSpinKaydi> { TutorialAsamaListesiUreteci.UretCarpanZorlaKapaliKayit() });
+        public void AsamaSetCarpanZorlaAcik()
+            => AsamaSetHardcoded("carpanZorla_acik", new List<ScriptedSpinKaydi> { TutorialAsamaListesiUreteci.UretCarpanZorlaAcikKayit() });
+
+        private void AsamaSetHardcoded(string ad, List<ScriptedSpinKaydi> liste)
+        {
+            if (_patternSpinleri == null)
+                _patternSpinleri = new Dictionary<string, List<ScriptedSpinKaydi>>();
+            _patternSpinleri[ad] = liste;
+            _aktifPattern = ad;
+            _spinIdx = 0;
+            Aktif = true;
+
+            var oy = Object.FindObjectOfType<OyunYoneticisi>();
+            oy?.ScriptedSenaryoCacheTazele();
+
+            Debug.Log($"[TutorialScriptedYoneticisi] AsamaSet '{ad}' — {liste.Count} spin (sıralı), Aktif=true.");
+        }
+
         /// <summary>Pattern motoruna geri dönmek için (T_SON veya hata durumu). AsamaSet ile aynı sonuç ama explicit niyet.</summary>
         public void DeaktifEt()
         {

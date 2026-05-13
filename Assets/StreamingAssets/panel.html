@@ -1681,9 +1681,35 @@
     modAciklamasiniGuncelle(document.getElementById('oyunModu').value);
   });
 
+  // PAKET 14-FAZ34 İş 6: Tutorial adım bazlı disabled — aktif selector listesi haricindeki tüm
+  // input/select/button gri+disabled. Liste boş ise tüm UI disable (T1, T2, T_SON başlangıç/kapanış).
+  function ayarlariKilitle(aktifSelectorlar) {
+    var aktif = aktifSelectorlar || [];
+    var hepsi = document.querySelectorAll('input, select, button, .toggle-switch');
+    for (var i = 0; i < hepsi.length; i++) {
+      var el = hepsi[i];
+      var eslesti = false;
+      for (var j = 0; j < aktif.length; j++) {
+        var sel = aktif[j];
+        if ((sel.charAt(0) === '#' && el.id === sel.substring(1)) || el.id === sel) { eslesti = true; break; }
+      }
+      el.disabled = !eslesti;
+      el.style.opacity = eslesti ? '1' : '0.4';
+      el.style.pointerEvents = eslesti ? 'auto' : 'none';
+    }
+  }
+
   window.addEventListener('message', function (e) {
     var d = e.data;
-    if (!d || d.source !== 'unityToPanel' || d.key !== 'mevcutAyarlar') return;
+    if (!d || d.source !== 'unityToPanel') return;
+    if (d.key === 'tutorialKilit') {
+      try {
+        var liste = JSON.parse(d.value);
+        ayarlariKilitle(liste.aktifSelectorlar || []);
+      } catch (err) { console.error('[Panel] tutorialKilit parse hatası:', err); }
+      return;
+    }
+    if (d.key !== 'mevcutAyarlar') return;
     try {
       var a = JSON.parse(d.value);
       var modu = document.getElementById('oyunModu');

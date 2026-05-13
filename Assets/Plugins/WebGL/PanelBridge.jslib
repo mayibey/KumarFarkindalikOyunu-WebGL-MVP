@@ -113,6 +113,21 @@ mergeInto(LibraryManager.library, {
         }
     },
 
+    // PAKET 14-FAZ34 İş 6: Tutorial adım bazlı disabled — aktif kalacak selector listesini gönder.
+    // panel.html message listener 'tutorialKilit' key'i için ayarlariKilitle() çağırır.
+    TutorialPanelKilitGonderJslib: function(jsonPtr) {
+        var json = UTF8ToString(jsonPtr);
+        var iframe = document.getElementById('panelIframe');
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage({
+                source: 'unityToPanel',
+                key:    'tutorialKilit',
+                value:  json
+            }, '*');
+        }
+        // panel henüz açılmamış olabilir (T1, T2) — sessiz fail, T3'te panel açılınca tekrar gönderilebilir.
+    },
+
     // ========== BAHİS PANEL (küçük merkezli pop-up) ==========
     BahisPaneliAc__deps: ['$PanelBridge'],
     BahisPaneliAc: function(urlPtr) {

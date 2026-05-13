@@ -589,18 +589,23 @@ namespace KumarFarkindalik.Tutorial
             // sorununda pattern enjekte edilmiyordu (RNG fallback geçiyordu). Adım girişinde de tetikle.
             if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T3_HOOK)
             {
+                // PAKET 14-FAZ34 İş 7: ScriptedSpinUygulayici altyapısı T3 hook için.
+                TutorialScriptedYoneticisi.Ornek?.AsamaSetHook();
                 TutorialSenaryoMotoru.PatternBaslat("hook");
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T3_YONTMA)
             {
+                TutorialScriptedYoneticisi.Ornek?.AsamaSetYontma();
                 TutorialSenaryoMotoru.PatternBaslat("yontma");
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T3_TUTMA)
             {
+                TutorialScriptedYoneticisi.Ornek?.AsamaSetTutma();
                 TutorialSenaryoMotoru.PatternBaslat("tutma");
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T3_KORUMA)
             {
+                TutorialScriptedYoneticisi.Ornek?.AsamaSetKoruma();
                 TutorialSenaryoMotoru.PatternBaslat("koruma");
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T4)
@@ -685,17 +690,23 @@ namespace KumarFarkindalik.Tutorial
                 // pre-compute akışı RNG kullanmasın, motor zaten hazır olsun. SpinKilitli toggle açana kadar
                 // true (lambda yeniOyuncuModu==true gerek) → spin engellenir, pattern güvenli bekler.
                 // Toggle açtığında AdminEnjeksiyonu PatternBaslat'ı idempotent restart yapar (sorun değil).
+                // PAKET 14-FAZ34 İş 8: ScriptedSpinUygulayici altyapısı T6YO için (toggle açılınca AsamaSetYeniOyuncuAcik).
+                TutorialScriptedYoneticisi.Ornek?.AsamaSetYeniOyuncuAcik();
                 TutorialSenaryoMotoru.PatternBaslat("yeniOyuncu_acik");
                 Debug.Log("[Tutorial T6YO] Giriş — toggle KAPALI, pattern yeniOyuncu_acik önceden aktif (toggle açılınca enjekte hazır).");
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T6) // KAZANDIRMA (sira=7)
             {
                 // PAKET 6C3: Default N=3 (slider değişene kadar). Slider hareket → AyarDegisti güncellenir.
+                // PAKET 14-FAZ34: ScriptedSpinUygulayici altyapısı — N kazanç + (5-N) kayıp shuffle.
+                TutorialScriptedYoneticisi.Ornek?.AsamaSetKazanmaSikligi(3);
                 TutorialSenaryoMotoru.DinamikPatternBaslat("kazandirma", 3);
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T8) // NEAR MISS (sira=9)
             {
                 // PAKET 6C3: Default N=2. Slider değişince DinamikPatternBaslat yeniden çağrılır.
+                // PAKET 14-FAZ34 İş 3: ScriptedSpinUygulayici altyapısı — N near miss + (5-N) normal shuffle.
+                TutorialScriptedYoneticisi.Ornek?.AsamaSetNearMiss(2);
                 TutorialSenaryoMotoru.DinamikPatternBaslat("nearMiss", 2);
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T7) // ÖDEME ARALIĞI (sira=8, UI "T8")
@@ -716,13 +727,17 @@ namespace KumarFarkindalik.Tutorial
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T9) // KAÇIŞ FRENLEME (sira=10, UI "T10")
             {
                 // PAKET 6D: 3 kayıp + 1 kazanç deterministik
+                // PAKET 14-FAZ34 İş 4: ScriptedSpinUygulayici altyapısı — 3 kayıp + 1 başabaş kazanç + 0 doldurma.
+                TutorialScriptedYoneticisi.Ornek?.AsamaSetKacis(3);
                 TutorialSenaryoMotoru.PatternBaslat("kacisFrenle");
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T10) // ÇARPAN ZORLA (sira=11, UI "T11")
             {
                 // PAKET 6D: 2-aşamalı çarpan ödeme kapalı → açık demo
+                // PAKET 14-FAZ34 İş 9: ScriptedSpinUygulayici altyapısı T10 Çarpan Zorla için.
                 T11AraModalGosterildi = false;
                 T11IkinciAsamaBasladi = false;
+                TutorialScriptedYoneticisi.Ornek?.AsamaSetCarpanZorlaKapali();
                 TutorialSenaryoMotoru.PatternBaslat("carpanZorla_kapaliOdeme");
             }
             else if ((int)v.id >= (int)TutorialAdimYoneticisi.TutorialAdimId.T4)
