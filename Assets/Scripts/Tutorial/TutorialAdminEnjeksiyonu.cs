@@ -81,8 +81,15 @@ namespace KumarFarkindalik.Tutorial
                             && co <= 5f)
                         {
                             TutorialOyunYoneticisi.T4IkinciAsamaBasladi = true;
+                            // PAKET 14 (İş 3): Motor pattern enjeksiyon race ile RNG path geçerse
+                            // (Motor early-out var: carpanOlasilik<=0.001f) RNG yine carpanUretimiAktif=true
+                            // ise çarpan üretebilir. Defansif olarak field'ı false çek → tüm path'lerde
+                            // çarpan üretimi durur. T4 girişinde true set ediliyor (line ~482), buradaki
+                            // false ikinci aşamayı kesin garanti eder.
+                            var oyT4Capac = Object.FindObjectOfType<OyunYoneticisi>();
+                            if (oyT4Capac != null) oyT4Capac.carpanUretimiAktif = false;
                             TutorialSenaryoMotoru.PatternBaslat("carpanTest_0");
-                            Debug.Log("[Tutorial T4 Çarpan] Slider %0 → ikinci pattern başladı (carpanTest_0)");
+                            Debug.Log("[Tutorial T4 Çarpan] Slider %0 → ikinci pattern başladı (carpanTest_0) + carpanUretimiAktif=false");
                         }
                     }
                     break;

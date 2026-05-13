@@ -77,6 +77,13 @@ namespace KumarFarkindalik.Tutorial
         private static int _orijinalBonusOtomatikPeriyot = 0;
         private static int _orijinalBahis = 10;
 
+        // PAKET 14 (İş 4): T5 bonus tetik spin'i (bonusTest_100, ToplamHamKazanc=0) PlayKayipHorn
+        // çalıyor (DonusAkis "net<=0 → kayıp ses"). T5 başında klibi cache+null, T6_YENI_OYUNCU
+        // başında restore. T5'in 2 spin'i sessiz olur — bonusTest_0 (kayıp+bonus yok) pedagoji
+        // ses olmadan da net.
+        private static AudioClip _orijinalSpinSonucKayipClip;
+        private static bool _spinSonucKayipClipCachelendi = false;
+
         // PAKET 4-HOTFIX (Bug 1): Spin animasyonu bitince sayaç + scripted motor ilerlet
         // (tıklama anında değil — Modal C erken açılma sorunu fix)
         private bool _spinBekliyor = false;
@@ -489,12 +496,31 @@ namespace KumarFarkindalik.Tutorial
                 // PAKET 9: T5 2-aşamalı — ilk aşama %100 (1 spin, bonus garanti), ikinci aşama %0 (1 spin, bonus yok).
                 T5AraModalGosterildi = false;
                 T5IkinciAsamaBasladi = false;
+                // PAKET 14 (İş 4): Bonus tetik spin'inde ToplamHamKazanc=0 → PlayKayipHorn çalıyor.
+                // spinSonucKayipClip'i cache + null → T5 sırasında horn çalmaz. T6_YENI_OYUNCU başında restore.
+                var oyT5Sound = Object.FindObjectOfType<OyunYoneticisi>();
+                if (oyT5Sound != null && !_spinSonucKayipClipCachelendi)
+                {
+                    _orijinalSpinSonucKayipClip = oyT5Sound.spinSonucKayipClip;
+                    _spinSonucKayipClipCachelendi = true;
+                    oyT5Sound.spinSonucKayipClip = null;
+                    Debug.Log("[Tutorial T5] spinSonucKayipClip cache+null — bonus tetik spin'inde horn engellendi.");
+                }
                 TutorialSenaryoMotoru.PatternBaslat("bonusTest_100");
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T6_YENI_OYUNCU)
             {
                 T6AraModalGosterildi = false;
                 T6IkinciAsamaBasladi = false;
+                // PAKET 14 (İş 4): T5'te cache'lenen kayıp ses klibini restore — T6YO ve sonrası
+                // normal kayıp horn'u çalışsın.
+                if (_spinSonucKayipClipCachelendi)
+                {
+                    var oyT6Sound = Object.FindObjectOfType<OyunYoneticisi>();
+                    if (oyT6Sound != null) oyT6Sound.spinSonucKayipClip = _orijinalSpinSonucKayipClip;
+                    _spinSonucKayipClipCachelendi = false;
+                    Debug.Log("[Tutorial T6YO] spinSonucKayipClip restore edildi.");
+                }
                 // HOTFIX: yeniOyuncuModu DEFAULT TRUE. T6YO başında ZORLA KAPALI'ya çek:
                 // 1) PanelKopru state false
                 // 2) OyunYoneticisi davranışı false (büyük kazanç modunu kapat)
@@ -688,9 +714,17 @@ namespace KumarFarkindalik.Tutorial
                 }
             }
 
-            // Spin başlama geçişi (false → true)
+            // Spin başlama geçişi (false → true). PAKET 14 (İş 1+10): Mouse path
+            // ButtonCevir.onClick listener'da _spinBekliyor=true set ediyor; Space tuşu
+            // OyunYoneticisi.cs:1894 SpinButon'u doğrudan çağırıp listener'ı bypass ediyordu.
+            // → TutorialSpinSayaci artmıyor + TutorialSenaryoMotoru.SpinTamamlandi() çağrılmıyor
+            // → _spinIdx hep 0 → her spin pattern[0] kayıp grid → T9 4. spin'de kazanç gelmedi.
+            // Burada hangi yoldan spin başladığından bağımsız flag set edilir (idempotent).
             if (!_oncekiSpinCalisiyor && simdi)
+            {
                 _oncekiSpinCalisiyor = true;
+                _spinBekliyor = true;
+            }
         }
 
         /// <summary>
