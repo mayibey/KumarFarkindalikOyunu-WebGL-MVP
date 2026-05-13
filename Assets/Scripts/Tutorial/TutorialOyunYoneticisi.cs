@@ -450,11 +450,38 @@ namespace KumarFarkindalik.Tutorial
             T6YOForceKapaliKilitli = false;
 
             // PAKET 6C1/6C2/6C3/8/9: adım bazlı pattern motor yönetimi
-            if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T4)
+            // PAKET 13: T3 senaryoları için defansif PatternBaslat — panel event-driven (AdminEnjeksiyonu
+            // "oyunModu" case) tek başına yetmiyor; kullanıcı dropdown'a basmadan veya geçiş timing
+            // sorununda pattern enjekte edilmiyordu (RNG fallback geçiyordu). Adım girişinde de tetikle.
+            if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T3_HOOK)
+            {
+                TutorialSenaryoMotoru.PatternBaslat("hook");
+            }
+            else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T3_YONTMA)
+            {
+                TutorialSenaryoMotoru.PatternBaslat("yontma");
+            }
+            else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T3_TUTMA)
+            {
+                TutorialSenaryoMotoru.PatternBaslat("tutma");
+            }
+            else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T3_KORUMA)
+            {
+                TutorialSenaryoMotoru.PatternBaslat("koruma");
+            }
+            else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T4)
             {
                 // PAKET 9: T4 2-aşamalı — ilk aşama %100 (1 spin), ikinci aşama %0 (1 spin daha).
                 T4AraModalGosterildi = false;
                 T4IkinciAsamaBasladi = false;
+                // PAKET 13-FIX: carpanUretimiAktif default false olabilir → DesenToKayit enjeksiyon bloğu
+                // atlanır, çarpan hiç düşmez. T4 başlangıcında defansif olarak true set et.
+                var oyT4 = Object.FindObjectOfType<OyunYoneticisi>();
+                if (oyT4 != null)
+                {
+                    oyT4.carpanUretimiAktif = true;
+                    Debug.Log("[Tutorial T4] carpanUretimiAktif = true (defansif aktiflik)");
+                }
                 TutorialSenaryoMotoru.PatternBaslat("carpanTest_100");
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T5)
