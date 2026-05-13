@@ -37,16 +37,17 @@ namespace KumarFarkindalik.Tutorial
         // Pattern dictionary — bahis=1000 TL, tumble YOK (tek paytable hit / tek tumble adımı)
         private static readonly Dictionary<string, SpinDesen[]> _patternlar = new()
         {
-            // PAKET 13 — T3_HOOK: 5 spin — 200/300/200/300/400 TL (toplam 1.400 TL).
-            // ÖNCEKİ 2000-3000 TL hedefler yeniOyuncu modu maxOdeme=1000 ile çakışıyordu → limit aşımı.
-            // Yeni hedefler hep 1× bahis (1000 TL) altı; yeniOyuncu modu limit'i sorun yaratmaz.
+            // PAKET 14 — T3_HOOK: 5 spin — 2000/2500/2000/2500/3000 TL (toplam 12.000 TL).
+            // SENARYOLAR.hook.yeniOyuncu=false → AdminSetYeniOyuncuModu çağrılmaz → maxOdeme=1000
+            // limiti yok → "bol kazanç" pedagojisi: bahsin 2-3× üstü ödemeler kanca hissi yaratır.
+            // 5 spin → 12.000 kazanç vs 5.000 bahis = NET +7.000 TL.
             ["hook"] = new[]
             {
-                new SpinDesen { sembolId = 0, adet = 8 },   // armut x8-9[0]=0.2 → 200 TL
-                new SpinDesen { sembolId = 1, adet = 8 },   // cilek x8-9[1]=0.3 → 300 TL
-                new SpinDesen { sembolId = 0, adet = 8 },   // 200 TL
-                new SpinDesen { sembolId = 1, adet = 8 },   // 300 TL
-                new SpinDesen { sembolId = 2, adet = 8 },   // erik  x8-9[2]=0.4 → 400 TL
+                new SpinDesen { sembolId = 5, adet = 10 },  // x10-11[5]=2.0 → 2000 TL
+                new SpinDesen { sembolId = 3, adet = 12 },  // x12+[3]=2.5  → 2500 TL
+                new SpinDesen { sembolId = 5, adet = 10 },  // 2000 TL
+                new SpinDesen { sembolId = 3, adet = 12 },  // 2500 TL
+                new SpinDesen { sembolId = 4, adet = 12 },  // x12+[4]=3.0  → 3000 TL
             },
             // T3_YONTMA: 5 spin — 500/300/500/200/400 (toplam 1.900 TL, bahis toplamı 5000 → net kayıp)
             ["yontma"] = new[]

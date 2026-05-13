@@ -194,6 +194,8 @@ public partial class OyunYoneticisi
         if (ScriptedBonusTuzagiPopup.IsAcik) { Debug.Log("[SpinButon-DEBUG] RETURN: ScriptedBonusTuzagiPopup.IsAcik=true"); return; }
         if (ScriptedBonusOyunUygulayici.IsAcik) { Debug.Log("[SpinButon-DEBUG] RETURN: ScriptedBonusOyunUygulayici.IsAcik=true"); return; }
         if (ScriptedModalKopru.ModalAcik) { Debug.Log("[SpinButon-DEBUG] RETURN: ScriptedModalKopru.ModalAcik=true"); return; }
+        // Tutorial sahnesi (idx=3) modal guard'ı — Space tuşu / spin butonu modal açıkken yutulur.
+        if (KumarFarkindalik.Tutorial.TutorialModalKopru.ModalAcik) { Debug.Log("[SpinButon-DEBUG] RETURN: TutorialModalKopru.ModalAcik=true"); return; }
         if (ScriptedDusunceBalonu.BalonAcik) { Debug.Log("[SpinButon-DEBUG] RETURN: ScriptedDusunceBalonu.BalonAcik=true"); return; }
         if (AnlaticiSeritKopru.BonusBitisAcik) { Debug.Log("[SpinButon-DEBUG] RETURN: AnlaticiSeritKopru.BonusBitisAcik=true"); return; }
         // Race condition fix: A* özel akış coroutine'i (modal + WaitForSeconds delay) sürüyorsa engelle.
