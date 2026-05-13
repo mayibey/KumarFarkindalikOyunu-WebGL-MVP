@@ -287,6 +287,9 @@ namespace KumarFarkindalik.Tutorial
                 if (overlay.activeSelf != olmalı)
                     overlay.SetActive(olmalı);
             }
+
+            // Space tuşu için: overlay sadece mouse raycast yutar, klavye için global flag gerekli.
+            TutorialOyunYoneticisi.SpinKilitli = !parametreTamam;
         }
     }
 }

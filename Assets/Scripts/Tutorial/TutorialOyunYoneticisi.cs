@@ -143,6 +143,10 @@ namespace KumarFarkindalik.Tutorial
         private GameObject _spinGuardOverlayGo;
         public GameObject SpinGuardOverlay => _spinGuardOverlayGo;
 
+        // Space tuşu Tutorial parametre bekleyen adımda spin'i bypass ediyordu (overlay sadece mouse raycast yutuyor).
+        // TutorialAdminEnjeksiyonu.Update'ten parametreTamam state'i set edilir; SpinButonImpl tek satır guard ile okur.
+        public static bool SpinKilitli { get; set; } = false;
+
         [Preserve]
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void OtomatikInit()
@@ -261,6 +265,14 @@ namespace KumarFarkindalik.Tutorial
             if (v.yapilacaklar.Length >= 2)
                 return $"Önce {v.yapilacaklar[0]} + {v.yapilacaklar[1]}";
             return $"Önce {v.yapilacaklar[0]}";
+        }
+
+        // Space tuşu parametre bekleyen adımda yutulduğunda overlay click ile aynı uyarıyı tetikler.
+        public void SpinKilitliUyariGoster()
+        {
+            string eksikMsg = ParametreEksikMesaj();
+            HatirlatmaServisi.Ornek?.ZorlaGoster(eksikMsg);
+            Debug.Log("[TutorialOyunYoneticisi] SpinKilitli (Space yutuldu) → uyarı: " + eksikMsg);
         }
 
         private static void ScriptedModalKopruModalAcikReset()
