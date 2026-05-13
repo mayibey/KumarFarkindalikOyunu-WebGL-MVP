@@ -107,16 +107,18 @@ namespace KumarFarkindalik.Tutorial
                 new SpinDesen { sembolId = -1, adet = 0 },                     // %0 → cluster yok, scatter yok, bonus yok
             },
             // PAKET 9 — T4 ÇARPAN 2-aşamalı: %100 → 1 spin (çarpan kesin), %0 → 1 spin (çarpan yok).
-            // PAKET 14-FAZ29: carpanPozlari/Degerleri SABİT — RNG'siz, deterministik 2 çarpan
-            //   pozisyon (2,3) → 5x, (4,1) → 10x. Her oyuncu AYNI çarpan deneyimi yaşar.
+            // PAKET 14-FAZ30: NET +4000 TL hedefine göre yeniden ayar. Elma (sembol 6) 8 adet
+            //   payCoef=1.0 → ham 1000 TL. TEK sabit çarpan 5x @ (2,3) → SUM=5.
+            //   Nihai = 1000 × 5 = 5000 TL → NET = 5000 - 1000 = +4000 TL (pedagojik orta hedef).
+            //   Önceki (Faz 29) Hindistan 8 + (5+10)=15 → 7500 nihai, NET +6500 (çok yüksek).
             // carpanTest_0: arrayler boş → çarpan yerleştirilmez (carpanUretimOlasiligi=0 path).
             ["carpanTest_100"] = new[]
             {
                 new SpinDesen
                 {
-                    sembolId = 3, adet = 8,   // 500 TL + 2 sabit çarpan
-                    carpanPozlari = new[] { new Vector2Int(2, 3), new Vector2Int(4, 1) },
-                    carpanDegerleri = new[] { 5, 10 }
+                    sembolId = 6, adet = 8,   // Elma 8 adet → ham 1000 TL + tek 5x çarpan = 5000 nihai, NET +4000
+                    carpanPozlari = new[] { new Vector2Int(2, 3) },
+                    carpanDegerleri = new[] { 5 }
                 },
             },
             ["carpanTest_0"] = new[]
