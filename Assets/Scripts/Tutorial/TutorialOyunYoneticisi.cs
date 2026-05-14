@@ -1095,7 +1095,8 @@ namespace KumarFarkindalik.Tutorial
 
             T11BonusYarimKes();
             TutorialSenaryoMotoru.Durdur();
-            yield return GosterAraModal(TutorialAdimYoneticisi.T5_ARA_MODAL);
+            // PAKET 14-FAZ35.5-B: T5_ARA_MODAL kaldırıldı (gereksiz modal). Doğrudan Aşama 2'ye geç —
+            // kullanıcı yapilacaklar[0]="Bonus %0 ayarla" direktifini görür, slider ayarlar + Uygula bas + spin atar.
         }
 
         // PAKET 9: T4 (Çarpan Olasılığı) 1. spin sonrası ara modal — kullanıcıya slider %0 daveti.
@@ -1139,14 +1140,9 @@ namespace KumarFarkindalik.Tutorial
             if (AdimYoneticisi.mevcutAdim != TutorialAdimYoneticisi.TutorialAdimId.T7) return; // T7 enum = "T8 Ödeme"
             if (T8AraModalGosterildi) return;
 
-            int sayac = TutorialSpinSayaci - AdimYoneticisi.AdimBaslangicSpin;
-            if (sayac == 3)
-            {
-                T8AraModalGosterildi = true;
-                Debug.Log("[Tutorial T8 Ödeme] Aşama 1 bitti (3 spin), ara modal + motor pasif");
-                TutorialSenaryoMotoru.Durdur();
-                StartCoroutine(GosterAraModal(TutorialAdimYoneticisi.T7_ARA_MODAL));
-            }
+            // PAKET 14-FAZ35.5-C: T7 tek aşamalı (Faz 35.2). 3.spin'de ara modal tetiklemez —
+            // T8AraModalGosterildi=true zaten PanelAcildiSonrasi'da set ediliyor (early-return).
+            // T7_ARA_MODAL const + bu çağrı kaldırıldı (ölü kod temizliği).
         }
 
         // PAKET 6D: T11 (Çarpan Zorla) 1. spin sonrası ara modal — toggle aç daveti

@@ -155,7 +155,7 @@ namespace KumarFarkindalik.Tutorial
                 altBaslik = "TAZE KAN (HOOK)",
                 yapilacaklar = new[] { "Oyun Modu 'Taze Kan' seç", "Uygula bas", "5 spin at" },
                 sira = 3,
-                altSayac = "1/4",
+                // PAKET 14-FAZ35.4: altSayac kaldırıldı — kategoriIciSira/Toplam=1/4 ile DUPLICATE üretiyordu ("1/4 · 1/4 ...").
                 vurguSelectorlari = new[] { "#oyunModu", "#senaryoUygulaBtn" },
                 gerekliSpin = 5,
                 parametreKosulu = () => PanelKopru.aktifSenaryo == "hook",
@@ -172,7 +172,7 @@ namespace KumarFarkindalik.Tutorial
                 altBaslik = "AZ AZ KAYIP (YONTMA)",
                 yapilacaklar = new[] { "Oyun Modu 'Az Az Kayıp' seç", "Uygula bas", "5 spin at" },
                 sira = 3,
-                altSayac = "2/4",
+                // PAKET 14-FAZ35.4: altSayac kaldırıldı (kategoriIciSira/Toplam=2/4 yeterli).
                 vurguSelectorlari = new[] { "#oyunModu", "#senaryoUygulaBtn" },
                 gerekliSpin = 5,
                 parametreKosulu = () => PanelKopru.aktifSenaryo == "yontma",
@@ -190,7 +190,7 @@ namespace KumarFarkindalik.Tutorial
                 // PAKET 4-FAZ-3: TUTMA pattern motoru 6 spin (0/0/2000/0/0/2000) — pedagojik "kayıp → tutucu → kayıp → tutucu" ritmi
                 yapilacaklar = new[] { "Oyun Modu 'Kaçış Engelleme' seç", "Uygula bas", "6 spin at" },
                 sira = 3,
-                altSayac = "3/4",
+                // PAKET 14-FAZ35.4: altSayac kaldırıldı (kategoriIciSira/Toplam=3/4 yeterli).
                 vurguSelectorlari = new[] { "#oyunModu", "#senaryoUygulaBtn" },
                 gerekliSpin = 6,
                 parametreKosulu = () => PanelKopru.aktifSenaryo == "tutma",
@@ -207,7 +207,7 @@ namespace KumarFarkindalik.Tutorial
                 altBaslik = "BAKİYE TÜKETME (KORUMA)",
                 yapilacaklar = new[] { "Oyun Modu 'Bakiye Tüketme' seç", "Uygula bas", "5 spin at" },
                 sira = 3,
-                altSayac = "4/4",
+                // PAKET 14-FAZ35.4: altSayac kaldırıldı (kategoriIciSira/Toplam=4/4 yeterli).
                 vurguSelectorlari = new[] { "#oyunModu", "#senaryoUygulaBtn" },
                 gerekliSpin = 5,
                 parametreKosulu = () => PanelKopru.aktifSenaryo == "koruma",
@@ -369,8 +369,9 @@ namespace KumarFarkindalik.Tutorial
                 mesajAksiyon = T10_AKSIYON,
                 mesajKapanis = T10_KAPANIS,
                 altBaslik = "AÇIK MI KAPALI MI?",
-                // PAKET 14-FAZ34.3 BUG G: 2 aşamalı (kapalı ödeme / açık ödeme) — altSayac dinamik.
-                altSayac = "1/2",
+                // PAKET 14-FAZ34.3 BUG G: 2 aşamalı (kapalı ödeme / açık ödeme).
+                // PAKET 14-FAZ35.4: altSayac kaldırıldı — kategoriIciSira/Toplam=1/2 ile DUPLICATE ("1/2 · 1/2 AÇIK MI KAPALI MI?").
+                // 2.aşama state programatik takip edilir (T11AraModalGosterildi/T11IkinciAsamaBasladi), UI'de ek sayaç yok.
                 // PAKET 6D: 2-aşamalı — Aşama 1 (toggle KAPALI + ×500 = ödeme yok), ara modal,
                 // Aşama 2 (toggle AÇIK + ×500 = mega kazanç)
                 yapilacaklar = new[] { "×500 butonuna bas (toggle KAPALI)", "'Çarpan Ödeme' toggle aç", "×500 tekrar bas" },
@@ -463,7 +464,7 @@ namespace KumarFarkindalik.Tutorial
         private const string T3_HOOK_B =
             "<color=#5BA0FF>Oyun Modu</color>'ndan <color=#5BA0FF>'Taze Kan'</color> seç, <color=#5BA0FF>Uygula</color> bas. <color=#FFD933>5 spin</color> at.";
         private const string T3_HOOK_C =
-            "Gördük mü? Yeni oyuncu hemen <color=#4DCC59>kazandı</color>, oyuna bağlandı. <color=#F24D40>Sömürünün başlangıcı</color> — <color=#F24D40>kanca</color>.";
+            "Az önce görüldüğü üzere oyuncu hemen kazandı ve oyuna bağlandı. Sömürünün başlangıcı.";
 
         private const string T3_YONTMA_A =
             "İkinci senaryo: <color=#F24D40>AZ AZ KAYIP (Yontma)</color>. Oyuncu farkına varmadan, küçük küçük <color=#F24D40>kaybettirme</color>. " +
@@ -471,26 +472,23 @@ namespace KumarFarkindalik.Tutorial
         private const string T3_YONTMA_B =
             "<color=#5BA0FF>Oyun Modu</color>'ndan <color=#5BA0FF>'Az Az Kayıp'</color> seç, <color=#5BA0FF>Uygula</color> bas. <color=#FFD933>5 spin</color> at.";
         private const string T3_YONTMA_C =
-            "Kazanç miktarları <color=#F24D40>bahis miktarının hep altında</color> olduğu için oyuncu farkında bile olmadan bakiyesi <color=#F24D40>sessizce eridi</color>...";
+            "Oyuncu farkına varmadan, bahis miktarından daha az kazandırılıp bakiye sessizce eritilir.";
 
         private const string T3_TUTMA_A =
-            "Üçüncü senaryo: <color=#F24D40>KAÇIŞ ENGELLEME (Tutma)</color>. Oyuncu çıkmaya niyetlenirse sistem küçük " +
-            "<color=#4DCC59>kazanç hediyesi</color> verir.";
+            "Üçüncü oyun: KAÇIŞ ENGELLEME. Oyuncu çıkmaya niyetlenirse sistem küçük kazanç hediyesi verir. " +
+            "Bu aşamada 2 tur üst üste kayıp yaşayan oyuncuya sistem, 3. turda oyundan kaçmasını engellemek için bilinçli bir şekilde ufak kazanç verir.";
         private const string T3_TUTMA_B =
             "<color=#5BA0FF>Oyun Modu</color>'ndan <color=#5BA0FF>'Kaçış Engelleme'</color> seç, <color=#5BA0FF>Uygula</color> bas. <color=#FFD933>6 spin</color> at.";
         private const string T3_TUTMA_C =
-            "Gördük mü? <color=#FFD933>2 kez kayıp</color>, sonra <color=#4DCC59>ÖDEME</color>. Yine <color=#FFD933>2 kez kayıp</color>, yine <color=#4DCC59>ÖDEME</color>. " +
-            "Sistem oyuncuyu tam çıkacağı anda küçük kazançla <color=#F24D40>TUTUYOR</color>. " +
-            "<color=#F24D40>Asıl manipülasyon budur</color> — <color=#F24D40>oyuncunun kaybetmesini bekletip</color>, küçük hediye vererek bir spin daha attırır.";
+            "2 kez kayıp sonra KAZANÇ. Yine 2 kez kayıp, yine KAZANÇ. " +
+            "Sistem oyuncuyu tam çıkacağı anda küçük kazançla TUTAR. Bu da manipülasyon tekniklerinden biridir.";
 
         private const string T3_KORUMA_A =
-            "Dördüncü senaryo: <color=#F24D40>BAKİYE TÜKETME (Koruma)</color>. <color=#F24D40>Ödeme neredeyse durur</color> — kasa korunur, " +
-            "oyuncu <color=#F24D40>son kuruşa kadar kaybeder</color>.";
+            "Dördüncü oyun modu: BAKİYE TÜKETME. Kazanç neredeyse durur. Oyuncunun son kuruşuna kadar kaybetmesi amaçlanır.";
         private const string T3_KORUMA_B =
             "<color=#5BA0FF>Oyun Modu</color>'ndan <color=#5BA0FF>'Bakiye Tüketme'</color> seç, <color=#5BA0FF>Uygula</color> bas. <color=#FFD933>5 spin</color> at.";
         private const string T3_KORUMA_C =
-            "<color=#F24D40>Kazanç yok</color>. Oyuncu <color=#F24D40>son kuruşuna kadar kaybediyor</color>. Senaryonun ilk üç adımı bağladı, " +
-            "son adım sömürdü. <color=#F24D40>Tükeniş aşaması</color>.";
+            "Kazanç yok. Bu mod, oyuncu son kuruşuna kadar kaybettirmeyi amaçlıyor.";
 
         // PAKET 8: T3_NORMAL_A/B/C kaldırıldı (T3_NORMAL adımı sistemden kaldırıldı).
         // Normal oyun bilgilendirmesi karşılama (T1) sonrası tek modal ile veriliyor (T1_NORMAL_INFO).
@@ -524,136 +522,104 @@ namespace KumarFarkindalik.Tutorial
             "<color=#F24D40>hiç çarpan düşmeyecek</color>.\n\n" +
             "<color=#5BA0FF>Çarpan olasılığını</color> <color=#FFD933>%0</color> yap, <color=#5BA0FF>Uygula</color> bas, <color=#FFD933>1 spin</color> daha at.";
         private const string T4_KAPANIS =
-            "<color=#FFD933>%100</color> ayarında çarpan <color=#4DCC59>kesin</color> düştü, <color=#FFD933>%0</color> ayarında ise " +
-            "<color=#F24D40>hiç düşmedi</color>. <color=#F24D40>Operatör</color> bu slider'ı <color=#F24D40>oyuncuya göstermeden</color> ayarlar — " +
-            "'oyun eğlenceli' hissi için yükseltir, kasayı korumak için sıfırlar. " +
-            "Oyuncunun beyninde <color=#F24D40>'her an büyük kazanç olabilir' yanılgısı</color> bu mekanizmayla üretilir.";
+            "Az önce görüldüğü üzere çarpan düşme olasılığını %100 ayarladığımızda çarpan sembolü kesin düştü. " +
+            "Ancak bu ayarı %0 yapınca çarpan hiç düşmedi. Kumar siteleri bu ayarı, oyuncuyu istediği gibi manipüle etmek için kullanır.";
 
         private const string T5_BASLANGIC =
-            "<b>BONUS SEMBOLÜ nedir?</b>\n\n" +
-            "Bonus sembolü (yıldız/scatter) grid'e nadir düşer. Bir spinde " +
-            "<color=#FFD933>4 veya daha fazla</color> scatter olursa " +
-            "<color=#5BA0FF>BONUS OYUN</color> açılır — 10 free spin + " +
-            "<color=#4DCC59>büyük kazanç</color> şansı.\n\n" +
-            "<color=#F24D40>Kumar siteleri</color> bu olasılığı istediği gibi ayarlar. " +
-            "Yüksek tutarsa kullanıcı 'her spinde büyük bonus gelebilir' diye " +
-            "<color=#F24D40>oyunu bırakamaz</color>. Beklenti = <color=#F24D40>bağımlılık</color>.\n\n" +
-            "<b>Şimdi deneyelim:</b> Bonus olasılığını <color=#FFD933>%100 yap</color>, " +
-            "Uygula bas, <color=#FFD933>1 spin</color> at. Garantili bonus oyun açılacak.";
+            "BONUS SEMBOLÜ nedir?\n\n" +
+            "Bonus sembolü (yıldız/scatter) oyun alanına nadir düşer. Bir spinde 4 veya daha fazla yıldız olursa bonus oyun açılır. " +
+            "10 ücretsiz spin ve büyük kazanç şansı. Kumar siteleri bu olasılığı istediği gibi ayarlar.\n\n" +
+            "Şimdi deneyelim: Bonus olasılığını %100 yap, uygulaya bas, 1 spin at. Garantili bonus oyun açılacak.";
         private const string T5_AKSIYON =
             "<color=#5BA0FF>Bonus olasılığını</color> <color=#FFD933>%100</color> yap, <color=#5BA0FF>Uygula</color> bas, <color=#FFD933>1 spin</color> at.";
-        // PAKET 9: T5 ara modal — kullanıcıya %0 daveti (tersini göstermek için).
-        public const string T5_ARA_MODAL =
-            "<color=#4DCC59>Bonus oyun açılışını gördük</color> — <color=#FFD933>4 scatter</color> düştü, <color=#5BA0FF>BONUS OYUN</color> yazısı çıktı.\n\n" +
-            "Şimdi <color=#F24D40>tersini görelim</color>: olasılık <color=#FFD933>%0</color> olduğunda " +
-            "<color=#F24D40>hiç bonus tetiklenmeyecek</color>.\n\n" +
-            "<color=#5BA0FF>Bonus olasılığını</color> <color=#FFD933>%0</color> yap, <color=#5BA0FF>Uygula</color> bas, <color=#FFD933>1 spin</color> daha at.";
+        // PAKET 14-FAZ35.5-B: T5_ARA_MODAL kaldırıldı (gereksiz modal). T5IlkAsamaSonuAkisi
+        // doğrudan Aşama 2'ye geçer, kullanıcı bonus %0 ayarlar + 1 spin daha atar.
         private const string T5_KAPANIS =
-            "<color=#FFD933>%100</color> ayarında bonus <color=#4DCC59>garanti</color> açıldı, <color=#FFD933>%0</color> ayarında ise " +
-            "<color=#F24D40>hiç açılmadı</color>. <color=#F24D40>Kumar siteleri</color> bu slider'ı <color=#F24D40>oyuncudan gizler</color> — " +
-            "'bonus geliyor' hissi yaratmak için yükseltir, kasayı korumak için sıfırlar. " +
-            "Oyuncunun beyninde <color=#F24D40>'biraz daha oynarsam bonus gelecek' yanılgısı</color> bu mekanizmayla üretilir.";
+            "%100 ayarında bonus garanti açıldı. %0 ayarında ise hiç açılmadı. Kumar siteleri bu çarpan ayarlarını oyuncudan gizler.";
 
         // PAKET 14-FAZ8 — T6_YENI_OYUNCU: kullanıcı toggle AÇAR (bol kazanç) → ara modal → KAPATIR (kayıp)
         private const string T6YO_BASLANGIC =
-            "Şimdi <color=#F24D40>operatörün GİZLİ silahını</color> göreceğiz: <color=#5BA0FF>Yeni Oyuncu Modu</color>.\n\n" +
-            "Bu toggle açıkken sistem oyuncuyu 'yeni gelen' sayar — ona ÖZEL bir rejim uygular: " +
-            "<color=#4DCC59>bol kazandırma</color>, <color=#F24D40>yumuşak kayıplar</color>. <color=#FFD933>'Şanslı bir gün'</color> hissi.";
+            "Şimdi kumar sitelerinin gizli silahını göreceğiz: Yeni oyuncu modu. " +
+            "Bu ayar açıkken sistem, oyuncuyu yeni gelen olarak algılar ve ona özel bir strateji uygular: bol kazandırma, yumuşak kayıplar.";
         private const string T6YO_AKSIYON =
-            "<color=#5BA0FF>Manipülasyon Ayarları</color>'nda <color=#5BA0FF>'Yeni Oyuncu Modu'</color> toggle'ını <color=#4DCC59>AÇ</color> ve <color=#FFD933>3 spin</color> at " +
-            "(sistem oyuncuyu kazandıracak). Sonra toggle'ı <color=#F24D40>KAPAT</color> ve <color=#FFD933>3 spin</color> daha at — fark netleşecek.";
+            "Manipülasyon ayarlarında \"Yeni Oyuncu Modu\" özelliğini aç ve 3 spin at (sistem oyuncuya kazandıracak). " +
+            "Sonra özelliği kapat ve 3 spin daha at. Aradaki fark netleşecek.";
         public const string T6YO_ARA_MODAL =
             "<color=#FFD933>3 spin</color> attık (toggle açık). Sonuç: <color=#4DCC59>BOL KAZANÇ</color> — sistem oyuncuyu çekiyor.\n\n" +
             "Şimdi <color=#5BA0FF>Manipülasyon Ayarları</color>'nda <color=#5BA0FF>'Yeni Oyuncu Modu'</color> toggle'ını <color=#F24D40>KAPAT</color>. " +
             "Ardından <color=#FFD933>3 spin</color> daha at. <color=#F24D40>Gerçek ortaya çıkacak</color>.";
         private const string T6YO_KAPANIS =
-            "Gördük mü? Aynı slot, aynı bahis. <color=#4DCC59>Toggle AÇIK</color> → <color=#4DCC59>BOL KAZANÇ</color>, <color=#F24D40>KAPALI</color> → <color=#F24D40>NET KAYIP</color>.\n\n" +
-            "Yeni Oyuncu Modu AÇIKKEN <color=#F24D40>sömürü farkedilmez</color>; oyuncu 'şanslı' sanır, oyuna bağlanır. " +
-            "Mod KAPANINCA <color=#F24D40>gerçek RTP</color> ortaya çıkar — kayıplar başlar.\n\n" +
-            "Bu <color=#F24D40>manipülasyonun</color> adı <color=#F24D40>HOOK FAZI</color> — yeni oyuncuyu sisteme kilitleyen <color=#F24D40>kanca</color>.";
+            "Gördüğümüz üzere aynı slot, aynı bahis. Yeni oyuncu modu özelliği açık halde tutunca bol kazanç. " +
+            "Yeni oyuncu modu özelliği kapatınca net kayıp.";
 
         // PAKET 6C3: T6 (Kazandırma) — 5'lik N mantığı, dinamik pattern motor
         private const string T6_BASLANGIC =
-            "Şimdi <color=#5BA0FF>'Kazandırma Sıklığı'</color>'na bakalım. Bu slider <color=#FFD933>5 spin</color>'in kaçında kullanıcıya " +
-            "<color=#4DCC59>kazanç</color> verileceğini belirler. Slider'ı ayarla — <color=#4DCC59>seçim sizin</color>.";
+            "Şimdi \"Kazandırma Sıklığı'na\" bakalım. Bu ayar, 5 spinin kaçında kullanıcıya kazanç verileceğini belirler.";
         private const string T6_AKSIYON =
-            "Slider'ı kaydır. Slider değeri ÷ <color=#FFD933>2</color> = <color=#FFD933>5'de kaç kazanç</color>. Örneğin slider <color=#FFD933>6</color> → <color=#FFD933>5'de 3 kazanç</color>. " +
-            "<color=#5BA0FF>Uygula</color> bas, <color=#FFD933>5 spin</color> at.";
+            "Slider'ı kaydır. Slider değeri = 5'te kaç kazanç. Örneğin slider 3 → 5'te 3 kazanç. Uygula bas, 5 spin at.";
         private const string T6_KAPANIS =
-            "Slider <color=#FFD933>5'de N</color>'e ayarlandı. <color=#FFD933>5 spin</color>'in <color=#FFD933>N tanesi</color> <color=#4DCC59>kazanç</color> oldu, kalanı <color=#F24D40>kayıp</color>. " +
-            "<color=#F24D40>Operatör</color> bunu istediği gibi ayarlar — oyuncu 'şanslı bir gün' veya 'şanssız' sanır " +
-            "ama <color=#F24D40>her şey ayarlanmıştır</color>.";
+            "Mod ayarı 5'ten seçilen sayı değeri kadar ayarlanıp kazanç sağlandı. Kalanı ise kumar siteleri tarafından kaybettirilmiştir.";
 
         // PAKET 6D: T7 (Ödeme Aralığı) — 2-aşamalı maks 3x vs min 3-maks 5x karşılaştırma
         private const string T7_BASLANGIC =
-            "Ödeme aralığı — <color=#F24D40>operatör</color> kazançların <color=#FFD933>TUTAR</color> aralığını sınırlar. " +
-            "Bahis × <color=#5BA0FF>min</color> ile bahis × <color=#5BA0FF>maks</color> arasında ödeme yapar. Önce maksimumu görelim.";
+            "Kazanç aralığı: Kumar siteleri tarafından kazançların TUTAR aralığı sınırlanır. " +
+            "Bahis min ile bahis maks arasında ödeme yapar.";
         private const string T7_AKSIYON =
-            "<color=#5BA0FF>Ödeme MAKS</color>'ı <color=#FFD933>3</color>'e ayarla (bahis × <color=#FFD933>3</color> = <color=#FFD933>3000 TL</color> tavan). " +
-            "Uygula bas, <color=#FFD933>3 spin</color> at. Kazançlar <color=#FFD933>0-3000 TL</color> arasında olacak.";
-        public const string T7_ARA_MODAL =
-            "<color=#FFD933>3 spin</color> attık (maks <color=#FFD933>3x</color>). Şimdi <color=#5BA0FF>MIN</color> ve <color=#5BA0FF>MAKS</color>'ı BİRLİKTE ayarlayalım.\n\n" +
-            "<color=#5BA0FF>Ödeme MIN</color>'i <color=#FFD933>3</color>, <color=#5BA0FF>MAKS</color>'ı <color=#FFD933>5</color> yap. <color=#FFD933>3 spin</color> daha at. Bu sefer kazançlar <color=#FFD933>3000-5000 TL</color> arasına <color=#4DCC59>GARANTİ</color>.";
+            "Ödeme aralığında min=3, maks=5 ayarla. Uygula bas, 3 spin at.";
+        // PAKET 14-FAZ35.5-C: T7_ARA_MODAL kaldırıldı (T7 Faz 35.2'de tek aşamalı oldu, ölü kod).
         private const string T7_KAPANIS =
-            "İlk <color=#FFD933>3 spin</color>'de kazanç düşüktü (maks <color=#FFD933>3x</color> = dar aralık). " +
-            "İkinci <color=#FFD933>3 spin</color>'de kazanç <color=#4DCC59>GARANTİ</color> <color=#FFD933>3-5x</color> oldu (<color=#F24D40>kayıp imkansız</color>). " +
-            "<color=#F24D40>Operatör</color> bunu kullanıcıya 'şanslı seri' gibi gösterir — gerçekte <color=#F24D40>algoritma her şeyi kontrol eder</color>.";
+            "3 spin'de kazançlar 3000, 4000, 5000 TL olarak crescendo arttı. " +
+            "Aralık dar (3-5x) ama her spin garanti kazanç. " +
+            "Kumar siteleri bunu kullanıcıya 'şanslı seri' gibi gösterir. Gerçekte sistem her şeyi kontrol eder.";
 
         // PAKET 6C3: T8 (Near Miss) — 5'lik N mantığı, dinamik pattern motor (7-sembol layout)
         private const string T8_BASLANGIC =
-            "<color=#5BA0FF>Near miss</color> — <color=#F24D40>'neredeyse kazanıyordun' hissi</color>. Slot oyununun en güçlü <color=#F24D40>tuzaklarından</color> biri. " +
-            "Slider'ı ayarla — <color=#4DCC59>near miss sayısı sizin seçiminiz</color>.";
+            "Neredeyse kazanıyordun hissi. Slot oyununun en güçlü tuzaklarından biri. " +
+            "Neredeyse Oluyordu Hissinin ayarı seçilir.";
         private const string T8_AKSIYON =
-            "Slider <color=#FFD933>5'de N</color> near miss demek. <color=#FFD933>5 spin</color>'in N tanesinde <color=#F24D40>'tam azıcık eksik'</color> kümeler düşecek. " +
-            "<color=#5BA0FF>Uygula</color> bas, <color=#FFD933>5 spin</color> at.";
+            "Neredeyse Kazanıyordu Hissi ayarında seçilen sayı adeti kadar kümeler düşecek. " +
+            "Uygulaya bas ve 5 spin at.";
         private const string T8_KAPANIS =
-            "Gördük mü? <color=#FFD933>7 aynı sembol</color> düştü ama <color=#F24D40>1 EKSİK</color> — cluster <color=#FFD933>8</color>'den başlıyor. " +
-            "Oyuncunun beyni <color=#F24D40>'KAZANIYORDUM'</color> der, oysa hiç şans yoktu. " +
-            "Bu <color=#F24D40>manipülasyon dopamin pompalar</color> — <color=#F24D40>bağımlılığın temel mekanizması</color>.";
+            "Gördüğümüz üzere 7 aynı sembol düştü ama 1 EKSİK. Küme 8'den başlıyor. " +
+            "Oyuncunun beyni 'KAZANIYORDUM' der oysa hiç şansı yoktur. " +
+            "Bu manipülasyon dopamin hormonunu salgılar. Bu hormon, bağımlılığın temel mekanizmasıdır.";
 
         // PAKET 6D: T9 (Kaçış Frenleme) — 3 kayıp + 1 kazanç deterministik demo
         private const string T9_BASLANGIC =
-            "Kaçış Frenleme — kullanıcı kaybedip kaybedip çıkma noktasına geldiğinde operatör NE YAPAR? " +
+            "Kaçış frenleme paneli. Kullanıcı sürekli kaybedip çıkma noktasına geldiğinde kumar siteleri ne yapar? " +
             "Onu tutmak için otomatik kazanç verir. Limit yazın: kaç kayıp sonra otomatik kazanç gelsin.";
         private const string T9_AKSIYON =
             "Kaçış limiti kutusuna 3 yaz. Yani 3 kayıptan sonra sistem otomatik kazanç verecek. " +
             "Uygula bas, 4 spin at.";
         private const string T9_KAPANIS =
-            "İlk <color=#FFD933>3 spin</color> tam <color=#F24D40>kayıp</color>. Oyuncu tam çıkmak istedi değil mi? Ama <color=#FFD933>4. spin</color> <color=#4DCC59>kazanç</color> geldi — " +
-            "sistemin <color=#F24D40>'frenleme' anı</color>. 'İyi ki kalmışım' dedirten o anlar. " +
-            "Bu <color=#F24D40>manipülasyon</color> T3_TUTMA'yla kombine, ama daha <color=#F24D40>PROGRAMLI</color>: limit <color=#F24D40>operatörün elinde</color>.";
+            "Kullanıcının kaç kez üst üste kayıp yaşadıktan sonra oyundan sıkılmaması için kazanç vereceği ayar.";
 
         // PAKET 6D: T10 (Çarpan Zorla) — 2-aşamalı açık/kapalı toggle demo
         private const string T10_BASLANGIC =
-            "<color=#5BA0FF>Çarpan Zorla</color> — <color=#F24D40>operatörün son silahı</color>. İstediği anda çarpan düşürür. " +
-            "Ama bir <color=#F24D40>tuzak</color> var: <color=#5BA0FF>'Çarpan Ödeme'</color> toggle <color=#F24D40>KAPALI</color> iken çarpan düşse de <color=#F24D40>ÖDEME YAPILMAZ</color>. " +
-            "Sırayla görelim.";
+            "Zorla Çarpan, kumar sitelerinin son silahıdır. İstediği anda çarpan düşürür. " +
+            "Çarpan Ödeme özelliği kapalıyken çarpan düşse de kazanç olmaz.";
         private const string T10_AKSIYON =
-            "Önce <color=#5BA0FF>'Çarpan Ödeme'</color> toggle <color=#F24D40>KAPALI</color> iken çarpan zorla. <color=#FFD933>×500</color> butonuna bas. Spinin sonucunu izle.";
+            "Önce Çarpan Ödeme özelliği KAPALI iken çarpan zorla; 500x butonuna bas. Spinin sonucunu izle.";
         public const string T10_ARA_MODAL =
-            "Gördük mü? <color=#FFD933>×500</color> çarpan düştü AMA meyve dizilimi cluster oluşturmadı — <color=#F24D40>ödeme YAPILMADI</color>.\n\n" +
-            "Şimdi <color=#5BA0FF>'Çarpan Ödeme'</color> toggle'ını <color=#4DCC59>AÇ</color> ve <color=#FFD933>×500</color> butonuna tekrar bas.";
+            "Görüldüğü üzere 500x çarpan düştü; ama yeteri kadar herhangi bir sembolden 8 tane olmadığı için kazanç gerçekleşmedi.\n\n" +
+            "Şimdi Çarpan Ödeme özelliğini AÇ ve 500x butonuna tekrar bas.";
         private const string T10_KAPANIS =
-            "Aynı işlem, ama bu sefer ödeme yapan meyve dizilimi + çarpan düştü → <color=#4DCC59>MEGA KAZANÇ</color>. " +
-            "<color=#F24D40>Operatör</color> bu toggle'ı kullanarak 'şu kullanıcıya bonus vereceğim' der, gerisini ayarlar. " +
-            "<color=#F24D40>Manipülasyon %100 kontrol</color>.";
+            "Aynı işlem. Ama bu sefer kazanç sağlayan sembol 8'den fazla ve çarpan düştü. MEGA KAZANÇ sağlandı. " +
+            "Kumar siteleri bu özelliği kullanarak \"kullanıcıya bonus vereceğim\" der; gerisini ayarlar.";
 
         private const string T11_BASLANGIC =
             "Son silah: bonus oyununu elle tetikleme.";
         private const string T11_AKSIYON =
             "Bonus Tetikle butonuna bas.";
         private const string T11_KAPANIS =
-            "<color=#F24D40>Operatör</color>, kullanıcı pes etmek üzereyken <color=#5BA0FF>bonusu tetikler</color>. " +
-            "'Tam çıkıyordum şans yüzüme güldü' der oyuncu. Aslında <color=#F24D40>operatör onu içeride tutmak</color> " +
-            "için düğmeye bastı.";
+            "Kumar siteleri, kullanıcı pes etmek üzereyken bonusu tetikler. " +
+            "\"Tam şans yüzüme güldü\" der kurban. " +
+            "Aslında kumar siteleri onu içeride tutmak için düğmeye bastı.";
 
         private const string TSON_BASLANGIC =
-            "Gördün mü? 9 parametre, hepsi kullanıcının zamanını, parasını, dopamin döngüsünü " +
-            "kontrol için. Slot oyunlarında tesadüf yoktur — sadece tasarım vardır. " +
-            "Kumar tesadüf değil, mühendisliktir.\n\n" +
-            "Bağımlılık yaşadığını düşünüyorsan veya yakınında biri varsa: " +
-            "Yeşilay Danışmanlık Hattı 0850 222 0 191 (ücretsiz, 7/24).\n\n" +
-            "Bu farkındalık seninle kalsın.";
+            "Eğitim simülasyonu tamamlandı. Artık istediğiniz gibi test edebilirsiniz. " +
+            "AYARLAR butonuna basıp paneli açarak kendiniz tüm durumları deneyimleyebilirsiniz.\n\n" +
+            "Bağımlılıkla mücadelede yalnız değilsiniz. Yeşilay Danışma Hattı 115.";
     }
 
     public class AdimVerisi

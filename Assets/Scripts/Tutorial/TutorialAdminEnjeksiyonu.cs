@@ -291,8 +291,8 @@ namespace KumarFarkindalik.Tutorial
                             // PAKET 14-FAZ34 İş 9: ScriptedSpinUygulayici altyapısı T10 carpanZorla_acik için.
                             TutorialScriptedYoneticisi.Ornek?.AsamaSetCarpanZorlaAcik();
                             TutorialSenaryoMotoru.PatternBaslat("carpanZorla_acikOdeme");
-                            // PAKET 14-FAZ34.3 BUG G: Alt sayaç "1/2" → "2/2"
-                            TutorialOyunYoneticisi.Ornek?.AdimYoneticisi?.AltSayacGuncelle("2/2");
+                            // PAKET 14-FAZ35.4: AltSayacGuncelle("2/2") kaldırıldı — T10 kategoriIciSira/Toplam=1/2
+                            // zaten gösteriyor, ek sayaç duplicate üretiyordu ("1/2 · 2/2 AÇIK MI KAPALI MI?").
                             Debug.Log("[Tutorial T11 Çarpan Zorla] carpanOdemeToggle açıldı → ikinci pattern başladı");
                         }
                     }
