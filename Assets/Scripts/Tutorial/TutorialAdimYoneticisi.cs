@@ -285,7 +285,9 @@ namespace KumarFarkindalik.Tutorial
                 parametreKosulu = () => TutorialOyunYoneticisi.T6AraModalGosterildi
                     ? !PanelKopru.yeniOyuncuModu       // 2.aşama: toggle KAPATILMALI
                     : PanelKopru.yeniOyuncuModu,       // 1.aşama: toggle AÇILMALI (giriş kapalı, kullanıcı açacak)
-                degisimAnahtarlari = null,
+                // PAKET 14-FAZ34.5 BUG H: degisimAnahtarlari ekle → UygulamaOnaylandi guard aktive olur.
+                // Önceki: null → toggle aç anında SpinKilitli=false (Uygula bypass). Yeni: toggle aç → Uygula gerek.
+                degisimAnahtarlari = new[] { "yeniOyuncu" },
             };
 
             _adimlar[TutorialAdimId.T6] = new AdimVerisi

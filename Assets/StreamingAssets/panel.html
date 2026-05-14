@@ -1554,15 +1554,29 @@
     var togCO = document.getElementById('carpanOdemeToggle');
     var coOnDom = togCO && togCO.classList.contains('active');
 
+    // PAKET 14-FAZ34.5 BUG J: Slider'lar DOM state'ten oku — kullanıcının manuel ayarladığı
+    // kazanmaOrani/yakinKacirma/min-maksCarpan/ardisikKayip preset (SENARYOLAR.normal.X) ile ezilmez.
+    // T6 slider=4 (4 kazanç + 1 kayıp) → preset eziyordu (s.kazanmaOrani=3 → 3 kazanç + 2 kayıp).
+    var kazSlider = document.getElementById('kazanmaOrani');
+    var kazDom = kazSlider ? parseInt(kazSlider.value, 10) : s.kazanmaOrani;
+    var ykSlider = document.getElementById('yakinKacirma');
+    var ykDom = ykSlider ? parseInt(ykSlider.value, 10) : s.yakinKacirma;
+    var minSlider = document.getElementById('minCarpan');
+    var minDom = minSlider ? parseFloat(minSlider.value) : s.minCarpan;
+    var maksSlider = document.getElementById('maksCarpan');
+    var maksDom = maksSlider ? parseFloat(maksSlider.value) : s.maksCarpan;
+    var akSlider = document.getElementById('ardisikKayip');
+    var akDom = akSlider ? parseInt(akSlider.value, 10) : s.ardisikKayip;
+
     // postMessage'lar fire et — kazanmaOrani + yakinKacirma artık 0-5 ölçek (scale yok)
     // PAKET 14-FAZ18: Uygula onayı sinyali — Tutorial slider değişimi tek başına spin açmasın.
     unityeGonder('uygulamaOnayi',     true);
     unityeGonder('oyunModu',          secim);
-    unityeGonder('kazanmaOrani',      s.kazanmaOrani);
-    unityeGonder('minCarpan',         s.minCarpan);
-    unityeGonder('maksCarpan',        s.maksCarpan);
-    unityeGonder('yakinKacirma',      s.yakinKacirma);
-    unityeGonder('ardisikKayip',      s.ardisikKayip);
+    unityeGonder('kazanmaOrani',      kazDom);    // DOM state — preset ezmedi
+    unityeGonder('minCarpan',         minDom);    // DOM state
+    unityeGonder('maksCarpan',        maksDom);   // DOM state
+    unityeGonder('yakinKacirma',      ykDom);     // DOM state
+    unityeGonder('ardisikKayip',      akDom);     // DOM state
     unityeGonder('yeniOyuncu',        yoOnDom);   // DOM state — preset ezmedi
     unityeGonder('bonusModu',         s.bonusModu);
     // PAKET 14-FAZ24: bonusOtomatikOran preset gönderimi KALDIRILDI. Slider değişiminde kullanıcı değeri
