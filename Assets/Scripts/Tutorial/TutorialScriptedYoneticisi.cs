@@ -175,22 +175,32 @@ namespace KumarFarkindalik.Tutorial
             }
         }
 
-        /// <summary>PAKET 14-FAZ34: T6 Kazandırma Sıklığı — N kazanç + (5-N) kayıp dinamik liste oluştur + shuffle.
-        /// Her oturumda farklı sıra (UnityEngine.Random), pedagojik tutarlılık için yine N adet kazanç garanti.
-        /// _aktifPattern = "kazanma" jenerik etiket, _patternSpinleri["kazanma"] her çağrıda yeniden doldurulur.</summary>
+        /// <summary>PAKET 14-FAZ35.0: T6 Kazandırma Sıklığı — havuzdan N kazanç + (5-N) kayıp peş peşe.
+        /// Eski tasarım (tek-tip kazanç + final Fisher-Yates) yerine 5'er elemanlı çeşitli havuzlar.
+        /// Sıra deterministik: önce N kazanç bloğu (pedagojik mesaj: "kazandıkça umut"), sonra (5-N) kayıp bloğu
+        /// ("ardından düşüş"). Her havuzu shuffle ederek oturumlar arası seçim çeşitlenir, sıra korunur.</summary>
         public void AsamaSetKazanmaSikligi(int N)
         {
             N = Mathf.Clamp(N, 0, 5);
-            var liste = new List<ScriptedSpinKaydi>(5);
-            for (int i = 0; i < N; i++) liste.Add(TutorialAsamaListesiUreteci.UretKazancKayit());
-            for (int i = 0; i < 5 - N; i++) liste.Add(TutorialAsamaListesiUreteci.UretKayipKayit());
+            var kazancHavuz = TutorialAsamaListesiUreteci.UretKazancHavuzu(); // 5 farklı
+            var kayipHavuz = TutorialAsamaListesiUreteci.UretKayipHavuzu();  // 5 farklı
 
-            // Fisher-Yates shuffle (UnityEngine.Random — her oturum farklı sıra)
-            for (int i = liste.Count - 1; i > 0; i--)
+            // Her havuzu Fisher-Yates karıştır → her oturumda hangi alt seçimlerin geleceği değişir,
+            // ama N kazanç + (5-N) kayıp BLOK SIRASI korunur (final shuffle yok).
+            for (int i = kazancHavuz.Count - 1; i > 0; i--)
             {
                 int j = Random.Range(0, i + 1);
-                var tmp = liste[i]; liste[i] = liste[j]; liste[j] = tmp;
+                var tmp = kazancHavuz[i]; kazancHavuz[i] = kazancHavuz[j]; kazancHavuz[j] = tmp;
             }
+            for (int i = kayipHavuz.Count - 1; i > 0; i--)
+            {
+                int j = Random.Range(0, i + 1);
+                var tmp = kayipHavuz[i]; kayipHavuz[i] = kayipHavuz[j]; kayipHavuz[j] = tmp;
+            }
+
+            var liste = new List<ScriptedSpinKaydi>(5);
+            for (int i = 0; i < N; i++) liste.Add(kazancHavuz[i]);
+            for (int i = 0; i < 5 - N; i++) liste.Add(kayipHavuz[i]);
 
             if (_patternSpinleri == null)
                 _patternSpinleri = new Dictionary<string, List<ScriptedSpinKaydi>>();
@@ -202,7 +212,7 @@ namespace KumarFarkindalik.Tutorial
             var oy = Object.FindObjectOfType<OyunYoneticisi>();
             oy?.ScriptedSenaryoCacheTazele();
 
-            Debug.Log($"[TutorialScriptedYoneticisi] AsamaSetKazanmaSikligi(N={N}) — {N} kazanç + {5 - N} kayıp shuffle, Aktif=true.");
+            Debug.Log($"[TutorialScriptedYoneticisi] AsamaSetKazanmaSikligi(N={N}) — {N} kazanç + {5 - N} kayıp peş peşe (havuzdan seçim), Aktif=true.");
         }
 
         /// <summary>PAKET 14-FAZ34 İş 3: T8 Near Miss Sıklığı — N near-miss + (5-N) normal kayıp listesi + shuffle.

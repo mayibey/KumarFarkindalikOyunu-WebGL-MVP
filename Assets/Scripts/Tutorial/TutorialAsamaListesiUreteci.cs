@@ -23,7 +23,8 @@ namespace KumarFarkindalik.Tutorial
         /// <summary>
         /// T4 ve T5 için 4 ScriptedSpinKaydi üretir: carpanTest_100, carpanTest_0, bonusTest_100, bonusTest_0.
         /// PAKET 14-FAZ34: T6 Kazandırma için kazanma_1..kazanma_5 dinamik üretim TutorialScriptedYoneticisi
-        /// içinde AsamaSetKazanmaSikligi(N) → UretKazancKayit / UretKayipKayit helper'lar ile yapılır.
+        /// içinde AsamaSetKazanmaSikligi(N) → UretKazancHavuzu / UretKayipHavuzu helper'lar ile yapılır
+        /// (PAKET 14-FAZ35.0: tek-tip helper yerine 5'er elemanlı çeşitli havuz).
         /// </summary>
         public static Dictionary<string, List<ScriptedSpinKaydi>> UretMinimum()
         {
@@ -39,47 +40,101 @@ namespace KumarFarkindalik.Tutorial
         }
 
         // ─────────────────────────────────────────────────────────────────────────
-        // PAKET 14-FAZ34: T6 Kazandırma Sıklığı için kazanç + kayıp helper'ları.
-        // AsamaSetKazanmaSikligi(N) içinde N kazanç + (5-N) kayıp → Fisher-Yates shuffle → 5 spinlik liste.
+        // PAKET 14-FAZ35.0: T6 Kazandırma Sıklığı için 5'er elemanlı kazanç + kayıp HAVUZLARI.
+        // AsamaSetKazanmaSikligi(N) → havuzlardan N kazanç + (5-N) kayıp peş peşe (final shuffle YOK).
+        // Eski tek-tip UretKazancKayit (çarpanlı 1500) çıkarıldı; çarpansız 2000-3000 bandında 5 farklı sembol.
         // ─────────────────────────────────────────────────────────────────────────
 
-        /// <summary>T6 kazanç dizilimi: 8 Hindistan cluster + (2,3)=3x çarpan → ham 500 × 3 = 1500 nihai (NET +500).
-        /// Pedagojik mesaj: "Bahisten az farklı kazanç hissi", kullanıcı 5 spin sonra net hala düşük olabilir.</summary>
-        public static ScriptedSpinKaydi UretKazancKayit()
+        /// <summary>T6 kazanç havuzu: 5 farklı sembol × cluster boyutu kombinasyonu, hepsi çarpansız 2000-3000 TL bandı.
+        /// Sembol ID: 0=Armut, 1=Çilek, 2=Erik, 3=Hindistan, 4=Karpuz, 5=Muz, 6=Elma, 7=Üzüm (TumbleAyarlari.cs:16-22).
+        /// K1: Muz(5)×10 = 2.0×1000 = 2000 TL · K2: Erik(2)×12 = 2.0×1000 = 2000 TL ·
+        /// K3: Hindistan(3)×12 = 2.5×1000 = 2500 TL · K4: Karpuz(4)×12 = 3.0×1000 = 3000 TL ·
+        /// K5: Elma(6)×10 = 3.0×1000 = 3000 TL.</summary>
+        public static List<ScriptedSpinKaydi> UretKazancHavuzu()
         {
-            // Cluster: Hindistan(3) — T4 carpanTest_0 ile aynı pozisyonlar
-            int[] grid = new int[30];
-            grid[0] = 0;  grid[1] = 3;  grid[2] = 3;  grid[3] = 3;  grid[4] = 1;  grid[5] = 2;
-            grid[6] = 6;  grid[7] = 3;  grid[8] = 3;  grid[9] = 3;  grid[10] = 4; grid[11] = 0;
-            grid[12] = 5; grid[13] = 1; grid[14] = 3; grid[15] = 3; grid[16] = 7; grid[17] = 2;
-            grid[18] = 6; grid[19] = 4; grid[20] = CARPAN_SEMBOL; grid[21] = 5; grid[22] = 0; grid[23] = 7;
-            grid[24] = 1; grid[25] = 2; grid[26] = 6; grid[27] = 4; grid[28] = 0; grid[29] = 5;
-
-            int[] carpan = new int[30];
-            carpan[20] = 3;  // (2,3) → 3x
-
-            var tumble = new TumbleAdimTanimi
+            return new List<ScriptedSpinKaydi>
             {
-                patlayanHucreler = new List<Vector2Int>
-                {
-                    new Vector2Int(1, 0), new Vector2Int(2, 0), new Vector2Int(3, 0),
-                    new Vector2Int(1, 1), new Vector2Int(2, 1), new Vector2Int(3, 1),
-                    new Vector2Int(2, 2), new Vector2Int(3, 2),
-                },
-                yukaridanDusenSemboller = new[] { 0, 1, 2, 4, 5, 6, 7, 1 },
-                yukaridanDusenCarpanlar = new[] { 0, 0, 0, 0, 0, 0, 0, 0 },
+                UretCokAdetKazancKayit(5, 10, 2000), // K1: Muz × 10
+                UretCokAdetKazancKayit(2, 12, 2000), // K2: Erik × 12
+                UretCokAdetKazancKayit(3, 12, 2500), // K3: Hindistan × 12
+                UretCokAdetKazancKayit(4, 12, 3000), // K4: Karpuz × 12
+                UretCokAdetKazancKayit(6, 10, 3000), // K5: Elma × 10
+            };
+        }
+
+        /// <summary>T6 kayıp havuzu: 5 farklı dolgu deseni, hepsinde cluster yok (4-bağlantılı max=1) ve scatter yok.
+        /// Formüller: KY1 (x-2y)%8, KY2 (x+1-2y)%8, KY3 (5-x-2y)%8, KY4 (x+3y)%8, KY5 (x+5y)%8.
+        /// Hepsinde yatay komşu farkı 1, dikey komşu farkı ∈ {-2,3,5} → asla 0 mod 8 → aynı sembol komşu olamaz.</summary>
+        public static List<ScriptedSpinKaydi> UretKayipHavuzu()
+        {
+            // KY1: (x - 2y) mod 8 — mevcut UretKayipKayit ile aynı pattern
+            int[] gridKY1 = new int[]
+            {
+                0, 1, 2, 3, 4, 5,   // y=0
+                6, 7, 0, 1, 2, 3,   // y=1
+                4, 5, 6, 7, 0, 1,   // y=2
+                2, 3, 4, 5, 6, 7,   // y=3
+                0, 1, 2, 3, 4, 5,   // y=4
+            };
+            // KY2: (x + 1 - 2y) mod 8 — yatay shift +1
+            int[] gridKY2 = new int[]
+            {
+                1, 2, 3, 4, 5, 6,
+                7, 0, 1, 2, 3, 4,
+                5, 6, 7, 0, 1, 2,
+                3, 4, 5, 6, 7, 0,
+                1, 2, 3, 4, 5, 6,
+            };
+            // KY3: (5 - x - 2y) mod 8 — yatay ters
+            int[] gridKY3 = new int[]
+            {
+                5, 4, 3, 2, 1, 0,
+                3, 2, 1, 0, 7, 6,
+                1, 0, 7, 6, 5, 4,
+                7, 6, 5, 4, 3, 2,
+                5, 4, 3, 2, 1, 0,
+            };
+            // KY4: (x + 3y) mod 8 — dikey adım +3
+            int[] gridKY4 = new int[]
+            {
+                0, 1, 2, 3, 4, 5,
+                3, 4, 5, 6, 7, 0,
+                6, 7, 0, 1, 2, 3,
+                1, 2, 3, 4, 5, 6,
+                4, 5, 6, 7, 0, 1,
+            };
+            // KY5: (x + 5y) mod 8 — dikey adım +5
+            int[] gridKY5 = new int[]
+            {
+                0, 1, 2, 3, 4, 5,
+                5, 6, 7, 0, 1, 2,
+                2, 3, 4, 5, 6, 7,
+                7, 0, 1, 2, 3, 4,
+                4, 5, 6, 7, 0, 1,
             };
 
+            return new List<ScriptedSpinKaydi>
+            {
+                KayipKayitOlustur(gridKY1),
+                KayipKayitOlustur(gridKY2),
+                KayipKayitOlustur(gridKY3),
+                KayipKayitOlustur(gridKY4),
+                KayipKayitOlustur(gridKY5),
+            };
+        }
+
+        private static ScriptedSpinKaydi KayipKayitOlustur(int[] grid30)
+        {
             return new ScriptedSpinKaydi
             {
                 spinSiraNo = 1,
                 asamaIndex = 0,
                 bahis = TUTORIAL_BAHIS,
-                tip = SpinTipi.Kazanc,
-                brutOdeme = 500,  // 8 Hindistan × payCoef 0.5 × bahis 1000 = 500 ham (çarpan ayrı)
-                ilkGridSemboller = grid,
-                ilkCarpanDegerleri = carpan,
-                tumbleler = new List<TumbleAdimTanimi> { tumble },
+                tip = SpinTipi.Sifir,
+                brutOdeme = 0,
+                ilkGridSemboller = grid30,
+                ilkCarpanDegerleri = new int[30],
+                tumbleler = new List<TumbleAdimTanimi>(),
                 modalMesaji = null,
                 carpanKactiFlag = false,
                 bonusOyunuTetikle = false,

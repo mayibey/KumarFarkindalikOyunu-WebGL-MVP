@@ -118,10 +118,9 @@ namespace KumarFarkindalik.Tutorial
         public static System.Collections.Generic.List<int> AktifAdimSpinNetleri =
             new System.Collections.Generic.List<int>();
         private static long _oncekiBakiye = 0;
-        // PAKET 14-FAZ34.8 BUG N FIX: OturumKazanc fark hesabı için snapshot. SonOdeme race condition'ı
-        // by-pass eder. OyunYoneticisi.OturumKazanc spin bittiğinde DonusAkisServisi tarafından artırılır
-        // (gerçek ödeme), pre-compute simulasyonu OturumKazanc'ı etkilemez → race yok.
-        private static long _oncekiOturumKazanc = 0;
+        // PAKET 14-FAZ35.0: Faz 34.8 BUG N fix'i OturumKazanc yanlış kaynağıydı (sadece bonus modunda
+        // artar, normal Tutorial spin'lerinde 0 kalır → her bar kırmızı regression).
+        // BakiyeFark yöntemine geri dönüldü (simdikiBakiye - _oncekiBakiye = net).
 
         // PAKET 6D: T8 (Ödeme) + T11 (Çarpan Zorla) 2-aşamalı akış state
         public static bool T8AraModalGosterildi { get; set; }
@@ -586,8 +585,6 @@ namespace KumarFarkindalik.Tutorial
             AktifAdimSpinNetleri.Clear();
             var oyAdim = Object.FindObjectOfType<OyunYoneticisi>();
             _oncekiBakiye = oyAdim != null ? oyAdim.BahisPanelMevcutBakiye() : 0L;
-            // PAKET 14-FAZ34.8 BUG N FIX: OturumKazanc snapshot — bar net hesabı için referans.
-            _oncekiOturumKazanc = oyAdim != null ? oyAdim.OturumKazanc : 0L;
 
             // PAKET 6C1/6C2/6C3/8/9: adım bazlı pattern motor yönetimi
             // PAKET 13: T3 senaryoları için defansif PatternBaslat — panel event-driven (AdminEnjeksiyonu
@@ -704,9 +701,9 @@ namespace KumarFarkindalik.Tutorial
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T6) // KAZANDIRMA (sira=7)
             {
                 // PAKET 6C3: Default N=3 (slider değişene kadar). Slider hareket → AyarDegisti güncellenir.
-                // PAKET 14-FAZ34: ScriptedSpinUygulayici altyapısı — N kazanç + (5-N) kayıp shuffle.
+                // PAKET 14-FAZ35.0: Scripted havuz (5 kazanç + 5 kayıp). Eski DinamikPatternBaslat
+                // ("kazandirma") paralel çağrısı kaldırıldı — scripted aktifken motor bypass'lanıyor.
                 TutorialScriptedYoneticisi.Ornek?.AsamaSetKazanmaSikligi(3);
-                TutorialSenaryoMotoru.DinamikPatternBaslat("kazandirma", 3);
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T8) // NEAR MISS (sira=9)
             {
@@ -988,24 +985,18 @@ namespace KumarFarkindalik.Tutorial
             // bakiye'nin finalize olmasını zaten garanti ediyor.
             if (oy != null)
             {
-                // PAKET 14-FAZ34.8 BUG N FIX (YOL B): Net hesabı OyunYoneticisi.OturumKazanc farkı üzerinden.
-                // SonOdeme race condition by-pass edildi (DonusAkisServisi:165 pre-compute spin sonu otomatik
-                // tetikleyici SonOdeme'yi N+1 değerine yazıyordu → bar N için yanlış değer okuyordu).
-                // OturumKazanc DonusAkisServisi tarafından spin animasyonu bittikten sonra artırılır,
-                // pre-compute simulasyonu (ApplyNewGridAndSync grid restore) OturumKazanc'ı etkilemez.
-                // Tutorial bar artık KAZANÇ display ile AYNI kaynaktan beslenir → tutarsızlık olamaz.
-                long simdikiBakiyeDiag = oy.BahisPanelMevcutBakiye();
-                long bakiyeFarkDiag = simdikiBakiyeDiag - _oncekiBakiye;
-                long simdikiOturumKazanc = oy.OturumKazanc;
-                long spinKazanci = simdikiOturumKazanc - _oncekiOturumKazanc;
+                // PAKET 14-FAZ35.0: Net hesabı bakiye farkından (bahis akışı + kazanç eklenmesi yansır).
+                // Faz 34.8 OturumKazanc yöntemi sadece bonus modunda doğruydu → normal Tutorial spin'lerinde
+                // her zaman 0 dönüyordu → her bar kırmızı regression. BakiyeFark TEK doğru kaynak.
+                long simdikiBakiye = oy.BahisPanelMevcutBakiye();
+                long bakiyeFark = simdikiBakiye - _oncekiBakiye;
                 long bahis = oy.BotIcinBahis;
-                int net = (int)(spinKazanci - bahis);
+                int net = (int)bakiyeFark;
 
-                Debug.Log($"[Tutorial Bar] Spin {AktifAdimSpinNetleri.Count + 1}: oturumKazancOnceki={_oncekiOturumKazanc}, oturumKazancSimdi={simdikiOturumKazanc}, spinKazanci={spinKazanci}, bahis={bahis}, net={net}, segmentRengi={(net > 0 ? "KAZANC" : net < 0 ? "KAYIP" : "NOTR")}");
-                Debug.Log($"[Tutorial Bar BAKIYE DIAG] oncekiBakiye={_oncekiBakiye}, simdikiBakiye={simdikiBakiyeDiag}, gercekFark={bakiyeFarkDiag}, beklenenFark={net}, bahisDustu={(bakiyeFarkDiag == (long)net ? "EVET" : "HAYIR — bahis akışı şüpheli, BUG K")}");
+                Debug.Log($"[Tutorial Bar] Spin {AktifAdimSpinNetleri.Count + 1}: oncekiBakiye={_oncekiBakiye}, simdikiBakiye={simdikiBakiye}, bakiyeFark={bakiyeFark}, bahis={bahis}, net={net}, segmentRengi={(net > 0 ? "KAZANC" : net < 0 ? "KAYIP" : "NOTR")}");
+                Debug.Log($"[Tutorial Bar BAKIYE DIAG] oncekiBakiye={_oncekiBakiye}, simdikiBakiye={simdikiBakiye}, gercekFark={bakiyeFark}, bahis={bahis}");
 
-                _oncekiBakiye = simdikiBakiyeDiag;
-                _oncekiOturumKazanc = simdikiOturumKazanc;
+                _oncekiBakiye = simdikiBakiye;
                 AktifAdimSpinNetleri.Add(net);
             }
             Debug.Log($"[TutorialOyunYoneticisi] Spin tamamlandı (anim state-driven), TutorialSpinSayaci={TutorialSpinSayaci}");

@@ -241,9 +241,9 @@ namespace KumarFarkindalik.Tutorial
                             && int.TryParse(value, out int kazSliderVal))
                         {
                             int n = Mathf.Clamp(kazSliderVal, 0, 5);
-                            // PAKET 14-FAZ34: ScriptedSpinUygulayici altyapısı T6 Kazandırma için.
+                            // PAKET 14-FAZ35.0: Scripted havuz (5 kazanç + 5 kayıp). Eski DinamikPatternBaslat
+                            // ("kazandirma") paralel çağrısı kaldırıldı — scripted aktifken motor bypass'lanıyor.
                             TutorialScriptedYoneticisi.Ornek?.AsamaSetKazanmaSikligi(n);
-                            TutorialSenaryoMotoru.DinamikPatternBaslat("kazandirma", n);
                         }
                     }
                     break;
