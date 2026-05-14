@@ -28,6 +28,11 @@ namespace KumarFarkindalik.Tutorial
         public static bool Aktif { get; private set; }
         public static TutorialScriptedYoneticisi Ornek { get; private set; }
 
+        /// <summary>PAKET 14-FAZ34.2 BUG D FIX: SonrakiSpiniAl çağrıldığında set edilir. TutorialOyunYoneticisi
+        /// SpinTamamlandi handler bunu okuyup net = SonOdeme - bahis hesabı yapar (bakiye snapshot timing'i
+        /// yerine deterministik kayıt-bazlı hesap → bar rengi her zaman doğru).</summary>
+        public long SonOdeme { get; private set; } = 0;
+
         private Dictionary<string, List<ScriptedSpinKaydi>> _patternSpinleri;
         private string _aktifPattern = "";
         private int _spinIdx = 0;
@@ -131,6 +136,8 @@ namespace KumarFarkindalik.Tutorial
             }
 
             var kayit = liste[_spinIdx];
+            // PAKET 14-FAZ34.2 BUG D FIX: SonOdeme set — TutorialOyunYoneticisi bar rengi için brutOdeme okuyacak
+            SonOdeme = kayit.brutOdeme;
             Debug.Log($"[TutorialScriptedYoneticisi] SonrakiSpiniAl: pattern={_aktifPattern}, idx={_spinIdx}/{liste.Count - 1}, brüt={kayit.brutOdeme} TL (idx ilerletilmedi — SpinTamamlandi bekliyor)");
             return kayit;
         }

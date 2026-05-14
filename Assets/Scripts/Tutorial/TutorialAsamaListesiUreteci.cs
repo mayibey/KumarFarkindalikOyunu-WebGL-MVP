@@ -275,14 +275,21 @@ namespace KumarFarkindalik.Tutorial
 
         public static List<ScriptedSpinKaydi> UretHookSpinleri()
         {
-            // 5 spin: Muz10(2000) / Hin12(2500) / Muz10(2000) / Hin12(2500) / Karpuz12(3000) = 12000 NET +7000
+            // PAKET 14-FAZ34.2 BUG C FIX: 5 farklı meyve görsel — Hindistan + Muz tekrarı yerine
+            // Muz / Hindistan / Üzüm / Elma / Karpuz (5 ayrı sembol). NET +7000 KORUNUR.
+            //   Spin 1: Muz 10  (sym=5, PayTable_10_11[5]=2.0) → ham 2000
+            //   Spin 2: Hindistan 12 (sym=3, PayTable_12+[3]=2.5) → ham 2500
+            //   Spin 3: Üzüm 8  (sym=7, PayTable_8_9[7]=1.5) → ham 1500
+            //   Spin 4: Elma 10 (sym=6, PayTable_10_11[6]=3.0) → ham 3000
+            //   Spin 5: Karpuz 12 (sym=4, PayTable_12+[4]=3.0) → ham 3000
+            //   Toplam: 12000 - 5000 bahis = NET +7000 (eski tasarımla aynı)
             return new List<ScriptedSpinKaydi>
             {
-                UretCokAdetKazancKayit(5, 10, 2000),  // PayTable_10_11[5]=2.0
-                UretCokAdetKazancKayit(3, 12, 2500),  // PayTable_12+[3]=2.5
-                UretCokAdetKazancKayit(5, 10, 2000),
-                UretCokAdetKazancKayit(3, 12, 2500),
-                UretCokAdetKazancKayit(4, 12, 3000),  // PayTable_12+[4]=3.0
+                UretCokAdetKazancKayit(5, 10, 2000),  // Muz 10
+                UretCokAdetKazancKayit(3, 12, 2500),  // Hindistan 12
+                UretCokAdetKazancKayit(7, 8,  1500),  // Üzüm 8 (cluster eşik)
+                UretCokAdetKazancKayit(6, 10, 3000),  // Elma 10
+                UretCokAdetKazancKayit(4, 12, 3000),  // Karpuz 12
             };
         }
 

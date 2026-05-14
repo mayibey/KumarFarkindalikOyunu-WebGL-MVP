@@ -982,13 +982,25 @@ namespace KumarFarkindalik.Tutorial
             // bakiye'nin finalize olmasını zaten garanti ediyor.
             if (oy != null)
             {
-                long simdikiBakiye = oy.BahisPanelMevcutBakiye();
-                int net = (int)(simdikiBakiye - _oncekiBakiye);
+                // PAKET 14-FAZ34.2 BUG D FIX: Bakiye snapshot timing güvenilmez (scripted akışta kazanç
+                // eklenmesi geç → net=0 NOTR ekrana yazılıyordu). Yeni hesap: scripted aktifse SonOdeme
+                // (kayıttaki brutOdeme) - bahis = net. Deterministik, timing'ten bağımsız.
+                int net;
+                if (TutorialScriptedYoneticisi.Aktif && TutorialScriptedYoneticisi.Ornek != null)
+                {
+                    long brutOdeme = TutorialScriptedYoneticisi.Ornek.SonOdeme;
+                    long bahis = oy.BotIcinBahis;
+                    net = (int)(brutOdeme - bahis);
+                    Debug.Log($"[Tutorial Bar] Spin {AktifAdimSpinNetleri.Count}: brutOdeme={brutOdeme}, bahis={bahis}, net={net}, segmentRengi={(net > 0 ? "KAZANC" : net < 0 ? "KAYIP" : "NOTR")} (scripted)");
+                }
+                else
+                {
+                    long simdikiBakiye = oy.BahisPanelMevcutBakiye();
+                    net = (int)(simdikiBakiye - _oncekiBakiye);
+                    Debug.Log($"[Tutorial Bar] Spin {AktifAdimSpinNetleri.Count}: oncekiBakiye={_oncekiBakiye}, simdikiBakiye={simdikiBakiye}, net={net}, segmentRengi={(net > 0 ? "KAZANC" : net < 0 ? "KAYIP" : "NOTR")} (bakiye-bazli fallback)");
+                    _oncekiBakiye = simdikiBakiye;
+                }
                 AktifAdimSpinNetleri.Add(net);
-                // PAKET 14-FAZ34.1 BUG 1+2 FIX: önceki bakiye + simdiki bakiye + net üçünü birlikte logla
-                // (timing teşhisi için — eğer bakiye değişmemişse scripted akış kazanç eklenmesi geç).
-                Debug.Log($"[Tutorial Bar] Spin {AktifAdimSpinNetleri.Count}: oncekiBakiye={_oncekiBakiye}, simdikiBakiye={simdikiBakiye}, net={net}, segmentRengi={(net > 0 ? "KAZANC" : net < 0 ? "KAYIP" : "NOTR")}");
-                _oncekiBakiye = simdikiBakiye;
             }
             Debug.Log($"[TutorialOyunYoneticisi] Spin tamamlandı (anim state-driven), TutorialSpinSayaci={TutorialSpinSayaci}");
             TutorialSenaryoMotoru.SpinTamamlandi();

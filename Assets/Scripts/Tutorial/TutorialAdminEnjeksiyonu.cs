@@ -164,15 +164,30 @@ namespace KumarFarkindalik.Tutorial
                     // PAKET 4-FAZ-1: Tutorial T3 scripted spin motoru tetikleyici
                     // value = "hook" / "yontma" / "tutma" / "koruma" / "normal"
                     // PAKET 14-FAZ34 İş 7: ScriptedSpinUygulayici altyapısı T3 senaryolar için.
-                    switch (value)
+                    // PAKET 14-FAZ34.2 BUG A FIX: T3 dışında oyunModu event'i geldiğinde (dropdown carryover)
+                    // pattern motor + AsamaSet ezilmesin → T3 değilse BYPASS, mevcut Tutorial pattern korunur.
                     {
-                        case "hook":   TutorialScriptedYoneticisi.Ornek?.AsamaSetHook(); break;
-                        case "yontma": TutorialScriptedYoneticisi.Ornek?.AsamaSetYontma(); break;
-                        case "tutma":  TutorialScriptedYoneticisi.Ornek?.AsamaSetTutma(); break;
-                        case "koruma": TutorialScriptedYoneticisi.Ornek?.AsamaSetKoruma(); break;
-                        case "normal": TutorialScriptedYoneticisi.Ornek?.DeaktifEt(); break;
+                        var ayOM = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
+                        bool t3Aktif = ayOM != null && (
+                            ayOM.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T3_HOOK ||
+                            ayOM.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T3_YONTMA ||
+                            ayOM.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T3_TUTMA ||
+                            ayOM.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T3_KORUMA);
+                        if (!t3Aktif)
+                        {
+                            Debug.Log($"[TutorialAdminEnjeksiyonu] case oyunModu BYPASS — adım={ayOM?.mevcutAdim}, dropdown carryover ignored.");
+                            break;
+                        }
+                        switch (value)
+                        {
+                            case "hook":   TutorialScriptedYoneticisi.Ornek?.AsamaSetHook(); break;
+                            case "yontma": TutorialScriptedYoneticisi.Ornek?.AsamaSetYontma(); break;
+                            case "tutma":  TutorialScriptedYoneticisi.Ornek?.AsamaSetTutma(); break;
+                            case "koruma": TutorialScriptedYoneticisi.Ornek?.AsamaSetKoruma(); break;
+                            case "normal": TutorialScriptedYoneticisi.Ornek?.DeaktifEt(); break;
+                        }
+                        TutorialSenaryoMotoru.PatternBaslat(value);
                     }
-                    TutorialSenaryoMotoru.PatternBaslat(value);
                     break;
                 case "uygulamaOnayi":
                     // PAKET 14-FAZ18: panel.html "Uygula" butonu basıldı — slider değişimi tek başına yetmiyor,
@@ -369,7 +384,11 @@ namespace KumarFarkindalik.Tutorial
             // edilmediyse SpinKilitli=true tut. Aksi halde kullanıcı pre-compute'un UnityEngine.Random
             // çıktısıyla spin oynatır (T4 çarpan pozisyon/değer farklı, T5 4 scatter düşmüyor).
             // Pattern bitmiş veya zaten motor pasifse (T1, T2, T_SON) kontrol atlanır.
-            if (parametreTamam && TutorialSenaryoMotoru.MotorAktif && !TutorialSenaryoMotoru.KayitEnjekteEdildi)
+            // PAKET 14-FAZ34.2 BUG B FIX: Scripted altyapı aktifse (T3-T10 hepsi) pattern motor enjekte
+            // beklemeye gerek yok — TutorialScriptedYoneticisi zaten OyunYoneticisi.Spin.cs öncesinde
+            // return ediyor. T6YO toggle açılınca spin butonu kilit kalmaz.
+            if (parametreTamam && TutorialSenaryoMotoru.MotorAktif && !TutorialSenaryoMotoru.KayitEnjekteEdildi
+                && !TutorialScriptedYoneticisi.Aktif)
                 parametreTamam = false;
 
             TutorialAdimGoster.Ornek.IlerlemeGuncelle(delta, v.gerekliSpin, parametreTamam);
