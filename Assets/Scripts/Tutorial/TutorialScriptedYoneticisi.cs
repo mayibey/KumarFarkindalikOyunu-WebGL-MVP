@@ -33,6 +33,11 @@ namespace KumarFarkindalik.Tutorial
         /// yerine deterministik kayıt-bazlı hesap → bar rengi her zaman doğru).</summary>
         public long SonOdeme { get; private set; } = 0;
 
+        /// <summary>PAKET 14-FAZ35.8: SonrakiSpiniAl çağrısında set edilir; bir sonraki SonrakiSpiniAl'a
+        /// kadar geçerli kalır. Tutorial spin end handler bunun tip'ini okuyup T8 NearMiss rotate
+        /// animasyonunu tetikler (kayıt-bazlı deterministik trigger, bakiye/bar timing'inden bağımsız).</summary>
+        public ScriptedSpinKaydi SonOynanmisKayit { get; private set; }
+
         private Dictionary<string, List<ScriptedSpinKaydi>> _patternSpinleri;
         private string _aktifPattern = "";
         private int _spinIdx = 0;
@@ -145,7 +150,8 @@ namespace KumarFarkindalik.Tutorial
                 foreach (var v in kayit.ilkCarpanDegerleri) if (v > 0) carpanToplam += v;
             if (carpanToplam == 0) carpanToplam = 1; // çarpan yoksa multiplier=1
             SonOdeme = kayit.brutOdeme * carpanToplam;
-            Debug.Log($"[TutorialScriptedYoneticisi] SonrakiSpiniAl: pattern={_aktifPattern}, idx={_spinIdx}/{liste.Count - 1}, brüt={kayit.brutOdeme} TL (idx ilerletilmedi — SpinTamamlandi bekliyor)");
+            SonOynanmisKayit = kayit; // FAZ 35.8: spin end handler T8 NearMiss rotate için tip okur
+            Debug.Log($"[TutorialScriptedYoneticisi] SonrakiSpiniAl: pattern={_aktifPattern}, idx={_spinIdx}/{liste.Count - 1}, brüt={kayit.brutOdeme} TL, tip={kayit.tip} (idx ilerletilmedi — SpinTamamlandi bekliyor)");
             return kayit;
         }
 
@@ -215,22 +221,20 @@ namespace KumarFarkindalik.Tutorial
             Debug.Log($"[TutorialScriptedYoneticisi] AsamaSetKazanmaSikligi(N={N}) — {N} kazanç + {5 - N} kayıp peş peşe (havuzdan seçim), Aktif=true.");
         }
 
-        /// <summary>PAKET 14-FAZ34 İş 3: T8 Near Miss Sıklığı — N near-miss + (5-N) normal kayıp listesi + shuffle.
+        /// <summary>PAKET 14-FAZ35.8: T8 Near Miss Sıklığı — N near-miss + (5-N) küçük kazanç SABİT SIRA.
         /// Near miss: 7 bitişik Hindistan (cluster eşik 8'in altında, ödeme yok ama "neredeyse" hissi).
-        /// Normal: UretKayipKayit dolgu grid (saf kayıp).</summary>
+        /// Kazanç: Üzüm(7) × 8 cluster, brüt 1500 TL (çarpansız teselli ödülü → NET +500).
+        /// Shuffle KALDIRILDI — pedagojik mesaj: önce N gerginlik (NearMiss), sonra 5-N rahatlama (kazanç).</summary>
         public void AsamaSetNearMiss(int N)
         {
             N = Mathf.Clamp(N, 0, 5);
             var liste = new List<ScriptedSpinKaydi>(5);
-            for (int i = 0; i < N; i++) liste.Add(TutorialAsamaListesiUreteci.UretNearMissKayit());
-            for (int i = 0; i < 5 - N; i++) liste.Add(TutorialAsamaListesiUreteci.UretKayipKayit());
 
-            // Fisher-Yates shuffle (UnityEngine.Random — her oturum farklı sıra)
-            for (int i = liste.Count - 1; i > 0; i--)
-            {
-                int j = Random.Range(0, i + 1);
-                var tmp = liste[i]; liste[i] = liste[j]; liste[j] = tmp;
-            }
+            // SABİT SIRA: önce N near-miss, sonra 5-N Üzüm 8 küçük kazanç.
+            for (int i = 0; i < N; i++)
+                liste.Add(TutorialAsamaListesiUreteci.UretNearMissKayit());
+            for (int i = 0; i < 5 - N; i++)
+                liste.Add(TutorialAsamaListesiUreteci.UretCokAdetKazancKayit(7, 8, 1500));
 
             if (_patternSpinleri == null)
                 _patternSpinleri = new Dictionary<string, List<ScriptedSpinKaydi>>();
@@ -242,7 +246,7 @@ namespace KumarFarkindalik.Tutorial
             var oy = Object.FindObjectOfType<OyunYoneticisi>();
             oy?.ScriptedSenaryoCacheTazele();
 
-            Debug.Log($"[TutorialScriptedYoneticisi] AsamaSetNearMiss(N={N}) — {N} near-miss + {5 - N} normal shuffle, Aktif=true.");
+            Debug.Log($"[TutorialScriptedYoneticisi] AsamaSetNearMiss(N={N}) — {N} near-miss + {5 - N} Üzüm 8 teselli kazanç (sabit sıra), Aktif=true.");
         }
 
         /// <summary>PAKET 14-FAZ34 İş 4: T9 Kaçış Frenleme — N kayıp + 1 kazanç (başabaş) + (4-N) doldurma.

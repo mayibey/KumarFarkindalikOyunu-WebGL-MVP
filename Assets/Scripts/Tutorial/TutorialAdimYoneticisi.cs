@@ -303,7 +303,9 @@ namespace KumarFarkindalik.Tutorial
                 sira = 7,
                 vurguSelectorlari = new[] { "#kazanmaOrani" },
                 gerekliSpin = 5,
-                parametreKosulu = () => PanelKopru.kazanmaOrani > 0f,
+                // PAKET 14-FAZ35.7: Slider KESIN 3'e ayarlanmalı (talimat metni "3'e ayarla").
+                // Eski `> 0` lambda kullanıcı 1/2/4/5'te de kabul ediyordu → pedagojik mesaj bozuk.
+                parametreKosulu = () => Mathf.Abs(PanelKopru.kazanmaOrani - 3f) < 0.01f,
                 degisimAnahtarlari = new[] { "kazanmaOrani" },
             };
 
@@ -322,7 +324,10 @@ namespace KumarFarkindalik.Tutorial
                 sira = 8,
                 vurguSelectorlari = new[] { "#minCarpan", "#maksCarpan" },
                 gerekliSpin = 3,
-                parametreKosulu = () => PanelKopru.minCarpan > 0f && PanelKopru.maksCarpan > 0f,
+                // PAKET 14-FAZ35.7: Min=3 ve Maks=5 KESIN değer kontrolü (talimat "Min=3, Maks=5 ayarla").
+                // Eski `> 0 && > 0` farklı değerleri kabul ediyordu → SPIN açılıp yanlış aralık spin'i.
+                parametreKosulu = () => Mathf.Abs(PanelKopru.minCarpan - 3f) < 0.01f
+                                     && Mathf.Abs(PanelKopru.maksCarpan - 5f) < 0.01f,
                 degisimAnahtarlari = new[] { "minCarpan", "maksCarpan" },
             };
 
@@ -339,7 +344,8 @@ namespace KumarFarkindalik.Tutorial
                 sira = 9,
                 vurguSelectorlari = new[] { "#yakinKacirma" },
                 gerekliSpin = 5,
-                parametreKosulu = () => PanelKopru.yakinKacirma > 0f,
+                // PAKET 14-FAZ35.7: Near miss slider'ı KESIN 3 (talimat metni güncellendi: "3'e getir").
+                parametreKosulu = () => Mathf.Abs(PanelKopru.yakinKacirma - 3f) < 0.01f,
                 degisimAnahtarlari = new[] { "yakinKacirma" },
             };
 
@@ -356,8 +362,9 @@ namespace KumarFarkindalik.Tutorial
                 sira = 10,
                 vurguSelectorlari = new[] { "#ardisikKayip" },
                 gerekliSpin = 4,
-                parametreKosulu = () => PanelKopru.ardisikKayipLimiti > 0
-                                        && PanelKopru.ardisikKayipLimiti <= 4,
+                // PAKET 14-FAZ35.7: Kaçış limiti KESIN 3 (talimat "3 yaz"). Eski 1-4 aralığı pedagojik
+                // tutarlılığı bozuyordu (kullanıcı 1 yazınca da geçiyordu).
+                parametreKosulu = () => PanelKopru.ardisikKayipLimiti == 3,
                 degisimAnahtarlari = new[] { "ardisikKayip" },
             };
 
@@ -577,8 +584,8 @@ namespace KumarFarkindalik.Tutorial
             "Neredeyse kazanıyordun hissi. Slot oyununun en güçlü tuzaklarından biri. " +
             "Neredeyse Oluyordu Hissinin ayarı seçilir.";
         private const string T8_AKSIYON =
-            "Neredeyse Kazanıyordu Hissi ayarında seçilen sayı adeti kadar kümeler düşecek. " +
-            "Uygulaya bas ve 5 spin at.";
+            "Neredeyse Kazanıyordu Hissi ayarını 3'e getir. Uygulaya bas ve 5 spin at. " +
+            "5 spinin 3'ünde 'neredeyse oluyordu' hissi yaratılacak, kalan 2 spinde küçük kazanç gelecek.";
         private const string T8_KAPANIS =
             "Gördüğümüz üzere 7 aynı sembol düştü ama 1 EKSİK. Küme 8'den başlıyor. " +
             "Oyuncunun beyni 'KAZANIYORDUM' der oysa hiç şansı yoktur. " +

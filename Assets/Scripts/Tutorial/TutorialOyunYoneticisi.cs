@@ -217,11 +217,16 @@ namespace KumarFarkindalik.Tutorial
             AdimYoneticisi = gameObject.AddComponent<TutorialAdimYoneticisi>();
             Enjeksiyon = gameObject.AddComponent<TutorialAdminEnjeksiyonu>();
 
+            // PAKET 14-FAZ35.8: T8 NearMiss Hindistan rotate animasyonu component'i bootstrap.
+            // Sahne YAML'a dokunmadan runtime AddComponent — Ornek singleton üzerinden erişim.
+            if (TutorialNearMissAnimasyon.Ornek == null)
+                gameObject.AddComponent<TutorialNearMissAnimasyon>();
+
             // Event'ler
             AdimYoneticisi.OnAdimDegisti += AdimDegisti;
             AdimYoneticisi.OnTutorialBitti += TutorialBitti;
 
-            Debug.Log("[TutorialOyunYoneticisi] Spawn + AdimYoneticisi/Enjeksiyon AddComponent + event bağlandı.");
+            Debug.Log("[TutorialOyunYoneticisi] Spawn + AdimYoneticisi/Enjeksiyon/NearMissAnimasyon AddComponent + event bağlandı.");
         }
 
         /// <summary>
@@ -950,6 +955,11 @@ namespace KumarFarkindalik.Tutorial
             {
                 _oncekiSpinCalisiyor = true;
                 _spinBekliyor = true;
+
+                // PAKET 14-FAZ35.8: T8 NearMiss rotate animasyonu varsa durdur (her yeni spin başında).
+                // NearMiss kayıtı sonrası başlatılan dönme, sonraki spin'e kadar devam ediyordu.
+                if (TutorialNearMissAnimasyon.Ornek != null)
+                    TutorialNearMissAnimasyon.Ornek.DurdurRotate();
             }
         }
 
@@ -1045,6 +1055,18 @@ namespace KumarFarkindalik.Tutorial
             }
             Debug.Log($"[TutorialOyunYoneticisi] Spin tamamlandı (anim state-driven), TutorialSpinSayaci={TutorialSpinSayaci}");
             TutorialSenaryoMotoru.SpinTamamlandi();
+            // PAKET 14-FAZ35.8: T8 NearMiss rotate animasyonu — SpinTamamlandi (idx++) öncesi SonOynanmisKayit
+            // hâlâ az önce oynanan kaydı tutar; tip NearMiss + mevcut adım T8 ise 7 Hindistan rotate başlat.
+            // Animasyon sonraki SPIN'e kadar dönmeye devam eder; Update spin-start hook'u durduracak.
+            var sonOynanmis = TutorialScriptedYoneticisi.Ornek?.SonOynanmisKayit;
+            if (sonOynanmis != null
+                && sonOynanmis.tip == Senaryo.Scripted.SpinTipi.NearMiss
+                && AdimYoneticisi != null
+                && AdimYoneticisi.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T8
+                && TutorialNearMissAnimasyon.Ornek != null)
+            {
+                TutorialNearMissAnimasyon.Ornek.BaslatRotate();
+            }
             // PAKET 14-FAZ33.1: Tutorial scripted pattern idx ilerletmesi gerçek spin tamamlandığında.
             // Pre-compute coroutine yeniden tetiklenirse aynı kayıt döner; sadece burada idx++.
             TutorialScriptedYoneticisi.Ornek?.SpinTamamlandi();
