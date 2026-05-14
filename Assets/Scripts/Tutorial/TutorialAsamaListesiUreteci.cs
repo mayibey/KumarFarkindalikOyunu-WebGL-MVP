@@ -175,22 +175,25 @@ namespace KumarFarkindalik.Tutorial
             };
         }
 
-        /// <summary>PAKET 14-FAZ34 İş 5: T7 Ödeme Aralığı — verilen sembol için 8-li cluster (paytable_8_9 referans).
-        /// brutOdeme = payCoef × bahis (ham, çarpansız). Dolgu meyveler manuel ayarlı (cluster kazançlı sembol hariç).
-        /// Tumble: 8 cluster patlar, üstten farklı meyveler düşer (cluster oluşturmaz).</summary>
-        public static ScriptedSpinKaydi UretOdemeKayit(int sembolId, long brutOdeme)
+        /// <summary>PAKET 14-FAZ35.2 T7: Çoklu tumble kazanç kaydı (8-li cluster, çarpansız).
+        /// İlk grid: ilkClusterSembol 8-li cluster ((1,0)(2,0)(3,0)(1,1)(2,1)(3,1)(2,2)(3,2)) + dolgu.
+        /// Her tumble: patlayan 8 hücreye tumbleClusterSemboller[i] düşer.
+        ///   • tumbleSembol >= 0 → 8 hücreye aynı sembol yerleşir → YENİ 8-li cluster oluşur → sonraki tumble patlatır.
+        ///   • tumbleSembol == -1 → son tumble dolgu sembolleri düşer (cluster oluşmaz, zincir biter).
+        /// Gerçek ödeme ScriptedSpinUygulayici tarafından paytable_8_9 × tumble sayısı × bahis ile hesaplanır;
+        /// brutOdeme field sadece Debug.Log raporlaması için (paytable taraması ile birlikte).</summary>
+        public static ScriptedSpinKaydi UretCokTumbleliKayit(int ilkClusterSembol, int[] tumbleClusterSemboller)
         {
-            // Cluster (8 hücre, T4/T6 ile aynı pozisyonlar): (1,0)(2,0)(3,0)(1,1)(2,1)(3,1)(2,2)(3,2)
+            // İlk grid: 8-li cluster (ilkClusterSembol) + dolgu (max 4 per sembol, scatter hariç)
             int[] grid = new int[30];
             for (int i = 0; i < 30; i++) grid[i] = -1;
 
-            grid[1] = sembolId;  grid[2] = sembolId;  grid[3] = sembolId;
-            grid[7] = sembolId;  grid[8] = sembolId;  grid[9] = sembolId;
-            grid[14] = sembolId; grid[15] = sembolId;
+            // PAKET 14-FAZ35.2: No-replace random pattern → T7 3 spin'i 3 farklı pozisyon.
+            var clusterPozlari = OlusturRastgeleClusterPozlari(8);
+            foreach (var p in clusterPozlari) grid[p.y * 6 + p.x] = ilkClusterSembol;
 
-            // Dolgu: sembolId ve scatter(8) hariç, max 4 her dolgu sembolünden
             var dolguSayaclar = new int[8];
-            dolguSayaclar[sembolId] = 8;
+            dolguSayaclar[ilkClusterSembol] = 8;
             int adimSembol = 0;
             for (int i = 0; i < 30; i++)
             {
@@ -199,28 +202,50 @@ namespace KumarFarkindalik.Tutorial
                 for (int t = 0; t < 8; t++)
                 {
                     int aday = (adimSembol + t) % 8;
-                    if (aday == sembolId) continue;
+                    if (aday == ilkClusterSembol) continue;
                     if (dolguSayaclar[aday] < 4) { sec = aday; break; }
                 }
-                if (sec < 0) sec = (sembolId == 0) ? 1 : 0;
+                if (sec < 0) sec = (ilkClusterSembol == 0) ? 1 : 0;
                 grid[i] = sec;
                 dolguSayaclar[sec]++;
                 adimSembol = (adimSembol + 1) % 8;
             }
 
-            int[] carpan = new int[30];
-
-            var tumble = new TumbleAdimTanimi
+            // Tumble adımları: aynı 8 cluster pozisyonu sürekli patlar, içeriği tumble[i]'ye göre değişir
+            var tumbleler = new List<TumbleAdimTanimi>();
+            int oncekiCluster = ilkClusterSembol;
+            foreach (int tumbleSembol in tumbleClusterSemboller)
             {
-                patlayanHucreler = new List<Vector2Int>
+                int[] dusenSemboller;
+                if (tumbleSembol == -1)
                 {
-                    new Vector2Int(1, 0), new Vector2Int(2, 0), new Vector2Int(3, 0),
-                    new Vector2Int(1, 1), new Vector2Int(2, 1), new Vector2Int(3, 1),
-                    new Vector2Int(2, 2), new Vector2Int(3, 2),
-                },
-                yukaridanDusenSemboller = OlusturDolguDizisi(sembolId, 8),
-                yukaridanDusenCarpanlar = new[] { 0, 0, 0, 0, 0, 0, 0, 0 },
-            };
+                    dusenSemboller = OlusturDolguDizisi(oncekiCluster, 8); // dolgu — yeni cluster oluşmaz
+                }
+                else
+                {
+                    dusenSemboller = new int[8];
+                    for (int k = 0; k < 8; k++) dusenSemboller[k] = tumbleSembol; // 8 hücreye aynı sembol → yeni cluster
+                    oncekiCluster = tumbleSembol;
+                }
+                tumbleler.Add(new TumbleAdimTanimi
+                {
+                    patlayanHucreler = new List<Vector2Int>(clusterPozlari),
+                    yukaridanDusenSemboller = dusenSemboller,
+                    yukaridanDusenCarpanlar = new int[8],
+                });
+            }
+
+            // brutOdeme raporlama (paytable_8_9 × bahis × cluster sayısı; ScriptedSpinUygulayici göz ardı eder)
+            long ramToplam = 0;
+            var oy = Object.FindObjectOfType<OyunYoneticisi>();
+            var ta = oy != null ? oy.tumbleAyarlari : null;
+            if (ta != null && ta.PayTable_8_9 != null && ilkClusterSembol >= 0 && ilkClusterSembol < ta.PayTable_8_9.Length)
+            {
+                ramToplam = (long)Mathf.RoundToInt(ta.PayTable_8_9[ilkClusterSembol] * TUTORIAL_BAHIS);
+                foreach (int t in tumbleClusterSemboller)
+                    if (t >= 0 && t < ta.PayTable_8_9.Length)
+                        ramToplam += (long)Mathf.RoundToInt(ta.PayTable_8_9[t] * TUTORIAL_BAHIS);
+            }
 
             return new ScriptedSpinKaydi
             {
@@ -228,10 +253,10 @@ namespace KumarFarkindalik.Tutorial
                 asamaIndex = 0,
                 bahis = TUTORIAL_BAHIS,
                 tip = SpinTipi.Kazanc,
-                brutOdeme = brutOdeme,
+                brutOdeme = ramToplam,
                 ilkGridSemboller = grid,
-                ilkCarpanDegerleri = carpan,
-                tumbleler = new List<TumbleAdimTanimi> { tumble },
+                ilkCarpanDegerleri = new int[30],
+                tumbleler = tumbleler,
                 modalMesaji = null,
                 carpanKactiFlag = false,
                 bonusOyunuTetikle = false,
@@ -267,6 +292,142 @@ namespace KumarFarkindalik.Tutorial
             return pozlar;
         }
 
+        // ─────────────────────────────────────────────────────────────────────────
+        // PAKET 14-FAZ35.2: Cluster pozisyon randomize — T6 + T7 yapay hissi fix.
+        // Her T-adımı oturumunda no-replace çekim → garantili pattern çeşitliliği.
+        // Pattern'ler 4-bağlantılı (manuel doğrulandı) — görsel "cluster" hissi korunur.
+        // ─────────────────────────────────────────────────────────────────────────
+
+        /// <summary>8-li cluster pattern havuzu — 6 farklı 4-bağlantılı pattern.</summary>
+        private static List<Vector2Int> Pattern8li(int idx)
+        {
+            switch (idx)
+            {
+                case 0: // A: üst-orta dama (mevcut OlusturClusterPozlari ile aynı)
+                    return new List<Vector2Int> {
+                        new Vector2Int(1, 0), new Vector2Int(2, 0), new Vector2Int(3, 0),
+                        new Vector2Int(1, 1), new Vector2Int(2, 1), new Vector2Int(3, 1),
+                        new Vector2Int(2, 2), new Vector2Int(3, 2),
+                    };
+                case 1: // B: sol 2×4 dikey blok
+                    return new List<Vector2Int> {
+                        new Vector2Int(0, 0), new Vector2Int(1, 0),
+                        new Vector2Int(0, 1), new Vector2Int(1, 1),
+                        new Vector2Int(0, 2), new Vector2Int(1, 2),
+                        new Vector2Int(0, 3), new Vector2Int(1, 3),
+                    };
+                case 2: // C: sağ 2×4 dikey blok
+                    return new List<Vector2Int> {
+                        new Vector2Int(4, 0), new Vector2Int(5, 0),
+                        new Vector2Int(4, 1), new Vector2Int(5, 1),
+                        new Vector2Int(4, 2), new Vector2Int(5, 2),
+                        new Vector2Int(4, 3), new Vector2Int(5, 3),
+                    };
+                case 3: // D: alt-orta dama (A'nın aşağıya kaydırılmış, sağa genişlemiş hali)
+                    return new List<Vector2Int> {
+                        new Vector2Int(2, 2), new Vector2Int(3, 2),
+                        new Vector2Int(2, 3), new Vector2Int(3, 3), new Vector2Int(4, 3),
+                        new Vector2Int(2, 4), new Vector2Int(3, 4), new Vector2Int(4, 4),
+                    };
+                case 4: // E: orta 4×2 yatay blok
+                    return new List<Vector2Int> {
+                        new Vector2Int(1, 2), new Vector2Int(2, 2), new Vector2Int(3, 2), new Vector2Int(4, 2),
+                        new Vector2Int(1, 3), new Vector2Int(2, 3), new Vector2Int(3, 3), new Vector2Int(4, 3),
+                    };
+                case 5: // F: üst 4×2 yatay blok
+                    return new List<Vector2Int> {
+                        new Vector2Int(0, 0), new Vector2Int(1, 0), new Vector2Int(2, 0), new Vector2Int(3, 0),
+                        new Vector2Int(0, 1), new Vector2Int(1, 1), new Vector2Int(2, 1), new Vector2Int(3, 1),
+                    };
+                default:
+                    return Pattern8li(0);
+            }
+        }
+
+        /// <summary>10-li cluster pattern havuzu — 4 farklı pattern (8-li + 2 ek bitişik hücre).</summary>
+        private static List<Vector2Int> Pattern10li(int idx)
+        {
+            var bas = Pattern8li(idx);
+            switch (idx)
+            {
+                case 0: // A + (1,2)(4,1) — mevcut 10-li
+                    bas.Add(new Vector2Int(1, 2)); bas.Add(new Vector2Int(4, 1)); break;
+                case 1: // B + (2,0)(2,1) — sol 3×4 yarı
+                    bas.Add(new Vector2Int(2, 0)); bas.Add(new Vector2Int(2, 1)); break;
+                case 2: // C + (3,0)(3,1) — sağ 3×4 yarı
+                    bas.Add(new Vector2Int(3, 0)); bas.Add(new Vector2Int(3, 1)); break;
+                case 3: // E + (1,1)(4,1) — orta 4×2 + 2 üst sarkıt
+                    bas.Add(new Vector2Int(1, 1)); bas.Add(new Vector2Int(4, 1)); break;
+                default:
+                    return Pattern10li(0);
+            }
+            return bas;
+        }
+
+        /// <summary>12-li cluster pattern havuzu — 3 farklı pattern (10-li + 2 ek bitişik hücre).</summary>
+        private static List<Vector2Int> Pattern12li(int idx)
+        {
+            var bas = Pattern10li(idx);
+            switch (idx)
+            {
+                case 0: // A10 + (4,0)(4,2) — mevcut 12-li
+                    bas.Add(new Vector2Int(4, 0)); bas.Add(new Vector2Int(4, 2)); break;
+                case 1: // B10 + (2,2)(2,3) — sol 3×4 tam blok
+                    bas.Add(new Vector2Int(2, 2)); bas.Add(new Vector2Int(2, 3)); break;
+                case 2: // E10 + (2,1)(3,1) — orta 4×3 blok
+                    bas.Add(new Vector2Int(2, 1)); bas.Add(new Vector2Int(3, 1)); break;
+                default:
+                    return Pattern12li(0);
+            }
+            return bas;
+        }
+
+        private static int ClusterPatternSayisi(int adet)
+        {
+            if (adet >= 12) return 3;
+            if (adet >= 10) return 4;
+            return 6; // 8-li
+        }
+
+        private static List<Vector2Int> PatternSec(int adet, int patternIdx)
+        {
+            if (adet >= 12) return Pattern12li(patternIdx);
+            if (adet >= 10) return Pattern10li(patternIdx);
+            return Pattern8li(patternIdx);
+        }
+
+        // No-replace çekim havuzu (per-adet). Havuz tükenince otomatik dolar.
+        private static Dictionary<int, List<int>> _patternHavuzu = new Dictionary<int, List<int>>();
+
+        /// <summary>PAKET 14-FAZ35.2: Cluster pozisyon havuzundan no-replace random çekim.
+        /// Aynı T-adımı oturumunda art arda çağrılırsa farklı pattern garantilenir, havuz tükenince reset.
+        /// 8-li: 6 pattern, 10-li: 4 pattern, 12-li: 3 pattern.</summary>
+        public static List<Vector2Int> OlusturRastgeleClusterPozlari(int adet)
+        {
+            int havuzKey = adet >= 12 ? 12 : (adet >= 10 ? 10 : 8);
+            int toplam = ClusterPatternSayisi(havuzKey);
+
+            if (!_patternHavuzu.ContainsKey(havuzKey) || _patternHavuzu[havuzKey].Count == 0)
+            {
+                var yeniHavuz = new List<int>();
+                for (int i = 0; i < toplam; i++) yeniHavuz.Add(i);
+                _patternHavuzu[havuzKey] = yeniHavuz;
+            }
+
+            var havuz = _patternHavuzu[havuzKey];
+            int secIdx = UnityEngine.Random.Range(0, havuz.Count);
+            int patternIdx = havuz[secIdx];
+            havuz.RemoveAt(secIdx);
+
+            return PatternSec(adet, patternIdx);
+        }
+
+        /// <summary>Tutorial yeniden başlatma için no-replace havuzu temizler.</summary>
+        public static void PatternHavuzuSifirla()
+        {
+            _patternHavuzu.Clear();
+        }
+
         /// <summary>PAKET 14-FAZ34 İş 7/8/9: Jenerik kazanç kaydı — verilen sembol için 8/10/12-li cluster.
         /// brutOdeme çağıran tarafından paytable hesabıyla geçirilir (ham, çarpansız).</summary>
         public static ScriptedSpinKaydi UretCokAdetKazancKayit(int sembolId, int adet, long brutOdeme)
@@ -274,7 +435,8 @@ namespace KumarFarkindalik.Tutorial
             int[] grid = new int[30];
             for (int i = 0; i < 30; i++) grid[i] = -1;
 
-            var clusterPozlari = OlusturClusterPozlari(adet);
+            // PAKET 14-FAZ35.2: No-replace random pattern çekim → her T3/T6/T6YO/T9 spininde farklı pozisyon.
+            var clusterPozlari = OlusturRastgeleClusterPozlari(adet);
             foreach (var p in clusterPozlari)
                 grid[p.y * 6 + p.x] = sembolId;
 

@@ -314,12 +314,14 @@ namespace KumarFarkindalik.Tutorial
                 mesajBaslangic = T7_BASLANGIC,
                 mesajAksiyon = T7_AKSIYON,
                 mesajKapanis = T7_KAPANIS,
-                altBaslik = "MAKS VE MİN MANİPÜLASYON",
-                // PAKET 6D: 2-aşamalı — Aşama 1 (maks=3, 3 spin), ara modal, Aşama 2 (min=3 maks=5, 3 spin)
-                yapilacaklar = new[] { "Ödeme MAKS'ı 3'e ayarla", "Uygula bas, 3 spin at", "MIN=3 MAKS=5 yap, 3 spin daha at" },
+                altBaslik = "MIN-MAKS ÖDEME ARALIĞI",
+                // PAKET 14-FAZ35.2: Tek aşama, slider varsayılan 3-5, 3 sabit spin (3000/4000/5000).
+                // Eski 2 aşamalı (gerekliSpin=6) tasarım kaldırıldı — paytable_8_9 max 1.5 olduğu için
+                // 3-5x bandı eşleşmiyordu + ilk 3 spin 0 kazanç regression vardı.
+                yapilacaklar = new[] { "Min=3, Maks=5 ayarla (varsayılan)", "Uygula bas", "3 spin at" },
                 sira = 8,
                 vurguSelectorlari = new[] { "#minCarpan", "#maksCarpan" },
-                gerekliSpin = 6,
+                gerekliSpin = 3,
                 parametreKosulu = () => PanelKopru.minCarpan > 0f && PanelKopru.maksCarpan > 0f,
                 degisimAnahtarlari = new[] { "minCarpan", "maksCarpan" },
             };
@@ -373,7 +375,7 @@ namespace KumarFarkindalik.Tutorial
                 // Aşama 2 (toggle AÇIK + ×500 = mega kazanç)
                 yapilacaklar = new[] { "×500 butonuna bas (toggle KAPALI)", "'Çarpan Ödeme' toggle aç", "×500 tekrar bas" },
                 sira = 11,
-                vurguSelectorlari = new[] { "#carpanOdemeToggle", "button[onclick=\"carpanZorla(500)\"]" },
+                vurguSelectorlari = new[] { "#carpanOdemeToggle", "#carpanZorla500" },
                 gerekliSpin = 2,
                 parametreKosulu = () => TutorialAdminEnjeksiyonu.SonCarpanZorla == 500,
                 degisimAnahtarlari = new[] { "carpanZorla" },
@@ -389,7 +391,7 @@ namespace KumarFarkindalik.Tutorial
                 altBaslik = "BONUS TETİKLE",
                 yapilacaklar = new[] { "Bonus Tetikle butonuna bas" },
                 sira = 12,
-                vurguSelectorlari = new[] { ".trigger-btn" },
+                vurguSelectorlari = new[] { "#bonusTetikleBtn" },
                 gerekliSpin = 0,
                 parametreKosulu = () => TutorialAdminEnjeksiyonu.BonusTetiklendi,
                 degisimAnahtarlari = new[] { "bonusTetikle" },

@@ -487,6 +487,10 @@ namespace KumarFarkindalik.Tutorial
                 _orijinalBahis = oy.BotIcinBahis;
                 Debug.Log($"[Tutorial] Original cache: scatter={_orijinalScatterChance}, periyot={_orijinalBonusOtomatikPeriyot}, bahis={_orijinalBahis}");
 
+                // PAKET 14-FAZ35.2: Cluster pozisyon no-replace havuzunu temizle — önceki Tutorial oturumundan
+                // kalan tüketilmiş havuz state'i sıfırlanır, ilk T3 spininden itibaren tam havuzdan çekim.
+                TutorialAsamaListesiUreteci.PatternHavuzuSifirla();
+
                 // PAKET 14-FAZ31: Admin state'i Normal Oyun moduna resetle — Tutorial başlangıcında
                 // admin senaryo preset (S2/S3 vb.) aktif kalabiliyordu → TryConsumeOncedenHesaplanan
                 // OncedenHesaplanmisNormalSpinOdemeYenidenDogrulansinMi=true → Tutorial kaydı 5000 TL
@@ -717,7 +721,9 @@ namespace KumarFarkindalik.Tutorial
                 // PAKET 14-FAZ2: Artık DİNAMİK. Giriş anında motor pasif — kullanıcı slider'dan
                 // min/maks set edince TutorialAdminEnjeksiyonu.TryDinamikOdemePatternBaslat tetiklenir.
                 // carpanUretimiAktif=false → RNG akışında 5000 × çarpan = 8000+ TL kaçağı önlenir.
-                T8AraModalGosterildi = false;
+                // PAKET 14-FAZ35.2: T7 tek aşamalı (3 spin). Ara modal artık tetiklenmesin — flag baştan
+                // true set edilir, TutorialT8OdemeModalKontrol early-return yapar.
+                T8AraModalGosterildi = true;
                 T8IkinciAsamaBasladi = false;
                 TutorialSenaryoMotoru.Durdur();
                 var oyT7 = Object.FindObjectOfType<OyunYoneticisi>();
@@ -958,6 +964,15 @@ namespace KumarFarkindalik.Tutorial
         private IEnumerator SayaciGecikmeliArtir()
         {
             var oy = _oyRef != null ? _oyRef : Object.FindObjectOfType<OyunYoneticisi>();
+
+            // PAKET 14-FAZ35.1 BUG O FIX: Bar bakiye snapshot'ı BekleVeyaTimeout'tan ÖNCE al.
+            // Sebep: BekleVeyaTimeout zinciri ~5 sn bekliyor (animasyon + tampon). Bu sırada
+            // kullanıcı yeni spin'e basarsa sonraki spin'in bahisi düşüyor, bar bakiye okuduğunda
+            // 1000 TL eksik görüyor (Spin N için Spin N+1 bahisi de düşmüş halde okuma).
+            // AddWinnings + DeductSpinMaliyeti SENKRON, _bakiye field anında güncel; animasyon
+            // sadece görsel counting-up (ScriptedKazancUcusu bakiyeText.text lerp, _bakiye sabit).
+            long erkenBakiye = oy != null ? oy.BahisPanelMevcutBakiye() : 0L;
+
             if (oy != null)
             {
                 yield return BekleVeyaTimeout(() => !oy.SpinCalisiyorMu, 3f);
@@ -988,12 +1003,14 @@ namespace KumarFarkindalik.Tutorial
                 // PAKET 14-FAZ35.0: Net hesabı bakiye farkından (bahis akışı + kazanç eklenmesi yansır).
                 // Faz 34.8 OturumKazanc yöntemi sadece bonus modunda doğruydu → normal Tutorial spin'lerinde
                 // her zaman 0 dönüyordu → her bar kırmızı regression. BakiyeFark TEK doğru kaynak.
-                long simdikiBakiye = oy.BahisPanelMevcutBakiye();
+                // PAKET 14-FAZ35.1 BUG O FIX: erkenBakiye kullan (coroutine başında snapshot alındı,
+                // sonraki spin'in bahis düşmesinden bağımsız).
+                long simdikiBakiye = erkenBakiye;
                 long bakiyeFark = simdikiBakiye - _oncekiBakiye;
                 long bahis = oy.BotIcinBahis;
                 int net = (int)bakiyeFark;
 
-                Debug.Log($"[Tutorial Bar] Spin {AktifAdimSpinNetleri.Count + 1}: oncekiBakiye={_oncekiBakiye}, simdikiBakiye={simdikiBakiye}, bakiyeFark={bakiyeFark}, bahis={bahis}, net={net}, segmentRengi={(net > 0 ? "KAZANC" : net < 0 ? "KAYIP" : "NOTR")}");
+                Debug.Log($"[Tutorial Bar] Spin {AktifAdimSpinNetleri.Count + 1}: oncekiBakiye={_oncekiBakiye}, simdikiBakiye={simdikiBakiye} (erken), bakiyeFark={bakiyeFark}, bahis={bahis}, net={net}, segmentRengi={(net > 0 ? "KAZANC" : net < 0 ? "KAYIP" : "NOTR")}");
                 Debug.Log($"[Tutorial Bar BAKIYE DIAG] oncekiBakiye={_oncekiBakiye}, simdikiBakiye={simdikiBakiye}, gercekFark={bakiyeFark}, bahis={bahis}");
 
                 _oncekiBakiye = simdikiBakiye;

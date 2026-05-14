@@ -269,48 +269,20 @@ namespace KumarFarkindalik.Tutorial
             Debug.Log($"[TutorialScriptedYoneticisi] AsamaSetKacis(N={N}) — {N} kayıp + 1 kazanç + {3 - N} doldurma (sıralı), Aktif=true.");
         }
 
-        /// <summary>PAKET 14-FAZ34 İş 5: T7 Ödeme Aralığı — paytable_8_9 taraması ile minCarpan/maxCarpan
-        /// aralığındaki (sembol,8-adet) kombinasyonlar pool oluştur → 5 random spin üret. Tumble: 1 cluster patlar.
-        /// Aralık dışı kombinasyon yoksa 5 kayıp spin.</summary>
+        /// <summary>PAKET 14-FAZ35.2 T7 Ödeme Aralığı — sabit 3 senaryo (3000/4000/5000), 8-li cluster + çoklu tumble.
+        /// Min/maks slider değerleri pedagojik etiket (kullanıcı min=3 maks=5 ayarlar), gerçek havuz sabit.
+        /// Eski paytable_8_9 taraması (5 random spin) kaldırıldı — paytable_8_9 max 1.5 olduğu için 3-5x bandı
+        /// eşleşmiyor + fallback 5 kayıp regression'ı vardı. Yeni tasarım crescendo tumble zinciri ile
+        /// gerçekçi slot deneyimi sunuyor (sembol çeşitliği: Üzüm + Elma).</summary>
         public void AsamaSetOdemeAraligi(float minCarpan, float maksCarpan)
         {
-            var oy = Object.FindObjectOfType<OyunYoneticisi>();
-            var ta = oy != null ? oy.tumbleAyarlari : null;
-            var liste = new List<ScriptedSpinKaydi>(5);
-
-            if (ta == null || ta.PayTable_8_9 == null)
-            {
-                for (int i = 0; i < 5; i++) liste.Add(TutorialAsamaListesiUreteci.UretKayipKayit());
-                Debug.LogWarning("[TutorialScriptedYoneticisi] AsamaSetOdemeAraligi: tumbleAyarlari NULL → 5 kayıp fallback.");
-            }
-            else
-            {
-                int sembolSayisi = ta.PayTable_8_9.Length;
-                int scatterIdx = ta.ScatterIndex;
-                var aday = new List<(int sembol, long brut)>();
-                for (int s = 0; s < sembolSayisi; s++)
-                {
-                    if (s == scatterIdx) continue;
-                    float payCoef = ta.PayTable_8_9[s];
-                    if (payCoef >= minCarpan && payCoef <= maksCarpan)
-                        aday.Add((s, (long)Mathf.RoundToInt(payCoef * 1000)));
-                }
-
-                if (aday.Count == 0)
-                {
-                    Debug.LogWarning($"[TutorialScriptedYoneticisi] AsamaSetOdemeAraligi [{minCarpan}-{maksCarpan}] paytable_8_9'da eşleşmedi → 5 kayıp.");
-                    for (int i = 0; i < 5; i++) liste.Add(TutorialAsamaListesiUreteci.UretKayipKayit());
-                }
-                else
-                {
-                    for (int i = 0; i < 5; i++)
-                    {
-                        var sec = aday[Random.Range(0, aday.Count)];
-                        liste.Add(TutorialAsamaListesiUreteci.UretOdemeKayit(sec.sembol, sec.brut));
-                    }
-                    Debug.Log($"[TutorialScriptedYoneticisi] AsamaSetOdemeAraligi: pool={aday.Count} sembol, 5 random spin üretildi.");
-                }
-            }
+            var liste = new List<ScriptedSpinKaydi>(3);
+            // Spin 1 (3000 TL): Üzüm 8 → Üzüm 8 → dolgu (2 patlama, hep Üzüm)
+            liste.Add(TutorialAsamaListesiUreteci.UretCokTumbleliKayit(7, new[] { 7, -1 }));
+            // Spin 2 (4000 TL): Üzüm 8 → Elma 8 → Üzüm 8 → dolgu (3 patlama, sembol çeşitliği)
+            liste.Add(TutorialAsamaListesiUreteci.UretCokTumbleliKayit(7, new[] { 6, 7, -1 }));
+            // Spin 3 (5000 TL): Üzüm 8 → Üzüm 8 → Elma 8 → Elma 8 → dolgu (4 patlama, 2 Üzüm + 2 Elma)
+            liste.Add(TutorialAsamaListesiUreteci.UretCokTumbleliKayit(7, new[] { 7, 6, 6, -1 }));
 
             if (_patternSpinleri == null)
                 _patternSpinleri = new Dictionary<string, List<ScriptedSpinKaydi>>();
@@ -319,8 +291,9 @@ namespace KumarFarkindalik.Tutorial
             _spinIdx = 0;
             Aktif = true;
 
+            var oy = Object.FindObjectOfType<OyunYoneticisi>();
             oy?.ScriptedSenaryoCacheTazele();
-            Debug.Log($"[TutorialScriptedYoneticisi] AsamaSetOdemeAraligi(min={minCarpan}, maks={maksCarpan}) — Aktif=true.");
+            Debug.Log($"[TutorialScriptedYoneticisi] AsamaSetOdemeAraligi: 3 sabit senaryo (3000/4000/5000), min={minCarpan} maks={maksCarpan} pedagojik etiket — Aktif=true.");
         }
 
         // ─────────────────────────────────────────────────────────────────────────

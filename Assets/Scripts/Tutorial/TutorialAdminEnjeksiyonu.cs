@@ -88,8 +88,9 @@ namespace KumarFarkindalik.Tutorial
                 TutorialOyunYoneticisi.T8IkinciAsamaBasladi = true;
 
             // PAKET 14-FAZ34 İş 5: ScriptedSpinUygulayici altyapısı T7 Ödeme için.
+            // PAKET 14-FAZ35.2: DinamikOdemePatternBaslat paralel motor çağrısı silindi (T6 emsali —
+            // scripted aktifken motor zaten OyunYoneticisi.Spin.cs Tutorial branch'i ile bypass ediliyor).
             TutorialScriptedYoneticisi.Ornek?.AsamaSetOdemeAraligi(min, maks);
-            TutorialSenaryoMotoru.DinamikOdemePatternBaslat(min, maks);
             Debug.Log($"[Tutorial T7 Ödeme] Dinamik pattern tetiklendi: aralık=[{min:F1}-{maks:F1}]× bahis");
         }
 

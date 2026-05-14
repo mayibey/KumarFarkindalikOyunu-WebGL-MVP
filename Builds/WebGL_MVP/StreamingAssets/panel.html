@@ -1020,13 +1020,13 @@
             <span style="font-size:14px; color:#8a7c5c; align-self:center; padding-bottom:8px;">×</span>
             <div style="display:flex; flex-direction:column; gap:4px;">
               <span style="font-size:12px; color:#8a7c5c; letter-spacing:1px; text-transform:uppercase;">Min</span>
-              <input type="number" id="minCarpan" value="0" placeholder="Min" step="0.1" min="0" style="max-width:90px;"
+              <input type="number" id="minCarpan" value="3" placeholder="Min" step="0.1" min="0" style="max-width:90px;"
                      oninput="ayarDegisti('minCarpan', this.value)">
             </div>
             <span style="color:#8a7c5c; font-size:14px; align-self:center; padding-bottom:8px;">—</span>
             <div style="display:flex; flex-direction:column; gap:4px;">
               <span style="font-size:12px; color:#8a7c5c; letter-spacing:1px; text-transform:uppercase;">Max</span>
-              <input type="number" id="maksCarpan" value="0" placeholder="Maks" step="0.1" min="0" style="max-width:90px;"
+              <input type="number" id="maksCarpan" value="5" placeholder="Maks" step="0.1" min="0" style="max-width:90px;"
                      oninput="ayarDegisti('maksCarpan', this.value)">
             </div>
             <span style="font-size:14px; color:#8a7c5c; align-self:center; padding-bottom:8px;">× bahis</span>
@@ -1090,7 +1090,7 @@
               <button              id="bonusOtomatik" onclick="bonusModuDegistir('otomatik')">Otomatik</button>
             </div>
           </div>
-          <button class="trigger-btn" onclick="bonusTetikle()">⚡ Bonus oyununu şimdi tetikle</button>
+          <button id="bonusTetikleBtn" class="trigger-btn" onclick="bonusTetikle()">⚡ Bonus oyununu şimdi tetikle</button>
           <div class="ifsa-line">Bonus oyununun ne zaman tetikleneceği belirlenir. Manuel'de operatör elle açar, Otomatik'te sistem zamanı seçer.</div>
         </div>
 
@@ -1108,9 +1108,9 @@
             <input type="number" id="carpanInput" placeholder="Özel..." min="1"
                    style="background:rgba(245,196,179,0.1);color:#F5C4B3;border:1px solid rgba(245,196,179,0.4);padding:12px;border-radius:8px;font-size:21px;font-family:inherit;"
                    onkeydown="if(event.key==='Enter'&&this.value){carpanZorla(parseInt(this.value))}">
-            <button class="multiplier-btn" onclick="carpanZorla(100)">×100</button>
-            <button class="multiplier-btn" onclick="carpanZorla(250)">×250</button>
-            <button class="multiplier-btn" onclick="carpanZorla(500)">×500</button>
+            <button id="carpanZorla100" class="multiplier-btn" onclick="carpanZorla(100)">×100</button>
+            <button id="carpanZorla250" class="multiplier-btn" onclick="carpanZorla(250)">×250</button>
+            <button id="carpanZorla500" class="multiplier-btn" onclick="carpanZorla(500)">×500</button>
           </div>
           <div class="ifsa-line">Bir sonraki spinde grid'e zorla düşürülecek çarpan değeri belirlenir. (×100, ×250, ×500 veya özel değer)</div>
 
