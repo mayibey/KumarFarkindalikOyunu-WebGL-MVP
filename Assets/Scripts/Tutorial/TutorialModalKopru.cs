@@ -306,6 +306,18 @@ namespace KumarFarkindalik.Tutorial
             }
         }
 
+        // Faz 34.8 ek: Balon gövdesi / karakter silüeti tıklaması SADECE typewriter atlatır,
+        // kapanma yapmaz. Modal kapanma yolu sadece TAMAM butonudur (OnBalonTiklandi → _kullaniciDevamEtti).
+        private void OnBalonAtlamaIcin()
+        {
+            Debug.Log($"[{nameof(TutorialModalKopru)}] OnBalonAtlamaIcin — _typewriterCalisiyor={_typewriterCalisiyor}");
+            if (_typewriterCalisiyor)
+            {
+                _typewriterAtla = true;
+            }
+            // Typewriter bittiyse hiçbir şey yapma (kapanma sadece Tamam'dan).
+        }
+
         // ──────────────────────────────────────────────────────────────────────
         // UI yarat (runtime, prefab gerekmez)
         // ──────────────────────────────────────────────────────────────────────
@@ -362,8 +374,8 @@ namespace KumarFarkindalik.Tutorial
             _balonCanvasGroup = balonGo.GetComponent<CanvasGroup>();
             _balonButton = balonGo.GetComponent<Button>();
             _balonButton.transition = Selectable.Transition.None;
-            // Faz 34.8: Modal sadece Tamam butonuyla kapansın — balon gövdesi tıklaması iptal edildi.
-            // _balonButton.onClick.AddListener(OnBalonTiklandi);
+            // Faz 34.8 ek: Balon gövdesi tıklaması typewriter atlar (kapanma YOK).
+            _balonButton.onClick.AddListener(OnBalonAtlamaIcin);
 
             // Balon altın border (4 kenar)
             BorderEkle(balonGo.transform, _balonRt.sizeDelta, 2f, new Color(0.83f, 0.69f, 0.22f, 1f));
@@ -401,8 +413,8 @@ namespace KumarFarkindalik.Tutorial
 
             var karakterBtn = karakterGo.AddComponent<Button>();
             karakterBtn.transition = Selectable.Transition.None;
-            // Faz 34.8: Modal sadece Tamam butonuyla kapansın — karakter silüeti tıklaması iptal edildi.
-            // karakterBtn.onClick.AddListener(OnBalonTiklandi);
+            // Faz 34.8 ek: Karakter silüeti tıklaması typewriter atlar (kapanma YOK).
+            karakterBtn.onClick.AddListener(OnBalonAtlamaIcin);
 
             Debug.Log("[Modal] Karakter balon child'ı yapıldı, local pos=(-20, 0)");
 
