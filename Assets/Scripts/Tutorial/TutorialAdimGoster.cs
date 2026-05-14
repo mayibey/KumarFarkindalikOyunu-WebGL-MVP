@@ -129,13 +129,40 @@ namespace KumarFarkindalik.Tutorial
         // === Public API ===
 
         /// <summary>PAKET 14-FAZ34.3 BUG G: TutorialAdimYoneticisi.AltSayacGuncelle çağrılınca sayaç text'i
-        /// güncelle (adım geçişi yapmadan, sadece "1/2" → "2/2" gibi alt sayaç değişimi).</summary>
+        /// güncelle (adım geçişi yapmadan, sadece "1/2" → "2/2" gibi alt sayaç değişimi).
+        /// PAKET 14-FAZ34.6: Mevcut AdimVerisi'nden kategori bilgisi al, 2 satırlı render güncelle.</summary>
         public void SayacTextGuncelle(int sira, string altSayac)
         {
-            if (_sayacText == null) return;
-            _sayacText.text = string.IsNullOrEmpty(altSayac)
-                ? $"ADIM {sira}/{TOPLAM_ADIM}"
-                : $"ADIM {sira}/{TOPLAM_ADIM} · {altSayac}";
+            var v = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi?.MevcutAdimVerisi;
+            if (v == null) return;
+            RenderSayacAltBaslik(v, altSayac);
+        }
+
+        /// <summary>PAKET 14-FAZ34.6 İş 1: 2 satırlı sayaç render.
+        /// Üst (_sayacText): "ADIM {kategoriIndex}/4 · {kategoriAdi}" (T1/T2 → "BAŞLANGIÇ" sadece)
+        /// Alt (_altBaslikText): "{kategoriIciSira}/{kategoriIciToplam}{altSayac varsa ' · '+altSayac} {altBaslik}"</summary>
+        private void RenderSayacAltBaslik(AdimVerisi v, string altSayac)
+        {
+            const int TOPLAM_KATEGORI = 4;
+            if (_sayacText != null)
+            {
+                if (v.kategoriIndex <= 0)
+                    _sayacText.text = $"BAŞLANGIÇ";
+                else
+                    _sayacText.text = $"ADIM {v.kategoriIndex}/{TOPLAM_KATEGORI} · {v.kategoriAdi}";
+            }
+            if (_altBaslikText != null)
+            {
+                string altPrefix = "";
+                if (v.kategoriIciToplam > 0)
+                {
+                    altPrefix = $"{v.kategoriIciSira}/{v.kategoriIciToplam}";
+                    if (!string.IsNullOrEmpty(altSayac))
+                        altPrefix += $" · {altSayac}";
+                    altPrefix += " ";
+                }
+                _altBaslikText.text = altPrefix + (v.altBaslik ?? "");
+            }
         }
 
         public void AdimGoster(int sira, string altBaslik, string[] yapilacaklar, string altSayac = null)
@@ -144,13 +171,14 @@ namespace KumarFarkindalik.Tutorial
             if (_root == null) return;
             _root.SetActive(true);
 
-            if (_sayacText != null)
+            // PAKET 14-FAZ34.6 İş 1: Kategori-bazlı 2 satırlı sayaç + alt başlık render.
+            var v = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi?.MevcutAdimVerisi;
+            if (v != null) RenderSayacAltBaslik(v, altSayac);
+            else
             {
-                _sayacText.text = string.IsNullOrEmpty(altSayac)
-                    ? $"ADIM {sira}/{TOPLAM_ADIM}"
-                    : $"ADIM {sira}/{TOPLAM_ADIM} · {altSayac}";
+                if (_sayacText != null) _sayacText.text = $"ADIM {sira}/{TOPLAM_ADIM}";
+                if (_altBaslikText != null) _altBaslikText.text = altBaslik ?? "";
             }
-            if (_altBaslikText != null) _altBaslikText.text = altBaslik ?? "";
 
             bool yapVar = yapilacaklar != null && yapilacaklar.Length > 0;
             if (_yapilacaklarBlok != null) _yapilacaklarBlok.SetActive(yapVar);

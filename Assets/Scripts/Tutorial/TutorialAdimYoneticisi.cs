@@ -408,6 +408,42 @@ namespace KumarFarkindalik.Tutorial
                 sira = 12,
                 gerekliSpin = 0,
             };
+
+            // PAKET 14-FAZ34.6 İş 1: Tüm adımlara kategori bilgisi ata.
+            // Yan panel kategorileri: OLASILIK AYARLARI (4) / MANİPÜLASYON (7) / ANLIK MÜDAHALE (2) / BİTİŞ.
+            KategoriBilgileriDoldur();
+        }
+
+        private void KategoriBilgileriDoldur()
+        {
+            Kategori(TutorialAdimId.T2, 0, "BAŞLANGIÇ", 0, 0);
+
+            Kategori(TutorialAdimId.T3_HOOK,    1, "OLASILIK AYARLARI", 1, 4);
+            Kategori(TutorialAdimId.T3_YONTMA,  1, "OLASILIK AYARLARI", 2, 4);
+            Kategori(TutorialAdimId.T3_TUTMA,   1, "OLASILIK AYARLARI", 3, 4);
+            Kategori(TutorialAdimId.T3_KORUMA,  1, "OLASILIK AYARLARI", 4, 4);
+
+            Kategori(TutorialAdimId.T4,                2, "MANİPÜLASYON", 1, 7);
+            Kategori(TutorialAdimId.T5,                2, "MANİPÜLASYON", 2, 7);
+            Kategori(TutorialAdimId.T6_YENI_OYUNCU,    2, "MANİPÜLASYON", 3, 7);
+            Kategori(TutorialAdimId.T6,                2, "MANİPÜLASYON", 4, 7);
+            Kategori(TutorialAdimId.T7,                2, "MANİPÜLASYON", 5, 7);
+            Kategori(TutorialAdimId.T8,                2, "MANİPÜLASYON", 6, 7);
+            Kategori(TutorialAdimId.T9,                2, "MANİPÜLASYON", 7, 7);
+
+            Kategori(TutorialAdimId.T10, 3, "ANLIK MÜDAHALE", 1, 2);
+            Kategori(TutorialAdimId.T11, 3, "ANLIK MÜDAHALE", 2, 2);
+
+            Kategori(TutorialAdimId.T_SON, 4, "BİTİŞ", 1, 1);
+        }
+
+        private void Kategori(TutorialAdimId adim, int kategoriIndex, string kategoriAdi, int iciSira, int iciToplam)
+        {
+            if (!_adimlar.TryGetValue(adim, out var v)) return;
+            v.kategoriIndex = kategoriIndex;
+            v.kategoriAdi = kategoriAdi;
+            v.kategoriIciSira = iciSira;
+            v.kategoriIciToplam = iciToplam;
         }
 
         // === Adım metinleri (A=başlangıç, B=aksiyon, C=kapanış) ===
@@ -635,6 +671,15 @@ namespace KumarFarkindalik.Tutorial
         // PAKET 3B-fix-5: T3 grup için ana sayaç + alt sayaç
         public int sira;          // "ADIM #/11" — T3_* için hepsi 3
         public string altSayac;   // "1/5".."5/5" — sadece T3_* için, diğerleri null
+
+        // PAKET 14-FAZ34.6 İş 1: Kategori-bazlı sayaç (yan panel kategorileriyle birebir uyum).
+        // Üst satır: "ADIM {kategoriIndex}/4 · {kategoriAdi}", Alt satır: "{kategoriIciSira}/{kategoriIciToplam} ..."
+        // T1/T2 → kategoriIndex=0 ("BAŞLANGIÇ"), T3_* → 1 (OLASILIK 4 alt), T4..T9 → 2 (MANİPÜLASYON 7 alt),
+        // T10/T11 → 3 (ANLIK MÜDAHALE 2 alt), T_SON → 4 (BİTİŞ 1 alt).
+        public int kategoriIndex;
+        public string kategoriAdi;
+        public int kategoriIciSira;
+        public int kategoriIciToplam;
 
         public string[] vurguSelectorlari;
         public int gerekliSpin;

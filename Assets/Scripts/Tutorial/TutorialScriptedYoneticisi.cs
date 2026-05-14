@@ -154,6 +154,11 @@ namespace KumarFarkindalik.Tutorial
         /// Tüm spinler tükendiğinde Aktif=false → pattern motor fallback'i devralır.</summary>
         public void SpinTamamlandi()
         {
+            // PAKET 14-FAZ34.6 BUG L FIX: SonOdeme stale değer kalıntısı temizle.
+            // TutorialOyunYoneticisi net hesabı SpinTamamlandi öncesinde SonOdeme okudu zaten;
+            // sonraki SonrakiSpiniAl yeni değer set edecek. Aktif=false ise fallback path kullanılır.
+            SonOdeme = 0;
+
             if (!Aktif || string.IsNullOrEmpty(_aktifPattern)) return;
             if (_patternSpinleri == null || !_patternSpinleri.ContainsKey(_aktifPattern)) return;
 

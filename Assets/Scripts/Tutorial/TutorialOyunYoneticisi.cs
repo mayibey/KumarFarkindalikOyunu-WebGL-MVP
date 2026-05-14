@@ -985,21 +985,25 @@ namespace KumarFarkindalik.Tutorial
                 // PAKET 14-FAZ34.2 BUG D FIX: Bakiye snapshot timing güvenilmez (scripted akışta kazanç
                 // eklenmesi geç → net=0 NOTR ekrana yazılıyordu). Yeni hesap: scripted aktifse SonOdeme
                 // (kayıttaki brutOdeme) - bahis = net. Deterministik, timing'ten bağımsız.
+                // PAKET 14-FAZ34.6 BUG K diyagnoz: Bakiye gerçek değişim de logla (bahis çıkışı kontrolü).
                 int net;
+                long simdikiBakiyeDiag = oy.BahisPanelMevcutBakiye();
+                long bakiyeFarkDiag = simdikiBakiyeDiag - _oncekiBakiye;
                 if (TutorialScriptedYoneticisi.Aktif && TutorialScriptedYoneticisi.Ornek != null)
                 {
                     long brutOdeme = TutorialScriptedYoneticisi.Ornek.SonOdeme;
                     long bahis = oy.BotIcinBahis;
                     net = (int)(brutOdeme - bahis);
+                    long bakiyeBeklenen = brutOdeme - bahis;
                     Debug.Log($"[Tutorial Bar] Spin {AktifAdimSpinNetleri.Count}: brutOdeme={brutOdeme}, bahis={bahis}, net={net}, segmentRengi={(net > 0 ? "KAZANC" : net < 0 ? "KAYIP" : "NOTR")} (scripted)");
+                    Debug.Log($"[Tutorial Bar BAKIYE DIAG] oncekiBakiye={_oncekiBakiye}, simdikiBakiye={simdikiBakiyeDiag}, gercekFark={bakiyeFarkDiag}, beklenenFark={bakiyeBeklenen}, bahisDustu={(bakiyeFarkDiag == bakiyeBeklenen ? "EVET" : "HAYIR — bahis akışı yanlış!")}");
                 }
                 else
                 {
-                    long simdikiBakiye = oy.BahisPanelMevcutBakiye();
-                    net = (int)(simdikiBakiye - _oncekiBakiye);
-                    Debug.Log($"[Tutorial Bar] Spin {AktifAdimSpinNetleri.Count}: oncekiBakiye={_oncekiBakiye}, simdikiBakiye={simdikiBakiye}, net={net}, segmentRengi={(net > 0 ? "KAZANC" : net < 0 ? "KAYIP" : "NOTR")} (bakiye-bazli fallback)");
-                    _oncekiBakiye = simdikiBakiye;
+                    net = (int)bakiyeFarkDiag;
+                    Debug.Log($"[Tutorial Bar] Spin {AktifAdimSpinNetleri.Count}: oncekiBakiye={_oncekiBakiye}, simdikiBakiye={simdikiBakiyeDiag}, net={net}, segmentRengi={(net > 0 ? "KAZANC" : net < 0 ? "KAYIP" : "NOTR")} (bakiye-bazli fallback)");
                 }
+                _oncekiBakiye = simdikiBakiyeDiag;
                 AktifAdimSpinNetleri.Add(net);
             }
             Debug.Log($"[TutorialOyunYoneticisi] Spin tamamlandı (anim state-driven), TutorialSpinSayaci={TutorialSpinSayaci}");
