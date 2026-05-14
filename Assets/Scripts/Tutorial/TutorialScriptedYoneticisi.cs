@@ -136,8 +136,15 @@ namespace KumarFarkindalik.Tutorial
             }
 
             var kayit = liste[_spinIdx];
-            // PAKET 14-FAZ34.2 BUG D FIX: SonOdeme set — TutorialOyunYoneticisi bar rengi için brutOdeme okuyacak
-            SonOdeme = kayit.brutOdeme;
+            // PAKET 14-FAZ34.3 BUG E FIX: SonOdeme = brutOdeme (ham) × NihaiCarpanToplam (çarpan SUM).
+            // Önceki: SonOdeme = brutOdeme tek başına (T4'te 1000 ham = NET 0, NOTR mavi bar).
+            // ScriptedSpinUygulayici formülü: nihai = ToplamHamKazanc × NihaiCarpanToplam.
+            // T4 carpanTest_100: brutOdeme=1000 × çarpan SUM=5 = 5000 → NET +4000 → KAZANC yeşil ✓
+            long carpanToplam = 0;
+            if (kayit.ilkCarpanDegerleri != null)
+                foreach (var v in kayit.ilkCarpanDegerleri) if (v > 0) carpanToplam += v;
+            if (carpanToplam == 0) carpanToplam = 1; // çarpan yoksa multiplier=1
+            SonOdeme = kayit.brutOdeme * carpanToplam;
             Debug.Log($"[TutorialScriptedYoneticisi] SonrakiSpiniAl: pattern={_aktifPattern}, idx={_spinIdx}/{liste.Count - 1}, brüt={kayit.brutOdeme} TL (idx ilerletilmedi — SpinTamamlandi bekliyor)");
             return kayit;
         }

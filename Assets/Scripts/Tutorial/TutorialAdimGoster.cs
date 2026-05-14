@@ -128,6 +128,16 @@ namespace KumarFarkindalik.Tutorial
 
         // === Public API ===
 
+        /// <summary>PAKET 14-FAZ34.3 BUG G: TutorialAdimYoneticisi.AltSayacGuncelle çağrılınca sayaç text'i
+        /// güncelle (adım geçişi yapmadan, sadece "1/2" → "2/2" gibi alt sayaç değişimi).</summary>
+        public void SayacTextGuncelle(int sira, string altSayac)
+        {
+            if (_sayacText == null) return;
+            _sayacText.text = string.IsNullOrEmpty(altSayac)
+                ? $"ADIM {sira}/{TOPLAM_ADIM}"
+                : $"ADIM {sira}/{TOPLAM_ADIM} · {altSayac}";
+        }
+
         public void AdimGoster(int sira, string altBaslik, string[] yapilacaklar, string altSayac = null)
         {
             Debug.Log($"[TutorialAdimGoster] AdimGoster: sira={sira}, altBaslik={altBaslik}, yapilacaklar={yapilacaklar?.Length ?? 0}, altSayac={altSayac ?? "-"}");

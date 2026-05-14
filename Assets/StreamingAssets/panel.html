@@ -1310,7 +1310,18 @@
   })();
 
   // ===== UNITY KÖPRÜSÜ =====
+  // PAKET 14-FAZ34.3 BUG F: Toast metni spesifik olsun — son kullanıcı action takibi.
+  // senaryoUygula() içinde 9 unityeGonder ardarda fire ediliyor → preset gönderimleri tracking'i ezerdi.
+  // trackingAktif flag senaryoUygula içinde false → preset gönderimleri YOK SAYILIR, sadece manuel
+  // slider/toggle/dropdown değişiklikleri lastChanged* alanlarına yazılır.
+  var lastChangedKey = null;
+  var lastChangedValue = null;
+  var trackingAktif = true;
   function unityeGonder(anahtar, deger) {
+    if (trackingAktif) {
+      lastChangedKey = anahtar;
+      lastChangedValue = deger;
+    }
     var mesaj = { source: 'yoneticiPanel', key: anahtar, value: deger };
     try {
       var json = JSON.stringify(mesaj);
@@ -1529,6 +1540,20 @@
       return;
     }
 
+    // PAKET 14-FAZ34.3 BUG F: senaryoUygula() preset gönderimi sırasında lastChanged tracking KAPALI →
+    // kullanıcının manuel değiştirdiği son ayar (slider/toggle) korunur. Preset bittikten sonra tracking açılır.
+    var trackingOnceki = trackingAktif;
+    var lastChangedKeyKaydet = lastChangedKey;
+    var lastChangedValueKaydet = lastChangedValue;
+    trackingAktif = false;
+
+    // PAKET 14-FAZ34.3 BUG B v2: Toggle'lar DOM state'ten oku — preset ezme, kullanıcının manuel
+    // açtığı yeniOyuncu/carpanOdeme toggle'ları korunur. T6YO ve T10 spin butonu kilit kalmaz.
+    var togYO = document.getElementById('yeniOyuncuToggle');
+    var yoOnDom = togYO && togYO.classList.contains('active');
+    var togCO = document.getElementById('carpanOdemeToggle');
+    var coOnDom = togCO && togCO.classList.contains('active');
+
     // postMessage'lar fire et — kazanmaOrani + yakinKacirma artık 0-5 ölçek (scale yok)
     // PAKET 14-FAZ18: Uygula onayı sinyali — Tutorial slider değişimi tek başına spin açmasın.
     unityeGonder('uygulamaOnayi',     true);
@@ -1538,14 +1563,14 @@
     unityeGonder('maksCarpan',        s.maksCarpan);
     unityeGonder('yakinKacirma',      s.yakinKacirma);
     unityeGonder('ardisikKayip',      s.ardisikKayip);
-    unityeGonder('yeniOyuncu',        s.yeniOyuncu);
+    unityeGonder('yeniOyuncu',        yoOnDom);   // DOM state — preset ezmedi
     unityeGonder('bonusModu',         s.bonusModu);
     // PAKET 14-FAZ24: bonusOtomatikOran preset gönderimi KALDIRILDI. Slider değişiminde kullanıcı değeri
     // (bonusYuzde + bonusOtomatikOran) zaten ANINDA Unity'e gönderiliyor. senaryoUygula preset 200 değerini
     // ezdiriyordu → T5 kullanıcı %100 (spin=1) ayarı 200'e dönüyordu, bonus tetiklenmiyordu.
     // if (s.bonusSembolOlasilik > 0)
     //   unityeGonder('bonusOtomatikOran', Math.round(100 / s.bonusSembolOlasilik));
-    unityeGonder('carpanOdeme',       s.carpanOdeme);
+    unityeGonder('carpanOdeme',       coOnDom);   // DOM state — preset ezmedi
 
     // savedState güncelle
     savedSenaryo = secim;
@@ -1559,12 +1584,43 @@
     if (hint) hint.style.display = 'none';
 
     modAciklamasiniGuncelle(secim);
+    // PAKET 14-FAZ34.3 BUG F: Tracking değerlerini RESTORE — preset gönderimi sırasında ezildi.
+    lastChangedKey = lastChangedKeyKaydet;
+    lastChangedValue = lastChangedValueKaydet;
+    trackingAktif = trackingOnceki;
+
     // PAKET 14-FAZ12: Dropdown'da gösterilen Türkçe adı kullan (önceki internal key "hook" vs.)
     var dropdownEl = document.getElementById('oyunModu');
     var secimAd = dropdownEl && dropdownEl.selectedIndex >= 0
       ? dropdownEl.options[dropdownEl.selectedIndex].text
       : secim;
-    showToast(secimAd + ' uygulandı');
+
+    // PAKET 14-FAZ34.3 BUG F: Spesifik toast metni — son kullanıcı değişiminden üret.
+    // Yoksa fallback dropdown senaryosu adı.
+    var toastMsg = ozelToastMetni(lastChangedKey, lastChangedValue);
+    if (!toastMsg) toastMsg = secimAd + ' uygulandı';
+    showToast(toastMsg);
+  }
+
+  // PAKET 14-FAZ34.3 BUG F: Ayar key + değerine göre Türkçe spesifik toast metni.
+  function ozelToastMetni(key, value) {
+    if (!key) return null;
+    switch (key) {
+      case 'carpanOlasilik':  return 'Çarpan düşme olasılığı %' + value + ' olarak uygulandı';
+      case 'bonusYuzde':      return 'Bonus sembolü düşme olasılığı %' + value + ' olarak uygulandı';
+      case 'bonusOtomatikOran': return 'Bonus otomatik tetik oranı %' + value + ' olarak uygulandı';
+      case 'kazanmaOrani':    return "Kazanma sıklığı 5'te " + value + ' olarak uygulandı';
+      case 'yakinKacirma':    return "Yakın kaçırma sıklığı 5'te " + value + ' olarak uygulandı';
+      case 'minCarpan':       return 'Min ödeme çarpanı ' + value + 'x olarak uygulandı';
+      case 'maksCarpan':      return 'Maks ödeme çarpanı ' + value + 'x olarak uygulandı';
+      case 'ardisikKayip':    return 'Ardışık kayıp limiti ' + value + ' olarak uygulandı';
+      case 'yeniOyuncu':      return 'Yeni oyuncu modu ' + ((value === true || value === 'true' || value === 'True') ? 'açıldı' : 'kapatıldı');
+      case 'carpanOdeme':     return 'Çarpan ödemesi ' + ((value === true || value === 'true' || value === 'True') ? 'açıldı' : 'kapatıldı');
+      case 'carpanZorla':     return 'Çarpan zorla ' + value + 'x uygulandı';
+      case 'bonusModu':       return 'Bonus modu: ' + value;
+      case 'oyunModu':        return null; // dropdown senaryosu adı fallback'te döner
+      default:                return null;
+    }
   }
 
   function bonusModuDegistir(mod) {

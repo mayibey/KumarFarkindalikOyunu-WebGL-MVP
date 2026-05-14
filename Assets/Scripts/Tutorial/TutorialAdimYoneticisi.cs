@@ -74,6 +74,16 @@ namespace KumarFarkindalik.Tutorial
             _adimSirasindaDegisenler.Add(key);
         }
 
+        /// <summary>PAKET 14-FAZ34.3 BUG G: T4/T5/T6YO/T10 ikinci aşama tetiklendiğinde "1/2" → "2/2".
+        /// AdimVerisi.altSayac mutate edilir + TutorialAdimGoster sayaç text'i hemen yenilenir.</summary>
+        public void AltSayacGuncelle(string yeniDeger)
+        {
+            if (!_adimlar.TryGetValue(mevcutAdim, out var v)) return;
+            v.altSayac = yeniDeger;
+            TutorialAdimGoster.Ornek?.SayacTextGuncelle(v.sira, yeniDeger);
+            Debug.Log($"[TutorialAdimYoneticisi] AltSayacGuncelle: adim={mevcutAdim}, altSayac={yeniDeger}");
+        }
+
         // PAKET 14-FAZ3 (İş 4): T5 (ve gelecekte T4) ikinci aşama girişinde çağrılır — AdimBaslangicSpin'i
         // mevcut sayaca alır + gerekliSpin'i ikinci aşama hedefi ile değiştirir. Böylece bonus yarım kes
         // sırasında sayaç fantom artmış olsa bile, ikinci aşama için TAM yeniGerekli spin gerekir.
@@ -215,6 +225,9 @@ namespace KumarFarkindalik.Tutorial
                 mesajAksiyon = T4_AKSIYON,
                 mesajKapanis = T4_KAPANIS,
                 altBaslik = "ÇARPAN OLASILIĞI",
+                // PAKET 14-FAZ34.3 BUG G: 2 aşamalı (%100 / %0) — altSayac dinamik. T4IkinciAsamaBasladi=true
+                // olunca AltSayacGuncelle("2/2") çağrılır (TutorialAdminEnjeksiyonu case carpanOlasilik).
+                altSayac = "1/2",
                 // PAKET 14-FAZ5 (İş 4): Aşamaya göre dinamik. Default ilk aşama metni; T4AraModalGosterildi
                 // olunca TutorialOyunYoneticisi.YapilacakMaddesiniGuncelle ile "%0 ayarla"'ya geçer.
                 yapilacaklar = new[] { "Çarpan %100 ayarla", "2 spin at" },
@@ -237,6 +250,8 @@ namespace KumarFarkindalik.Tutorial
                 mesajAksiyon = T5_AKSIYON,
                 mesajKapanis = T5_KAPANIS,
                 altBaslik = "BONUS SEMBOLÜ",
+                // PAKET 14-FAZ34.3 BUG G: 2 aşamalı — altSayac dinamik.
+                altSayac = "1/2",
                 // PAKET 14-FAZ5 (İş 4): Aşamaya göre dinamik (T4 ile aynı pattern).
                 yapilacaklar = new[] { "Bonus %100 ayarla", "2 spin at" },
                 sira = 5,
@@ -258,6 +273,8 @@ namespace KumarFarkindalik.Tutorial
                 mesajAksiyon = T6YO_AKSIYON,
                 mesajKapanis = T6YO_KAPANIS,
                 altBaslik = "YENİ OYUNCU MODU",
+                // PAKET 14-FAZ34.3 BUG G: 2 aşamalı (toggle aç / toggle kapat) — altSayac dinamik.
+                altSayac = "1/2",
                 // PAKET 14-FAZ8: T6YO TEMİZ — 1.aşama kullanıcı AÇAR (kazanç), ara modal sonrası KAPATIR (kayıp).
                 // yapilacaklar 2 madde — TutorialT6YeniOyuncuModalKontrol içinde 1.madde dinamik mutate edilir
                 // (ara modal sonrası "kapat"'a geçer).
@@ -348,6 +365,8 @@ namespace KumarFarkindalik.Tutorial
                 mesajAksiyon = T10_AKSIYON,
                 mesajKapanis = T10_KAPANIS,
                 altBaslik = "AÇIK MI KAPALI MI?",
+                // PAKET 14-FAZ34.3 BUG G: 2 aşamalı (kapalı ödeme / açık ödeme) — altSayac dinamik.
+                altSayac = "1/2",
                 // PAKET 6D: 2-aşamalı — Aşama 1 (toggle KAPALI + ×500 = ödeme yok), ara modal,
                 // Aşama 2 (toggle AÇIK + ×500 = mega kazanç)
                 yapilacaklar = new[] { "×500 butonuna bas (toggle KAPALI)", "'Çarpan Ödeme' toggle aç", "×500 tekrar bas" },

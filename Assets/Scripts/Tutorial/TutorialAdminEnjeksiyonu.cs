@@ -125,6 +125,8 @@ namespace KumarFarkindalik.Tutorial
                             // PAKET 14-FAZ33: ScriptedSpinUygulayici altyapısı T4 ikinci aşama
                             TutorialScriptedYoneticisi.Ornek?.AsamaSet("carpanTest_0");
                             TutorialSenaryoMotoru.PatternBaslat("carpanTest_0");
+                            // PAKET 14-FAZ34.3 BUG G: Alt sayaç "1/2" → "2/2"
+                            TutorialOyunYoneticisi.Ornek?.AdimYoneticisi?.AltSayacGuncelle("2/2");
                             Debug.Log("[Tutorial T4 Çarpan] Slider %0 → ikinci pattern başladı (carpanTest_0) + carpanUretimiAktif=false");
                         }
                     }
@@ -149,6 +151,8 @@ namespace KumarFarkindalik.Tutorial
                             // PAKET 14-FAZ33: ScriptedSpinUygulayici altyapısı T5 ikinci aşama
                             TutorialScriptedYoneticisi.Ornek?.AsamaSet("bonusTest_0");
                             TutorialSenaryoMotoru.PatternBaslat("bonusTest_0");
+                            // PAKET 14-FAZ34.3 BUG G: Alt sayaç "1/2" → "2/2"
+                            TutorialOyunYoneticisi.Ornek?.AdimYoneticisi?.AltSayacGuncelle("2/2");
                             Debug.Log($"[Tutorial T5 Bonus] Yuzde={yuzde:F1} (TAM %0) → ikinci pattern başladı + sayaç reset");
                         }
                     }
@@ -222,6 +226,8 @@ namespace KumarFarkindalik.Tutorial
                                 // PAKET 14-FAZ34 İş 8: ScriptedSpinUygulayici altyapısı T6YO kapalı için.
                                 TutorialScriptedYoneticisi.Ornek?.AsamaSetYeniOyuncuKapali();
                                 TutorialSenaryoMotoru.PatternBaslat("yeniOyuncu_kapali");
+                                // PAKET 14-FAZ34.3 BUG G: Alt sayaç "1/2" → "2/2"
+                                TutorialOyunYoneticisi.Ornek?.AdimYoneticisi?.AltSayacGuncelle("2/2");
                                 Debug.Log("[Tutorial T6YO] Toggle KAPATILDI → 2.aşama pattern başladı (yeniOyuncu_kapali)");
                             }
                         }
@@ -284,6 +290,8 @@ namespace KumarFarkindalik.Tutorial
                             // PAKET 14-FAZ34 İş 9: ScriptedSpinUygulayici altyapısı T10 carpanZorla_acik için.
                             TutorialScriptedYoneticisi.Ornek?.AsamaSetCarpanZorlaAcik();
                             TutorialSenaryoMotoru.PatternBaslat("carpanZorla_acikOdeme");
+                            // PAKET 14-FAZ34.3 BUG G: Alt sayaç "1/2" → "2/2"
+                            TutorialOyunYoneticisi.Ornek?.AdimYoneticisi?.AltSayacGuncelle("2/2");
                             Debug.Log("[Tutorial T11 Çarpan Zorla] carpanOdemeToggle açıldı → ikinci pattern başladı");
                         }
                     }
