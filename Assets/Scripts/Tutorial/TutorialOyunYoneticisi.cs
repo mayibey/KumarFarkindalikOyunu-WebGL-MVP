@@ -491,6 +491,17 @@ namespace KumarFarkindalik.Tutorial
                 // kalan tüketilmiş havuz state'i sıfırlanır, ilk T3 spininden itibaren tam havuzdan çekim.
                 TutorialAsamaListesiUreteci.PatternHavuzuSifirla();
 
+                // PAKET 14-FAZ35.3 BUG Q FIX: KAÇIŞ_FRENLEME Tutorial sahnesinde devre dışı.
+                // T3.3 Tutma preset ardisikKayip=5 set ediyor, sonraki adımlarda korunup
+                // KAÇIŞ_FRENLEME tetikliyor → precompute cache temizleme yan etkisi.
+                // AdminSetArdisikKayipLimiti(0) çağrısı Mathf.Max(1, 0)=1 nedeniyle yetersiz;
+                // reflection ile _ardisikKayipLimiti field'ı doğrudan 0'a zorlanır (T11BonusYarimKes emsali).
+                var ardisikKayipLimitiField = typeof(OyunYoneticisi).GetField("_ardisikKayipLimiti",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                ardisikKayipLimitiField?.SetValue(oy, 0);
+                PanelKopru.ardisikKayipLimiti = 0;
+                Debug.Log("[Tutorial] BUG Q FIX: _ardisikKayipLimiti=0 (reflection) — KAÇIŞ_FRENLEME devre dışı.");
+
                 // PAKET 14-FAZ31: Admin state'i Normal Oyun moduna resetle — Tutorial başlangıcında
                 // admin senaryo preset (S2/S3 vb.) aktif kalabiliyordu → TryConsumeOncedenHesaplanan
                 // OncedenHesaplanmisNormalSpinOdemeYenidenDogrulansinMi=true → Tutorial kaydı 5000 TL
@@ -707,6 +718,16 @@ namespace KumarFarkindalik.Tutorial
                 // PAKET 6C3: Default N=3 (slider değişene kadar). Slider hareket → AyarDegisti güncellenir.
                 // PAKET 14-FAZ35.0: Scripted havuz (5 kazanç + 5 kayıp). Eski DinamikPatternBaslat
                 // ("kazandirma") paralel çağrısı kaldırıldı — scripted aktifken motor bypass'lanıyor.
+                // PAKET 14-FAZ35.3 BUG Q DEFANSIF: T3.4 Koruma sonrası AdminSet(0) → Mathf.Max(1,0)=1
+                // nedeniyle KAÇIŞ_FRENLEME limit=1 kalmış olabilir. T6 girişinde reflection ile zorla 0.
+                var oyT6 = Object.FindObjectOfType<OyunYoneticisi>();
+                if (oyT6 != null)
+                {
+                    var akField = typeof(OyunYoneticisi).GetField("_ardisikKayipLimiti",
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    akField?.SetValue(oyT6, 0);
+                    PanelKopru.ardisikKayipLimiti = 0;
+                }
                 TutorialScriptedYoneticisi.Ornek?.AsamaSetKazanmaSikligi(3);
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T8) // NEAR MISS (sira=9)
