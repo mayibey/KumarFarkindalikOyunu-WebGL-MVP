@@ -835,12 +835,9 @@ public class AnlaticiSeritKopru : MonoBehaviour
             }
             // PreA1 ek anlatım — A1 aşamasının pedagojik özeti (Hoş geldin sonrası ikinci modal)
             const string A1_ANLATIM =
-                "<b>İlk aşama: <i>Isındırma ve Umut</i></b>\n\n" +
-                "İlk kazanç, oyuncu için <color=#F24D40>en tehlikeli başlangıçtır</color>. " +
-                "Beyin bu <color=#4DCC59>olumlu deneyimi</color> güçlü biçimde hatırlar ve kişi " +
-                "<color=#F24D40>oyunda kalmaya devam eder</color>.\n\n" +
-                "<color=#F24D40>Uzun süreli oynama</color> davranışının temelinde, " +
-                "<color=#FFD933>ilk kazanmanın yarattığı bu etki</color> bulunur.";
+                "İlk aşama: Isındırma ve Umut\n\n" +
+                "İlk kazanç oyuncu için en tehlikeli başlangıçtır. " +
+                "Beyin başlangıçta yaşanan bu olumlu deneyimi güçlü biçimde hatırlar ve kişinin oyun oynamaya isteğini arttırır.";
             // PreA1 üçüncü modal — kullanıcıyı spin atmaya davet + sol panel takip yönlendirmesi.
             const string A1_DAVET =
                 "<b>Şimdi deneyelim</b>\n\n" +
