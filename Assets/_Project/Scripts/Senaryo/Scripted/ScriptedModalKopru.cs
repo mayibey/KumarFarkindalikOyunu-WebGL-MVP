@@ -350,7 +350,8 @@ namespace Senaryo.Scripted
             _balonCanvasGroup = balonGo.GetComponent<CanvasGroup>();
             _balonButton = balonGo.GetComponent<Button>();
             _balonButton.transition = Selectable.Transition.None;
-            _balonButton.onClick.AddListener(OnBalonTiklandi);
+            // Faz 34.8: Modal sadece Tamam butonuyla kapansın — balon gövdesi tıklaması iptal edildi.
+            // _balonButton.onClick.AddListener(OnBalonTiklandi);
 
             // Balon altın border (4 kenar)
             BorderEkle(balonGo.transform, _balonRt.sizeDelta, 2f, new Color(0.83f, 0.69f, 0.22f, 1f));
@@ -387,7 +388,8 @@ namespace Senaryo.Scripted
 
             var karakterBtn = karakterGo.AddComponent<Button>();
             karakterBtn.transition = Selectable.Transition.None;
-            karakterBtn.onClick.AddListener(OnBalonTiklandi);
+            // Faz 34.8: Modal sadece Tamam butonuyla kapansın — karakter silüeti tıklaması iptal edildi.
+            // karakterBtn.onClick.AddListener(OnBalonTiklandi);
 
             Debug.Log("[Modal] Karakter balon child'ı yapıldı, local pos=(-20, 0)");
 

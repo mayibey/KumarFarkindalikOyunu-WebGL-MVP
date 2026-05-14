@@ -118,6 +118,10 @@ namespace KumarFarkindalik.Tutorial
         public static System.Collections.Generic.List<int> AktifAdimSpinNetleri =
             new System.Collections.Generic.List<int>();
         private static long _oncekiBakiye = 0;
+        // PAKET 14-FAZ34.8 BUG N FIX: OturumKazanc fark hesabı için snapshot. SonOdeme race condition'ı
+        // by-pass eder. OyunYoneticisi.OturumKazanc spin bittiğinde DonusAkisServisi tarafından artırılır
+        // (gerçek ödeme), pre-compute simulasyonu OturumKazanc'ı etkilemez → race yok.
+        private static long _oncekiOturumKazanc = 0;
 
         // PAKET 6D: T8 (Ödeme) + T11 (Çarpan Zorla) 2-aşamalı akış state
         public static bool T8AraModalGosterildi { get; set; }
@@ -582,6 +586,8 @@ namespace KumarFarkindalik.Tutorial
             AktifAdimSpinNetleri.Clear();
             var oyAdim = Object.FindObjectOfType<OyunYoneticisi>();
             _oncekiBakiye = oyAdim != null ? oyAdim.BahisPanelMevcutBakiye() : 0L;
+            // PAKET 14-FAZ34.8 BUG N FIX: OturumKazanc snapshot — bar net hesabı için referans.
+            _oncekiOturumKazanc = oyAdim != null ? oyAdim.OturumKazanc : 0L;
 
             // PAKET 6C1/6C2/6C3/8/9: adım bazlı pattern motor yönetimi
             // PAKET 13: T3 senaryoları için defansif PatternBaslat — panel event-driven (AdminEnjeksiyonu
@@ -982,28 +988,24 @@ namespace KumarFarkindalik.Tutorial
             // bakiye'nin finalize olmasını zaten garanti ediyor.
             if (oy != null)
             {
-                // PAKET 14-FAZ34.2 BUG D FIX: Bakiye snapshot timing güvenilmez (scripted akışta kazanç
-                // eklenmesi geç → net=0 NOTR ekrana yazılıyordu). Yeni hesap: scripted aktifse SonOdeme
-                // (kayıttaki brutOdeme) - bahis = net. Deterministik, timing'ten bağımsız.
-                // PAKET 14-FAZ34.6 BUG K diyagnoz: Bakiye gerçek değişim de logla (bahis çıkışı kontrolü).
-                int net;
+                // PAKET 14-FAZ34.8 BUG N FIX (YOL B): Net hesabı OyunYoneticisi.OturumKazanc farkı üzerinden.
+                // SonOdeme race condition by-pass edildi (DonusAkisServisi:165 pre-compute spin sonu otomatik
+                // tetikleyici SonOdeme'yi N+1 değerine yazıyordu → bar N için yanlış değer okuyordu).
+                // OturumKazanc DonusAkisServisi tarafından spin animasyonu bittikten sonra artırılır,
+                // pre-compute simulasyonu (ApplyNewGridAndSync grid restore) OturumKazanc'ı etkilemez.
+                // Tutorial bar artık KAZANÇ display ile AYNI kaynaktan beslenir → tutarsızlık olamaz.
                 long simdikiBakiyeDiag = oy.BahisPanelMevcutBakiye();
                 long bakiyeFarkDiag = simdikiBakiyeDiag - _oncekiBakiye;
-                if (TutorialScriptedYoneticisi.Aktif && TutorialScriptedYoneticisi.Ornek != null)
-                {
-                    long brutOdeme = TutorialScriptedYoneticisi.Ornek.SonOdeme;
-                    long bahis = oy.BotIcinBahis;
-                    net = (int)(brutOdeme - bahis);
-                    long bakiyeBeklenen = brutOdeme - bahis;
-                    Debug.Log($"[Tutorial Bar] Spin {AktifAdimSpinNetleri.Count}: brutOdeme={brutOdeme}, bahis={bahis}, net={net}, segmentRengi={(net > 0 ? "KAZANC" : net < 0 ? "KAYIP" : "NOTR")} (scripted)");
-                    Debug.Log($"[Tutorial Bar BAKIYE DIAG] oncekiBakiye={_oncekiBakiye}, simdikiBakiye={simdikiBakiyeDiag}, gercekFark={bakiyeFarkDiag}, beklenenFark={bakiyeBeklenen}, bahisDustu={(bakiyeFarkDiag == bakiyeBeklenen ? "EVET" : "HAYIR — bahis akışı yanlış!")}");
-                }
-                else
-                {
-                    net = (int)bakiyeFarkDiag;
-                    Debug.Log($"[Tutorial Bar] Spin {AktifAdimSpinNetleri.Count}: oncekiBakiye={_oncekiBakiye}, simdikiBakiye={simdikiBakiyeDiag}, net={net}, segmentRengi={(net > 0 ? "KAZANC" : net < 0 ? "KAYIP" : "NOTR")} (bakiye-bazli fallback)");
-                }
+                long simdikiOturumKazanc = oy.OturumKazanc;
+                long spinKazanci = simdikiOturumKazanc - _oncekiOturumKazanc;
+                long bahis = oy.BotIcinBahis;
+                int net = (int)(spinKazanci - bahis);
+
+                Debug.Log($"[Tutorial Bar] Spin {AktifAdimSpinNetleri.Count + 1}: oturumKazancOnceki={_oncekiOturumKazanc}, oturumKazancSimdi={simdikiOturumKazanc}, spinKazanci={spinKazanci}, bahis={bahis}, net={net}, segmentRengi={(net > 0 ? "KAZANC" : net < 0 ? "KAYIP" : "NOTR")}");
+                Debug.Log($"[Tutorial Bar BAKIYE DIAG] oncekiBakiye={_oncekiBakiye}, simdikiBakiye={simdikiBakiyeDiag}, gercekFark={bakiyeFarkDiag}, beklenenFark={net}, bahisDustu={(bakiyeFarkDiag == (long)net ? "EVET" : "HAYIR — bahis akışı şüpheli, BUG K")}");
+
                 _oncekiBakiye = simdikiBakiyeDiag;
+                _oncekiOturumKazanc = simdikiOturumKazanc;
                 AktifAdimSpinNetleri.Add(net);
             }
             Debug.Log($"[TutorialOyunYoneticisi] Spin tamamlandı (anim state-driven), TutorialSpinSayaci={TutorialSpinSayaci}");
