@@ -1632,7 +1632,13 @@
       case 'carpanOdeme':     return 'Çarpan ödemesi ' + ((value === true || value === 'true' || value === 'True') ? 'açıldı' : 'kapatıldı');
       case 'carpanZorla':     return 'Çarpan zorla ' + value + 'x uygulandı';
       case 'bonusModu':       return 'Bonus modu: ' + value;
-      case 'oyunModu':        return null; // dropdown senaryosu adı fallback'te döner
+      case 'oyunModu':
+        // PAKET 14-FAZ34.7 BUG M: Dropdown text'ini doğrudan kullan (lastChangedKey state'inden bağımsız).
+        // value parametresi internal key ('hook', 'normal') olabilir; Türkçe ad dropdown option text'ten.
+        var modeDropdown = document.getElementById('oyunModu');
+        if (modeDropdown && modeDropdown.selectedIndex >= 0)
+          return modeDropdown.options[modeDropdown.selectedIndex].text + ' modu uygulandı';
+        return null;
       default:                return null;
     }
   }
