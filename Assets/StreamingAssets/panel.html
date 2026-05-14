@@ -1434,6 +1434,9 @@
   // Son APPLY edilen state — sayfa açılışta normal preset
   var savedSenaryo = 'normal';
   var savedState = Object.assign({}, SENARYOLAR.normal);
+  // PAKET 14-FAZ35.2: Tutorial sahnesi tespit flag — tutorialKilit message ilk geldiğinde true olur.
+  // Tutorial'da senaryoUygula confirm dialog'u atlanır (Tutorial pedagojik akış, kullanıcı onayı zaten Uygula butonunda).
+  var tutorialAktif = false;
   var previewAktif = false;
 
   // Toggle class set (postMessage GÖNDERMEZ — sadece UI)
@@ -1535,7 +1538,8 @@
     var s = SENARYOLAR[secim];
     if (!s) return;
 
-    if (!confirm('Bu ayarlar tüm aktif oyunculara hemen uygulanacak. Devam edilsin mi?')) {
+    // PAKET 14-FAZ35.2: Tutorial sahnesinde confirm atla — Tutorial pedagojik akış, kullanıcı onayı zaten Uygula butonunda.
+    if (!tutorialAktif && !confirm('Bu ayarlar tüm aktif oyunculara hemen uygulanacak. Devam edilsin mi?')) {
       revertToSavedState();
       return;
     }
@@ -1800,6 +1804,7 @@
     var d = e.data;
     if (!d || d.source !== 'unityToPanel') return;
     if (d.key === 'tutorialKilit') {
+      tutorialAktif = true; // PAKET 14-FAZ35.2: Tutorial sahnesi tespit (confirm dialog atlanır)
       try {
         var liste = JSON.parse(d.value);
         ayarlariKilitle(liste.aktifSelectorlar || []);

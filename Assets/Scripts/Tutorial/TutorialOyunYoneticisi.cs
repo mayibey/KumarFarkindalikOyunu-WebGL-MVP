@@ -834,6 +834,12 @@ namespace KumarFarkindalik.Tutorial
             {
                 Debug.Log("[Tutorial T11] Bonus tetiklendi, 3sn görsel hissedilecek...");
                 yield return new WaitForSecondsRealtime(3f);
+
+                // PAKET 14-FAZ35.2 T11 FANTOM SPIN DEFANSIF: T5 emsali. T11 son adım olduğu için fantom
+                // sayaç görsel etki yapmasa da tutarlılık için aynı Update polling state pre-reset.
+                _oncekiSpinCalisiyor = false;
+                _spinBekliyor = false;
+
                 T11BonusYarimKes();
                 // HOTFIX: bonusEndPanel fade animasyonu (~1.65sn) + UI refresh için yeterli gecikme
                 yield return new WaitForSecondsRealtime(1.5f);
@@ -1057,6 +1063,15 @@ namespace KumarFarkindalik.Tutorial
             // Update polling Faz 5 fix'i bonus state'i zaten reset etmiş, bonus oyun grid yenilenmesi
             // engellenmiş → bu 3sn zarfında 4 scatter ekranda kalır + pop-up görünür.
             yield return new WaitForSecondsRealtime(3f);
+
+            // PAKET 14-FAZ35.2 T5 FANTOM SPIN FIX: T11BonusYarimKes reflection ile spinCalisiyor=false
+            // zorla set ediyor. Update polling (Update() line ~893) true→false geçişini "spin bitti"
+            // sanıp SayaciGecikmeliArtir tetikliyor → fantom Spin 2 (bakiyeFark=0, TutorialSpinSayaci++).
+            // Update polling state'lerini önceden sıfırla: koşul (_oncekiSpinCalisiyor && !simdi) false
+            // döner → fantom çağrı engellenir. Sonraki gerçek spin (Aşama 2) doğal akışla yakalanır.
+            _oncekiSpinCalisiyor = false;
+            _spinBekliyor = false;
+
             T11BonusYarimKes();
             TutorialSenaryoMotoru.Durdur();
             yield return GosterAraModal(TutorialAdimYoneticisi.T5_ARA_MODAL);
