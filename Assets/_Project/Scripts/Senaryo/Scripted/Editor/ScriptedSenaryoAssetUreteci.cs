@@ -59,8 +59,8 @@ namespace Senaryo.Scripted.Editor
         // A2 Spin 2: bahisten az ödeme alan kazanç — manipülasyon farkındalığı net görünür
         // (A2 bahis 1000, brüt 500 → ekran "KAZANÇ 500 TL" yazar, bakiyeden 500 düşer).
         private const string M_A2_S2 =
-            "DİKKAT: manipülasyon farkındalığı\n\n" +
-            "Oyuncu az önce 1000 TL bahis koydu. Ekrana \"kazanç 500 TL\" yazdı ama bakiyesinden 500 TL eksildi; yine de oyuncunun zihninde kazandım hissi oluştu. Bu sistemin bilerek tasarladığı bir durumdur. Burada amaç oyuncuya kaybettiğini hissettirmeden sürekli kazandığı algısını oluşturmaktır. Her spinde yatırılan bahisten daha az ödeme yapılmasına rağmen ekrana büyük puntolarla \"kazanç\" yazılır. Uzun vadede oyuncu daima kayıptadır. Algoritma bunu kasıtlı olarak tasarlar: bakiyeyi sürekli artıyormuş gibi göstererek oyuncuyu oyunda tutmak temel amaçtır.";
+            "<color=#dc2626>DİKKAT: manipülasyon farkındalığı</color>\n\n" +
+            "Oyuncu az önce <color=#2563eb>1000 TL</color> <color=#ea580c>bahis</color> koydu. Ekrana <color=#16a34a>\"kazanç 500 TL\"</color> yazdı ama bakiyesinden <color=#dc2626>500 TL eksildi</color>; yine de oyuncunun zihninde <color=#ea580c>kazandım hissi</color> oluştu. Bu <color=#2563eb>sistemin</color> bilerek tasarladığı bir durumdur. Burada amaç oyuncuya <color=#dc2626>kaybettiğini</color> hissettirmeden sürekli <color=#16a34a>kazandığı</color> algısını oluşturmaktır. Her <color=#2563eb>spinde</color> yatırılan bahisten daha az ödeme yapılmasına rağmen ekrana büyük puntolarla <color=#16a34a>\"kazanç\"</color> yazılır. Uzun vadede oyuncu daima <color=#dc2626>kayıptadır</color>. <color=#2563eb>Algoritma</color> bunu <color=#dc2626>kasıtlı</color> olarak tasarlar: <color=#16a34a>bakiyeyi</color> sürekli artıyormuş gibi göstererek oyuncuyu oyunda tutmak temel amaçtır.";
         // A2 Spin 3: 3 yıldız near-miss — "Az Daha Tutuyordu" yanılsaması + bonus oyun değeri açıklaması
         // ORPHAN — A4'e taşındı (A4S1YildizModalAkisi).
         // İleride pop-up benzeri yerde referans için tutuldu.
@@ -68,26 +68,26 @@ namespace Senaryo.Scripted.Editor
         // A2 Spin 4 SONRA modal — kontrol yanılsaması vurgusu (3. tekil)
         private const string M_A2_S4 = "Oyuncu <color=#60A5FA>oyunu yönettiğini</color> düşünürken, oyun onu <color=#EF4444>adım adım içine çekiyor</color>.";
         // A2 Spin 6: kontrol yanılsaması pekişmesi (3. tekil)
-        private const string M_A2_S6 = "Ekrana hem üzüm hem de elmadan 7'şer adet düştü. Oysa 8 tane olsaydı ödeme yapılacaktı. İkisi de kıl payı kaçtı. Oyuncu şu an \"çok yakındım, bir daha denesem kesin olur\" hissini yaşıyor. Bu his bir manipülasyondur. Algoritma bu durumu kasıtlı olarak yaratır. Kontrol yanılsaması bu şekilde pekiştirilir.";
+        private const string M_A2_S6 = "Ekrana hem üzüm hem de elmadan <color=#2563eb>7'şer adet</color> düştü. Oysa <color=#2563eb>8 tane</color> olsaydı ödeme yapılacaktı. İkisi de kıl payı kaçtı. Oyuncu şu an <color=#ea580c>\"çok yakındım, bir daha denesem kesin olur\"</color> hissini yaşıyor. Bu his bir <color=#dc2626>manipülasyondur</color>. <color=#2563eb>Algoritma</color> bu durumu <color=#dc2626>kasıtlı</color> olarak yaratır. <color=#2563eb>Kontrol yanılsaması</color> bu şekilde pekiştirilir.";
         // A2 Spin 8 modal KALDIRILDI (sade akış).
 
         // A3 modal mesajları
-        private const string M_A3_S3 = "İlk ciddi kayıplar yaşanmaktadır. Amaç para kazanmaktan ziyade kayıpları telafi etmeye dönüşür.";
+        private const string M_A3_S3 = "İlk ciddi <color=#dc2626>kayıplar</color> yaşanmaktadır. Amaç para kazanmaktan ziyade <color=#2563eb>kayıpları telafi etmeye</color> dönüşür.";
         // A3 Spin 6: kayıp kovalama + bahis 2500'e otomatik yükseltme uyarısı
-        private const string M_A3_S6 = "Oyuncu kayıpları geri kazanmak için daha fazla risk alır. Mantıklı düşünme yetisini kaybeder.\n\nŞimdi oyuncu \"yüksek bahis daha hızlı kurtarır\" yanılgısıyla bahis miktarını 2500 TL'ye yükseltecektir. Bu da algoritmanın istediği davranış biçimidir.";
+        private const string M_A3_S6 = "Oyuncu <color=#dc2626>kayıpları</color> geri kazanmak için daha fazla <color=#dc2626>risk alır</color>. Mantıklı düşünme yetisini kaybeder.\n\nŞimdi oyuncu <color=#ea580c>\"yüksek bahis daha hızlı kurtarır\"</color> yanılgısıyla <color=#ea580c>bahis</color> miktarını <color=#2563eb>2500 TL</color>'ye yükseltecektir. Bu da <color=#2563eb>algoritmanın</color> istediği davranış biçimidir.";
         // A3 Spin 7
         private const string M_A3_S7 = "Bir tur daha = bir <color=#EF4444>kayıp</color> daha.";
         // A3 Spin 8 modali KALDIRILDI
 
         // A4 modal mesajları
-        private const string M_A4_S2 = "Üst üste kayıplar oyuncuyu yıpratmaktadır. Algoritma birkaç spin sonra büyük bir kazanç hazırlamaktadır. Bu, oyuncuda şansım döndü algısı yaratacaktır. Fakat önce kurbanı sistem pes etme eşiğine kadar getirecektir.";
-        private const string M_A4_S4 = "Oyuncu çok ciddi kayıplar yaşadığı için oyundan çıkmak üzeredir. Tam bu noktada algoritma büyük bir kazanç vererek oyuncuyu şansının döndüğüne inandıracaktır.";
+        private const string M_A4_S2 = "Üst üste <color=#dc2626>kayıplar</color> oyuncuyu yıpratmaktadır. <color=#2563eb>Algoritma</color> birkaç <color=#2563eb>spin</color> sonra <color=#16a34a>büyük bir kazanç</color> hazırlamaktadır. Bu, oyuncuda <color=#ea580c>şansım döndü</color> algısı yaratacaktır. Fakat önce kurbanı <color=#2563eb>sistem</color> pes etme eşiğine kadar getirecektir.";
+        private const string M_A4_S4 = "Oyuncu çok ciddi <color=#dc2626>kayıplar</color> yaşadığı için oyundan çıkmak üzeredir. Tam bu noktada <color=#2563eb>algoritma</color> <color=#16a34a>büyük bir kazanç</color> vererek oyuncuyu <color=#ea580c>şansının döndüğüne</color> inandıracaktır.";
         // A4 Spin 5 modali asset'ten kaldırıldı — AnlaticiSeritKopru.A4S5CarpanModalAkisi runtime'da çağırır.
 
         // A5 modal mesajları
-        private const string M_A5_S1 = "Şansının döndüğünü düşünen oyuncu, bakiyesinin arttığını görünce bahis oranını daha da artırarak daha çok kazanmayı amaçlar. Bahis miktarının artması oyuncuda adrenalin salgılanmasına neden olur.";
+        private const string M_A5_S1 = "<color=#ea580c>Şansının döndüğünü</color> düşünen oyuncu, <color=#16a34a>bakiyesinin</color> arttığını görünce <color=#ea580c>bahis</color> oranını daha da artırarak daha çok kazanmayı amaçlar. <color=#ea580c>Bahis</color> miktarının artması oyuncuda <color=#ea580c>adrenalin</color> salgılanmasına neden olur.";
         // A5 Spin 3: ×500 çarpan kaçtı + sabırsızlık silahı
-        private const string M_A5_S3 = "Oyunda 500x çarpanı düştü ancak ekranda aynı sembolden 8 adet olmadığı için hiç ödeme yapılmadı. Bu, sistem tarafından oyuncuyu bir sonraki tuzağa çekmek için kullanılan yemdir. Oyuncu 500x çarpanı görünce şansının döndüğüne emin olur ve sıradaki tuzağa düşer.";
+        private const string M_A5_S3 = "Oyunda <color=#2563eb>500x çarpanı</color> düştü ancak ekranda aynı sembolden <color=#2563eb>8 adet</color> olmadığı için hiç ödeme yapılmadı. Bu, <color=#2563eb>sistem</color> tarafından oyuncuyu bir sonraki <color=#dc2626>tuzağa</color> çekmek için kullanılan <color=#dc2626>yemdir</color>. Oyuncu <color=#2563eb>500x çarpanı</color> görünce <color=#ea580c>şansının döndüğüne</color> emin olur ve sıradaki <color=#dc2626>tuzağa</color> düşer.";
         // ORPHAN — A5 Spin 4 bonusOyunuTetikle parametresiz çağrılıyor, popup runtime'da.
         // Referans için tutuldu.
         private const string M_A5_S4_BONUS = "🎰 ŞANSLI SAATİNDESİN! Bonus oyun aktif edildi. Bakiyenin tamamını yatır, x10000 kazanma şansını kaçırma. SINIRLI TEKLİF.";
