@@ -244,9 +244,9 @@ namespace Senaryo.Scripted
             mesTxt.enableWordWrapping = true;
             mesTxt.text =
                 "<i>Bu senaryo Türkiye'de her gün binlerce kişinin başına geliyor.</i>\n" +
-                "<color=#EF4444><i>Online kumar bağımlılığı bir hastalıktır</i></color>; <i>yardım almak güçlü bir farkındalıktır.</i>\n\n" +
-                "Unutulmamalıdır ki <color=#4ADE80><b>sanal kumar bağımlılığı çözümsüz değildir</b></color> ve her zaman yeni bir başlangıç yapmak mümkündür. Yaşanan zorluklar ne kadar büyük görünürse görünsün, <color=#4ADE80><b>umut her zaman vardır</b></color> ve doğru destekle bu süreç aşılabilir. Bu noktada <color=#FB923C>ailenize, amirlerinize ve güvendiğiniz kişilere</color> durumu açıkça ifade etmek, çözüm yolunda atılacak <color=#4ADE80><b>cesur bir adımdır</b></color>. <color=#EF4444><b>Yardım istemek bir zayıflık değil</b></color>, aksine güçlü bir farkındalık ve değişim isteğinin göstergesidir.\n\n" +
-                $"<color=#4ADE80><b>Yeşilay Yardım Hattı: {YESILAY_HATTI}</b></color>";
+                "<color=#dc2626><i>Online kumar bağımlılığı bir hastalıktır</i></color>; <i>yardım almak güçlü bir farkındalıktır.</i>\n\n" +
+                "Unutulmamalıdır ki <color=#16a34a><b>sanal kumar bağımlılığı çözümsüz değildir</b></color> ve her zaman yeni bir başlangıç yapmak mümkündür. Yaşanan zorluklar ne kadar büyük görünürse görünsün, <color=#16a34a><b>umut her zaman vardır</b></color> ve doğru destekle bu süreç aşılabilir. Bu noktada <color=#ea580c>ailenize, amirlerinize ve güvendiğiniz kişilere</color> durumu açıkça ifade etmek, çözüm yolunda atılacak <color=#16a34a><b>cesur bir adımdır</b></color>. <color=#dc2626><b>Yardım istemek bir zayıflık değil</b></color>, aksine güçlü bir farkındalık ve değişim isteğinin göstergesidir.\n\n" +
+                $"<color=#16a34a><b>Yeşilay Yardım Hattı: {YESILAY_HATTI}</b></color>";
             mesTxt.raycastTarget = false;
 
             // Yeniden başla butonu
