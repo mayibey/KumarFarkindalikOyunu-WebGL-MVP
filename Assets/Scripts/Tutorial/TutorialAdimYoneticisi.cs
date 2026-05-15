@@ -471,7 +471,7 @@ namespace KumarFarkindalik.Tutorial
         private const string T3_HOOK_B =
             "<color=#5BA0FF>Oyun Modu</color>'ndan <color=#5BA0FF>'Taze Kan'</color> seç, <color=#5BA0FF>Uygula</color> bas. <color=#FFD933>5 spin</color> at.";
         private const string T3_HOOK_C =
-            "Az önce görüldüğü üzere oyuncu hemen kazandı ve oyuna bağlandı. Sömürünün başlangıcı.";
+            "Az önce görüldüğü üzere yeni oyuncu hemen kazandı ve oyuna bağlandı. Sömürünün başlangıcı!";
 
         private const string T3_YONTMA_A =
             "İkinci senaryo: <color=#F24D40>AZ AZ KAYIP (Yontma)</color>. Oyuncu farkına varmadan, küçük küçük <color=#F24D40>kaybettirme</color>. " +
@@ -495,7 +495,7 @@ namespace KumarFarkindalik.Tutorial
         private const string T3_KORUMA_B =
             "<color=#5BA0FF>Oyun Modu</color>'ndan <color=#5BA0FF>'Bakiye Tüketme'</color> seç, <color=#5BA0FF>Uygula</color> bas. <color=#FFD933>5 spin</color> at.";
         private const string T3_KORUMA_C =
-            "Kazanç yok. Bu mod, oyuncu son kuruşuna kadar kaybettirmeyi amaçlıyor.";
+            "Kazanç yok. Bu mod, oyuncuyu son kuruşuna kadar kaybettirerek tüketmeyi amaçlıyor.";
 
         // PAKET 8: T3_NORMAL_A/B/C kaldırıldı (T3_NORMAL adımı sistemden kaldırıldı).
         // Normal oyun bilgilendirmesi karşılama (T1) sonrası tek modal ile veriliyor (T1_NORMAL_INFO).
@@ -534,8 +534,7 @@ namespace KumarFarkindalik.Tutorial
 
         private const string T5_BASLANGIC =
             "BONUS SEMBOLÜ nedir?\n\n" +
-            "Bonus sembolü (yıldız/scatter) oyun alanına nadir düşer. Bir spinde 4 veya daha fazla yıldız olursa bonus oyun açılır. " +
-            "10 ücretsiz spin ve büyük kazanç şansı. Kumar siteleri bu olasılığı istediği gibi ayarlar.\n\n" +
+            "Bonus sembolü (yıldız) oyun alanına nadir düşer. Bir spinde 4 veya daha fazla yıldız olursa bonus oyun açılır. 10 ücretsiz spin + büyük kazanç şansı. Kumar siteleri bu olasılığı istediği gibi ayarlar.\n\n" +
             "Şimdi deneyelim: Bonus olasılığını %100 yap, uygulaya bas, 1 spin at. Garantili bonus oyun açılacak.";
         private const string T5_AKSIYON =
             "<color=#5BA0FF>Bonus olasılığını</color> <color=#FFD933>%100</color> yap, <color=#5BA0FF>Uygula</color> bas, <color=#FFD933>1 spin</color> at.";
@@ -556,8 +555,7 @@ namespace KumarFarkindalik.Tutorial
             "Şimdi <color=#5BA0FF>Manipülasyon Ayarları</color>'nda <color=#5BA0FF>'Yeni Oyuncu Modu'</color> toggle'ını <color=#F24D40>KAPAT</color>. " +
             "Ardından <color=#FFD933>3 spin</color> daha at. <color=#F24D40>Gerçek ortaya çıkacak</color>.";
         private const string T6YO_KAPANIS =
-            "Gördüğümüz üzere aynı slot, aynı bahis. Yeni oyuncu modu özelliği açık halde tutunca bol kazanç. " +
-            "Yeni oyuncu modu özelliği kapatınca net kayıp.";
+            "Gördüğümüz üzere aynı slot, aynı bahis. Yeni oyuncu modu özelliği açık halde tutunca bol kazanç; özelliği kapatınca net kayıp.";
 
         // PAKET 6C3: T6 (Kazandırma) — 5'lik N mantığı, dinamik pattern motor
         private const string T6_BASLANGIC =
@@ -569,8 +567,7 @@ namespace KumarFarkindalik.Tutorial
 
         // PAKET 6D: T7 (Ödeme Aralığı) — 2-aşamalı maks 3x vs min 3-maks 5x karşılaştırma
         private const string T7_BASLANGIC =
-            "Kazanç aralığı: Kumar siteleri tarafından kazançların TUTAR aralığı sınırlanır. " +
-            "Bahis min ile bahis maks arasında ödeme yapar.";
+            "Kazanç aralığı, kumar siteleri tarafından kazançların ödeme aralığını sınırlar. Oyun, bahis min ile bahis maks arasındaki bir tutarda ödeme yapar.";
         private const string T7_AKSIYON =
             "Ödeme aralığında min=3, maks=5 ayarla. Uygula bas, 3 spin at.";
         // PAKET 14-FAZ35.5-C: T7_ARA_MODAL kaldırıldı (T7 Faz 35.2'de tek aşamalı oldu, ölü kod).
@@ -581,11 +578,9 @@ namespace KumarFarkindalik.Tutorial
 
         // PAKET 6C3: T8 (Near Miss) — 5'lik N mantığı, dinamik pattern motor (7-sembol layout)
         private const string T8_BASLANGIC =
-            "Neredeyse kazanıyordun hissi. Slot oyununun en güçlü tuzaklarından biri. " +
-            "Neredeyse Oluyordu Hissinin ayarı seçilir.";
+            "\"Neredeyse kazanıyordun\" hissi, slot oyununun en güçlü tuzaklarından biridir. 8 sembol ödeme yapacakken ekrana hep 7 sembol düşürerek oyuncuya \"neredeyse oluyordu, bir sonraki turda kesin olacak\" diye düşündürür.";
         private const string T8_AKSIYON =
-            "Neredeyse Kazanıyordu Hissi ayarını 3'e getir. Uygulaya bas ve 5 spin at. " +
-            "5 spinin 3'ünde 'neredeyse oluyordu' hissi yaratılacak, kalan 2 spinde küçük kazanç gelecek.";
+            "\"Neredeyse Kazanıyordu Hissi\" ayarında, kaç tur üst üste neredeyse kazanıyordun hissinin yaşatılacağı belirlenir. Uygulaya bas ve 5 spin at. Seçilen tur sayısı kadar bu hissin nasıl yaşatıldığını göreceksin.";
         private const string T8_KAPANIS =
             "Gördüğümüz üzere 7 aynı sembol düştü ama 1 EKSİK. Küme 8'den başlıyor. " +
             "Oyuncunun beyni 'KAZANIYORDUM' der oysa hiç şansı yoktur. " +
@@ -603,8 +598,7 @@ namespace KumarFarkindalik.Tutorial
 
         // PAKET 6D: T10 (Çarpan Zorla) — 2-aşamalı açık/kapalı toggle demo
         private const string T10_BASLANGIC =
-            "Zorla Çarpan, kumar sitelerinin son silahıdır. İstediği anda çarpan düşürür. " +
-            "Çarpan Ödeme özelliği kapalıyken çarpan düşse de kazanç olmaz.";
+            "Zorla Çarpan, kumar sitelerinin etkili silahlarından birisidir. Kumar siteleri istediği anda çarpan düşürür, istediği zaman ödeme yaptırır; ödeme yapmak istemediğinde ise çarpan düşürür ancak ekrana yeterli sayıda sembol getirmez. Oyuncu kaçan büyük çarpana üzülürken, \"bu sefer olacak\" diyerek oynamaya devam eder.";
         private const string T10_AKSIYON =
             "Önce Çarpan Ödeme özelliği KAPALI iken çarpan zorla; 500x butonuna bas. Spinin sonucunu izle.";
         public const string T10_ARA_MODAL =
@@ -619,9 +613,7 @@ namespace KumarFarkindalik.Tutorial
         private const string T11_AKSIYON =
             "Bonus Tetikle butonuna bas.";
         private const string T11_KAPANIS =
-            "Kumar siteleri, kullanıcı pes etmek üzereyken bonusu tetikler. " +
-            "\"Tam şans yüzüme güldü\" der kurban. " +
-            "Aslında kumar siteleri onu içeride tutmak için düğmeye bastı.";
+            "Kumar siteleri, kullanıcı pes etmek üzereyken bonus oyunu tetikler. Kurban \"sonunda şans yüzüme güldü\" der. Ancak aslında kumar siteleri onu içeride tutmak için düğmeye bastı.";
 
         private const string TSON_BASLANGIC =
             "Eğitim simülasyonu tamamlandı. Artık istediğiniz gibi test edebilirsiniz. " +
