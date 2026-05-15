@@ -579,7 +579,7 @@ namespace KumarFarkindalik.Tutorial
 
         // PAKET 6C3: T8 (Near Miss) — 5'lik N mantığı, dinamik pattern motor (7-sembol layout)
         private const string T8_BASLANGIC =
-            "\"Neredeyse kazanıyordun\" hissi, slot oyununun en güçlü tuzaklarından biridir. 8 sembol ödeme yapacakken ekrana hep 7 sembol düşürerek oyuncuya \"neredeyse oluyordu, bir sonraki turda kesin olacak\" diye düşündürür.";
+            "<color=#2563eb>\"Neredeyse kazanıyordun\"</color> hissi, slot oyununun en güçlü <color=#dc2626>tuzaklarından</color> biridir. <color=#2563eb>8 sembol</color> ödeme yapacakken ekrana hep <color=#2563eb>7 sembol</color> düşürerek oyuncuya <color=#ea580c>\"neredeyse oluyordu, bir sonraki turda kesin olacak\"</color> diye düşündürür.";
         private const string T8_AKSIYON =
             "\"Neredeyse Kazanıyordu Hissi\" ayarında, kaç tur üst üste neredeyse kazanıyordun hissinin yaşatılacağı belirlenir. Uygulaya bas ve 5 spin at. Seçilen tur sayısı kadar bu hissin nasıl yaşatıldığını göreceksin.";
         private const string T8_KAPANIS =

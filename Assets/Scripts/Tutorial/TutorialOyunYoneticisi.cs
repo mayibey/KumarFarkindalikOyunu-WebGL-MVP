@@ -1276,10 +1276,10 @@ namespace KumarFarkindalik.Tutorial
             if (TutorialModalKopru.Ornek != null)
             {
                 yield return TutorialModalKopru.Ornek.ModalGosterIkiButon(
-                    "Eğitim simülasyonu tamamlandı. Artık istediğiniz gibi test edebilirsiniz. AYARLAR butonuna basıp paneli açarak kendiniz tüm durumları deneyimleyebilirsiniz.\n\n" +
-                    "Kendin Oyna: Tüm ayarları kendin değiştir, manipülasyonu kendin gör.\n" +
-                    "Simülasyonu Sonlandır: Giriş ekranına dön.\n\n" +
-                    "Bağımlılıkla mücadelede yalnız değilsiniz. Yeşilay Danışma Hattı 115.",
+                    "<color=#16a34a>Eğitim simülasyonu tamamlandı</color>. Artık istediğiniz gibi test edebilirsiniz. AYARLAR butonuna basıp paneli açarak kendiniz tüm durumları deneyimleyebilirsiniz.\n\n" +
+                    "<color=#2563eb>Kendin Oyna</color>: Tüm ayarları kendin değiştir, <color=#dc2626>manipülasyonu</color> kendin gör.\n" +
+                    "<color=#ea580c>Simülasyonu Sonlandır</color>: Giriş ekranına dön.\n\n" +
+                    "<color=#16a34a>Bağımlılıkla mücadelede yalnız değilsiniz</color>. <color=#16a34a>Yeşilay Danışma Hattı 115</color>.",
                     "Kendin Oyna",
                     "Simülasyonu Sonlandır",
                     solBtnCallback: () =>
