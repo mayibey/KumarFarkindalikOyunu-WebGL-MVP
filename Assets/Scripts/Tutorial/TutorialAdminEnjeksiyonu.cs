@@ -256,9 +256,11 @@ namespace KumarFarkindalik.Tutorial
                             && int.TryParse(value, out int nmSliderVal))
                         {
                             int n = Mathf.Clamp(nmSliderVal, 0, 5);
-                            // PAKET 14-FAZ34 İş 3: ScriptedSpinUygulayici altyapısı T8 Near Miss için.
+                            // PAKET 14-FAZ35.10.B: Dinamik motor "nearMiss" modunda 5-N kaydı sembolId=-1
+                            // (boş kayıp) üretiyor, scripted Üzüm 8 cluster kazanç planını override ediyordu.
+                            // Slider değişimi yolu — T8 girişindeki fix ile aynı pattern (Durdur → AsamaSet sırası).
+                            TutorialSenaryoMotoru.Durdur();
                             TutorialScriptedYoneticisi.Ornek?.AsamaSetNearMiss(n);
-                            TutorialSenaryoMotoru.DinamikPatternBaslat("nearMiss", n);
                         }
                     }
                     break;

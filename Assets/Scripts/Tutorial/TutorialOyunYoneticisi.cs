@@ -189,6 +189,19 @@ namespace KumarFarkindalik.Tutorial
                 }
                 return;
             }
+            // FAZ35.11: T_SON "Kendin Oyna" sonrası bayrak → Tutorial sistemini hiç başlatma.
+            // AdimYoneticisi, AdimGoster, PanelKilit, NearMissAnimasyon hiç spawn etmez.
+            // Kullanıcı admin paneli serbestçe değiştirebilir, hiçbir Tutorial UI görünmez.
+            if (PlayerPrefs.GetInt("tutorialAtla", 0) == 1)
+            {
+                Debug.Log("[FAZ35.11] tutorialAtla=1 → Tutorial sistemi bypass (Kendin Oyna modu)");
+                PlayerPrefs.DeleteKey("tutorialAtla");
+                PlayerPrefs.Save();
+                // Defansif: TutorialAdimGoster diğer self-spawn yapmış olabilir, pasif et.
+                if (TutorialAdimGoster.Ornek != null)
+                    TutorialAdimGoster.Ornek.gameObject.SetActive(false);
+                return;
+            }
             if (Ornek != null) return;
             var go = new GameObject(nameof(TutorialOyunYoneticisi));
             go.AddComponent<TutorialOyunYoneticisi>();
@@ -737,10 +750,13 @@ namespace KumarFarkindalik.Tutorial
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T8) // NEAR MISS (sira=9)
             {
-                // PAKET 6C3: Default N=2. Slider değişince DinamikPatternBaslat yeniden çağrılır.
-                // PAKET 14-FAZ34 İş 3: ScriptedSpinUygulayici altyapısı — N near miss + (5-N) normal shuffle.
+                // PAKET 6C3: Default N=2. Slider değişince AsamaSetNearMiss yeniden çağrılır.
+                // PAKET 14-FAZ35.10: TutorialSenaryoMotoru.DinamikPatternBaslat("nearMiss", N) çağrısı
+                // KALDIRILDI — dinamik motor "nearMiss" modunda 5-N kayıt sembolId=-1/adet=0 (boş kayıp)
+                // üretiyor, scripted Üzüm 8 cluster kazanç planını override ediyordu. Motor.Durdur()
+                // ile pasif → scripted (AsamaSetNearMiss) tek başına spin akışına girer (T6 emsali).
+                TutorialSenaryoMotoru.Durdur();
                 TutorialScriptedYoneticisi.Ornek?.AsamaSetNearMiss(2);
-                TutorialSenaryoMotoru.DinamikPatternBaslat("nearMiss", 2);
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T7) // ÖDEME ARALIĞI (sira=8, UI "T8")
             {
@@ -1256,20 +1272,51 @@ namespace KumarFarkindalik.Tutorial
 
             yield return new WaitForSeconds(0.3f);
 
-            // 3. T_SON serbest test rehber modali
+            // 3. T_SON 2-butonlu kapanış modali (FAZ35.11)
             if (TutorialModalKopru.Ornek != null)
             {
-                yield return TutorialModalKopru.Ornek.ModalGoster(
-                    "<color=#4DCC59>Tutorial tamamlandı</color>. Artık istediğiniz gibi test edebilirsiniz. " +
-                    "<color=#5BA0FF>AYARLAR</color> butonuna basıp panel'i aç, farklı modlar dene, spin at, gör.\n\n" +
-                    "Bağımlılıkla mücadelede yalnız değilsiniz: <color=#4DCC59>Yeşilay Danışma Hattı</color> <color=#FFD933>0850 222 0 191</color>");
+                yield return TutorialModalKopru.Ornek.ModalGosterIkiButon(
+                    "<color=#4DCC59>Tutorial tamamlandı</color>. Şimdi ne yapmak istersin?\n\n" +
+                    "<b>Kendin Oyna</b>: Tüm ayarları kendin değiştir, manipülasyonu kendin gör.\n" +
+                    "<b>Simülasyonu Sonlandır</b>: Giriş ekranına dön.\n\n" +
+                    "Bağımlılıkla mücadelede yalnız değilsiniz: <color=#4DCC59>Yeşilay Danışma Hattı</color> <color=#FFD933>0850 222 0 191</color>",
+                    "Kendin Oyna",
+                    "Simülasyonu Sonlandır",
+                    solBtnCallback: () =>
+                    {
+                        // FAZ35.11: Kendin Oyna — 04 sahnesini tutorialAtla flag ile yeniden yükle.
+                        // Awake bu flag'i okuyup Tutorial sistemlerini başlatmadan return eder.
+                        Debug.Log("[FAZ35.11] Kendin Oyna seçildi — 04 yeniden yükleniyor");
+                        PlayerPrefs.SetInt("tutorialAtla", 1);
+                        PlayerPrefs.Save();
+                        TutorialSenaryoMotoru.Durdur();
+                        TutorialScriptedYoneticisi.Ornek?.DeaktifEt();
+                        TutorialNearMissAnimasyon.Ornek?.DurdurRotate();
+                        UnityEngine.SceneManagement.SceneManager.LoadScene(
+                            "04_AdminOyunScene",
+                            UnityEngine.SceneManagement.LoadSceneMode.Single);
+                    },
+                    sagBtnCallback: () =>
+                    {
+                        // FAZ35.11: Simülasyonu Sonlandır — giriş sahnesine dön.
+                        Debug.Log("[FAZ35.11] Simülasyonu Sonlandır seçildi — 01_GirisScene'e dönülüyor");
+                        PlayerPrefs.DeleteKey("tutorialAtla");
+                        TutorialSenaryoMotoru.Durdur();
+                        TutorialScriptedYoneticisi.Ornek?.DeaktifEt();
+                        TutorialNearMissAnimasyon.Ornek?.DurdurRotate();
+                        if (GameManager.I != null)
+                            GameManager.I.LoadScene("01_GirisScene");
+                        else
+                            UnityEngine.SceneManagement.SceneManager.LoadScene(
+                                "01_GirisScene",
+                                UnityEngine.SceneManagement.LoadSceneMode.Single);
+                    });
             }
 
-            // 4. Serbest test moduna geç (restore + loop modu)
-            SerbestTestModunaGec();
-
-            // LoadScene KALDIRILDI — sahne 04'te kalır
-            Debug.Log("[Tutorial] Serbest test modu aktif.");
+            // FAZ35.11: SerbestTestModunaGec ARTIK ÇAĞRILMIYOR — her iki buton callback'i
+            // kendi cleanup'ını yapıp sahne değiştiriyor (Kendin Oyna: 04 yeniden yükle,
+            // Sonlandır: 01_GirisScene). Sahne yeniden yüklendiğinde state otomatik temizlenir.
+            Debug.Log("[Tutorial] T_SON modal callback'leri çalıştı — sahne yenilenecek.");
         }
 
         private void SerbestTestModunaGec()
