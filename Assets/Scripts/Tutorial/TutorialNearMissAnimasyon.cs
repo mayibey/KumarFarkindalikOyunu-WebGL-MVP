@@ -25,12 +25,22 @@ namespace KumarFarkindalik.Tutorial
 
         private readonly List<Coroutine> _aktifCoroutineler = new List<Coroutine>();
         private readonly List<GameObject> _aktifSemboller = new List<GameObject>();
+        private Coroutine _baslatAkisCoroutine;
 
         private const float DONME_HIZI = 360f / 1.5f; // 1 tur = 1.5 sn (240 °/s) — AnlaticiSeritKopru emsali
         private const float YERLESME_GECIKMESI = 0.5f; // grid yerleşsin, kullanıcı 7 Hindistan'ı görsün
 
         private void Awake()
         {
+            // PAKET 14-FAZ35.9 DEFANSIF: Sahne yanlışlıkla bu component'i içeriyorsa (Inspector'da
+            // manuel eklenmiş, sahne kopyalama hatası, vb.) Tutorial sahnesi dışında self-destruct.
+            // TutorialOyunYoneticisi.Awake guard'ının analoğu — orphan instance 03/01/05'te yaşamasın.
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex
+                != TutorialOyunYoneticisi.TUTORIAL_SAHNE_BUILD_INDEX)
+            {
+                Destroy(this);
+                return;
+            }
             if (Ornek != null && Ornek != this) { Destroy(this); return; }
             Ornek = this;
         }
@@ -44,7 +54,10 @@ namespace KumarFarkindalik.Tutorial
         /// sembolünü bulup sonsuz rotate coroutine'leri başlatır. Sonraki SPIN'e kadar dönmeye devam.</summary>
         public void BaslatRotate()
         {
-            StartCoroutine(BaslatAkis());
+            // PAKET 14-FAZ35.9 RACE FIX: Önceki BaslatAkis hâlâ 0.5sn delay'inde olabilir;
+            // orphan kalmasın diye önce onu durdur, sonra yeni akışı başlat ve takip et.
+            if (_baslatAkisCoroutine != null) StopCoroutine(_baslatAkisCoroutine);
+            _baslatAkisCoroutine = StartCoroutine(BaslatAkis());
         }
 
         private IEnumerator BaslatAkis()
@@ -70,6 +83,14 @@ namespace KumarFarkindalik.Tutorial
         /// her sembolün rotation'ını Quaternion.identity'ye sıfırlar (pivot sapması olmasın).</summary>
         public void DurdurRotate()
         {
+            // PAKET 14-FAZ35.9 RACE FIX: BaslatAkis hâlâ delay'inde olabilir (HindistanlariBul henüz
+            // çalışmadı → _aktifCoroutineler boş). Erken-return ile orphan kalmaması için ÖNCE
+            // BaslatAkis'i durdur. Sonra _aktifCoroutineler/_aktifSemboller boşsa erken çık.
+            if (_baslatAkisCoroutine != null)
+            {
+                StopCoroutine(_baslatAkisCoroutine);
+                _baslatAkisCoroutine = null;
+            }
             if (_aktifCoroutineler.Count == 0 && _aktifSemboller.Count == 0) return;
 
             Debug.Log($"[T8 Rotate] Dönme durduruluyor ({_aktifSemboller.Count} sembol).");
