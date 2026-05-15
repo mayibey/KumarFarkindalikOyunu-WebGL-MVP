@@ -139,7 +139,7 @@ namespace Senaryo.Scripted
             {
                 (new Vector2(-420f, 280f),  "<color=#EF4444><b>Çocuğum hasta</b></color>, acil para lazım..."),
                 (new Vector2( 420f, 280f),  "<color=#EF4444><b>Bir 50 bin kredi çekersem</b></color> hepsini telafi ederim..."),
-                (new Vector2(-490f,  30f),  "<color=#EF4444><b>Kız kardeşim borca girdi</b></color>, yardım etmem gerek..."),
+                (new Vector2(-490f,  30f),  "Kardeşim kaza yaptığı için çok acil para lazım."),
                 (new Vector2( 490f,  30f),  "<color=#EF4444><b>Bu sefer kazanırsam</b></color> hepsini öderim, söz veriyorum..."),
             };
 

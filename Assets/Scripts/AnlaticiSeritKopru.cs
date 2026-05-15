@@ -836,8 +836,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
             // PreA1 ek anlatım — A1 aşamasının pedagojik özeti (Hoş geldin sonrası ikinci modal)
             const string A1_ANLATIM =
                 "İlk aşama: Isındırma ve Umut\n\n" +
-                "İlk kazanç oyuncu için en tehlikeli başlangıçtır. " +
-                "Beyin başlangıçta yaşanan bu olumlu deneyimi güçlü biçimde hatırlar ve kişinin oyun oynamaya isteğini arttırır.";
+                "İlk kazanç oyuncu için en tehlikeli başlangıçtır. Beyin başlangıçta yaşanan bu olumlu deneyimi güçlü biçimde hatırlar ve kişinin oyun oynamaya isteğini arttırır.";
             // PreA1 üçüncü modal — kullanıcıyı spin atmaya davet + sol panel takip yönlendirmesi.
             const string A1_DAVET =
                 "<b>Şimdi deneyelim</b>\n\n" +
@@ -906,9 +905,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
             var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
             if (modal == null) yield break;
             string mesaj =
-                "İkinci aşama tamamlandı. Oyuncu şu an küçük <color=#EF4444>kayıplar</color> yaşadı ama hâlâ artıda; <color=#60A5FA><i>'kontrol bende'</i></color> hissi iyice yerleşti.\n\n" +
-                "Sırada <color=#FB923C><b>'Kaybettiklerimi Geri Kazanabilirim'</b></color> aşaması var. Sistem bu aşamada oyuncuya <color=#EF4444>bilerek kayıp</color> yaşatacak. Oyuncu artık kazanç peşinde değil; <i>'kaybettiklerimi kurtarayım yeter'</i> gibi düşünmeye başlayacak. Bu <color=#60A5FA><b>'Kayıp Kovalama'</b></color> denilen psikolojik <color=#EF4444>tuzaktır</color> — bir kez girilirse çıkmak çok zor.\n\n" +
-                "Birlikte göreceğiz.";
+                "İkinci aşama tamamlandı. Oyuncunun bu aşama sonundaki bakiyesi (xx), birinci aşamadaki bakiyesine (xx) göre (yy) TL azaldı. Oyuncu aslında hâlâ kârda olmasına rağmen kârdan kaybettiği (yy) TL'yi geri kazanabilmek için bir sonraki aşamaya ismini veren \"kaybettiklerimi geri kazanabilirim\" düşüncesine bürünür. Ancak bu düşünce oyuncunun daha fazla kaybetmesine sebep olur. Oyuncu artık kazanç peşinde değil, \"kaybettiklerimi kurtarsam yeter\" gibi bir düşünceye girebilir. Bu kayıp kovalama denilen psikolojik bir tuzaktır; bir kez bu döngüye girilirse çıkmak çok zordur.";
             yield return modal.ModalGoster(mesaj);
         }
         finally
@@ -926,9 +923,8 @@ public class AnlaticiSeritKopru : MonoBehaviour
             var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
             if (modal == null) yield break;
             string mesaj =
-                "Üçüncü aşamayı gördük: <color=#60A5FA>kayıp kovalama tuzağı</color>. Oyuncu <color=#FB923C>bahsi yükselterek</color> kurtulmaya çalıştı, daha çok <color=#EF4444>kaybetti</color>.\n\n" +
-                "Sırada <color=#FB923C><b>'Şansım Döndü'</b></color> aşaması var. Bu aşamada algoritma oyuncuyu pes etme eşiğine getirecek; üst üste sert <color=#EF4444>kayıplar</color>. Tam pes etmek üzereyken <color=#4ADE80>büyük bir kazanç</color> düşürecek. Bu büyük kazanç tesadüf değil, <color=#EF4444><b>kasıtlı bir manipülasyon vuruşu</b></color> olacak.\n\n" +
-                "Amaç: oyuncuyu tekrar oyuna bağlamak.";
+                "Üçüncü aşamayı gördük: kayıp kovalama tuzağı. Oyuncu bahsi yükselterek kurtulmaya çalışmıştır, fakat daha çok kaybetmiştir.\n\n" +
+                "Sırada \"şansım döndü\" aşaması var. Bu aşamada algoritma oyuncuyu pes etme eşiğine getirecektir ve üst üste sert kayıplar yaşatacaktır. Oyuncu tam pes etmek üzereyken büyük bir kazanç sağlatacaktır. Bu büyük kazanç, geçmişteki tüm kayıpları unutturacak kuvvetli bir manipülasyon hamlesidir. Amaç oynamaktan vazgeçmek üzere olan oyuncuyu tekrar oyuna bağlamaktır.";
             yield return modal.ModalGoster(mesaj);
         }
         finally
@@ -946,9 +942,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
             var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
             if (modal == null) yield break;
             string mesaj =
-                "<color=#4ADE80>Büyük kazanç</color> yaşandı. Oyuncu şu an <i>'şansım döndü, daha kazanırım'</i> hissinde. İşte tam bu duygu, sıradaki aşamanın yakıtıdır.\n\n" +
-                "Sırada <color=#FB923C><b>'Sonunu Düşünen Kahraman Olamaz'</b></color> aşaması var. Bu aşamada algoritma oyuncuya cazip bir <color=#FFD700><b>'bonus oyun tuzağı'</b></color> kuracak: tüm <color=#4ADE80>bakiyesini</color> yatırma karşılığında büyük kazanç vaat edilecek. Yatırırsa, <color=#EF4444>çok azını geri alacak</color>.\n\n" +
-                "Bu, <color=#EF4444>sömürünün doruk noktasıdır</color>. Birlikte göreceğiz.";
+                "Büyük kazanç yaşandı. Oyuncu şu anda \"şansım döndü, artık daha fazla kazanabilirim\" düşüncesine kapıldı. Bu düşünce, sistemin bir sonraki aşamada oyuncuyu oyunda tutmak için kullandığı en güçlü etkendir. Oyuncu bundan sonraki tüm oyun deneyiminde hep bu anın peşinden koşacaktır. Sıradaki aşamada şansının döndüğünü sanan oyuncuya bonus oyun tuzağı kurularak \"sonunu düşünen kahraman olamaz\" mantığı ile hareket etmesi amaçlanmaktadır. Bu aşamada sistem oyuncuya yüksek vaat içeren bonus oyun teklifi sunar. Oyuncuya tüm bakiyesini yatırması karşılığında çok daha büyük kazançlar elde edebileceği vaat edilir. Oyuncu bu teklifi kabul edip parasını yatırırsa, çok büyük bir kayıp yaşayacaktır.";
             yield return modal.ModalGoster(mesaj);
         }
         finally
@@ -992,9 +986,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
 
             // 2) A6 bahis bilgilendirme
             yield return modal.ModalGoster(
-                "Bu kez oyuncu <color=#EF4444>kayıplarını HIZLI telafi</color> etmek istiyor. <color=#FB923C><b>Bahsini 10.000 TL'ye</b></color> çıkardı.\n\n" +
-                "Sadece <color=#FFD700>5 spin</color> yetecek; algoritma <color=#EF4444>sömürünün son evresinde</color> tüm <color=#4ADE80>bakiyeyi</color> alacak. " +
-                "Bu hızlı bitiş, gerçek hayattaki <i>'son kez deneme'</i> bahanesinin sonucudur."
+                "Bu kez oyuncu kayıplarını hızlı telafi etmek ister. Bahsini 10.000 TL'ye kadar çıkardı. İlk gelen spin umut ve ısındırma aşamasını temsil edip daha sonraki gelen spinler tüm bakiyeyi tüketecektir. Bu hızlı bitiş, gerçek hayattaki \"son kez deneme\" bahanesinin sonucudur."
             );
 
             // 3) Bahis animasyonu: mevcut bahis → 10000 (kademeli artış, "+ tuşu" hissi)
@@ -1049,10 +1041,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
             yield return new WaitForSecondsRealtime(0.5f); // Kullanıcı dönmeyi fark etsin
             var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
             string mesaj =
-                "<color=#FFD700><b>Üç yıldız (bonus sembolü)</b></color> yine düştü, dördüncüsü düşmedi. Oyuncu peş peşe bu sahneleri yaşadıkça " +
-                "<color=#60A5FA><i>'neredeyse oluyordu, şansım dönmek üzere'</i></color> hissine kapılır ve masada kalmaya devam eder. " +
-                "Sistem bu beklentiyi <color=#EF4444>mahsus</color> yaratır — birazdan vereceği <color=#4ADE80>büyük tek kazançla</color> bu hissi pekiştirip " +
-                "oyuncuyu <color=#EF4444>kilitleyecek</color>.";
+                "Spin çeviren oyuncuların hedefi 4 adet bonus sembolünü aynı anda ekrana düşürerek bonus oyuna girmektir. Sistem burada 3 adet bonus (yıldız) sembolü düşürerek, oyuncunun \"neredeyse kazanıyordum\" şeklinde düşünmesine sebep olur. Bu durum oyuncuyu kazandırmadan, kazanmış gibi beyninde dopamin salgılanmasına sebep olur. Bu da oyuncunun masada kalma davranışına devam etmesine sebep olur.";
             if (modal != null)
                 yield return modal.ModalGoster(mesaj);
             YildizDonmeyiDurdur();
@@ -1133,19 +1122,16 @@ public class AnlaticiSeritKopru : MonoBehaviour
             var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
             if (modal == null) yield break;
             string mesaj =
-                "⚡ Ekrana <color=#FFD700><b>×100 çarpan</b></color> düştü! Oyuncu az önce pes etmek üzereydi, şimdi <color=#4ADE80>büyük kazanç</color>. " +
-                "Bu rastlantı değil: algoritma oyuncuyu tam bu duygusal anda yakaladı. <i>'Şansım döndü'</i> diyecek. " +
-                "Aslında <color=#EF4444>manipülasyon başarılı oldu</color>.";
+                "Ekrana 100x çarpan düştü! Oyuncu pes etmek üzereyken sistem tarafından kurbanın oynamayı bırakmasını engellemek ve geçmiş kayıplarını unutturmak maksadıyla kurbana büyük kazanç verilir. Bu bir rastlantı değildir. Sistem oyuncuyu tam bu duygusal anında yakalar. Oyuncu şansının döndüğünü sanarak oyuna devam eder.";
             yield return modal.ModalGoster(mesaj);
 
             // Çekim Şartı Tuzağı — büyük kazanç sonrası "çekip çıkayım" düşüncesini söndüren ikinci modal.
             string cekimSartiMesaji =
-            "İşte bu noktada gerçek hayatta oyuncunun aklına şu gelir: <color=#60A5FA><i>'Şu an kazançtayım, parayı çekip çıkayım.'</i></color> Mantıklı düşünce. Ama kumar siteleri bunun olmasına izin vermez.\n\n" +
-            "<color=#EF4444><b>Çekim şartı tuzağı:</b></color> Site, oyuncunun kazandığı parayı çekebilmesi için bir <color=#EF4444><b>\"çevrim şartı\"</b></color> koyar. Bu şart genelde iki şekilde olur:\n\n" +
-            "- <color=#FB923C><b>Bahis çevrim şartı:</b></color> Oyuncu, kazandığı paranın belirli bir katı kadar tutarda bahis atmadan parasını çekemez.\n\n" +
-            "- <color=#FB923C><b>Spin sayısı şartı:</b></color> Oyuncunun belirli bir spin sayısına ulaşması gerekir, <b>örneğin 1000 spin atma şartı gibi</b>. Bu sayıya ulaşmadan çekim yapmasına izin verilmez.\n\n" +
-            "Sonuç değişmez: Oyuncu bu şartları tamamlamaya çalışırken sistem <color=#EF4444>kazandığı parayı yavaş yavaş geri alır</color>, üstüne <color=#EF4444>kendi parasını da kaybeder</color>. Çekim şartı <color=#EF4444>sağlanamadan</color> oyuncu zaten masada tüketilmiş olur.\n\n" +
-                "Yani <color=#EF4444><b>\"çekip çıkma\" seçeneği aslında yok</b></color> — sadece var gibi görünür. Kumar sitesinin tek gerçek amacı oyuncuyu masada tutmaktır.";
+                "İşte bu noktada gerçek hayatta oyuncunun aklına şu düşünce gelir: \"Şu an kazançtayım, parayı çekip çıkayım.\" Bu mantıklı bir düşüncedir. Ancak kumar siteleri çoğu zaman bunun kolayca gerçekleşmesine izin vermez.\n\n" +
+                "Çekim şartı tuzağı: Site, oyuncunun kazandığı parayı çekebilmesi için bazı şartlar koyar. Bu şart genellikle iki şekilde uygulanır:\n\n" +
+                "Bahis çevrim şartı: Oyuncu, kazandığı parayı çekebilmek için bu tutarın belirli bir katı kadar bahis yapmak zorunda bırakılır. Bu şart tamamlanmadan para çekimine izin verilmez.\n\n" +
+                "Spin sayısı şartı: Oyuncunun belirli bir spin sayısına ulaşması istenir; örneğin oyuncudan 1000 spin atması beklenebilir. Bu sayıya ulaşmadan çekim yapmasına izin verilmez.\n\n" +
+                "Sonuç değişmez: Oyuncu bu şartları tamamlamaya çalışırken sistem kazandığı parayı zamanla geri alır, hatta oyuncu çoğu zaman anaparasını da kaybeder. Çekim şartını sağlayıp parayı çekmeyi hayal eden oyuncu, şartlar sağlanana kadar zaten masada tüketilmiş olur.";
             yield return modal.ModalGoster(cekimSartiMesaji);
         }
         finally
