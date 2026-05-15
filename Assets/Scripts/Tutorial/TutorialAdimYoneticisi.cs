@@ -169,8 +169,8 @@ namespace KumarFarkindalik.Tutorial
                 mesajBaslangic = T3_YONTMA_A,
                 mesajAksiyon = T3_YONTMA_B,
                 mesajKapanis = T3_YONTMA_C,
-                altBaslik = "AZ AZ KAYIP (YONTMA)",
-                yapilacaklar = new[] { "Oyun Modu 'Az Az Kayıp' seç", "Uygula bas", "5 spin at" },
+                altBaslik = "UFAK MİKTARLARDA KAYIP",
+                yapilacaklar = new[] { "Oyun Modu 'Ufak Miktarlarda Kayıp Ettirme' seç", "Uygula bas", "5 spin at" },
                 sira = 3,
                 // PAKET 14-FAZ35.4: altSayac kaldırıldı (kategoriIciSira/Toplam=2/4 yeterli).
                 vurguSelectorlari = new[] { "#oyunModu", "#senaryoUygulaBtn" },
@@ -474,10 +474,10 @@ namespace KumarFarkindalik.Tutorial
             "Az önce görüldüğü üzere yeni oyuncu hemen kazandı ve oyuna bağlandı. Sömürünün başlangıcı!";
 
         private const string T3_YONTMA_A =
-            "İkinci senaryo: <color=#F24D40>AZ AZ KAYIP (Yontma)</color>. Oyuncu farkına varmadan, küçük küçük <color=#F24D40>kaybettirme</color>. " +
+            "İkinci senaryo: <color=#F24D40>UFAK MİKTARLARDA KAYIP ETTİRME (Yontma)</color>. Oyuncu farkına varmadan, küçük küçük <color=#F24D40>kaybettirme</color>. " +
             "Bakiye <color=#F24D40>sessizce erir</color>.";
         private const string T3_YONTMA_B =
-            "<color=#5BA0FF>Oyun Modu</color>'ndan <color=#5BA0FF>'Az Az Kayıp'</color> seç, <color=#5BA0FF>Uygula</color> bas. <color=#FFD933>5 spin</color> at.";
+            "<color=#5BA0FF>Oyun Modu</color>'ndan <color=#5BA0FF>'Ufak Miktarlarda Kayıp Ettirme'</color> seç, <color=#5BA0FF>Uygula</color> bas. <color=#FFD933>5 spin</color> at.";
         private const string T3_YONTMA_C =
             "Oyuncu farkına varmadan, bahis miktarından daha az kazandırılıp bakiye sessizce eritilir.";
 

@@ -46,7 +46,7 @@ namespace KumarFarkindalik.Tutorial
             "<color=#4DCC59>Normal oyun</color>: <color=#5BA0FF>manipülasyon kapalı</color>, oyun kendi kurallarında akar — adil <color=#FFD933>RTP</color> ile.\n\n" +
             "Sonra <color=#F24D40>4 manipülasyon senaryosunu</color> göreceğiz:\n" +
             "• <color=#F24D40>Taze Kan</color> (Hook)\n" +
-            "• <color=#F24D40>Az Az Kayıp</color> (Yontma)\n" +
+            "• <color=#F24D40>Ufak Miktarlarda Kayıp Ettirme</color> (Yontma)\n" +
             "• <color=#F24D40>Kaçış Engelleme</color> (Tutma)\n" +
             "• <color=#F24D40>Bakiye Tüketme</color> (Koruma)\n\n" +
             "Her senaryoda operatörün nasıl müdahale ettiğini <color=#4DCC59>kendi gözlerimizle</color> göreceğiz.";
