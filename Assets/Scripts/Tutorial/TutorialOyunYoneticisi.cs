@@ -194,12 +194,25 @@ namespace KumarFarkindalik.Tutorial
             // Kullanıcı admin paneli serbestçe değiştirebilir, hiçbir Tutorial UI görünmez.
             if (PlayerPrefs.GetInt("tutorialAtla", 0) == 1)
             {
-                Debug.Log("[FAZ35.11] tutorialAtla=1 → Tutorial sistemi bypass (Kendin Oyna modu)");
+                Debug.Log("[FAZ35.11+14] tutorialAtla=1 → Tutorial sistemi bypass (Kendin Oyna modu)");
                 PlayerPrefs.DeleteKey("tutorialAtla");
                 PlayerPrefs.Save();
+
+                // FAZ35.14: Defansif static reset (solBtnCallback'te de var ama yedek katman —
+                // doğrudan sahne A→B geçişi durumunda sigorta).
+                SpinKilitli = false;
+
                 // Defansif: TutorialAdimGoster diğer self-spawn yapmış olabilir, pasif et.
                 if (TutorialAdimGoster.Ornek != null)
                     TutorialAdimGoster.Ornek.gameObject.SetActive(false);
+
+                // FAZ35.14: Bahis + Admin default reset coroutine helper.
+                // OyunYoneticisi.Start sceneLoaded ile aynı frame'de henüz tamamlanmamış olabilir
+                // (race). TutorialAtlaReset 1 frame bekleyip FindObjectOfType ile sağlam erişir.
+                var helperGo = new GameObject("TutorialAtlaResetHelper");
+                var helper = helperGo.AddComponent<TutorialAtlaReset>();
+                helper.Baslat();
+
                 return;
             }
             if (Ornek != null) return;
@@ -1284,9 +1297,20 @@ namespace KumarFarkindalik.Tutorial
                     "Simülasyonu Sonlandır",
                     solBtnCallback: () =>
                     {
-                        // FAZ35.11: Kendin Oyna — 04 sahnesini tutorialAtla flag ile yeniden yükle.
-                        // Awake bu flag'i okuyup Tutorial sistemlerini başlatmadan return eder.
-                        Debug.Log("[FAZ35.11] Kendin Oyna seçildi — 04 yeniden yükleniyor");
+                        Debug.Log("[FAZ35.11+14] Kendin Oyna seçildi — 04 yeniden yükleniyor");
+
+                        // FAZ35.14: KRİTİK static state reset — sahne reload'da static field
+                        // sıfırlanmaz, SpinKilitli=true kalırsa spin butonu silent-fail eder.
+                        SpinKilitli = false;
+
+                        // FAZ35.14: Bakiye GameManager üzerinden (DontDestroyOnLoad, race-free)
+                        // 50K reset. Yeni sahnede EkonomiServisi Start'ta bu değeri okur.
+                        if (GameManager.I != null && GameManager.I.ActivePlayer != null)
+                        {
+                            GameManager.I.ActivePlayer.balance = 50000;
+                            Debug.Log("[FAZ35.14] ActivePlayer.balance = 50000 (GameManager DontDestroyOnLoad)");
+                        }
+
                         PlayerPrefs.SetInt("tutorialAtla", 1);
                         PlayerPrefs.Save();
                         TutorialSenaryoMotoru.Durdur();
