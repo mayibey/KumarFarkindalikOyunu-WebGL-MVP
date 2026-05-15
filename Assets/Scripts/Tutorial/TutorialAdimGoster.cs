@@ -350,7 +350,7 @@ namespace KumarFarkindalik.Tutorial
             // Panel y = bar y(-200) + segment y(-16) - 4 (margin) = -220 (tooltip pivot bottom (0.5, 0), tooltip altı bu Y'de)
             // segMerkezX bar koordinatları (parent _spinGecmisiBlok). Tooltip parent panel → x offset bar pos + segMerkezX = 0 + segMerkezX
             var thRt = _spinHoverTooltip.GetComponent<RectTransform>();
-            thRt.anchoredPosition = new Vector2(segMerkezX, -212f); // bar y -200 + segment y -12 (segment üst)
+            thRt.anchoredPosition = new Vector2(segMerkezX, -272f); // FAZ35.15: bar y -260 + segment y -12 (segment üst)
             _spinHoverTooltip.transform.SetAsLastSibling();
             _spinHoverTooltip.SetActive(true);
         }
@@ -504,7 +504,7 @@ namespace KumarFarkindalik.Tutorial
             _panelRt = panel.GetComponent<RectTransform>();
             _panelRt.anchorMin = _panelRt.anchorMax = new Vector2(0.5f, 0.5f);
             _panelRt.pivot = new Vector2(0.5f, 0.5f);
-            _panelRt.sizeDelta = new Vector2(280f, 330f); // PAKET 14-FAZ16: 290→330 (spin barı + İLERİ buton çakışma fix)
+            _panelRt.sizeDelta = new Vector2(280f, 360f); // FAZ35.15: 330→360 (Spin Gecmisi alta + ust metin wrap fallback)
             _panelRt.anchoredPosition = new Vector2(801.18f, 222f);
             panel.GetComponent<Image>().color = BALON_RENK;
 
@@ -519,25 +519,32 @@ namespace KumarFarkindalik.Tutorial
             headerRt.anchorMin = new Vector2(0f, 1f);
             headerRt.anchorMax = new Vector2(1f, 1f);
             headerRt.pivot = new Vector2(0.5f, 1f);
-            headerRt.sizeDelta = new Vector2(-10f, 55f); // panel iç-genişlikten 5px (her tarafta) içeri
+            headerRt.sizeDelta = new Vector2(-10f, 75f); // FAZ35.15: 55→75 (ust metin 2 satir wrap fallback alani)
             headerRt.anchoredPosition = new Vector2(0f, -5f);
             header.GetComponent<Image>().color = BALON_KOYU;
 
-            // Header alt aksan çizgisi (2px ALTIN_ACIK)
-            CizgiEkle(panel.transform, new Vector2(0f, -60f), new Vector2(240f, 2f), ALTIN_ACIK);
+            // Header alt aksan çizgisi (2px ALTIN_ACIK) — FAZ35.15: pos -60→-80 (header buyume)
+            CizgiEkle(panel.transform, new Vector2(0f, -80f), new Vector2(240f, 2f), ALTIN_ACIK);
 
             // PAKET 5: Sayaç başlık fontSize 18→24
+            // FAZ35.15: sizeDelta height 30→44 + wrap aç (uzun kategori adi 2 satir olabilir)
             _sayacText = MetinYarat(header.transform, "Baslik", new Vector2(0f, -4f),
-                new Vector2(260f, 30f), 24f, FontStyles.Bold, ALTIN_ACIK,
+                new Vector2(260f, 44f), 24f, FontStyles.Bold, ALTIN_ACIK,
                 TextAlignmentOptions.Center, "ADIM ?/11");
             _sayacText.outlineWidth = 0.18f;
             _sayacText.outlineColor = ALTIN_KOYU;
+            _sayacText.enableWordWrapping = true;
+            _sayacText.overflowMode = TextOverflowModes.Overflow;
 
             // PAKET 5: Alt başlık fontSize 14→18, pos -32→-34
-            _altBaslikText = MetinYarat(header.transform, "AltBaslik", new Vector2(0f, -34f),
-                new Vector2(260f, 22f), 18f, FontStyles.Bold, ALTIN_RENK,
+            // FAZ35.15: characterSpacing 4→0 (~%25 yatay kazanc, KRITIK) + sizeDelta height 22→36 + wrap aç
+            // FAZ35.15: pos -34→-48 (header buyudugu icin alt basliik daha asagi)
+            _altBaslikText = MetinYarat(header.transform, "AltBaslik", new Vector2(0f, -48f),
+                new Vector2(260f, 36f), 18f, FontStyles.Bold, ALTIN_RENK,
                 TextAlignmentOptions.Center, "");
-            _altBaslikText.characterSpacing = 4f;
+            _altBaslikText.characterSpacing = 0f;
+            _altBaslikText.enableWordWrapping = true;
+            _altBaslikText.overflowMode = TextOverflowModes.Overflow;
 
             // === YAPILACAKLAR BLOK (PAKET 5: fontlar büyütüldü 13→16/18, satır yüksekliği 25→30) ===
             _yapilacaklarBlok = new GameObject("YapilacaklarBlok", typeof(RectTransform));
@@ -546,7 +553,7 @@ namespace KumarFarkindalik.Tutorial
             ybRt.anchorMin = ybRt.anchorMax = new Vector2(0.5f, 1f);
             ybRt.pivot = new Vector2(0.5f, 1f);
             ybRt.sizeDelta = new Vector2(280f, 170f); // 110→170 (ilerleme bloğu yok, yapılacaklar tek blok)
-            ybRt.anchoredPosition = new Vector2(0f, -70f);
+            ybRt.anchoredPosition = new Vector2(0f, -90f); // FAZ35.15: -70→-90 (header 55→75 buyume kaymasi)
 
             MetinYarat(_yapilacaklarBlok.transform, "Baslik_NeYapmali", new Vector2(0f, 0f),
                 new Vector2(240f, 28f), 18f, FontStyles.Bold, BEYAZ,
@@ -575,7 +582,7 @@ namespace KumarFarkindalik.Tutorial
             sgRt.anchorMin = sgRt.anchorMax = new Vector2(0.5f, 1f);
             sgRt.pivot = new Vector2(0.5f, 1f);
             sgRt.sizeDelta = new Vector2(260f, 30f);
-            sgRt.anchoredPosition = new Vector2(0f, -200f);
+            sgRt.anchoredPosition = new Vector2(0f, -260f); // FAZ35.15: -200→-260 (Spin Gecmisi 60px asagi, kullanici istegi)
             // Başlık (parent ile aynı genişlik, merkez hizalı — kutu içinde kalır)
             MetinYarat(_spinGecmisiBlok.transform, "Baslik_SpinGecmisi", new Vector2(0f, 0f),
                 new Vector2(260f, 14f), 11f, FontStyles.Bold, BEYAZ,
@@ -590,7 +597,7 @@ namespace KumarFarkindalik.Tutorial
             thRt.anchorMin = thRt.anchorMax = new Vector2(0.5f, 1f);
             thRt.pivot = new Vector2(0.5f, 0f);
             thRt.sizeDelta = new Vector2(70f, 22f);
-            thRt.anchoredPosition = new Vector2(0f, -200f);
+            thRt.anchoredPosition = new Vector2(0f, -260f); // FAZ35.15: SpinGecmisiBlok ile birlikte 60px asagi
             var thImg = _spinHoverTooltip.GetComponent<Image>();
             thImg.color = new Color(0.06f, 0.10f, 0.14f, 0.95f); // koyu navy
             thImg.raycastTarget = false;
