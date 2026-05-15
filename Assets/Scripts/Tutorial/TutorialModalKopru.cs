@@ -54,6 +54,18 @@ namespace KumarFarkindalik.Tutorial
         private bool _yazmaTamamlandi;
         private bool _kullaniciDevamEtti;
 
+        // === FAZ35.11: 2-buton modal state ===
+        private bool _ikiButonModu;
+        private int _ikiButonSecim = -1; // -1=henüz seçim yok, 0=sol, 1=sağ
+        private string _solBtnMetin = "";
+        private string _sagBtnMetin = "";
+        private GameObject _solBtnGo;
+        private GameObject _sagBtnGo;
+        private CanvasGroup _solBtnCanvasGroup;
+        private CanvasGroup _sagBtnCanvasGroup;
+        private TMPro.TextMeshProUGUI _solBtnText;
+        private TMPro.TextMeshProUGUI _sagBtnText;
+
         [Preserve]
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void OtomatikInit()
@@ -190,6 +202,38 @@ namespace KumarFarkindalik.Tutorial
             }
         }
 
+        /// <summary>
+        /// FAZ35.11: 2-butonlu modal. Sol + sağ buton. Kullanıcı seçene kadar bekler.
+        /// Seçilen indeks (0=sol, 1=sağ) callback'ler ile dispatch edilir.
+        /// Mevcut tek-TAMAM ModalGoster API'si etkilenmez — bu farklı bir public method.
+        /// </summary>
+        public IEnumerator ModalGosterIkiButon(
+            string mesaj,
+            string solBtnMetin,
+            string sagBtnMetin,
+            System.Action solBtnCallback,
+            System.Action sagBtnCallback,
+            bool gizleAnlatici = true)
+        {
+            // 2-buton modunu aktive et — UIYarat 2 butonu hazırlamış,
+            // DevamIkonuFadeIn _ikiButonModu=true ise sol+sağ fade-in yapar (TAMAM gizli kalır).
+            _ikiButonModu = true;
+            _solBtnMetin = solBtnMetin ?? "";
+            _sagBtnMetin = sagBtnMetin ?? "";
+            _ikiButonSecim = -1;
+
+            // Mevcut ModalGoster akışını yeniden kullan (slide-in, typewriter, fade-in, bekle, slide-out)
+            yield return ModalGoster(mesaj, gizleAnlatici);
+
+            // Seçilen butona göre callback dispatch
+            if (_ikiButonSecim == 0) solBtnCallback?.Invoke();
+            else if (_ikiButonSecim == 1) sagBtnCallback?.Invoke();
+
+            // State reset (sonraki ModalGoster tek-TAMAM ise temiz başlasın)
+            _ikiButonModu = false;
+            _ikiButonSecim = -1;
+        }
+
         // ──────────────────────────────────────────────────────────────────────
         // Animasyonlar
         // ──────────────────────────────────────────────────────────────────────
@@ -268,13 +312,45 @@ namespace KumarFarkindalik.Tutorial
 
         private IEnumerator DevamIkonuFadeIn()
         {
-            if (_tamamCanvasGroup == null) yield break;
-            float t = 0f;
-            _tamamCanvasGroup.alpha = 0f;
-            while (t < DEVAM_FADE_SURE)
+            // FAZ35.11: _ikiButonModu=true ise TAMAM gizli kalır, sol+sağ buton fade-in olur.
+            // Buton metinleri ModalGosterIkiButon'da set edilmişti.
+            if (_ikiButonModu)
             {
-                t += Time.unscaledDeltaTime;
-                float u = Mathf.Clamp01(t / DEVAM_FADE_SURE);
+                if (_solBtnText != null) _solBtnText.text = _solBtnMetin ?? "";
+                if (_sagBtnText != null) _sagBtnText.text = _sagBtnMetin ?? "";
+                if (_solBtnCanvasGroup == null && _sagBtnCanvasGroup == null) yield break;
+
+                float t = 0f;
+                while (t < DEVAM_FADE_SURE)
+                {
+                    t += Time.unscaledDeltaTime;
+                    float u = Mathf.Clamp01(t / DEVAM_FADE_SURE);
+                    if (_solBtnCanvasGroup != null) _solBtnCanvasGroup.alpha = u;
+                    if (_sagBtnCanvasGroup != null) _sagBtnCanvasGroup.alpha = u;
+                    yield return null;
+                }
+                if (_solBtnCanvasGroup != null)
+                {
+                    _solBtnCanvasGroup.alpha = 1f;
+                    _solBtnCanvasGroup.interactable = true;
+                    _solBtnCanvasGroup.blocksRaycasts = true;
+                }
+                if (_sagBtnCanvasGroup != null)
+                {
+                    _sagBtnCanvasGroup.alpha = 1f;
+                    _sagBtnCanvasGroup.interactable = true;
+                    _sagBtnCanvasGroup.blocksRaycasts = true;
+                }
+                yield break;
+            }
+
+            if (_tamamCanvasGroup == null) yield break;
+            float t2 = 0f;
+            _tamamCanvasGroup.alpha = 0f;
+            while (t2 < DEVAM_FADE_SURE)
+            {
+                t2 += Time.unscaledDeltaTime;
+                float u = Mathf.Clamp01(t2 / DEVAM_FADE_SURE);
                 _tamamCanvasGroup.alpha = u;
                 yield return null;
             }
@@ -490,6 +566,73 @@ namespace KumarFarkindalik.Tutorial
             ttxt.color = Color.white;
             ttxt.text = "TAMAM";
             ttxt.raycastTarget = false;
+
+            // FAZ35.11: 2-buton modu için sol + sağ buton (T_SON ModalGosterIkiButon kullanır).
+            // TAMAM ile çakışmasın diye sağ buton TAMAM ile aynı yerde (-12, 12); sol buton 130 px sola.
+            // ModalGoster içinde alpha=0 başlatılır, _ikiButonModu=true ise DevamIkonuFadeIn alpha=1 yapar.
+            _solBtnGo = IkiButonYarat("SolButon", new Vector2(-130f, 12f), 0);
+            _sagBtnGo = IkiButonYarat("SagButon", new Vector2(-12f, 12f), 1);
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
+        // FAZ35.11: 2-buton helper'ları
+        // ──────────────────────────────────────────────────────────────────────
+
+        private GameObject IkiButonYarat(string ad, Vector2 pos, int butonIdx)
+        {
+            var go = new GameObject(ad,
+                typeof(RectTransform), typeof(CanvasRenderer), typeof(Image),
+                typeof(Button), typeof(CanvasGroup));
+            go.transform.SetParent(_balonRt, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = rt.anchorMax = new Vector2(1f, 0f);
+            rt.pivot = new Vector2(1f, 0f);
+            rt.sizeDelta = new Vector2(110f, 40f);
+            rt.anchoredPosition = pos;
+            var img = go.GetComponent<Image>();
+            img.color = new Color(0.12f, 0.12f, 0.12f, 0.75f);
+            // 1.5px altın border (TamamButon emsali)
+            BorderEkle(go.transform, rt.sizeDelta, 1.5f, new Color(0.98f, 0.78f, 0.46f, 1f));
+            var btn = go.GetComponent<Button>();
+            btn.transition = Selectable.Transition.None;
+            int idx = butonIdx; // closure capture
+            btn.onClick.AddListener(() => OnIkiButonTiklandi(idx));
+            var cg = go.GetComponent<CanvasGroup>();
+            cg.alpha = 0f;
+            cg.interactable = false;
+            cg.blocksRaycasts = false;
+
+            if (butonIdx == 0) _solBtnCanvasGroup = cg;
+            else _sagBtnCanvasGroup = cg;
+
+            // Text child (TMP — TAMAM'ın bone'unu kullan)
+            var txtGo = new GameObject("Text", typeof(RectTransform), typeof(CanvasRenderer));
+            txtGo.transform.SetParent(go.transform, false);
+            var txtRt = txtGo.GetComponent<RectTransform>();
+            txtRt.anchorMin = Vector2.zero;
+            txtRt.anchorMax = Vector2.one;
+            txtRt.offsetMin = txtRt.offsetMax = Vector2.zero;
+            var txt = txtGo.AddComponent<TMPro.TextMeshProUGUI>();
+            txt.alignment = TMPro.TextAlignmentOptions.Center;
+            txt.fontSize = 16f;
+            txt.fontStyle = TMPro.FontStyles.Bold;
+            txt.color = Color.white;
+            txt.text = "";
+            txt.raycastTarget = false;
+            if (butonIdx == 0) _solBtnText = txt;
+            else _sagBtnText = txt;
+
+            return go;
+        }
+
+        private void OnIkiButonTiklandi(int idx)
+        {
+            if (!_ikiButonModu) return;
+            if (_typewriterCalisiyor) { _typewriterAtla = true; return; }
+            if (!_yazmaTamamlandi) return;
+            _ikiButonSecim = idx;
+            _kullaniciDevamEtti = true; // ModalGoster while loop'unu bitir
+            Debug.Log($"[ModalKopru-FAZ35.11] İki buton seçim: idx={idx}");
         }
 
         // ──────────────────────────────────────────────────────────────────────
