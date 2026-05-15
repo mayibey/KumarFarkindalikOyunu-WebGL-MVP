@@ -520,8 +520,9 @@ namespace KumarFarkindalik.Tutorial
             "'vay be, sürekli çarpan geliyor' diye <color=#F24D40>heyecanlanır</color> → daha çok spin atar → daha çok <color=#F24D40>kaybeder</color>.\n\n" +
             "<b>Şimdi deneyelim:</b> Çarpan olasılığını <color=#FFD933>%100 yap</color>, Uygula bas, <color=#FFD933>1 spin</color> at. " +
             "Çarpan kesin düşecek.";
-        private const string T4_AKSIYON =
-            "<color=#5BA0FF>Çarpan olasılığını</color> <color=#FFD933>%100</color> yap. Uygula bas, <color=#FFD933>1 spin</color> at.";
+        // FAZ35.12: degisiklikler.md K1 — T4_AKSIYON ara modali kaldırıldı (T4_BASLANGIC zaten talimat içeriyor).
+        // Boş string olarak bırakıldı; TutorialOyunYoneticisi.AdimAkisi mesajAksiyon boşsa modal göstermez.
+        private const string T4_AKSIYON = "";
         // PAKET 9: T4 ara modal — kullanıcıya %0 daveti (tersini göstermek için).
         public const string T4_ARA_MODAL =
             "<color=#4DCC59>Çarpanları gördük</color> — her spinde garanti düştü.\n\n" +
@@ -536,8 +537,8 @@ namespace KumarFarkindalik.Tutorial
             "BONUS SEMBOLÜ nedir?\n\n" +
             "Bonus sembolü (yıldız) oyun alanına nadir düşer. Bir spinde 4 veya daha fazla yıldız olursa bonus oyun açılır. 10 ücretsiz spin + büyük kazanç şansı. Kumar siteleri bu olasılığı istediği gibi ayarlar.\n\n" +
             "Şimdi deneyelim: Bonus olasılığını %100 yap, uygulaya bas, 1 spin at. Garantili bonus oyun açılacak.";
-        private const string T5_AKSIYON =
-            "<color=#5BA0FF>Bonus olasılığını</color> <color=#FFD933>%100</color> yap, <color=#5BA0FF>Uygula</color> bas, <color=#FFD933>1 spin</color> at.";
+        // FAZ35.12: degisiklikler.md K2 — T5_AKSIYON ara modali kaldırıldı (T5_BASLANGIC zaten talimat içeriyor).
+        private const string T5_AKSIYON = "";
         // PAKET 14-FAZ35.5-B: T5_ARA_MODAL kaldırıldı (gereksiz modal). T5IlkAsamaSonuAkisi
         // doğrudan Aşama 2'ye geçer, kullanıcı bonus %0 ayarlar + 1 spin daha atar.
         private const string T5_KAPANIS =
@@ -590,9 +591,8 @@ namespace KumarFarkindalik.Tutorial
         private const string T9_BASLANGIC =
             "Kaçış frenleme paneli. Kullanıcı sürekli kaybedip çıkma noktasına geldiğinde kumar siteleri ne yapar? " +
             "Onu tutmak için otomatik kazanç verir. Limit yazın: kaç kayıp sonra otomatik kazanç gelsin.";
-        private const string T9_AKSIYON =
-            "Kaçış limiti kutusuna 3 yaz. Yani 3 kayıptan sonra sistem otomatik kazanç verecek. " +
-            "Uygula bas, 4 spin at.";
+        // FAZ35.12: degisiklikler.md K4 — T9_AKSIYON ara modali kaldırıldı (T9_BASLANGIC limit yazma talimatını içeriyor).
+        private const string T9_AKSIYON = "";
         private const string T9_KAPANIS =
             "Kullanıcının kaç kez üst üste kayıp yaşadıktan sonra oyundan sıkılmaması için kazanç vereceği ayar.";
 

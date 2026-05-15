@@ -19,7 +19,7 @@ namespace Senaryo.Scripted
         public const int ANLATICI_SAHNE_BUILD_INDEX = 2;
         public const int BASLANGIC_BAKIYE = 50000;
         public const int BORC_MIKTARI = 50000;
-        public const string YESILAY_HATTI = "0850 222 0 191";
+        public const string YESILAY_HATTI = "115";
 
         public static ScriptedFinalEkrani Ornek { get; private set; }
         /// <summary>Final ekranı açıkken true; SpinButonImpl bunu kontrol edip spin atımını bloke eder.</summary>
@@ -234,7 +234,8 @@ namespace Senaryo.Scripted
             mesRt.offsetMin = new Vector2(40f, 120f); mesRt.offsetMax = new Vector2(-40f, -70f);
             var mesTxt = mesGo.AddComponent<TextMeshProUGUI>();
             mesTxt.alignment = TextAlignmentOptions.Center;
-            mesTxt.fontSize = 18f;
+            // FAZ35.12: degisiklikler.md #30 — "Unutulmamalıdır ki…" pedagojik metin puntosu +%33 büyütüldü (18→24).
+            mesTxt.fontSize = 24f;
             // fontStyle Italic → Normal: üst 2 satırı <i>...</i> tag'leriyle italik tut, yeni cesaret
             // çağrısı paragrafı normal stilde kalsın (renk + bold tag'leri zaten yeterli vurgu).
             mesTxt.fontStyle = FontStyles.Normal;
