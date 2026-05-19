@@ -52,18 +52,20 @@ mergeInto(LibraryManager.library, {
                 var msg = e.data;
                 if (!msg || msg.source !== 'anlaticiHtml') return;
 
-                // FAZ35.16: Hover-zoom — iframe içindeki .panel mouseenter/leave köprüsü.
-                // Container width 460↔900 px (180ms ease-out, cssText'teki transition), z-index 100↔200.
-                // Guard: AnlaticiPaneliArkayaAt çağrıldıysa opacity:0 — zoom tetiklenmesin.
+                // FAZ35.16 / 35.16.1: Hover-zoom — iframe içindeki .panel mouseenter/leave köprüsü.
+                // Container width 460↔1300 px + height calc(100vh-340)↔calc(100vh-200) (180ms ease-out),
+                // z-index 100↔200. Guard: AnlaticiPaneliArkayaAt çağrıldıysa opacity:0 — zoom tetiklenmesin.
                 if (msg.type === 'hoverZoom') {
                     var c = document.getElementById('anlaticiPanelContainer');
                     if (!c) return;
                     if (c.style.opacity === '0') return;
                     if (msg.aktif) {
-                        c.style.width = '900px';
+                        c.style.width = '1300px';
+                        c.style.height = 'calc(100vh - 200px)';
                         c.style.zIndex = '200';
                     } else {
                         c.style.width = '460px';
+                        c.style.height = 'calc(100vh - 340px)';
                         c.style.zIndex = '100';
                     }
                     return;
@@ -214,7 +216,8 @@ mergeInto(LibraryManager.library, {
         // transition → ArkayaAt/OneAl çağrılarında transform/opacity yumuşak slide-out/in animasyonu.
         // FAZ35.16: transition listesine width 180ms ease-out + z-index 0s eklendi.
         // (Hover-zoom mesajı geldiğinde container width 460→900px animate, z-index 100→200 anlık.)
-        container.style.cssText = 'position:fixed;top:200px;left:20px;width:460px;height:calc(100vh - 340px);overflow:hidden;z-index:100;pointer-events:auto;transform:none;opacity:1;transition:width 180ms ease-out, transform 0.4s ease, opacity 0.4s ease, z-index 0s;';
+        // FAZ35.16.1: height de hover-zoom'da animate olur (1300×calc(100vh-200px) hedefi).
+        container.style.cssText = 'position:fixed;top:200px;left:20px;width:460px;height:calc(100vh - 340px);overflow:hidden;z-index:100;pointer-events:auto;transform:none;opacity:1;transition:width 180ms ease-out, height 180ms ease-out, transform 0.4s ease, opacity 0.4s ease, z-index 0s;';
 
         var iframe = document.createElement('iframe');
         iframe.id = 'anlaticiPanelIframe';
