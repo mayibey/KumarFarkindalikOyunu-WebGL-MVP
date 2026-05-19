@@ -32,10 +32,11 @@
     .section-label, .arka-text, .kafa-text, .bilim-not { transition: font-size 180ms ease-out, line-height 180ms ease-out; }
     .panel.hover-zoom .section-arka { background: rgba(160,50,50,0.15); }
     .panel.hover-zoom .section-kafa { background: rgba(80,60,120,0.15); }
+    /* FAZ35.16.1: Container 1300×calc(100vh-200px)'e büyür — fontlar da daha agresif büyür */
     .panel.hover-zoom .arka-text,
-    .panel.hover-zoom .kafa-text { font-size: 22px; line-height: 1.55; }
-    .panel.hover-zoom .bilim-not { font-size: 19px; }
-    .panel.hover-zoom .section-label { font-size: 15px; }
+    .panel.hover-zoom .kafa-text { font-size: 28px; line-height: 1.6; }
+    .panel.hover-zoom .bilim-not { font-size: 22px; line-height: 1.6; }
+    .panel.hover-zoom .section-label { font-size: 17px; letter-spacing: 2px; }
   }
   .section-label { font-size: 13px; letter-spacing: 1.8px; font-weight: 500; margin-bottom: 6px; }
   .label-arka { color: #d97070; }
@@ -218,8 +219,10 @@
 
   function render() {
     var a = ASAMALAR[aktifAsama]; if (!a) return;
-    document.getElementById('asamaNum').textContent = 'AŞAMA ' + (aktifAsama+1) + ' / 7';
-    document.getElementById('asamaBaslik').textContent = a.isim;
+    // FAZ35.17: "+2 offset" Tutorial=1 varsayımı, senaryo 2'den başlar.
+    // Aşama adı Türkçe uppercase (ı→I, i→İ için tr-TR locale şart; default toUpperCase yanlış sonuç verir).
+    document.getElementById('asamaNum').textContent = (aktifAsama + 2) + '. AŞAMA';
+    document.getElementById('asamaBaslik').textContent = a.isim.toLocaleUpperCase('tr-TR');
     document.getElementById('arkaText').innerHTML = a.arka;
     document.getElementById('kafaText').innerHTML = a.kafa;
     document.getElementById('bilimNot').innerHTML = a.bilim;
