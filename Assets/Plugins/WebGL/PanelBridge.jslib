@@ -47,10 +47,28 @@ mergeInto(LibraryManager.library, {
                 }
             }, false);
 
-            // 3. Anlatıcı Şerit HTML'den gelen resize/ready mesajları
+            // 3. Anlatıcı Şerit HTML'den gelen resize/ready/hoverZoom mesajları
             window.addEventListener('message', function(e) {
                 var msg = e.data;
                 if (!msg || msg.source !== 'anlaticiHtml') return;
+
+                // FAZ35.16: Hover-zoom — iframe içindeki .panel mouseenter/leave köprüsü.
+                // Container width 460↔900 px (180ms ease-out, cssText'teki transition), z-index 100↔200.
+                // Guard: AnlaticiPaneliArkayaAt çağrıldıysa opacity:0 — zoom tetiklenmesin.
+                if (msg.type === 'hoverZoom') {
+                    var c = document.getElementById('anlaticiPanelContainer');
+                    if (!c) return;
+                    if (c.style.opacity === '0') return;
+                    if (msg.aktif) {
+                        c.style.width = '900px';
+                        c.style.zIndex = '200';
+                    } else {
+                        c.style.width = '460px';
+                        c.style.zIndex = '100';
+                    }
+                    return;
+                }
+
                 var iframe = document.getElementById('anlaticiPanelIframe');
                 if (!iframe) return;
 
@@ -194,7 +212,9 @@ mergeInto(LibraryManager.library, {
         // transform:none + opacity:1 EXPLICIT → ArkayaAt sonrası state'i ilk render'da garanti sıfırla
         // (browser cache eski JSLIB tutsa bile yeni container default doğru başlar).
         // transition → ArkayaAt/OneAl çağrılarında transform/opacity yumuşak slide-out/in animasyonu.
-        container.style.cssText = 'position:fixed;top:200px;left:20px;width:460px;height:calc(100vh - 340px);overflow:hidden;z-index:100;pointer-events:auto;transform:none;opacity:1;transition:transform 0.4s ease, opacity 0.4s ease;';
+        // FAZ35.16: transition listesine width 180ms ease-out + z-index 0s eklendi.
+        // (Hover-zoom mesajı geldiğinde container width 460→900px animate, z-index 100→200 anlık.)
+        container.style.cssText = 'position:fixed;top:200px;left:20px;width:460px;height:calc(100vh - 340px);overflow:hidden;z-index:100;pointer-events:auto;transform:none;opacity:1;transition:width 180ms ease-out, transform 0.4s ease, opacity 0.4s ease, z-index 0s;';
 
         var iframe = document.createElement('iframe');
         iframe.id = 'anlaticiPanelIframe';
