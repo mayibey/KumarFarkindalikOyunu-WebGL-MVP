@@ -7,20 +7,23 @@
   html, body { height: 100%; }
   body { margin: 0; padding: 0; background: transparent; color: #fff;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, sans-serif;
-    overflow-y: auto; overflow-x: hidden;
+    overflow: hidden; }
+  /* FAZ35.19: Scroll body'den .panel'e taşındı — scrollbar panel border'ı içinde, 04 admin paneli emsali */
+  #anlaticiRoot { padding: 8px; height: 100%; box-sizing: border-box; }
+  .panel { background: #0f0a1a; border: 1px solid rgba(212,162,74,0.35);
+    border-radius: 14px; overflow-y: auto; overflow-x: hidden;
+    height: 100%; box-sizing: border-box;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4); position: relative;
     scrollbar-width: thin;                        /* Firefox: ince ama görünür */
     scrollbar-color: #d4a857 #0f0a1a; }           /* thumb / track (anlatici .panel bg uyumu) */
-  /* FAZ35.18: Anlatici paneli scrollbar — 04 admin emsali, anlatici teması (track #0f0a1a, thumb altın gradient) */
-  body::-webkit-scrollbar { width: 6px; }
-  body::-webkit-scrollbar-track { background: #0f0a1a; }
-  body::-webkit-scrollbar-thumb {
+  /* FAZ35.19: Scrollbar kuralları Faz 35.18'den .panel'e taşındı (body yerine) */
+  .panel::-webkit-scrollbar { width: 6px; }
+  .panel::-webkit-scrollbar-track { background: #0f0a1a; }
+  .panel::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, #d4a857, #f4d678);
     border-radius: 3px;
   }
-  body::-webkit-scrollbar-thumb:hover { background: #f4d678; }
-  #anlaticiRoot { padding: 8px; }
-  .panel { background: #0f0a1a; border: 1px solid rgba(212,162,74,0.35);
-    border-radius: 14px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.4); position: relative; }
+  .panel::-webkit-scrollbar-thumb:hover { background: #f4d678; }
   .header { padding: 12px 22px 10px; background: rgba(212,162,74,0.08);
     border-bottom: 1px solid rgba(212,162,74,0.2); }
   .header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
