@@ -219,8 +219,10 @@ public class AnlaticiSeritKopru : MonoBehaviour
 
     /// <summary>Aşama başına spin eşiği. PAKET 10: A4 8→5 (asset zaten 5 spin tanımlı, son spin 100x MegaWin).
     /// PAKET 11: A5 10→4 (Spin 4 = BonusTetik son spin; bonus oyun A6'ya manuel geçer, 5. spin asset'te
-    /// var ama normal akışta erişilmez). A6 hızlı yıkım: 5 spin × 10K bahis = 50K borç tükenir. A7 = 999.</summary>
-    private static readonly int[] _asamaSpinSayisi = new int[] { 10, 10, 8, 5, 4, 5, 999 };
+    /// var ama normal akışta erişilmez). A6 hızlı yıkım: 5 spin × 10K bahis = 50K borç tükenir. A7 = 999.
+    /// FAZ35.24: A1/A2 10→8 — asset zaten 8 spin scripted, eski 10 değeri 9-10. spinlerde dinamik motor
+    /// fallback'ine düşürüyordu (pedagojik kayıp, modal yok). Array asset ile uyumlu hale getirildi.</summary>
+    private static readonly int[] _asamaSpinSayisi = new int[] { 8, 8, 8, 5, 4, 5, 999 };
 
     [System.Serializable]
     public class AsamaAyari
