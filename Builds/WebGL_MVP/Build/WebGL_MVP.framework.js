@@ -1773,11 +1773,11 @@ function dbg(text) {
                       if (c.style.opacity === '0') return;
                       if (msg.aktif) {
                           c.style.width = '1300px';
-                          c.style.height = 'calc(100vh - 200px)';
+                          c.style.height = 'min(700px, calc(100vh - 220px))';
                           c.style.zIndex = '200';
                       } else {
                           c.style.width = '460px';
-                          c.style.height = 'calc(100vh - 340px)';
+                          c.style.height = 'min(600px, calc(100vh - 260px))';
                           c.style.zIndex = '100';
                       }
                       return;
@@ -1819,7 +1819,7 @@ function dbg(text) {
           // FAZ35.16: transition listesine width 180ms ease-out + z-index 0s eklendi.
           // (Hover-zoom mesajı geldiğinde container width 460→900px animate, z-index 100→200 anlık.)
           // FAZ35.16.1: height de hover-zoom'da animate olur (1300×calc(100vh-200px) hedefi).
-          container.style.cssText = 'position:fixed;top:200px;left:20px;width:460px;height:calc(100vh - 340px);overflow:hidden;z-index:100;pointer-events:auto;transform:none;opacity:1;transition:width 180ms ease-out, height 180ms ease-out, transform 0.4s ease, opacity 0.4s ease, z-index 0s;';
+          container.style.cssText = 'position:fixed;top:200px;left:20px;width:460px;height:min(600px, calc(100vh - 260px));overflow:hidden;z-index:100;pointer-events:auto;transform:none;opacity:1;transition:width 180ms ease-out, height 180ms ease-out, transform 0.4s ease, opacity 0.4s ease, z-index 0s;';
   
           var iframe = document.createElement('iframe');
           iframe.id = 'anlaticiPanelIframe';
