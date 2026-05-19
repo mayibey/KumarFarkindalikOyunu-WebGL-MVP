@@ -219,8 +219,10 @@
 
   function render() {
     var a = ASAMALAR[aktifAsama]; if (!a) return;
-    document.getElementById('asamaNum').textContent = 'AŞAMA ' + (aktifAsama+1) + ' / 7';
-    document.getElementById('asamaBaslik').textContent = a.isim;
+    // FAZ35.17: "+2 offset" Tutorial=1 varsayımı, senaryo 2'den başlar.
+    // Aşama adı Türkçe uppercase (ı→I, i→İ için tr-TR locale şart; default toUpperCase yanlış sonuç verir).
+    document.getElementById('asamaNum').textContent = (aktifAsama + 2) + '. AŞAMA';
+    document.getElementById('asamaBaslik').textContent = a.isim.toLocaleUpperCase('tr-TR');
     document.getElementById('arkaText').innerHTML = a.arka;
     document.getElementById('kafaText').innerHTML = a.kafa;
     document.getElementById('bilimNot').innerHTML = a.bilim;
