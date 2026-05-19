@@ -61,10 +61,7 @@ namespace Senaryo.Scripted.Editor
         private const string M_A2_S2 =
             "<color=#dc2626>DİKKAT: manipülasyon farkındalığı</color>\n\n" +
             "Oyuncu az önce <color=#2563eb>1000 TL</color> <color=#ea580c>bahis</color> koydu. Ekrana <color=#16a34a>\"kazanç 500 TL\"</color> yazdı ama bakiyesinden <color=#dc2626>500 TL eksildi</color>; yine de oyuncunun zihninde <color=#ea580c>kazandım hissi</color> oluştu. Bu <color=#2563eb>sistemin</color> bilerek tasarladığı bir durumdur. Burada amaç oyuncuya <color=#dc2626>kaybettiğini</color> hissettirmeden sürekli <color=#16a34a>kazandığı</color> algısını oluşturmaktır. Her <color=#2563eb>spinde</color> yatırılan bahisten daha az ödeme yapılmasına rağmen ekrana büyük puntolarla <color=#16a34a>\"kazanç\"</color> yazılır. Uzun vadede oyuncu daima <color=#dc2626>kayıptadır</color>. <color=#2563eb>Algoritma</color> bunu <color=#dc2626>kasıtlı</color> olarak tasarlar: <color=#16a34a>bakiyeyi</color> sürekli artıyormuş gibi göstererek oyuncuyu oyunda tutmak temel amaçtır.";
-        // A2 Spin 3: 3 yıldız near-miss — "Az Daha Tutuyordu" yanılsaması + bonus oyun değeri açıklaması
-        // ORPHAN — A4'e taşındı (A4S1YildizModalAkisi).
-        // İleride pop-up benzeri yerde referans için tutuldu.
-        private const string M_A2_S3 = "Az önce <color=#FFD700><b>3 yıldız (bonus sembolü)</b></color> düştü. Bir tane daha gelseydi, bahis miktarının <color=#FFD700>100 katı</color> değere sahip <color=#FFD700>10 ücretsiz spin</color> hakkı veren bir <color=#FFD700>BONUS oyun</color> açılacaktı.\n\nBu <color=#60A5FA><b>'Az Daha Tutuyordu'</b></color> yanılsamasıdır: oyuncunun beyni bu kıl payı kaçırışı kazanmış gibi algılar. Oyuncu <i>'çok yaklaştım'</i> diye düşünüp daha fazla oynar.";
+        // FAZ35.22: M_A2_S3 ORPHAN const silindi — A4S1YildizModalAkisi runtime'da kullanır, asset'te yer almıyordu.
         // A2 Spin 4 SONRA modal — kontrol yanılsaması vurgusu (3. tekil)
         private const string M_A2_S4 = "Oyuncu <color=#60A5FA>oyunu yönettiğini</color> düşünürken, oyun onu <color=#EF4444>adım adım içine çekiyor</color>.";
         // A2 Spin 6: kontrol yanılsaması pekişmesi (3. tekil)
@@ -88,9 +85,7 @@ namespace Senaryo.Scripted.Editor
         private const string M_A5_S1 = "<color=#ea580c>Şansının döndüğünü</color> düşünen oyuncu, <color=#16a34a>bakiyesinin</color> arttığını görünce <color=#ea580c>bahis</color> oranını daha da artırarak daha çok kazanmayı amaçlar. <color=#ea580c>Bahis</color> miktarının artması oyuncuda <color=#ea580c>adrenalin</color> salgılanmasına neden olur.";
         // A5 Spin 3: ×500 çarpan kaçtı + sabırsızlık silahı
         private const string M_A5_S3 = "Oyunda <color=#2563eb>500x çarpanı</color> düştü ancak ekranda aynı sembolden <color=#2563eb>8 adet</color> olmadığı için hiç ödeme yapılmadı. Bu, <color=#2563eb>sistem</color> tarafından oyuncuyu bir sonraki <color=#dc2626>tuzağa</color> çekmek için kullanılan <color=#dc2626>yemdir</color>. Oyuncu <color=#2563eb>500x çarpanı</color> görünce <color=#ea580c>şansının döndüğüne</color> emin olur ve sıradaki <color=#dc2626>tuzağa</color> düşer.";
-        // ORPHAN — A5 Spin 4 bonusOyunuTetikle parametresiz çağrılıyor, popup runtime'da.
-        // Referans için tutuldu.
-        private const string M_A5_S4_BONUS = "🎰 ŞANSLI SAATİNDESİN! Bonus oyun aktif edildi. Bakiyenin tamamını yatır, x10000 kazanma şansını kaçırma. SINIRLI TEKLİF.";
+        // FAZ35.22: M_A5_S4_BONUS ORPHAN const silindi — ScriptedBonusTuzagiPopup runtime'da kendi metnini gösterir.
         // A5 Spin 5 modali asset'ten kaldırıldı — ScriptedBonusOyunUygulayici dinamik yüzde ile runtime'da modal oynatır.
 
         // === Bahis sabitleri (Bölüm 2 + AnlaticiSeritKopru._onerilenBahisler) ===

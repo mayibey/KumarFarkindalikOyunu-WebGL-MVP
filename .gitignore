@@ -37,3 +37,7 @@ obj/
 *.csproj 
 *.sln 
 UserSettings/ 
+
+# FAZ35.22: Repo disi dosyalar
+*.pptx
+_Recovery/
