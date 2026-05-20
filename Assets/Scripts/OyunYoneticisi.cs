@@ -1451,31 +1451,6 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
         if (!adminSahnesi)
             return;
 
-        _adminAyarPanelKok = AdminSettingsPanelKokunuBul();
-        // 03_SenaryoluOyun (ana oyun) sahnesinde AyarlarButton, PanelKopru.AyarlarButonunaBasildi'ye bağlı;
-        // RemoveAllListeners() o bağlamı sileceğinden bu sahnede dokunmuyoruz.
-        if (aktifSahne != "03_SenaryoluOyun")
-        {
-            var ayarlarBtn = GameObject.Find("AyarlarButton")?.GetComponent<Button>();
-            if (ayarlarBtn != null)
-            {
-                ayarlarBtn.onClick.RemoveAllListeners();
-                ayarlarBtn.onClick.AddListener(AdminAyarPaneliniAc);
-                AdminButonTiklamaIyilestir(ayarlarBtn, null);
-            }
-        }
-
-        if (_adminAyarPanelKok != null)
-        {
-            var kapatBtn = AdminPanelAltindaButonBul(_adminAyarPanelKok.transform, "CloseButton");
-            if (kapatBtn != null)
-            {
-                kapatBtn.onClick.RemoveAllListeners();
-                kapatBtn.onClick.AddListener(AdminAyarPaneliniKapat);
-                AdminButonTiklamaIyilestir(kapatBtn, null);
-            }
-        }
-
         Button forceX5 = GameObject.Find("ForceX5")?.GetComponent<Button>();
         if (forceX5 != null)
         {
@@ -1520,74 +1495,6 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
             AdminButonTiklamaIyilestir(carpanSifirla, null);
         }
 
-        var tumButonlar = FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        int kasalarUygulaBaglanan = 0;
-        for (int i = 0; i < tumButonlar.Length; i++)
-        {
-            var b = tumButonlar[i];
-            if (b == null || b.gameObject == null) continue;
-            string ad = (b.gameObject.name ?? "").ToLowerInvariant();
-            if (ad == "kasalaruygulabutton" || ad == "kasalaruygula" || ad.Contains("kasalaruygula")
-                || ad == "adminpaneluygulabutton" || ad.Contains("adminpaneluygula"))
-            {
-                b.onClick.RemoveAllListeners();
-                b.onClick.AddListener(AdminKasalarAyarlariniUygula);
-                // Uygula butonunda sahnede verilen boyutu koru; zorunlu sizeDelta yazma.
-                AdminButonTiklamaIyilestir(b, null);
-                kasalarUygulaBaglanan++;
-            }
-        }
-        if (kasalarUygulaBaglanan > 0)
-            Debug.Log($"[ADMIN] KasalarUygulaButton bağlandı. Toplam: {kasalarUygulaBaglanan}");
-        else
-            Debug.LogWarning("[ADMIN] KasalarUygulaButton bulunamadı.");
-    }
-
-    static Button AdminPanelAltindaButonBul(Transform kok, string hedefAd)
-    {
-        if (kok == null || string.IsNullOrEmpty(hedefAd)) return null;
-        var tumButonlar = kok.GetComponentsInChildren<Button>(true);
-        for (int i = 0; i < tumButonlar.Length; i++)
-        {
-            var b = tumButonlar[i];
-            if (b == null || b.gameObject == null) continue;
-            if (string.Equals(b.gameObject.name, hedefAd, StringComparison.OrdinalIgnoreCase))
-                return b;
-        }
-        return null;
-    }
-
-    GameObject AdminSettingsPanelKokunuBul()
-    {
-        var kaydiricilar = UnityEngine.Object.FindObjectsByType<AdminSettingsPanelYanKaydirici>(
-            FindObjectsInactive.Include, FindObjectsSortMode.None);
-        if (kaydiricilar != null && kaydiricilar.Length > 0 && kaydiricilar[0] != null)
-            return kaydiricilar[0].gameObject;
-        return GameObject.Find("AdminSettingsPanel");
-    }
-
-    void AdminAyarPaneliniAc()
-    {
-        if (_adminAyarPanelKok == null)
-            _adminAyarPanelKok = AdminSettingsPanelKokunuBul();
-        if (_adminAyarPanelKok == null) return;
-
-        _adminAyarPanelKok.SetActive(true);
-        AdminAyarSonucTextiniGarantiEt();
-        AdminAyarSonucYaz(string.Empty, true);
-        var rt = _adminAyarPanelKok.transform as RectTransform;
-        if (rt != null)
-            rt.SetAsLastSibling();
-        _adminAyarPanelKok.GetComponent<AdminSettingsPanelYanKaydirici>()?.ZorlaTamGenisAc();
-        Canvas.ForceUpdateCanvases();
-    }
-
-    void AdminAyarPaneliniKapat()
-    {
-        if (_adminAyarPanelKok == null)
-            _adminAyarPanelKok = AdminSettingsPanelKokunuBul();
-        if (_adminAyarPanelKok == null) return;
-        _adminAyarPanelKok.SetActive(false);
     }
 
     static int AdminButonMetnindenCarpanDegeriCoz(Button buton, int varsayilan)
@@ -1623,38 +1530,6 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
         var images = buton.GetComponentsInChildren<Image>(true);
         for (int i = 0; i < images.Length; i++)
             if (images[i] != null && images[i].gameObject != buton.gameObject) images[i].raycastTarget = false;
-    }
-
-    void AdminKasalarAyarlariniUygula()
-    {
-        Debug.Log("[ADMIN] KasalarUygulaButton tıklandı.");
-
-        // Kasa değerlerini asıl KasaYoneticisi yönetiyor.
-        var kasa = FindObjectOfType<KasaYoneticisi>();
-        if (kasa != null)
-        {
-            string anaInput = kasa.anaKasaInput != null ? (kasa.anaKasaInput.text ?? "") : "";
-            string havuzInput = kasa.odulHavuzuInput != null ? (kasa.odulHavuzuInput.text ?? "") : "";
-            Debug.Log($"[ADMIN][KASA] Inputlar -> Ana='{anaInput}' Havuz='{havuzInput}' (önce: anaKasaTL={kasa.anaKasaTL}, odulHavuzuTL={kasa.odulHavuzuTL})");
-
-            kasa.ApplyFromInputs();
-            Debug.Log($"[ADMIN][KASA] ApplyFromInputs bitti (sonra: anaKasaTL={kasa.anaKasaTL}, odulHavuzuTL={kasa.odulHavuzuTL})");
-        }
-        else
-        {
-            Debug.LogWarning("[ADMIN][KASA] KasaYoneticisi bulunamadı; sadece çarpan senkronu yapılacak.");
-        }
-
-        // İstersen kasayla birlikte senkronlu çarpan ayarları da otursun.
-        SyncFromAyarClassesIfPresent();
-        UygulaCarpanAyarlari();
-        // Ayarlar değişince bir önceki state ile üretilmiş ilk spin cache'i geçersiz olmalı.
-        OncedenHesaplananSpinOnbelleginiTemizle();
-        AdminAyarSonucYaz("ayarlar kaydedildi", true);
-        _uiServisi?.UI_Guncelle();
-        SenaryoYoneticisi.I?.UI_Guncelle();
-
-        Debug.Log("[ADMIN] KasalarUygulaButton: kasa + çarpan ayarları uygulandı, UI yenilendi.");
     }
 
     /// <summary>

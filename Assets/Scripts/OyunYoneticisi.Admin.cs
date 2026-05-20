@@ -158,57 +158,6 @@ public partial class OyunYoneticisi
         if (sure > 0f)
             Destroy(canvasGo, sure);
     }
-    private void AdminAyarSonucYaz(string mesaj, bool basarili)
-    {
-        AdminAyarSonucTextiniGarantiEt();
-        if (ayarlarSonucText == null) return;
-        ayarlarSonucText.text = mesaj;
-        ayarlarSonucText.color = basarili ? new Color(0.5f, 0.95f, 0.55f, 1f) : new Color(1f, 0.4f, 0.4f, 1f);
-    }
-
-    private void AdminAyarSonucTextiniGarantiEt()
-    {
-        if (ayarlarSonucText != null) return;
-
-        ayarlarSonucText = GameObject.Find("AyarlarSonuc")?.GetComponent<TMP_Text>();
-        if (ayarlarSonucText != null) return;
-
-        if (_adminAyarPanelKok == null)
-            _adminAyarPanelKok = AdminSettingsPanelKokunuBul();
-        if (_adminAyarPanelKok == null) return;
-
-        var mevcut = _adminAyarPanelKok.GetComponentsInChildren<TMP_Text>(true);
-        for (int i = 0; i < mevcut.Length; i++)
-        {
-            var txt = mevcut[i];
-            if (txt == null || txt.gameObject == null) continue;
-            if (string.Equals(txt.gameObject.name, "AyarlarSonuc", StringComparison.OrdinalIgnoreCase))
-            {
-                ayarlarSonucText = txt;
-                return;
-            }
-        }
-
-        var sonucGo = new GameObject("AyarlarSonuc");
-        sonucGo.transform.SetParent(_adminAyarPanelKok.transform, false);
-        var sonucRt = sonucGo.AddComponent<RectTransform>();
-        sonucRt.anchorMin = new Vector2(0.5f, 0f);
-        sonucRt.anchorMax = new Vector2(0.5f, 0f);
-        sonucRt.pivot = new Vector2(0.5f, 0.5f);
-        sonucRt.anchoredPosition = new Vector2(0f, 32f);
-        sonucRt.sizeDelta = new Vector2(760f, 46f);
-
-        var sonucTxt = sonucGo.AddComponent<TextMeshProUGUI>();
-        sonucTxt.fontSize = 28f;
-        sonucTxt.enableAutoSizing = false;
-        sonucTxt.alignment = TextAlignmentOptions.Center;
-        sonucTxt.color = new Color(0.5f, 0.95f, 0.55f, 1f);
-        sonucTxt.raycastTarget = false;
-        sonucTxt.text = string.Empty;
-
-        ayarlarSonucText = sonucTxt;
-    }
-
     private static bool AdminOyunSahnesiMi()
     {
         string sn = SceneManager.GetActiveScene().name;

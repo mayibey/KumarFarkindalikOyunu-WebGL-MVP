@@ -42,7 +42,6 @@ public partial class OyunYoneticisi
     // Bahis artırma sayacı, butona basıldığı anda değil spin başında (bahis gerçekten kullanıldığında) işlensin.
     private int _sonSpinBaslangicBahis = -1;
     private int _spinNo = 0;
-    private GameObject _adminAyarPanelKok;
     private GameObject _normalSpinSonucPopup;
     private TMP_Text _normalSpinSonucBaslikTxt;
     private TMP_Text _normalSpinSonucIcerikTxt;
@@ -147,7 +146,6 @@ public partial class OyunYoneticisi
     private bool _yeniOyuncuModuAktif = false;
     private float _yeniOyuncuBaslangicZamani = 0f;
     [Range(0, 100)] [SerializeField] private int _odemeEgilimiYuzde = 50;
-    public TMP_Text ayarlarSonucText;
 
     public TMPro.TextMeshProUGUI carpanOlasilikValueText;
     public TMPro.TextMeshProUGUI carpanMaxAdetValueText;
