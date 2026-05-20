@@ -245,26 +245,6 @@ public partial class OyunYoneticisi
     private int _bonusZorlaCarpanBirikenTL = 0; // Bonus içinde zorla çarpan kazançları; bakiye sadece 10 hak bitince güncellenir
 
 
-    [Header("Kasa Bazlı Kazan/Kaybet")]
-    [HideInInspector] public bool kasaBazliDengeAktif = true;
-
-    [Tooltip("Ödül havuzu boşken tumble neredeyse imkansız olsun")]
-    [HideInInspector] public int minClusterSize_HavuzBos = 999;
-
-    [Tooltip("Ödül havuzu çok doluyken tumble daha kolay")]
-    [HideInInspector] public int minClusterSize_HavuzDolu = 6;
-
-    [Tooltip("Ödül havuzu çok azken tumble daha zor")]
-    [HideInInspector] public int minClusterSize_HavuzAz = 12;
-
-    [Range(0f, 1f)]
-    [Tooltip("Bu oranın altı 'havuz az' sayılır")]
-    [HideInInspector] public float havuzAzEsik01 = 0.15f;
-
-    [Range(0f, 1f)]
-    [Tooltip("Bu oranın üstü 'havuz dolu' sayılır")]
-    [HideInInspector] public float havuzDoluEsik01 = 0.70f;
-
     // zorluk slider'ın elle verdiği değer (4-12) halen dursun istiyorsan taban olarak kullanırız
     private int _zorlukSliderDegeri = 8;
     private bool _adminManuelZorlukKilidi = false;
@@ -289,9 +269,6 @@ public partial class OyunYoneticisi
     [Header("Zorluk Ayarı (8 = Sweet Bonanza referans)")]
     public int zorlukSeviyesi = 8;
 
-    [Header("BONUS SATIN AL UI OBJESI")]
-    [HideInInspector] public GameObject bonusSatinAlRoot; // (LEGACY)
-
     [Header("Tumble Kazancı UI")]
     [HideInInspector] public TextMeshProUGUI tumbleToplamText; // (LEGACY)
     private int tumbleToplamKazanc = 0;
@@ -308,7 +285,6 @@ public partial class OyunYoneticisi
 
     [Header("BONUS SATIN AL")]
     [HideInInspector] public Button bonusSatinAlButon;          // (LEGACY)
-    [HideInInspector] public TextMeshProUGUI bonusSatinAlText;  // (LEGACY)
     [HideInInspector] public int bonusSatinAlCarpani = 100;     // (LEGACY)
 
     // === BAHİS +/- KONTROL ===

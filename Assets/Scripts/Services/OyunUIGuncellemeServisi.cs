@@ -14,7 +14,6 @@ public interface IOyunUIGuncellemeBaglami
     TMP_Text BonusOyunKazancText { get; }
     TMP_Text KazancText { get; }
     TMP_Text CarpanText { get; }
-    TMP_Text BonusSatinAlText { get; }
     Button CevirButon { get; }
     Button ParaCekButon { get; }
     Button BakiyeYukleButon { get; }
@@ -28,7 +27,6 @@ public interface IOyunUIGuncellemeBaglami
     GameObject ParaCekPanel { get; }
     GameObject BakiyeYuklePanel { get; }
     GameObject BonusBuyConfirmPanel { get; }
-    GameObject BonusSatinAlRoot { get; }
     int GetBakiye();
     int GetBahis();
     int GetBahisMin();
@@ -168,11 +166,6 @@ public class OyunUIGuncellemeServisi
 
         _ctx.RefreshCarpanDisplay();
 
-        int bonusMaliyeti = _ctx.GetBonusMaliyeti();
-        if (_ctx.BonusSatinAlText != null)
-            _ctx.BonusSatinAlText.text = "BONUS SATIN AL\n" + bonusMaliyeti + " TL";
-        if (_ctx.BonusSatinAlRoot != null)
-            _ctx.BonusSatinAlRoot.SetActive(!_ctx.GetBonusAktif());
         PanelAcikliginaGoreAnaButonlariGuncelle();
     }
 

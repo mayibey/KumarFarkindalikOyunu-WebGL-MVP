@@ -270,7 +270,6 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
     TMP_Text IOyunUIGuncellemeBaglami.BonusOyunKazancText => bonusOyunKazancText;
     TMP_Text IOyunUIGuncellemeBaglami.KazancText => kazancText;
     TMP_Text IOyunUIGuncellemeBaglami.CarpanText => carpanText;
-    TMP_Text IOyunUIGuncellemeBaglami.BonusSatinAlText => bonusSatinAlText;
     Button IOyunUIGuncellemeBaglami.CevirButon => cevirButon;
     Button IOyunUIGuncellemeBaglami.ParaCekButon => paraCekButon;
     Button IOyunUIGuncellemeBaglami.BakiyeYukleButon => bakiyeYukleButon;
@@ -284,7 +283,6 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
     GameObject IOyunUIGuncellemeBaglami.ParaCekPanel => paraCekPanel;
     GameObject IOyunUIGuncellemeBaglami.BakiyeYuklePanel => bakiyeYuklePanel;
     GameObject IOyunUIGuncellemeBaglami.BonusBuyConfirmPanel => bonusBuyConfirmPanel;
-    GameObject IOyunUIGuncellemeBaglami.BonusSatinAlRoot => bonusSatinAlRoot;
     int IOyunUIGuncellemeBaglami.GetBakiye() => _ekonomiServisi != null ? _ekonomiServisi.Bakiye : 0;
     int IOyunUIGuncellemeBaglami.GetBahis() => _ekonomiServisi != null ? _ekonomiServisi.Bahis : 0;
     int IOyunUIGuncellemeBaglami.GetBahisMin() => bahisMin;
@@ -535,12 +533,6 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
             bonusBudgetMinTL = kasaObj.BonusBudgetMinTL;
             bonusBudgetMaxTL = kasaObj.BonusBudgetMaxTL;
             bonusMaxOdemeHavuzOrani = kasaObj.BonusMaxOdemeHavuzOrani;
-            kasaBazliDengeAktif = kasaObj.KasaBazliDengeAktif;
-            minClusterSize_HavuzBos = kasaObj.MinClusterSize_HavuzBos;
-            minClusterSize_HavuzDolu = kasaObj.MinClusterSize_HavuzDolu;
-            minClusterSize_HavuzAz = kasaObj.MinClusterSize_HavuzAz;
-            havuzAzEsik01 = kasaObj.HavuzAzEsik01;
-            havuzDoluEsik01 = kasaObj.HavuzDoluEsik01;
             bonusOtoZorlukAktif = kasaObj.BonusOtoZorlukAktif;
             bonusMinCluster_Easy = kasaObj.BonusMinCluster_Easy;
             bonusMinCluster_Hard = kasaObj.BonusMinCluster_Hard;
