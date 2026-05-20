@@ -384,15 +384,6 @@ public partial class OyunYoneticisi
 
         _bombaPatlamaSonrasiIlkRefillCarpanEngeli = false;
         bool adminManuelMod = _adminManuelZorlukKilidi || AdminOyunSahnesiMi();
-        if (adminManuelMod)
-            _bakiye50KUstundeTumbleKapaliKalanSpin = 0;
-
-        if (!bonusSpin)
-        {
-            int bakiye = _ekonomiServisi != null ? _ekonomiServisi.Bakiye : 0;
-            if (bakiye50KteTumbleKapamaAktif && !adminManuelMod && bakiye >= 50000 && _bakiye50KUstundeTumbleKapaliKalanSpin == 0)
-                _bakiye50KUstundeTumbleKapaliKalanSpin = 20;
-        }
 
         int limit = bonusSpin ? (_senaryoServisi != null ? _senaryoServisi.GetBonusRemainingPayableTL() : int.MaxValue) : odenebilirLimit;
         if (bonusSpin && _senaryo5BonusCuziLimitAktif)
@@ -667,10 +658,6 @@ public partial class OyunYoneticisi
             var kayit = new SpinSimulasyonKaydi { Sutun = sutun, Satir = satir };
             sonDenemeKayit = kayit;
 
-            // Bakiye ≥ 50.000 TL görüldüğünde 20 spin boyunca tumble imkansız
-            if (spinPolitikasi.Bakiye50KUstundeSimulasyonIlkGridKazancsizYapilsin(
-                    bonusSpin, adminManuelMod, bakiye50KteTumbleKapamaAktif, _bakiye50KUstundeTumbleKapaliKalanSpin))
-                GrideKazancsizYap();
             // Aşama 2 %20 düşüş: tumble kapatmak yerine zorluk artırıldı (AsamaAyariniUygula); burada ek işlem yok.
 
             // Tumble başlamadan önceki son grid tek kaynak (50K kapatma sonrası dahil); paytable doğrulaması ve oynatma aynı state'i kullanır.
@@ -796,7 +783,6 @@ public partial class OyunYoneticisi
                 _adminVideoArdisikKazancSpinKalan = Mathf.Max(0, _adminVideoArdisikKazancSpinKalan - 1);
                 Debug.Log($"[ADMIN][VIDEO] Arka arkaya kazançlı spin kaldı: {_adminVideoArdisikKazancSpinKalan}");
             }
-            if (bakiye50KteTumbleKapamaAktif && !bonusSpin && _bakiye50KUstundeTumbleKapaliKalanSpin > 0) _bakiye50KUstundeTumbleKapaliKalanSpin--;
             return kayit;
         }
 
@@ -819,7 +805,6 @@ public partial class OyunYoneticisi
             int fillLimit = adminManuelMod ? int.MaxValue : odenebilirLimit;
             if (zorlaCarpanDegeri > 0 && !carpanToggleSecili) fillLimit = 0;
             SpinSimulasyonKaydi zorlaKayit = ZorunluBosSpinIcinSifirKayitUret(fillLimit);
-            if (bakiye50KteTumbleKapamaAktif && !bonusSpin && _bakiye50KUstundeTumbleKapaliKalanSpin > 0) _bakiye50KUstundeTumbleKapaliKalanSpin--;
             return zorlaKayit;
         }
 
@@ -913,7 +898,6 @@ public partial class OyunYoneticisi
                     UstUsteDonguyuSpinSonucuIleIlerle(nihaiOdeme > bahis);
             }
         }
-        if (bakiye50KteTumbleKapamaAktif && sonKayit != null && !bonusSpin && _bakiye50KUstundeTumbleKapaliKalanSpin > 0) _bakiye50KUstundeTumbleKapaliKalanSpin--;
         return sonKayit;
     }
 

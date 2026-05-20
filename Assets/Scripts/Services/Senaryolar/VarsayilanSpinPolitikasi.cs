@@ -60,15 +60,6 @@ public class VarsayilanSpinPolitikasi : ISenaryoSpinPolitikasi
         return SimulasyonSenaryoScatterKarari.Hicbiri();
     }
 
-    public virtual bool Bakiye50KUstundeSimulasyonIlkGridKazancsizYapilsin(
-        bool bonusSpin,
-        bool adminManuelMod,
-        bool ozellikAktif,
-        int kapanmayaKalanSpin)
-    {
-        return ozellikAktif && !bonusSpin && !adminManuelMod && kapanmayaKalanSpin > 0;
-    }
-
     public virtual bool OncedenHesaplanmisSpinOdemeModeliyleDogrula() => false;
 
     public virtual bool OncedenHesaplanmisNormalSpinOdemeYenidenDogrulansinMi(

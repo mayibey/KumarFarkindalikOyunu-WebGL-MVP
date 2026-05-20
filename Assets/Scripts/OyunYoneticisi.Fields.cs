@@ -152,11 +152,6 @@ public partial class OyunYoneticisi
     private float _lastTumblePopTime = -999f;
     private float _lastTumbleDropTime = -999f;
     /// <summary>Bakiye ≥ 50.000 TL görüldüğünde 20 spin boyunca tumble kapalı; kalan spin sayısı.</summary>
-    private int _bakiye50KUstundeTumbleKapaliKalanSpin = 0;
-    [Header("Tumble Koruma (Acil Kurtarma)")]
-    [Tooltip("Açık olduğunda bakiye 50K üstünde 20 spin tumble kapatır. Varsayılan kapalı tutulur.")]
-    public bool bakiye50KteTumbleKapamaAktif = false;
-
     private int spinKazancHam = 0;   // tumble patlamalarından gelen ham toplam (bu spin)
     private int oturumKazanc = 0;    // oturum boyunca biriken toplam kazanç
     private bool _spinKazanciOturumaEklendi = false; // bonus'ta double sayma önler

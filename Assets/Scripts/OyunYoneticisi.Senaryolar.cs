@@ -266,9 +266,6 @@ public partial class OyunYoneticisi
             _adminVideoArdisikKazancSpinKalan = Mathf.Max(0, _adminVideoArdisikKazancSpinKalan - 1);
             Debug.Log($"[ADMIN][VIDEO] Arka arkaya kazançlı spin kaldı: {_adminVideoArdisikKazancSpinKalan}");
         }
-        if (bakiye50KteTumbleKapamaAktif && !bonusSpin && _bakiye50KUstundeTumbleKapaliKalanSpin > 0)
-            _bakiye50KUstundeTumbleKapaliKalanSpin--;
-
         string konstrukteModStr = _senaryo1KonstrukteIkinciKumeBoy > 0
             ? $"iki tumble: sym1={kSym}×{kCnt} + sym2={_senaryo1KonstrukteIkinciKumeSembol}×{_senaryo1KonstrukteIkinciKumeBoy}"
             : $"tek tumble: sym={kSym}×{kCnt}";

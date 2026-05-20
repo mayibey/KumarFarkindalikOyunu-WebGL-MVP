@@ -75,9 +75,6 @@ public interface ISenaryoSpinPolitikasi
     /// <summary>Aşama 1–2 scatter garantisi: gridde ne uygulanacağı (çağıran Gride* metotlarını çalıştırır).</summary>
     SimulasyonSenaryoScatterKarari SimulasyonSenaryoScatterVeGarantiyiDegerlendir(bool bonusSpin);
 
-    /// <summary>50K+ bakiye sonrası N spin boyunca ilk grid kazançsız yapılsın mı.</summary>
-    bool Bakiye50KUstundeSimulasyonIlkGridKazancsizYapilsin(bool bonusSpin, bool adminManuelMod, bool ozellikAktif, int kapanmayaKalanSpin);
-
     /// <summary>Önbellekten spin alınırken <c>OdemeModelineUygunMu</c> ile yeniden doğrulama yapılsın mı (admin ödeme preset 1–3).</summary>
     bool OncedenHesaplanmisSpinOdemeModeliyleDogrula();
 
