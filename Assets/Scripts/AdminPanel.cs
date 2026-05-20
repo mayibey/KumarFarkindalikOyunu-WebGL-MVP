@@ -31,12 +31,6 @@ public class AdminPanel : MonoBehaviour
     public Slider carpanMaxAdetSlider;
     public TMP_Text carpanMaxAdetText;
 
-    [Header("Senaryo Preset")]
-    [Tooltip("1-5 senaryo preset seçimi. Seçim değiştiğinde admin ayarları otomatik senkronize edilir.")]
-    public TMP_Dropdown senaryoPresetDropdown;
-    [Tooltip("Legacy UI Dropdown kullanıyorsanız buraya atanır (TMP yerine).")]
-    public Dropdown senaryoPresetDropdownLegacy;
-
     [Header("Zorla Çarpan Butonları")]
     public Button zorlaCarpan2Button;
     public Button zorlaCarpan5Button;
@@ -54,31 +48,6 @@ public class AdminPanel : MonoBehaviour
     private bool _adminAcik = false;
     private bool _adminIslemKilidiAktif = false;
     private CanvasGroup _adminCanvasGroup;
-    private Coroutine _senaryoAnimCoroutine;
-    private bool _senaryoPresetAktif = true;
-    private bool _senaryoPresetHazirlandi = false;
-
-    private struct SenaryoPreset
-    {
-        public string Ad;
-        public int Bahis;
-        public int ScatterYuzde;
-        public int CarpanYuzde;
-        public int MaxCarpanAdedi;
-        public int ZorlaCarpan;
-        public int MaxScatterPerSpin;
-    }
-
-    private static readonly SenaryoPreset[] _senaryoPresetleri = new SenaryoPreset[]
-    {
-        // Kullanıcı kararı: preset seçimi zorluk değerine dokunmaz.
-        // 5. senaryoya kadar 4/5 scatter görünmesin diye MaxScatterPerSpin=2 uygulanır.
-        new SenaryoPreset { Ad = "1.ALIŞTIRMA", Bahis = 300, ScatterYuzde = 16, CarpanYuzde = 22, MaxCarpanAdedi = 2, ZorlaCarpan = 0, MaxScatterPerSpin = 2 },
-        new SenaryoPreset { Ad = "2.BİRAZ KAZANDIRALIM", Bahis = 300, ScatterYuzde = 14, CarpanYuzde = 20, MaxCarpanAdedi = 2, ZorlaCarpan = 0, MaxScatterPerSpin = 2 },
-        new SenaryoPreset { Ad = "3.BİRAZ KAYBETTİRELİM", Bahis = 1000, ScatterYuzde = 10, CarpanYuzde = 24, MaxCarpanAdedi = 3, ZorlaCarpan = 0, MaxScatterPerSpin = 2 },
-        new SenaryoPreset { Ad = "4.AZ KAZANDIRALIM ÇOK KAYBETTİRELİM", Bahis = 100, ScatterYuzde = 18, CarpanYuzde = 26, MaxCarpanAdedi = 3, ZorlaCarpan = 0, MaxScatterPerSpin = 2 },
-        new SenaryoPreset { Ad = "5.BÜYÜK TEKLİFLERLE PARASINI ALALIM", Bahis = 200, ScatterYuzde = 9, CarpanYuzde = 30, MaxCarpanAdedi = 4, ZorlaCarpan = 0, MaxScatterPerSpin = 5 }
-    };
 
     void Start()
     {
@@ -103,7 +72,6 @@ public class AdminPanel : MonoBehaviour
         // Zorla Çarpan butonlarını bağla
         ZorlaCarpanButonlariniBagla();
         ZorlaCarpanDurumTextHazirla();
-        SenaryoPresetDropdownHazirla();
 
         if (adminAnaPanel != null)
         {
@@ -151,11 +119,6 @@ public class AdminPanel : MonoBehaviour
 
     void Update()
     {
-        if (!_senaryoPresetHazirlandi)
-        {
-            SenaryoPresetDropdownHazirla();
-            _senaryoPresetHazirlandi = senaryoPresetDropdown != null || senaryoPresetDropdownLegacy != null;
-        }
         AdminIslemKilidiniGuncelle();
         ZorlaCarpanDurumMetniniGuncelle();
     }
@@ -503,189 +466,6 @@ public class AdminPanel : MonoBehaviour
         }
     }
 
-    private void SenaryoPresetDropdownHazirla()
-    {
-        if (senaryoPresetDropdown == null)
-            senaryoPresetDropdown = SenaryoPresetDropdownBul();
-        if (senaryoPresetDropdownLegacy == null)
-            senaryoPresetDropdownLegacy = SenaryoPresetDropdownLegacyBul();
-
-        if ((senaryoPresetDropdown == null && senaryoPresetDropdownLegacy == null) || _senaryoPresetleri == null || _senaryoPresetleri.Length == 0)
-        {
-            Debug.LogWarning("[ADMIN-SENARYO] Senaryo preset dropdown bulunamadı. TMP_Dropdown veya legacy Dropdown adını 'SenaryoPresetDropdown' yapın.");
-            return;
-        }
-
-        var ops = new List<string>(_senaryoPresetleri.Length + 1);
-        ops.Add("0. NORMAL OYUN");
-        for (int i = 0; i < _senaryoPresetleri.Length; i++)
-            ops.Add(_senaryoPresetleri[i].Ad);
-
-        if (senaryoPresetDropdown != null)
-        {
-            senaryoPresetDropdown.onValueChanged.RemoveListener(OnSenaryoPresetDegisti);
-            senaryoPresetDropdown.ClearOptions();
-            senaryoPresetDropdown.AddOptions(ops);
-            senaryoPresetDropdown.value = 0;
-            senaryoPresetDropdown.RefreshShownValue();
-            senaryoPresetDropdown.onValueChanged.AddListener(OnSenaryoPresetDegisti);
-        }
-
-        if (senaryoPresetDropdownLegacy != null)
-        {
-            senaryoPresetDropdownLegacy.onValueChanged.RemoveListener(OnSenaryoPresetLegacyDegisti);
-            senaryoPresetDropdownLegacy.ClearOptions();
-            var legacyOps = new List<Dropdown.OptionData>(ops.Count);
-            for (int i = 0; i < ops.Count; i++)
-                legacyOps.Add(new Dropdown.OptionData(ops[i]));
-            senaryoPresetDropdownLegacy.AddOptions(legacyOps);
-            senaryoPresetDropdownLegacy.value = 0;
-            senaryoPresetDropdownLegacy.RefreshShownValue();
-            senaryoPresetDropdownLegacy.onValueChanged.AddListener(OnSenaryoPresetLegacyDegisti);
-        }
-
-        // Normal Oyun her zaman varsayılan; dropdown 0 → Normal Oyun modu.
-        NormalOyunModunuUygula(false);
-    }
-
-    private void OnSenaryoPresetDegisti(int index)
-    {
-        if (_adminIslemKilidiAktif) return;
-        if (index == 0)
-        {
-            NormalOyunModunuUygula(true);
-            return;
-        }
-        _senaryoPresetAktif = true;
-        SenaryoPresetUygula(index - 1, true);
-    }
-
-    private void OnSenaryoPresetLegacyDegisti(int index)
-    {
-        OnSenaryoPresetDegisti(index);
-    }
-
-    private void NormalOyunModunuUygula(bool gorselAnim)
-    {
-        _senaryoPresetAktif = false;
-
-        if (_senaryoAnimCoroutine != null)
-            StopCoroutine(_senaryoAnimCoroutine);
-        _senaryoAnimCoroutine = StartCoroutine(NormalOyunModunuUygulaEnum(gorselAnim));
-    }
-
-    private IEnumerator NormalOyunModunuUygulaEnum(bool gorselAnim)
-    {
-        float sure = gorselAnim ? 0.35f : 0f;
-        yield return SliderDegeriAnimleVeUygula(scatterSlider, 14, sure, OnScatterSliderChanged);
-        yield return SliderDegeriAnimleVeUygula(carpanOlasilikSlider, 15, sure, OnCarpanOlasilikSliderChanged);
-        yield return SliderDegeriAnimleVeUygula(carpanMaxAdetSlider, 3, sure, OnCarpanMaxAdetSliderChanged);
-
-        _oyunYoneticisi?.AdminNormalOyunUygula();
-
-        if (uyariText != null)
-            uyariText.text = "✅ Normal Oyun | Senaryo 1-5 kapalı | Eğilim %65 | Dağılım %30";
-    }
-
-    private void SenaryoPresetUygula(int index, bool gorselAnim)
-    {
-        if (_oyunYoneticisi == null || _senaryoPresetleri == null || _senaryoPresetleri.Length == 0)
-            return;
-        index = Mathf.Clamp(index, 0, _senaryoPresetleri.Length - 1);
-        SenaryoPreset p = _senaryoPresetleri[index];
-
-        if (_senaryoAnimCoroutine != null)
-            StopCoroutine(_senaryoAnimCoroutine);
-        _senaryoAnimCoroutine = StartCoroutine(SenaryoPresetUygulaAnimliEnum(p, gorselAnim));
-    }
-
-    private IEnumerator SenaryoPresetUygulaAnimliEnum(SenaryoPreset p, bool gorselAnim)
-    {
-        float sure = gorselAnim ? 0.35f : 0f;
-        yield return SliderDegeriAnimleVeUygula(scatterSlider, p.ScatterYuzde, sure, OnScatterSliderChanged);
-        yield return SliderDegeriAnimleVeUygula(carpanOlasilikSlider, p.CarpanYuzde, sure, OnCarpanOlasilikSliderChanged);
-        yield return SliderDegeriAnimleVeUygula(carpanMaxAdetSlider, p.MaxCarpanAdedi, sure, OnCarpanMaxAdetSliderChanged);
-
-        _oyunYoneticisi.AdminBahisAyarla(p.Bahis);
-        _oyunYoneticisi.AdminMaxScatterPerSpinAyarla(p.MaxScatterPerSpin);
-        _oyunYoneticisi.AdminZorlaCarpanSec(p.ZorlaCarpan);
-        ZorlaCarpanDurumMetniniGuncelle();
-
-        if (uyariText != null)
-            uyariText.text = $"✅ {p.Ad} yüklendi | Bahis {p.Bahis} TL | Max Scatter {p.MaxScatterPerSpin}";
-    }
-
-    private TMP_Dropdown SenaryoPresetDropdownBul()
-    {
-        TMP_Dropdown dd = GameObject.Find("SenaryoPresetDropdown")?.GetComponent<TMP_Dropdown>();
-        if (dd != null) return dd;
-        dd = GameObject.Find("SenaryoModuDropdown")?.GetComponent<TMP_Dropdown>();
-        if (dd != null) return dd;
-        dd = GameObject.Find("SenaryoDropdown")?.GetComponent<TMP_Dropdown>();
-        if (dd != null) return dd;
-
-        TMP_Dropdown[] tumDropdownlar = FindObjectsOfType<TMP_Dropdown>(true);
-        for (int i = 0; i < tumDropdownlar.Length; i++)
-        {
-            var d = tumDropdownlar[i];
-            if (d == null || d.gameObject == null) continue;
-            string ad = d.gameObject.name.ToLowerInvariant();
-            if (ad.Contains("senaryo") || ad.Contains("preset") || ad.Contains("scenario"))
-                return d;
-        }
-        return null;
-    }
-
-    private Dropdown SenaryoPresetDropdownLegacyBul()
-    {
-        Dropdown dd = GameObject.Find("SenaryoPresetDropdown")?.GetComponent<Dropdown>();
-        if (dd != null) return dd;
-        dd = GameObject.Find("SenaryoModuDropdown")?.GetComponent<Dropdown>();
-        if (dd != null) return dd;
-        dd = GameObject.Find("SenaryoDropdown")?.GetComponent<Dropdown>();
-        if (dd != null) return dd;
-
-        Dropdown[] tumDropdownlar = FindObjectsOfType<Dropdown>(true);
-        for (int i = 0; i < tumDropdownlar.Length; i++)
-        {
-            var d = tumDropdownlar[i];
-            if (d == null || d.gameObject == null) continue;
-            string ad = d.gameObject.name.ToLowerInvariant();
-            if (ad.Contains("senaryo") || ad.Contains("preset") || ad.Contains("scenario"))
-                return d;
-        }
-        return null;
-    }
-
-    private IEnumerator SliderDegeriAnimleVeUygula(Slider slider, float hedef, float sure, System.Action<float> uygula)
-    {
-        if (slider == null || uygula == null) yield break;
-        float min = slider.minValue;
-        float max = slider.maxValue;
-        float h = Mathf.Clamp(hedef, min, max);
-        if (sure <= 0.01f)
-        {
-            slider.SetValueWithoutNotify(h);
-            uygula(h);
-            yield break;
-        }
-
-        float bas = slider.value;
-        float gecen = 0f;
-        while (gecen < sure)
-        {
-            gecen += Time.unscaledDeltaTime;
-            float t = Mathf.Clamp01(gecen / sure);
-            float e = Mathf.SmoothStep(0f, 1f, t);
-            float v = Mathf.Lerp(bas, h, e);
-            slider.SetValueWithoutNotify(v);
-            uygula(v);
-            yield return null;
-        }
-        slider.SetValueWithoutNotify(h);
-        uygula(h);
-    }
-
     // Zorluk Slider Değiştiğinde (tek giriş: OY wrapper üzerinden apply)
     public void OnZorlukSliderChanged(float value)
     {
@@ -737,9 +517,6 @@ public class AdminPanel : MonoBehaviour
             if (sifrePanel) sifrePanel.SetActive(false);
             if (adminAnaPanel) adminAnaPanel.SetActive(true);
             _adminAcik = true;
-            _senaryoPresetHazirlandi = false;
-            SenaryoPresetDropdownHazirla();
-            _senaryoPresetHazirlandi = senaryoPresetDropdown != null || senaryoPresetDropdownLegacy != null;
             Debug.Log("[ADMIN] Panel açıldı");
         }
         else

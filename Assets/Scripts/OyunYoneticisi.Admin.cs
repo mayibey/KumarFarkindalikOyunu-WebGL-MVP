@@ -158,51 +158,6 @@ public partial class OyunYoneticisi
         if (sure > 0f)
             Destroy(canvasGo, sure);
     }
-    private bool AdminAyarlariniKaydet()
-    {
-        try
-        {
-            PlayerPrefs.SetInt(PP_ADMIN_ODEME_EGILIMI, Mathf.Clamp(_odemeEgilimiYuzde, 0, 100));
-            PlayerPrefs.SetInt(PP_ADMIN_ODEME_DAGILIMI, Mathf.Clamp(_odemeDagilimiYuzde, 0, 100));
-            PlayerPrefs.SetInt(PP_ADMIN_MIN_ODEME, Mathf.Max(0, _minOdemeTL));
-            PlayerPrefs.SetInt(PP_ADMIN_MAX_ODEME, Mathf.Max(0, _maxOdemeTL));
-            PlayerPrefs.SetInt(PP_ADMIN_USTUSTE_KAZANC, Mathf.Max(0, _ustUsteKazancHedef));
-            PlayerPrefs.SetInt(PP_ADMIN_USTUSTE_KAYIP, Mathf.Max(0, _ustUsteKayipHedef));
-            PlayerPrefs.Save();
-            Debug.Log($"[ADMIN][KAYIT] Kaydedildi -> Egilim={_odemeEgilimiYuzde} Dagilim={_odemeDagilimiYuzde} Min={_minOdemeTL} Max={_maxOdemeTL} UstUsteKazanc={_ustUsteKazancHedef} UstUsteKayip={_ustUsteKayipHedef}");
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Debug.LogError("[ADMIN][KAYIT] Kaydetme hatası: " + ex.Message);
-            return false;
-        }
-    }
-
-    private void AdminAyarlariniYukle()
-    {
-        _odemeEgilimiYuzde = Mathf.Clamp(PlayerPrefs.GetInt(PP_ADMIN_ODEME_EGILIMI, _odemeEgilimiYuzde), 0, 100);
-        _odemeDagilimiYuzde = Mathf.Clamp(PlayerPrefs.GetInt(PP_ADMIN_ODEME_DAGILIMI, _odemeDagilimiYuzde), 0, 100);
-        _minOdemeTL = Mathf.Max(0, PlayerPrefs.GetInt(PP_ADMIN_MIN_ODEME, _minOdemeTL));
-        _maxOdemeTL = Mathf.Max(_minOdemeTL, PlayerPrefs.GetInt(PP_ADMIN_MAX_ODEME, _maxOdemeTL));
-        _ustUsteKazancHedef = Mathf.Max(0, PlayerPrefs.GetInt(PP_ADMIN_USTUSTE_KAZANC, _ustUsteKazancHedef));
-        _ustUsteKayipHedef = Mathf.Max(0, PlayerPrefs.GetInt(PP_ADMIN_USTUSTE_KAYIP, _ustUsteKayipHedef));
-
-        if (odemeEgilimiSliderUI != null) odemeEgilimiSliderUI.SetValueWithoutNotify(_odemeEgilimiYuzde);
-        if (odemeDagilimiSliderUI != null) odemeDagilimiSliderUI.SetValueWithoutNotify(_odemeDagilimiYuzde);
-        if (minOdemeInput != null) minOdemeInput.SetTextWithoutNotify(_minOdemeTL.ToString());
-        if (maxOdemeInput != null) maxOdemeInput.SetTextWithoutNotify(_maxOdemeTL.ToString());
-        if (ustUsteKazancInput != null) ustUsteKazancInput.SetTextWithoutNotify(_ustUsteKazancHedef.ToString());
-        if (ustUsteKayipInput != null) ustUsteKayipInput.SetTextWithoutNotify(_ustUsteKayipHedef.ToString());
-
-        // Kritik kural: üst üste döngü aktifse her zaman kazanç fazından başlat.
-        // Böylece 5/1 gibi ayarlarda ilk spinin kayıp başlaması engellenir.
-        UstUsteDonguAyarlariniYenile(true);
-        AdminVideoArdisikKazancSayaciniGuncelle();
-        OncedenHesaplananSpinOnbelleginiTemizle();
-        Debug.Log($"[ADMIN][KAYIT] Yüklendi -> Egilim={_odemeEgilimiYuzde} Dagilim={_odemeDagilimiYuzde} Min={_minOdemeTL} Max={_maxOdemeTL} UstUsteKazanc={_ustUsteKazancHedef} UstUsteKayip={_ustUsteKayipHedef}");
-    }
-
     private void AdminAyarSonucYaz(string mesaj, bool basarili)
     {
         AdminAyarSonucTextiniGarantiEt();
@@ -254,292 +209,18 @@ public partial class OyunYoneticisi
         ayarlarSonucText = sonucTxt;
     }
 
-    private void AdminOdemeAyarlariOkuVeUygula(bool donguyuSifirla, bool minMaxUstUsteInputlarindanOku = true)
-    {
-        AdminOdemeUIRefsiniBulGerekirse();
-        _odemeEgilimiYuzde = SliderDegeriYuzdeyeCevir(odemeEgilimiSliderUI, _odemeEgilimiYuzde);
-        _odemeDagilimiYuzde = SliderDegeriYuzdeyeCevir(odemeDagilimiSliderUI, _odemeDagilimiYuzde);
-        if (minMaxUstUsteInputlarindanOku)
-        {
-            _minOdemeTL = InputDegeriPozitifInt(minOdemeInput, _minOdemeTL);
-            _maxOdemeTL = InputDegeriPozitifInt(maxOdemeInput, _maxOdemeTL);
-            _ustUsteKazancHedef = InputDegeriPozitifInt(ustUsteKazancInput, _ustUsteKazancHedef);
-            _ustUsteKayipHedef = InputDegeriPozitifInt(ustUsteKayipInput, _ustUsteKayipHedef);
-        }
-
-        if (_maxOdemeTL < _minOdemeTL)
-        {
-            int t = _maxOdemeTL;
-            _maxOdemeTL = _minOdemeTL;
-            _minOdemeTL = t;
-        }
-
-        if (odemeEgilimiText != null) odemeEgilimiText.text = $"1) Ödeme Eğilimi %{_odemeEgilimiYuzde}";
-        if (odemeDagilimiText != null) odemeDagilimiText.text = $"6) Ödeme Dağılımı %{_odemeDagilimiYuzde}";
-
-        if (donguyuSifirla)
-            UstUsteDonguAyarlariniYenile(true);
-
-        AdminVideoArdisikKazancSayaciniGuncelle();
-
-        Debug.Log($"[ADMIN][ODEME_MODEL] Egilim=%{_odemeEgilimiYuzde} Dagilim=%{_odemeDagilimiYuzde} Min={_minOdemeTL} Max={_maxOdemeTL} UstUsteKazanc={_ustUsteKazancHedef} UstUsteKayip={_ustUsteKayipHedef} Faz={(_ustUsteKazancFaziAktif ? "KAZANÇ" : "KAYIP")} Kalan={_ustUsteFazdaKalan}");
-    }
-
     private static bool AdminOyunSahnesiMi()
     {
         string sn = SceneManager.GetActiveScene().name;
         return sn == "04_AdminOyunScene";
     }
-    private void AdminVideoArdisikKazancSayaciniGuncelle()
-    {
-        if (!AdminOyunSahnesiMi())
-        {
-            _adminVideoArdisikKazancSpinKalan = 0;
-            return;
-        }
-        if (_ustUsteKayipHedef > 0)
-        {
-            _adminVideoArdisikKazancSpinKalan = 0;
-            return;
-        }
-        _adminVideoArdisikKazancSpinKalan = Mathf.Max(0, _ustUsteKazancHedef);
-    }
-
-    private void AdminOdemeUIRefsiniBulGerekirse()
-    {
-        if (odemeEgilimiSliderUI == null) odemeEgilimiSliderUI = GameObject.Find("OdemeEgilimiSlider")?.GetComponent<Slider>();
-        if (odemeDagilimiSliderUI == null) odemeDagilimiSliderUI = GameObject.Find("OdemeDagilimiSlider")?.GetComponent<Slider>();
-        if (minOdemeInput == null) minOdemeInput = GameObject.Find("minOdemeInput")?.GetComponent<TMP_InputField>();
-        if (maxOdemeInput == null)
-            maxOdemeInput = GameObject.Find("MaxOdemeInput")?.GetComponent<TMP_InputField>() ?? GameObject.Find("maxOdemeInput")?.GetComponent<TMP_InputField>();
-        if (ustUsteKazancInput == null) ustUsteKazancInput = GameObject.Find("ustustekazancinput")?.GetComponent<TMP_InputField>();
-        if (ustUsteKayipInput == null) ustUsteKayipInput = GameObject.Find("ustustekayipinput")?.GetComponent<TMP_InputField>();
-        var odemeEgilimiTextAday = GameObject.Find("OdemeEgilimiText")?.GetComponent<TMP_Text>();
-        if (odemeEgilimiTextAday != null)
-            odemeEgilimiText = odemeEgilimiTextAday;
-        else if (odemeEgilimiText == null)
-            odemeEgilimiText = GameObject.Find("OdemeEgilimiTxt")?.GetComponent<TMP_Text>();
-        var odemeDagilimiTextAday = GameObject.Find("OdemeDagilimitxt")?.GetComponent<TMP_Text>()
-            ?? GameObject.Find("OdemeDagilimiText")?.GetComponent<TMP_Text>();
-        if (odemeDagilimiTextAday != null)
-            odemeDagilimiText = odemeDagilimiTextAday;
-    }
-
-    private void AdminOdemeUIBindingleriniKur()
-    {
-        AdminOdemeUIRefsiniBulGerekirse();
-        AdminOdemeInputStiliniYukselt();
-
-        if (odemeEgilimiSliderUI != null)
-        {
-            odemeEgilimiSliderUI.minValue = 0f;
-            odemeEgilimiSliderUI.maxValue = 100f;
-            odemeEgilimiSliderUI.wholeNumbers = false;
-            odemeEgilimiSliderUI.SetValueWithoutNotify(Mathf.Clamp(_odemeEgilimiYuzde, 0, 100));
-            odemeEgilimiSliderUI.onValueChanged.RemoveListener(OnOdemeEgilimiSliderDegisti);
-            odemeEgilimiSliderUI.onValueChanged.AddListener(OnOdemeEgilimiSliderDegisti);
-            OnOdemeEgilimiSliderDegisti(odemeEgilimiSliderUI.value);
-        }
-        if (odemeDagilimiSliderUI != null)
-        {
-            odemeDagilimiSliderUI.minValue = 0f;
-            odemeDagilimiSliderUI.maxValue = 100f;
-            odemeDagilimiSliderUI.wholeNumbers = false;
-            odemeDagilimiSliderUI.SetValueWithoutNotify(Mathf.Clamp(_odemeDagilimiYuzde, 0, 100));
-            odemeDagilimiSliderUI.onValueChanged.RemoveListener(OnOdemeDagilimiSliderDegisti);
-            odemeDagilimiSliderUI.onValueChanged.AddListener(OnOdemeDagilimiSliderDegisti);
-            OnOdemeDagilimiSliderDegisti(odemeDagilimiSliderUI.value);
-        }
-        if (minOdemeInput != null)
-        {
-            minOdemeInput.onEndEdit.RemoveListener(OnMinOdemeInputDegisti);
-            minOdemeInput.onEndEdit.AddListener(OnMinOdemeInputDegisti);
-        }
-        if (maxOdemeInput != null)
-        {
-            maxOdemeInput.onEndEdit.RemoveListener(OnMaxOdemeInputDegisti);
-            maxOdemeInput.onEndEdit.AddListener(OnMaxOdemeInputDegisti);
-        }
-        if (ustUsteKazancInput != null)
-        {
-            ustUsteKazancInput.onEndEdit.RemoveListener(OnUstUsteKazancInputDegisti);
-            ustUsteKazancInput.onEndEdit.AddListener(OnUstUsteKazancInputDegisti);
-        }
-        if (ustUsteKayipInput != null)
-        {
-            ustUsteKayipInput.onEndEdit.RemoveListener(OnUstUsteKayipInputDegisti);
-            ustUsteKayipInput.onEndEdit.AddListener(OnUstUsteKayipInputDegisti);
-        }
-    }
-
-    private void AdminOdemeInputStiliniYukselt()
-    {
-        UygulaAdminInputFontStili(minOdemeInput);
-        UygulaAdminInputFontStili(maxOdemeInput);
-        UygulaAdminInputFontStili(ustUsteKazancInput);
-        UygulaAdminInputFontStili(ustUsteKayipInput);
-    }
-
-    private static void UygulaAdminInputFontStili(TMP_InputField input)
-    {
-        if (input == null) return;
-
-        if (input.textComponent != null)
-        {
-            input.textComponent.fontSize = 30f;
-            input.textComponent.enableAutoSizing = false;
-            input.textComponent.alignment = TextAlignmentOptions.Midline;
-        }
-
-        if (input.placeholder is TMP_Text placeholder)
-        {
-            placeholder.fontSize = 30f;
-            placeholder.enableAutoSizing = false;
-            placeholder.alignment = TextAlignmentOptions.Midline;
-        }
-
-        if (input.textViewport != null)
-        {
-            var rt = input.textViewport;
-            rt.offsetMin = new Vector2(10f, 6f);
-            rt.offsetMax = new Vector2(-10f, -6f);
-        }
-    }
-
-    private void OnOdemeEgilimiSliderDegisti(float value)
-    {
-        _odemeEgilimiYuzde = SliderDegeriYuzdeyeCevir(odemeEgilimiSliderUI, _odemeEgilimiYuzde);
-        if (odemeEgilimiText != null) odemeEgilimiText.text = $"1) Ödeme Eğilimi %{_odemeEgilimiYuzde}";
-    }
-
-    private void OnOdemeDagilimiSliderDegisti(float value)
-    {
-        _odemeDagilimiYuzde = SliderDegeriYuzdeyeCevir(odemeDagilimiSliderUI, _odemeDagilimiYuzde);
-        if (odemeDagilimiText != null) odemeDagilimiText.text = $"6) Ödeme Dağılımı %{_odemeDagilimiYuzde}";
-    }
-
-    private void OnMinOdemeInputDegisti(string _)
-    {
-        _minOdemeTL = InputDegeriPozitifInt(minOdemeInput, _minOdemeTL);
-        if (_maxOdemeTL < _minOdemeTL)
-        {
-            _maxOdemeTL = _minOdemeTL;
-            if (maxOdemeInput != null) maxOdemeInput.SetTextWithoutNotify(_maxOdemeTL.ToString());
-        }
-        if (minOdemeInput != null) minOdemeInput.SetTextWithoutNotify(_minOdemeTL.ToString());
-    }
-
-    private void OnMaxOdemeInputDegisti(string _)
-    {
-        _maxOdemeTL = InputDegeriPozitifInt(maxOdemeInput, _maxOdemeTL);
-        if (_maxOdemeTL < _minOdemeTL)
-        {
-            _maxOdemeTL = _minOdemeTL;
-            if (maxOdemeInput != null) maxOdemeInput.SetTextWithoutNotify(_maxOdemeTL.ToString());
-        }
-    }
-
-    private void OnUstUsteKazancInputDegisti(string _)
-    {
-        _ustUsteKazancHedef = InputDegeriPozitifInt(ustUsteKazancInput, _ustUsteKazancHedef);
-        if (ustUsteKazancInput != null) ustUsteKazancInput.SetTextWithoutNotify(_ustUsteKazancHedef.ToString());
-        AdminVideoArdisikKazancSayaciniGuncelle();
-    }
-
-    private void OnUstUsteKayipInputDegisti(string _)
-    {
-        _ustUsteKayipHedef = InputDegeriPozitifInt(ustUsteKayipInput, _ustUsteKayipHedef);
-        if (ustUsteKayipInput != null) ustUsteKayipInput.SetTextWithoutNotify(_ustUsteKayipHedef.ToString());
-        AdminVideoArdisikKazancSayaciniGuncelle();
-    }
-
-    private static int SliderDegeriYuzdeyeCevir(Slider s, int varsayilan)
-    {
-        if (s == null) return Mathf.Clamp(varsayilan, 0, 100);
-        float v = s.value;
-        int yuzde = v > 1f ? Mathf.RoundToInt(v) : Mathf.RoundToInt(v * 100f);
-        return Mathf.Clamp(yuzde, 0, 100);
-    }
-
-    private static int InputDegeriPozitifInt(TMP_InputField input, int varsayilan)
-    {
-        if (input == null || string.IsNullOrWhiteSpace(input.text))
-            return Mathf.Max(0, varsayilan);
-        string raw = (input.text ?? string.Empty).Trim().Replace(",", ".");
-        if (int.TryParse(raw, out int v)) return Mathf.Max(0, v);
-        if (float.TryParse(raw, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float fv))
-            return Mathf.Max(0, Mathf.RoundToInt(fv));
-        return Mathf.Max(0, varsayilan);
-    }
-
-    private void UstUsteDonguAyarlariniYenile(bool kazancFaziIleBaslat)
-    {
-        bool aktif = _ustUsteKazancHedef > 0 || _ustUsteKayipHedef > 0;
-        if (!aktif)
-        {
-            _ustUsteFazdaKalan = 0;
-            _ustUsteKazancFaziAktif = true;
-            return;
-        }
-        _ustUsteKazancFaziAktif = kazancFaziIleBaslat;
-        UstUsteFazSayaciniAktifFazaKur();
-    }
-
-    private bool UstUsteDonguAktifMi() => _ustUsteKazancHedef > 0 || _ustUsteKayipHedef > 0;
-
-    private bool UstUsteBeklenenKazancMi()
-    {
-        if (!UstUsteDonguAktifMi()) return false;
-        if (IsAdminSenaryo2Aktif())
-            return Senaryo2BeklenenKazancMi();
-        if (_ustUsteFazdaKalan <= 0)
-            UstUsteDonguAyarlariniYenile(true);
-        return _ustUsteKazancFaziAktif;
-    }
-
-    private void UstUsteFazSayaciniAktifFazaKur()
-    {
-        if (!UstUsteDonguAktifMi())
-        {
-            _ustUsteFazdaKalan = 0;
-            return;
-        }
-
-        int aktifFazHedef = _ustUsteKazancFaziAktif ? _ustUsteKazancHedef : _ustUsteKayipHedef;
-        if (aktifFazHedef <= 0)
-        {
-            bool digerFazKazanc = !_ustUsteKazancFaziAktif;
-            int digerFazHedef = digerFazKazanc ? _ustUsteKazancHedef : _ustUsteKayipHedef;
-            if (digerFazHedef <= 0)
-            {
-                _ustUsteFazdaKalan = 0;
-                return;
-            }
-            _ustUsteKazancFaziAktif = digerFazKazanc;
-            aktifFazHedef = digerFazHedef;
-        }
-
-        _ustUsteFazdaKalan = aktifFazHedef;
-    }
-
     private void UstUsteDonguyuSpinSonucuIleIlerle(bool kazancGerceklesti)
     {
-        if (!UstUsteDonguAktifMi() && !IsAdminSenaryo4Aktif() && !IsAdminSenaryo5Aktif()) return;
-        if (IsAdminSenaryo2Aktif())
-        {
-            _senaryo2DonguIndex = (_senaryo2DonguIndex + 1) % 5;
-            return;
-        }
-        if (IsAdminSenaryo3Aktif())
-        {
-            _senaryo3DonguIndex = (_senaryo3DonguIndex + 1) % 5;
-            return;
-        }
-        if (IsAdminSenaryo4Aktif())
-        {
-            _senaryo4DonguIndex = (_senaryo4DonguIndex + 1) % 3;
-            return;
-        }
+        _ = kazancGerceklesti;
+        if (!IsAdminSenaryo4Aktif() && !IsAdminSenaryo5Aktif() && !IsAdminSenaryo2Aktif() && !IsAdminSenaryo3Aktif()) return;
+        if (IsAdminSenaryo2Aktif()) { _senaryo2DonguIndex = (_senaryo2DonguIndex + 1) % 5; return; }
+        if (IsAdminSenaryo3Aktif()) { _senaryo3DonguIndex = (_senaryo3DonguIndex + 1) % 5; return; }
+        if (IsAdminSenaryo4Aktif()) { _senaryo4DonguIndex = (_senaryo4DonguIndex + 1) % 3; return; }
         if (IsAdminSenaryo5Aktif())
         {
             int oncekiIdx = _senaryo5DonguIndex;
@@ -548,129 +229,30 @@ public partial class OyunYoneticisi
             if (popupKuruldu)
                 _senaryo5BombSonrasiPopupBekliyor = true;
             Debug.Log($"[S5][DÖNGÜ] oncekiIdx={oncekiIdx} → yeniIdx={_senaryo5DonguIndex} popupKuruldu={popupKuruldu}");
-            return;
         }
-
-        if (_ustUsteFazdaKalan <= 0)
-            UstUsteFazSayaciniAktifFazaKur();
-
-        bool buFazBasarili = _ustUsteKazancFaziAktif ? kazancGerceklesti : !kazancGerceklesti;
-        if (IsAdminSenaryo3Aktif())
-            Debug.Log($"[S3][DÖNGÜ] kazancGerceklesti={kazancGerceklesti} fazAktif={_ustUsteKazancFaziAktif} fazKalan={_ustUsteFazdaKalan} buFazBasarili={buFazBasarili}");
-        if (!buFazBasarili) return;
-
-        _ustUsteFazdaKalan = Mathf.Max(0, _ustUsteFazdaKalan - 1);
-        if (_ustUsteFazdaKalan > 0) return;
-
-        _ustUsteKazancFaziAktif = !_ustUsteKazancFaziAktif;
-        UstUsteFazSayaciniAktifFazaKur();
-        if (IsAdminSenaryo3Aktif())
-            Debug.Log($"[S3][FAZ DEĞİŞTİ] yeniFaz={(_ustUsteKazancFaziAktif ? "KAZANÇ" : "KAYIP")} fazKalan={_ustUsteFazdaKalan}");
     }
 
     private bool OdemeModelineUygunMu(int nihaiOdeme, int bahis, int deneme, int maxReroll)
     {
-        int min = Mathf.Max(0, _minOdemeTL);
-        int max = Mathf.Max(min, _maxOdemeTL);
-        bool senaryo2NetBandiAktif = IsAdminSenaryo2Aktif();
-        bool senaryo3NetBandiAktif = IsAdminSenaryo3Aktif();
-        bool senaryo4NetBandiAktif = IsAdminSenaryo4Aktif();
-        bool senaryo5NetBandiAktif = IsAdminSenaryo5Aktif();
-        bool ustUsteAktif = UstUsteDonguAktifMi();
-        // Admin 2-5: döngü index'e göre belirle; rastgele eğilime düşülmesin.
+        _ = deneme; _ = maxReroll;
+        // Faz 35.27 YOL Z sonrası: min/max/dağılım/üst üste döngü alanları kaldırıldı. Beklenen yön sadece eğilim
+        // veya senaryo lokal döngüsünden gelir; bant aralığı yok → sadece eğilim (kazanç/kayıp yönü) zorlanır.
         bool beklenenKazanc;
-        if (senaryo3NetBandiAktif)
+        if (IsAdminSenaryo3Aktif())
             beklenenKazanc = Senaryo3BeklenenKazancMi();
-        else if (senaryo2NetBandiAktif)
+        else if (IsAdminSenaryo2Aktif())
             beklenenKazanc = Senaryo2BeklenenKazancMi();
-        else if (senaryo4NetBandiAktif)
+        else if (IsAdminSenaryo4Aktif())
             beklenenKazanc = Senaryo4DonguSpinTipi() == SenaryoBombSpinTipi.Kazanc;
-        else if (senaryo5NetBandiAktif)
+        else if (IsAdminSenaryo5Aktif())
             beklenenKazanc = Senaryo5DonguSpinTipi() == SenaryoBombSpinTipi.Kazanc;
-        else if (ustUsteAktif)
-            beklenenKazanc = UstUsteBeklenenKazancMi();
         else
             beklenenKazanc = UnityEngine.Random.value <= Mathf.Clamp01(_odemeEgilimiYuzde / 100f);
 
         bool kazanc = nihaiOdeme > bahis;
-
-        // max=0 → bant kısıtlaması yok; sadece eğilim (kazanç/kayıp yönü) uygula.
-        if (max == 0)
-        {
-            if (beklenenKazanc && !kazanc) return false;
-            if (!beklenenKazanc && kazanc) return false;
-            return true;
-        }
-
-        int efektifMin = min;
-        int efektifMax = max;
-        bool toleransAtlandi = SpinPolitikasiniAl().OdemeModelindeHedefToleransAtlanmali();
-        SpinPolitikasiniAl().AdminOdemeEfektifBandiniUygula(bahis, beklenenKazanc, ref efektifMin, ref efektifMax);
-
-        // Kesişim sadece tolerans atlanmıyorsa (S1 gibi): S2/3/4/5 için policy bandı tek başına geçerli,
-        // _minOdemeTL/_maxOdemeTL (kazanç fazı için ayarlı) kayıp bandını sıfıra düşürmesin.
-        if (!toleransAtlandi)
-        {
-            efektifMin = Mathf.Max(efektifMin, min);
-            efektifMax = Mathf.Min(efektifMax, max);
-            if (efektifMax < efektifMin)
-                return false;
-        }
-
-        // Anlatıcı asama bazlı bant zorlaması: A1 (Isındırma) min=bahis*1.0 (bahsi geri al),
-        // A2 (Kontrol) min=bahis*0.8, A5+ (Sansin Döndü-Tükeniş) min=0 (kayıp serbest).
-        var anlaticiBant = AnlaticiSeritKopru.Ornek;
-        if (anlaticiBant != null)
-        {
-            int asamaIdx = anlaticiBant.AktifAsama;
-            if (beklenenKazanc)
-            {
-                if (asamaIdx == 0)
-                    efektifMin = Mathf.Max(efektifMin, Mathf.CeilToInt(bahis * 1.3f));
-                else if (asamaIdx == 1)
-                    efektifMin = Mathf.Max(efektifMin, Mathf.CeilToInt(bahis * 1.1f));
-            }
-            if (asamaIdx >= 4)
-                efektifMin = 0; // 0 ödeme kabul (kayıp serbestliği)
-            if (efektifMax < efektifMin)
-                return false;
-        }
-
-        if (nihaiOdeme < efektifMin || nihaiOdeme > efektifMax)
-            return false;
-
-        // Faz aktifken öncelik: faz > eğilim > dağılım.
-        // Kazanç fazı: ödeme eğilimi fiilen %100 kabul edilir (kazanç zorunlu).
-        // Kayıp fazı: ödeme eğilimi bypass edilir; dağılım kaybın şiddetini belirler.
         if (beklenenKazanc && !kazanc) return false;
         if (!beklenenKazanc && kazanc) return false;
-
-        if (toleransAtlandi) return true;
-
-        int alt;
-        int ust;
-        if (beklenenKazanc)
-        {
-            alt = Mathf.Max(efektifMin, bahis + 1);
-            ust = efektifMax;
-        }
-        else
-        {
-            alt = efektifMin;
-            // Öncelik gerçek kayıp (<bahis). Aralık imkansızsa min'e yaslanıp başabaş kaçışını azalt.
-            int kayipUst = Mathf.Min(efektifMax, bahis - 1);
-            if (kayipUst >= alt)
-                ust = kayipUst;
-            else
-                ust = Mathf.Clamp(efektifMin, efektifMin, efektifMax);
-        }
-
-        if (ust < alt) return false;
-        int hedef = Mathf.RoundToInt(Mathf.Lerp(alt, ust, Mathf.Clamp01(_odemeDagilimiYuzde / 100f)));
-        int tolerans = Mathf.Max(10, Mathf.RoundToInt((ust - alt) * 0.22f));
-        if (deneme > Mathf.FloorToInt(maxReroll * 0.70f))
-            tolerans = Mathf.Max(tolerans, 45);
-        return Mathf.Abs(nihaiOdeme - hedef) <= tolerans;
+        return true;
     }
     private void AdminZorlaButonReferanslariniBulBirKez()
     {
@@ -694,53 +276,10 @@ public partial class OyunYoneticisi
         if (_adminForceX100Btn != null) _adminForceX100Btn.interactable = etkin;
         if (_adminCarpanSifirlaBtn != null) _adminCarpanSifirlaBtn.interactable = etkin;
     }
-    private void Senaryo1IsindirmaPedagojikVarsayilanlariniUygula()
-    {
-        AdminBahisAyarla(300);
-        int b = _ekonomiServisi != null ? Mathf.Max(1, _ekonomiServisi.Bahis) : 300;
-        _ustUsteKazancHedef = 5;
-        _ustUsteKayipHedef = 0;
-        _minOdemeTL = b * 4;
-        _maxOdemeTL = b * 5;
-        _odemeEgilimiYuzde = 100;
-        _senaryo1SonZorunluNihaiOdeme = -1;
-        UstUsteDonguAyarlariniYenile(true);
-        AdminOdemeUIRefsiniBulGerekirse();
-        if (odemeEgilimiSliderUI != null)
-            odemeEgilimiSliderUI.SetValueWithoutNotify(Mathf.Clamp(_odemeEgilimiYuzde, 0f, 100f));
-        if (odemeDagilimiSliderUI != null)
-            odemeDagilimiSliderUI.SetValueWithoutNotify(Mathf.Clamp(_odemeDagilimiYuzde, 0f, 100f));
-        if (minOdemeInput != null) minOdemeInput.SetTextWithoutNotify(_minOdemeTL.ToString());
-        if (maxOdemeInput != null) maxOdemeInput.SetTextWithoutNotify(_maxOdemeTL.ToString());
-        if (ustUsteKazancInput != null) ustUsteKazancInput.SetTextWithoutNotify(_ustUsteKazancHedef.ToString());
-        if (ustUsteKayipInput != null) ustUsteKayipInput.SetTextWithoutNotify(_ustUsteKayipHedef.ToString());
-        if (odemeEgilimiText != null) odemeEgilimiText.text = $"1) Ödeme Eğilimi %{_odemeEgilimiYuzde}";
-        if (odemeDagilimiText != null) odemeDagilimiText.text = $"6) Ödeme Dağılımı %{_odemeDagilimiYuzde}";
-        AdminOdemeAyarlariOkuVeUygula(false, false);
-        AdminZorlaCarpanSec(0, false, null);
-        SpinPolitikasiniYenile();
-        // Aşama geçişinden önce üretilmiş sonuç ilk spin'de kullanılmasın; yeni bandı delmesin.
-        OncedenHesaplananSpinOnbelleginiTemizle();
-        Debug.Log($"[SENARYO] Aşama 1 (Isındırma/Umut) pedagojik varsayılanları: Bahis={b} TL, Min/Max nihai ödeme={_minOdemeTL}–{_maxOdemeTL} TL (net kar ≈ {b * 3}–{b * 4} TL).");
-    }
-
     private void SenaryoPedagojikOdemeVeZorlaKilidiGuncelle()
     {
-        OdemeEgilimVeDagilimSliderKilidiniUygula();
-
         var sy = SenaryoYoneticisi.I;
-        if (sy == null)
-        {
-            _pedagojikAsama1IsindirmaOnceki = false;
-            ZorlaButonlarininEtkilesiminiAyarla(!IsAdminSenaryo1Veya2Veya3Aktif() && !IsAdminSenaryo4Aktif() && !IsAdminSenaryo5Aktif());
-            return;
-        }
-
-        bool asama1Isindirma = sy.mevcutAsama == SenaryoYoneticisi.SenaryoAsama.Asama1_IsindirmaUmut;
-        if (asama1Isindirma && !_pedagojikAsama1IsindirmaOnceki)
-            Senaryo1IsindirmaPedagojikVarsayilanlariniUygula();
-
-        _pedagojikAsama1IsindirmaOnceki = asama1Isindirma;
+        bool asama1Isindirma = sy != null && sy.mevcutAsama == SenaryoYoneticisi.SenaryoAsama.Asama1_IsindirmaUmut;
         ZorlaButonlarininEtkilesiminiAyarla(!asama1Isindirma && !IsAdminSenaryo1Veya2Veya3Aktif() && !IsAdminSenaryo4Aktif() && !IsAdminSenaryo5Aktif());
     }
     private System.Collections.IEnumerator Senaryo5PopupCoroutine()
@@ -972,123 +511,10 @@ public partial class OyunYoneticisi
             forceMesaji = "ZORLA 500X AKTİF";
         }
         AdminZorlaCarpanSec(p.ZorlaCarpan, forcePopupGoster, forceMesaji);
-        AdminSenaryoPresetOdemeModeliniUygula(p);
-        // Senaryo/bahis/ödeme bandı değişti; arka planda eski kuralla hesaplanmış spin kullanılmasın.
+        // Faz 35.27 YOL Z: AdminSenaryoPresetOdemeModeliniUygula kaldırıldı; senaryo motoru kendi lokal döngülerini kullanır.
+        AdminPaytableOzetiLogla(_ekonomiServisi != null ? _ekonomiServisi.Bahis : p.Bahis);
         OncedenHesaplananSpinOnbelleginiTemizle();
         SpinPolitikasiniYenile();
-    }
-
-    private void AdminSenaryoPresetOdemeModeliniUygula(AdminSenaryoPreset p)
-    {
-        var girdi = new SenaryoOdemeModelServisi.Girdi
-        {
-            Bahis = p.Bahis,
-            ScatterYuzde = p.ScatterYuzde,
-            CarpanYuzde = p.CarpanYuzde,
-            MaxCarpanAdedi = p.MaxCarpanAdedi,
-            ZorlaCarpan = p.ZorlaCarpan,
-            MaxScatterPerSpin = p.MaxScatterPerSpin
-        };
-        var hedef = _senaryoOdemeModelServisi.Hesapla(girdi);
-
-        int oncekiEgilim = _odemeEgilimiYuzde;
-        int oncekiDagilim = _odemeDagilimiYuzde;
-        int oncekiMin = _minOdemeTL;
-        int oncekiMax = _maxOdemeTL;
-
-        _odemeEgilimiYuzde = Mathf.Clamp(hedef.OdemeEgilimiYuzde, 0, 100);
-        _odemeDagilimiYuzde = Mathf.Clamp(hedef.OdemeDagilimiYuzde, 0, 100);
-        _minOdemeTL = Mathf.Max(0, hedef.MinOdemeTL);
-        _maxOdemeTL = Mathf.Max(_minOdemeTL, hedef.MaxOdemeTL);
-
-        // 1. Senaryo: 5 kazanç / 0 kayıp; net kar bandı bahisin 3–4 katı → nihai ödeme = bahis + net = 4×..5× bahis
-        if (_aktifAdminSenaryoIndex == 0)
-        {
-            _ustUsteKazancHedef = 5;
-            _ustUsteKayipHedef = 0;
-            int b = Mathf.Max(1, p.Bahis);
-            _minOdemeTL = b * 4;
-            _maxOdemeTL = b * 5;
-            _odemeEgilimiYuzde = 100;
-            _senaryo1SonZorunluNihaiOdeme = -1;
-            UstUsteDonguAyarlariniYenile(true);
-        }
-        else if (_aktifAdminSenaryoIndex == 1)
-        {
-            _ustUsteKazancHedef = 3;
-            _ustUsteKayipHedef = 2;
-            // Kazanç bant: bahis×3..bahis×8 (net 2x-7x) — geniş tutarak dağılım çeşitliliği
-            int b2 = Mathf.Max(1, p.Bahis);
-            _minOdemeTL = b2 * 3;
-            _maxOdemeTL = b2 * 8;
-            _odemeEgilimiYuzde = 60;
-            _odemeDagilimiYuzde = 70;
-            _senaryo2DonguIndex = 0;
-            _senaryo2SonNetKazanc = -1;
-            _senaryo2SonNetKayip = -1;
-            UstUsteDonguAyarlariniYenile(true);
-        }
-        else if (_aktifAdminSenaryoIndex == 2)
-        {
-            _ustUsteKazancHedef = 1;
-            _ustUsteKayipHedef = 1;
-            // Kayıp fazı: ödeme 0..bahis (net -bahis..0). Kazanç: bahis+100..bahis+200 (net +100..+200). Inspector tavanı kazanç için yeterli olsun.
-            _minOdemeTL = p.Bahis + 100;
-            _maxOdemeTL = p.Bahis + 600;
-            _odemeEgilimiYuzde = 35;
-            _odemeDagilimiYuzde = 90;
-            _senaryo3DonguIndex = 0;
-            _senaryo3SonNetKazanc = -1;
-            _senaryo3SonNetKayip = -1;
-            // İstisna: bu aşamada döngü kayıp fazından başlar (K-KY-K-KY-K).
-            UstUsteDonguAyarlariniYenile(false);
-        }
-        else if (_aktifAdminSenaryoIndex == 3)
-        {
-            // S4: KY→K→BOMB (3-spin döngüsü). Band = bahis*2..bahis*5 (kazanç spin için; bomb ayrıca yönetilir).
-            int b4 = Mathf.Max(1, p.Bahis);
-            _minOdemeTL = b4 * 2;
-            _maxOdemeTL = b4 * 5;
-            _odemeEgilimiYuzde = 55;
-            _odemeDagilimiYuzde = 80;
-            _senaryo4DonguIndex = 0;
-            _senaryo4SonZorunluNihaiOdeme = -1;
-            UstUsteDonguAyarlariniYenile(true);
-        }
-        else if (_aktifAdminSenaryoIndex == 4)
-        {
-            // S5: K→KY→BOMB (3-spin döngüsü). Band = bahis*2..bahis*5.
-            int b5 = Mathf.Max(1, p.Bahis);
-            _minOdemeTL = b5 * 2;
-            _maxOdemeTL = b5 * 5;
-            _odemeEgilimiYuzde = 55;
-            _odemeDagilimiYuzde = 80;
-            _senaryo5DonguIndex = 0;
-            _senaryo5SonZorunluNihaiOdeme = -1;
-            _senaryo5BombSonrasiPopupBekliyor = false;
-            _senaryo5BonusCuziLimitAktif = false;
-            UstUsteDonguAyarlariniYenile(true);
-        }
-
-        if (odemeEgilimiSliderUI != null)
-            odemeEgilimiSliderUI.SetValueWithoutNotify(_odemeEgilimiYuzde);
-        if (odemeDagilimiSliderUI != null)
-            odemeDagilimiSliderUI.SetValueWithoutNotify(_odemeDagilimiYuzde);
-        if (minOdemeInput != null)
-            minOdemeInput.SetTextWithoutNotify(_minOdemeTL.ToString());
-        if (maxOdemeInput != null)
-            maxOdemeInput.SetTextWithoutNotify(_maxOdemeTL.ToString());
-        if (ustUsteKazancInput != null)
-            ustUsteKazancInput.SetTextWithoutNotify(_ustUsteKazancHedef.ToString());
-        if (ustUsteKayipInput != null)
-            ustUsteKayipInput.SetTextWithoutNotify(_ustUsteKayipHedef.ToString());
-
-        // Input alanlarından tekrar okuma: preset az önce bellek + SetTextWithoutNotify ile set etti; okuma bazen eski UI/bağlantı yüzünden min-max'ı eziyordu.
-        AdminOdemeAyarlariOkuVeUygula(false, false);
-
-        Debug.Log($"[ADMIN][SENARYO_ODEME] {p.Ad} -> Egilim=%{_odemeEgilimiYuzde} Dagilim=%{_odemeDagilimiYuzde} Min={_minOdemeTL} Max={_maxOdemeTL}");
-        AdminPaytableOzetiLogla(_ekonomiServisi != null ? _ekonomiServisi.Bahis : p.Bahis);
-        OdemeEgilimVeDagilimSliderKilidiniUygula();
     }
     private void AdminPaytableOzetiLogla(int bahis)
     {
@@ -1120,34 +546,14 @@ public partial class OyunYoneticisi
         _senaryoPresetAktif = false;
         _aktifAdminSenaryoIndex = -1;
 
-        AdminOdemeUIRefsiniBulGerekirse();
         _odemeEgilimiYuzde = 65;
-        _odemeDagilimiYuzde = 30;
-        _minOdemeTL = 0;
-        _maxOdemeTL = 0;
-        _ustUsteKazancHedef = 0;
-        _ustUsteKayipHedef = 0;
-        UstUsteDonguAyarlariniYenile(true);
 
-        if (odemeEgilimiSliderUI != null)
-            odemeEgilimiSliderUI.SetValueWithoutNotify(Mathf.Clamp(_odemeEgilimiYuzde, 0f, 100f));
-        if (odemeDagilimiSliderUI != null)
-            odemeDagilimiSliderUI.SetValueWithoutNotify(Mathf.Clamp(_odemeDagilimiYuzde, 0f, 100f));
-        if (minOdemeInput != null) minOdemeInput.SetTextWithoutNotify(_minOdemeTL.ToString());
-        if (maxOdemeInput != null) maxOdemeInput.SetTextWithoutNotify(_maxOdemeTL.ToString());
-        if (ustUsteKazancInput != null) ustUsteKazancInput.SetTextWithoutNotify(_ustUsteKazancHedef.ToString());
-        if (ustUsteKayipInput != null) ustUsteKayipInput.SetTextWithoutNotify(_ustUsteKayipHedef.ToString());
-        if (odemeEgilimiText != null) odemeEgilimiText.text = $"1) Ödeme Eğilimi %{_odemeEgilimiYuzde}";
-        if (odemeDagilimiText != null) odemeDagilimiText.text = $"6) Ödeme Dağılımı %{_odemeDagilimiYuzde}";
-
-        AdminOdemeAyarlariOkuVeUygula(false, false);
         AdminZorlaCarpanSec(0, false, null);
         SpinPolitikasiniYenile();
-        OdemeEgilimVeDagilimSliderKilidiniUygula();
         OncedenHesaplananSpinOnbelleginiTemizle();
         SenaryoModuDurumLabeliniBulVeYaz();
 
-        Debug.Log("[ADMIN] Normal Oyun modu aktif: Senaryo 1-5 kapalı | Eğilim=%65 | Dağılım=%30 | Min/Max=0");
+        Debug.Log("[ADMIN] Normal Oyun modu aktif: Senaryo 1-5 kapalı | Eğilim=%65");
     }
 
     /// <summary>PanelKopru: kazanma oranını (0-100) doğrudan set eder.</summary>
@@ -1155,10 +561,6 @@ public partial class OyunYoneticisi
     {
         Debug.Log($"[Admin] AdminSetOdemeEgilimi CAGRILDI: yuzde={yuzde} | onceki={_odemeEgilimiYuzde}");
         _odemeEgilimiYuzde = Mathf.Clamp(yuzde, 0, 100);
-        if (odemeEgilimiSliderUI != null)
-            odemeEgilimiSliderUI.SetValueWithoutNotify(_odemeEgilimiYuzde);
-        if (odemeEgilimiText != null)
-            odemeEgilimiText.text = $"1) Ödeme Eğilimi %{_odemeEgilimiYuzde}";
         SpinPolitikasiniYenile();
         OncedenHesaplananSpinOnbelleginiTemizle();
         Debug.Log($"[ADMIN][PANEL] OdemeEgilimi = %{_odemeEgilimiYuzde}");
@@ -1171,44 +573,12 @@ public partial class OyunYoneticisi
         Debug.Log($"[ADMIN] CarpanTumbleAktif = {aktif}");
     }
 
-    public void AdminSetMinOdeme(int tl)
-    {
-        _minOdemeTL = Mathf.Max(0, tl);
-        if (_maxOdemeTL > 0 && _maxOdemeTL < _minOdemeTL) _maxOdemeTL = _minOdemeTL;
-        if (minOdemeInput != null)
-            minOdemeInput.SetTextWithoutNotify(_minOdemeTL.ToString());
-        OncedenHesaplananSpinOnbelleginiTemizle();
-        Debug.Log($"[ADMIN][PANEL] MinOdemeTL = {_minOdemeTL}");
-    }
-
-    public void AdminSetMinOdemeCarpan(float carpan)
-    {
-        _minOdemeCarpan = Mathf.Max(0f, carpan);
-        OncedenHesaplananSpinOnbelleginiTemizle();
-        Debug.Log($"[ADMIN][PANEL] MinOdemeCarpan = {_minOdemeCarpan}x");
-    }
-
-    /// <summary>NO-OP (2026-04-29): Maks ödeme tavanı kaldırıldı; bu setter artık panel state için tutulur ama
-    /// ödeme akışında okunmuyor. _maksOdemeCarpan her zaman 0 kalır → DonusAkisServisi clamp koşulu false.</summary>
-    public void AdminSetMaksOdemeCarpan(float carpan)
-    {
-        // Ödeme tavanı kaldırıldı — değer ne gelirse gelsin 0 (etkisiz) tut.
-        _maksOdemeCarpan = 0f;
-        if (carpan > 0f)
-            Debug.LogWarning($"[ADMIN][PANEL] AdminSetMaksOdemeCarpan({carpan}) ETKİSİZ — ödeme tavanı kalkıktan beri okunmuyor.");
-        OncedenHesaplananSpinOnbelleginiTemizle();
-        Debug.Log($"[ADMIN][PANEL] MaksOdemeCarpan = {_maksOdemeCarpan}x");
-    }
-
+    /// <summary>LEGACY (Faz 35.27 YOL Z): _maxOdemeTL alanı kaldırıldı. Anlatıcı/SenaryoOtomatikAkis/Tutorial
+    /// hâlâ bu setter'ı çağırıyor; motor okumuyor → no-op (önbellek invalidasyonu hariç).</summary>
     public void AdminSetMaxOdeme(int tl)
     {
-        Debug.Log($"[Admin] AdminSetMaxOdeme CAGRILDI: tl={tl} | onceki={_maxOdemeTL}");
-        _maxOdemeTL = Mathf.Max(0, tl);
-        if (_maxOdemeTL < _minOdemeTL) _maxOdemeTL = _minOdemeTL;
-        if (maxOdemeInput != null)
-            maxOdemeInput.SetTextWithoutNotify(_maxOdemeTL.ToString());
+        _ = tl;
         OncedenHesaplananSpinOnbelleginiTemizle();
-        Debug.Log($"[ADMIN][PANEL] MaxOdemeTL = {_maxOdemeTL}");
     }
 
     public void AdminSetArdisikKayipLimiti(int limit)
@@ -1220,7 +590,6 @@ public partial class OyunYoneticisi
 
     private Coroutine _yeniOyuncuKoroutin;
     private int _yeniOyuncuOncekiEgilim = 65;
-    private int _yeniOyuncuOncekiMax = 0;
 
     [HideInInspector] public int bonusOtomatikSpinPeriyodu = 0; // 0 = devre dışı
     public void AdminSetBonusOtomatikSpinPeriyodu(int oran)
@@ -1289,7 +658,6 @@ public partial class OyunYoneticisi
             _yeniOyuncuModuAktif = true;
             _yeniOyuncuBaslangicZamani = Time.time;
             _yeniOyuncuOncekiEgilim = _odemeEgilimiYuzde;
-            _yeniOyuncuOncekiMax = _maxOdemeTL;
             AdminSetOdemeEgilimi(85);
             AdminSetMaxOdeme(1000);
             if (_yeniOyuncuKoroutin != null) StopCoroutine(_yeniOyuncuKoroutin);
@@ -1301,7 +669,6 @@ public partial class OyunYoneticisi
             _yeniOyuncuModuAktif = false;
             if (_yeniOyuncuKoroutin != null) { StopCoroutine(_yeniOyuncuKoroutin); _yeniOyuncuKoroutin = null; }
             AdminSetOdemeEgilimi(_yeniOyuncuOncekiEgilim);
-            AdminSetMaxOdeme(_yeniOyuncuOncekiMax);
             Debug.Log("[ADMIN][PANEL] Yeni oyuncu modu kapatıldı, önceki ayarlar geri yüklendi.");
         }
     }
@@ -1312,7 +679,6 @@ public partial class OyunYoneticisi
         _yeniOyuncuModuAktif = false;
         _yeniOyuncuKoroutin = null;
         AdminSetOdemeEgilimi(_yeniOyuncuOncekiEgilim);
-        AdminSetMaxOdeme(_yeniOyuncuOncekiMax);
         Debug.Log("[ADMIN] Yeni oyuncu modu 30 dakika doldu, otomatik sonlandı.");
     }
 

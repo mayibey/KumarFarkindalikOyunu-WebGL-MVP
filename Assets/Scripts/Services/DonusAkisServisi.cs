@@ -82,12 +82,6 @@ public interface IDonusAkisBaglami
     void PlayKayipHorn();
     /// <summary>false ise zorla çarpan sonrası tumble zinciri tek adımda durur (cascades yok).</summary>
     bool CarpanTumbleAktif { get; }
-    /// <summary>Panel: min ödeme garantisi (TL). Kazanan spinlerde ödeme bu değerin altına düşmez.</summary>
-    int MinOdemeTL { get; }
-    /// <summary>Panel: min ödeme garantisi — bahis çarpanı olarak. 0 = devre dışı. Örn: 0.5 → 0.5×bahis.</summary>
-    float MinOdemeCarpan { get; }
-    /// <summary>Panel: maks ödeme tavanı — bahis çarpanı olarak. 0 = devre dışı. Örn: 20 → 20×bahis.</summary>
-    float MaksOdemeCarpan { get; }
     /// <summary>Panel: N ardışık kayıptan sonra zorunlu kırıntı eşiği.</summary>
     int ArdisikKayipLimiti { get; }
     int ArdisikKayipSayac { get; set; }

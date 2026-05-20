@@ -208,7 +208,7 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
                 return false;
             }
         }
-        if (!forBonusSpin && AdminOyunSahnesiMi() && _ustUsteKayipHedef == 0 && _adminVideoArdisikKazancSpinKalan > 0 && adayKayit != null)
+        if (!forBonusSpin && AdminOyunSahnesiMi() && _adminVideoArdisikKazancSpinKalan > 0 && adayKayit != null)
         {
             int bahisVideo = _ekonomiServisi != null ? _ekonomiServisi.Bahis : 0;
             int nihaiVideo = _carpanServisi != null
@@ -231,7 +231,7 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
     {
         if (!IsAdminSenaryo2Aktif() && !IsAdminSenaryo3Aktif() && !IsAdminSenaryo4Aktif() && !IsAdminSenaryo5Aktif()) return;
         // S4/S5 kendi döngü index'ini kullanır; UstUsteDongu hedefleri sıfır olsa bile ilerlet.
-        if (!UstUsteDonguAktifMi() && !IsAdminSenaryo4Aktif() && !IsAdminSenaryo5Aktif()) return;
+        if (!IsAdminSenaryo4Aktif() && !IsAdminSenaryo5Aktif()) return;
         Debug.Log($"[DÖNGÜ-İLERLET] S4={IsAdminSenaryo4Aktif()} S5={IsAdminSenaryo5Aktif()} s5idx={_senaryo5DonguIndex} s4idx={_senaryo4DonguIndex}");
         // Simülasyon kabulünde değil, yalnızca NormalSpinAkisi sonunda çağrılır (önbellek spininde index kayması olmasın).
         UstUsteDonguyuSpinSonucuIleIlerle(false);
@@ -254,9 +254,6 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
     void IDonusAkisBaglami.TryResumeOtomatikSpin() => TryResumeOtomatikSpin();
     bool IDonusAkisBaglami.OtomatikSpinAktifMi => _otomatikSpinKalan > 0;
     bool IDonusAkisBaglami.CarpanTumbleAktif => _carpanTumbleAktif;
-    int IDonusAkisBaglami.MinOdemeTL => _minOdemeTL;
-    float IDonusAkisBaglami.MinOdemeCarpan => _minOdemeCarpan;
-    float IDonusAkisBaglami.MaksOdemeCarpan => _maksOdemeCarpan;
     int IDonusAkisBaglami.ArdisikKayipLimiti => _ardisikKayipLimiti;
     int IDonusAkisBaglami.ArdisikKayipSayac { get => _ardisikKayipSayac; set => _ardisikKayipSayac = value; }
     void IDonusAkisBaglami.SonrakiSpinKacisFrenlemeAktifEt()
@@ -904,10 +901,6 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
         {
             maxCarpanAdedi = Mathf.Clamp(adet, 0, 5);
         });
-        AdminOdemeUIRefsiniBulGerekirse();
-        AdminAyarlariniYukle();
-        AdminOdemeUIBindingleriniKur();
-        AdminOdemeAyarlariOkuVeUygula(true);
         // Tek giriş: AdminPanel varsa slider'ları o bağlar; yoksa servis bağlar (çift bağlama yok).
         if (FindObjectOfType<AdminPanel>() == null)
             _adminAyarUIServisi.BindAllAndRefresh();
@@ -1580,10 +1573,6 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
         if (_adminAyarPanelKok == null) return;
 
         _adminAyarPanelKok.SetActive(true);
-        AdminOdemeUIRefsiniBulGerekirse();
-        AdminAyarlariniYukle();
-        AdminOdemeUIBindingleriniKur();
-        AdminOdemeAyarlariOkuVeUygula(false);
         AdminAyarSonucTextiniGarantiEt();
         AdminAyarSonucYaz(string.Empty, true);
         var rt = _adminAyarPanelKok.transform as RectTransform;
@@ -1659,11 +1648,9 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
         // İstersen kasayla birlikte senkronlu çarpan ayarları da otursun.
         SyncFromAyarClassesIfPresent();
         UygulaCarpanAyarlari();
-        AdminOdemeAyarlariOkuVeUygula(true);
         // Ayarlar değişince bir önceki state ile üretilmiş ilk spin cache'i geçersiz olmalı.
         OncedenHesaplananSpinOnbelleginiTemizle();
-        bool kayitBasarili = AdminAyarlariniKaydet();
-        AdminAyarSonucYaz(kayitBasarili ? "ayarlar kaydedildi" : "Ayarlar uygulandi fakat kaydedilemedi.", kayitBasarili);
+        AdminAyarSonucYaz("ayarlar kaydedildi", true);
         _uiServisi?.UI_Guncelle();
         SenaryoYoneticisi.I?.UI_Guncelle();
 
@@ -1859,17 +1846,6 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
         if (!tex.LoadImage(bytes)) return null;
 
         return Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height), new Vector2(0.5f, 0.5f));
-    }
-
-    /// <summary>Senaryo modu veya pedagojik SenaryoYoneticisi varken ödeme eğilimi/dağılımı slider'ları kilitlenir.</summary>
-    private void OdemeEgilimVeDagilimSliderKilidiniUygula()
-    {
-        AdminOdemeUIRefsiniBulGerekirse();
-        bool kilitle = _senaryoPresetAktif || SenaryoYoneticisi.I != null;
-        if (odemeEgilimiSliderUI != null)
-            odemeEgilimiSliderUI.interactable = !kilitle;
-        if (odemeDagilimiSliderUI != null)
-            odemeDagilimiSliderUI.interactable = !kilitle;
     }
 
     /// <summary>Pedagojik Aşama 1: bahis 300, üst üste 5/0, net kar bandı 3–4× bahis (nihai ödeme 4–5× bahis), force sıfır.</summary>

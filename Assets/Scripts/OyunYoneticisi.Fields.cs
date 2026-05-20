@@ -71,8 +71,6 @@ public partial class OyunYoneticisi
     private TMP_Dropdown _senaryoPresetDropdown;
     private ISenaryoSpinPolitikasi _spinPolitikasi;
 
-    /// <summary>Pedagojik akışta Aşama 1 (Isındırma/Umut) için varsayılanların bir kez uygulanması.</summary>
-    private bool _pedagojikAsama1IsindirmaOnceki = false;
     private bool _adminZorlaButonReferanslariBulundu;
     private Button _adminForceX5Btn, _adminForceX10Btn, _adminForceX50Btn, _adminForceX100Btn, _adminCarpanSifirlaBtn;
 
@@ -140,15 +138,6 @@ public partial class OyunYoneticisi
     public TextMeshProUGUI paraCekUyariText;     // Input altındaki sonuç yazısı
 
     public TMPro.TextMeshProUGUI zorlukValueText;
-    [Header("Ödeme Modeli (Admin Panel)")]
-    public TMP_Text odemeEgilimiText;
-    public Slider odemeEgilimiSliderUI;
-    public Slider odemeDagilimiSliderUI;
-    public TMP_Text odemeDagilimiText;
-    public TMP_InputField minOdemeInput;
-    public TMP_InputField maxOdemeInput;
-    public TMP_InputField ustUsteKazancInput;
-    public TMP_InputField ustUsteKayipInput;
 
     private int _ardisikKayipLimiti = 8;
     private int _ardisikKayipSayac = 0;
@@ -157,24 +146,8 @@ public partial class OyunYoneticisi
     private bool _kacisFrenlemeBuSpinAktif = false;
     private bool _yeniOyuncuModuAktif = false;
     private float _yeniOyuncuBaslangicZamani = 0f;
-    private float _minOdemeCarpan = 0f;   // panel: min ödeme bahis katı (0=devre dışı)
-    private float _maksOdemeCarpan = 0f;  // panel: maks ödeme bahis katı (0=devre dışı)
-
     [Range(0, 100)] [SerializeField] private int _odemeEgilimiYuzde = 50;
-    [Range(0, 100)] [SerializeField] private int _odemeDagilimiYuzde = 50;
-    [SerializeField] private int _minOdemeTL = 0;
-    [SerializeField] private int _maxOdemeTL = 2000;
-    [SerializeField] private int _ustUsteKazancHedef = 0;
-    [SerializeField] private int _ustUsteKayipHedef = 0;
-    [SerializeField] private bool _ustUsteKazancFaziAktif = true;
-    [SerializeField] private int _ustUsteFazdaKalan = 0;
     public TMP_Text ayarlarSonucText;
-    private const string PP_ADMIN_ODEME_EGILIMI = "PP_ADMIN_ODEME_EGILIMI";
-    private const string PP_ADMIN_ODEME_DAGILIMI = "PP_ADMIN_ODEME_DAGILIMI";
-    private const string PP_ADMIN_MIN_ODEME = "PP_ADMIN_MIN_ODEME";
-    private const string PP_ADMIN_MAX_ODEME = "PP_ADMIN_MAX_ODEME";
-    private const string PP_ADMIN_USTUSTE_KAZANC = "PP_ADMIN_USTUSTE_KAZANC";
-    private const string PP_ADMIN_USTUSTE_KAYIP = "PP_ADMIN_USTUSTE_KAYIP";
 
     public TMPro.TextMeshProUGUI carpanOlasilikValueText;
     public TMPro.TextMeshProUGUI carpanMaxAdetValueText;

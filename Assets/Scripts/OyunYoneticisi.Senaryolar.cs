@@ -33,8 +33,8 @@ public partial class OyunYoneticisi
         if (allowIkiTumble && Senaryo1HedefOdemeMotoru.TryPaytableUyumluIkiTumbleKumesiSec(
                 tumbleAyarlari,
                 bahis0,
-                _minOdemeTL,
-                _maxOdemeTL,
+                0,
+                2000,
                 _senaryo1SonZorunluNihaiOdeme,
                 _scatterIndexCache,
                 sutun,
@@ -56,8 +56,8 @@ public partial class OyunYoneticisi
         else if (!Senaryo1HedefOdemeMotoru.TryPaytableUyumluTekKumeSec(
                      tumbleAyarlari,
                      bahis0,
-                     _minOdemeTL,
-                     _maxOdemeTL,
+                     0,
+                     2000,
                      _senaryo1SonZorunluNihaiOdeme,
                      _scatterIndexCache,
                      sutun,
@@ -213,7 +213,7 @@ public partial class OyunYoneticisi
         bool zorlaCarpanVardi = zorlaCarpanDegeri > 0;
         if (!bonusSpin && !zorlaCarpanVardi && !OdemeModelineUygunMu(nihaiOdeme, bahis, deneme, maxReroll))
         {
-            Debug.LogWarning($"[KONSTRUKTE] OdemeModelineUygunMu BAŞARISIZ: nihai={nihaiOdeme} bahis={bahis} min~={_minOdemeTL} max~={_maxOdemeTL}");
+            Debug.LogWarning($"[KONSTRUKTE] OdemeModelineUygunMu BAŞARISIZ: nihai={nihaiOdeme} bahis={bahis} min~={0} max~={2000}");
             return null;
         }
 
@@ -303,7 +303,7 @@ public partial class OyunYoneticisi
         _senaryo2KonstrukteMaxTumbleAdimi = 1;
 
         if (allowIkiTumble && Senaryo2HedefOdemeMotoru.TryPaytableUyumluIkiTumbleKumesiSec(
-                tumbleAyarlari, bahis0, _minOdemeTL, _maxOdemeTL, _senaryo2SonZorunluNihaiOdeme,
+                tumbleAyarlari, bahis0, 0, 2000, _senaryo2SonZorunluNihaiOdeme,
                 _scatterIndexCache, sutun, satir,
                 out int kSym1, out int kCnt1, out int tl1,
                 out int kSym2, out int kCnt2, out int tl2))
@@ -314,7 +314,7 @@ public partial class OyunYoneticisi
             _senaryo2KonstrukteMaxTumbleAdimi = 2;
         }
         else if (!Senaryo2HedefOdemeMotoru.TryPaytableUyumluTekKumeSec(
-                     tumbleAyarlari, bahis0, _minOdemeTL, _maxOdemeTL, _senaryo2SonZorunluNihaiOdeme,
+                     tumbleAyarlari, bahis0, 0, 2000, _senaryo2SonZorunluNihaiOdeme,
                      _scatterIndexCache, sutun, satir, out kSym, out kCnt, out beklenenTl))
             return null;
 
@@ -916,10 +916,10 @@ public partial class OyunYoneticisi
             return null;
 
         int bahis = Mathf.Max(1, _ekonomiServisi.Bahis);
-        _senaryo4SonZorunluNihaiOdeme = Senaryo1HedefOdemeMotoru.HedefNihaiOdemeSec(_minOdemeTL, _maxOdemeTL, _odemeDagilimiYuzde);
+        _senaryo4SonZorunluNihaiOdeme = Senaryo1HedefOdemeMotoru.HedefNihaiOdemeSec(0, 2000, 50);
 
         if (!Senaryo4HedefOdemeMotoru.TryPaytableUyumluTekKumeSec(
-                tumbleAyarlari, bahis, _minOdemeTL, _maxOdemeTL, _senaryo4SonZorunluNihaiOdeme,
+                tumbleAyarlari, bahis, 0, 2000, _senaryo4SonZorunluNihaiOdeme,
                 _scatterIndexCache, sutun, satir,
                 out int kSym, out int kCnt, out int beklenenTl))
             return null;
@@ -1388,8 +1388,8 @@ public partial class OyunYoneticisi
         if (kayit == null || kayit.Adimlar == null || kayit.Adimlar.Count == 0)
             return false;
 
-        int minNihai = Mathf.Max(bahis + 1, _minOdemeTL);
-        int maxNihai = Mathf.Max(minNihai, _maxOdemeTL);
+        int minNihai = Mathf.Max(bahis + 1, 0);
+        int maxNihai = Mathf.Max(minNihai, 2000);
         int carpan = Mathf.Max(1, kayit.NihaiCarpanToplam);
 
         // Paytable değeri değiştirilemez; mevcut ham gerçekten band içindeyse onayla, değilse reddet.

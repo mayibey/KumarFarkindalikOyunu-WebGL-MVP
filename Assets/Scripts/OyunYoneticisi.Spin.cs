@@ -140,8 +140,6 @@ public partial class OyunYoneticisi
     private IEnumerator IlkSpinPrecomputeGecikmeli()
     {
         // Oyun açılışında yalnızca kayıtlı ayarı baz al: geçmiş spin/faz kaldığı yerden devam etmesin.
-        AdminAyarlariniYukle();
-        UstUsteDonguAyarlariniYenile(true);
         OncedenHesaplananSpinOnbelleginiTemizle();
         int limit = _odemeServisi != null ? _odemeServisi.GetSpinOdenebilirLimit() : int.MaxValue;
         StartCoroutine(PrecomputeNextSpinCoroutine(limit, false));
@@ -363,8 +361,8 @@ public partial class OyunYoneticisi
     {
         return new SenaryoSpinPolitikasiBaglami(
             ustUsteAktif,
-            _ustUsteKazancHedef,
-            _ustUsteKayipHedef,
+            0,
+            0,
             IsAdminSenaryo1Veya2Veya3Aktif() || IsAdminSenaryo4Aktif() || IsAdminSenaryo5Aktif());
     }
 
@@ -458,20 +456,20 @@ public partial class OyunYoneticisi
         if (zorlaCarpanDegeri > 0)
             limit = int.MaxValue;
         int maxReroll = (zorlaCarpanDegeri > 0) ? SIMULASYON_MAX_REROLL_ZORLA_CARPAN_TUMBLE : AsamaIcinMaxReroll();
-        bool ustUsteAktif = !bonusSpin && zorlaCarpanDegeri <= 0 && UstUsteDonguAktifMi();
+        bool ustUsteAktif = !bonusSpin && zorlaCarpanDegeri <= 0 && false;
         var spinPolitikasi = SpinPolitikasiniAl();
         var spinPolitikaBaglam = OlusturSpinPolitikasiBaglami(ustUsteAktif);
         spinPolitikasi.SimulasyonRerollUstSiniriniUygula(ref maxReroll, spinPolitikaBaglam);
-        bool _dbgBeklenenKazanc = UstUsteBeklenenKazancMi();
+        bool _dbgBeklenenKazanc = false;
         bool senaryo1KazancBandiZorunlu = !bonusSpin
             && zorlaCarpanDegeri <= 0
             && (IsAdminSenaryo1Aktif()
                 || (SenaryoYoneticisi.I != null && SenaryoYoneticisi.I.mevcutAsama == SenaryoYoneticisi.SenaryoAsama.Asama1_IsindirmaUmut))
             && _dbgBeklenenKazanc;
-        Debug.Log($"[SEN1_DBG] IsAdminSen1={IsAdminSenaryo1Aktif()} | KazancFaziAktif={_ustUsteKazancFaziAktif} | FazdaKalan={_ustUsteFazdaKalan} | KazancHedef={_ustUsteKazancHedef} | KayipHedef={_ustUsteKayipHedef} | BeklenenKazanc={_dbgBeklenenKazanc} | senaryo1KazancBandiZorunlu={senaryo1KazancBandiZorunlu} | maxReroll={maxReroll}");
+        Debug.Log($"[SEN1_DBG] IsAdminSen1={IsAdminSenaryo1Aktif()} | KazancFaziAktif={false} | FazdaKalan={0} | KazancHedef={0} | KayipHedef={0} | BeklenenKazanc={_dbgBeklenenKazanc} | senaryo1KazancBandiZorunlu={senaryo1KazancBandiZorunlu} | maxReroll={maxReroll}");
         if (senaryo1KazancBandiZorunlu)
             maxReroll = Mathf.Max(maxReroll, 2500);
-        bool adminVideoArdisikKazanc = !bonusSpin && AdminOyunSahnesiMi() && _ustUsteKayipHedef == 0 && _adminVideoArdisikKazancSpinKalan > 0;
+        bool adminVideoArdisikKazanc = !bonusSpin && AdminOyunSahnesiMi() && 0 == 0 && _adminVideoArdisikKazancSpinKalan > 0;
         bool zorunluBosSpin = !bonusSpin && !adminManuelMod && !adminVideoArdisikKazanc && SenaryoYoneticisi.I != null && SenaryoYoneticisi.I.ShouldForceNoPaySenaryo12();
         if (spinPolitikasi.ZorunluBosSpinAdminPresetYuzundenDevreDisiBirakilsin(spinPolitikaBaglam))
             zorunluBosSpin = false;
@@ -482,8 +480,8 @@ public partial class OyunYoneticisi
         // Senaryo 1 kazanç bandı: akış (1) önce hedef nihai ödeme → (2) rastgele dizilim + tumble ile uygun sonuç ara → (3) kayıt oynatılır.
         if (senaryo1KazancBandiZorunlu)
         {
-            _senaryo1SonZorunluNihaiOdeme = Senaryo1HedefOdemeMotoru.HedefNihaiOdemeSec(_minOdemeTL, _maxOdemeTL, _odemeDagilimiYuzde);
-            Debug.Log($"[SENARYO1][AKIS] (1) Hedef nihai ödeme={_senaryo1SonZorunluNihaiOdeme} TL (bant {_minOdemeTL}–{_maxOdemeTL}, dağılım %{_odemeDagilimiYuzde}) → (2) paytable-uyumlu dizilim → (3) oynatma");
+            _senaryo1SonZorunluNihaiOdeme = Senaryo1HedefOdemeMotoru.HedefNihaiOdemeSec(0, 2000, 50);
+            Debug.Log($"[SENARYO1][AKIS] (1) Hedef nihai ödeme={_senaryo1SonZorunluNihaiOdeme} TL (bant {0}–{2000}, dağılım %{50}) → (2) paytable-uyumlu dizilim → (3) oynatma");
         }
 
         if (senaryo1KazancBandiZorunlu && !bonusSpin && zorlaCarpanDegeri <= 0)
@@ -509,9 +507,9 @@ public partial class OyunYoneticisi
         {
             if (Senaryo2BeklenenKazancMi())
             {
-                _senaryo2SonZorunluNihaiOdeme = Senaryo1HedefOdemeMotoru.HedefNihaiOdemeSec(_minOdemeTL, _maxOdemeTL, _odemeDagilimiYuzde);
+                _senaryo2SonZorunluNihaiOdeme = Senaryo1HedefOdemeMotoru.HedefNihaiOdemeSec(0, 2000, 50);
                 maxReroll = Mathf.Max(maxReroll, 2500);
-                Debug.Log($"[SENARYO2][AKIS] Kazanç spin: hedef={_senaryo2SonZorunluNihaiOdeme} TL (bant {_minOdemeTL}–{_maxOdemeTL})");
+                Debug.Log($"[SENARYO2][AKIS] Kazanç spin: hedef={_senaryo2SonZorunluNihaiOdeme} TL (bant {0}–{2000})");
                 SpinSimulasyonKaydi k2 = Senaryo2KazancKonstrukteHedefSpinDene(
                     limit, bonusSpin, adminManuelMod, adminVideoArdisikKazanc,
                     maxReroll, ustUsteAktif, spinPolitikasi, zorlaCarpanDegeri, allowIkiTumble: true);
@@ -539,10 +537,10 @@ public partial class OyunYoneticisi
         if (senaryo3KonstrukteZorunlu)
         {
             bool s3Kazanc = Senaryo3BeklenenKazancMi();
-            Debug.Log($"[S3][KARAR] donguIdx={_senaryo3DonguIndex} beklenen={( s3Kazanc ? "KAZANÇ" : "KAYIP")} | minOdeme={_minOdemeTL} maxOdeme={_maxOdemeTL}");
+            Debug.Log($"[S3][KARAR] donguIdx={_senaryo3DonguIndex} beklenen={( s3Kazanc ? "KAZANÇ" : "KAYIP")} | minOdeme={0} maxOdeme={2000}");
             if (s3Kazanc)
             {
-                _senaryo3SonZorunluNihaiOdeme = Senaryo1HedefOdemeMotoru.HedefNihaiOdemeSec(_minOdemeTL, _maxOdemeTL, _odemeDagilimiYuzde);
+                _senaryo3SonZorunluNihaiOdeme = Senaryo1HedefOdemeMotoru.HedefNihaiOdemeSec(0, 2000, 50);
                 maxReroll = Mathf.Max(maxReroll, 2500);
                 Debug.Log($"[S3][KAZANÇ] hedef={_senaryo3SonZorunluNihaiOdeme} TL");
                 SpinSimulasyonKaydi k3 = Senaryo3KazancKonstrukteHedefSpinDene(
@@ -629,7 +627,7 @@ public partial class OyunYoneticisi
 
         for (int deneme = 0; deneme < maxReroll; deneme++)
         {
-            bool ustUsteKazancBekleniyor = ustUsteAktif && UstUsteBeklenenKazancMi();
+            bool ustUsteKazancBekleniyor = ustUsteAktif && false;
             zorlaSiradakiCarpan = zorlaCarpanDegeri;
             UI_CarpanSifirla();
             _izgaraServisi?.ResetScatterCountPerSpin();
@@ -849,7 +847,7 @@ public partial class OyunYoneticisi
             int dbgSonNihai = sonDenemeKayit != null && _carpanServisi != null
                 ? _carpanServisi.MulClampInt(sonDenemeKayit.ToplamHamKazanc, System.Math.Max(1, sonDenemeKayit.NihaiCarpanToplam))
                 : (sonDenemeKayit?.ToplamHamKazanc ?? -1);
-            Debug.LogWarning($"[SEN1_DBG2] Tüm reroll'lar tükendi. maxReroll={maxReroll} | senaryo1KazancBandiZorunlu={senaryo1KazancBandiZorunlu} | SonDenemeNihai={dbgSonNihai} | efektifMin~={_minOdemeTL} efektifMax~={_maxOdemeTL} | KazancFaziAktif={_ustUsteKazancFaziAktif}");
+            Debug.LogWarning($"[SEN1_DBG2] Tüm reroll'lar tükendi. maxReroll={maxReroll} | senaryo1KazancBandiZorunlu={senaryo1KazancBandiZorunlu} | SonDenemeNihai={dbgSonNihai} | efektifMin~={0} efektifMax~={2000} | KazancFaziAktif={false}");
         }
 
         // Senaryo 1 zorunlu boş spin: 400 denemede 0 gelmediyse gridi kazançsız yapıp garanti 0 ödeme döndür
@@ -907,7 +905,7 @@ public partial class OyunYoneticisi
                     string kaynak = adminSenaryo1Aktif ? "AdminPreset1"
                                   : asama1PedagojikAktif ? "PedagojikAsama1"
                                   : ("AnlaticiAsama" + (AnlaticiSeritKopru.Ornek != null ? AnlaticiSeritKopru.Ornek.AktifAsama : -1));
-                    Debug.LogWarning($"[FALLBACK_ZORLAMA] Band dışı fallback, band içi kazanca çevrildi. Nihai={nihaiFb}, Bahis={bahisFb}, MinMax={_minOdemeTL}-{_maxOdemeTL}, Kaynak={kaynak}.");
+                    Debug.LogWarning($"[FALLBACK_ZORLAMA] Band dışı fallback, band içi kazanca çevrildi. Nihai={nihaiFb}, Bahis={bahisFb}, MinMax={0}-{2000}, Kaynak={kaynak}.");
                 }
                 else if (asama1PedagojikAktif || adminSenaryo1Aktif)
                 {
@@ -915,7 +913,7 @@ public partial class OyunYoneticisi
                     int fillLimit = adminManuelMod ? int.MaxValue : odenebilirLimit;
                     if (zorlaCarpanDegeri > 0 && !carpanToggleSecili)
                         fillLimit = 0;
-                    Debug.LogWarning($"[SENARYO1][FALLBACK_BLOKE] Band dışı fallback engellendi ama zorlanacak tumble kaydı yok. Nihai={nihaiFb}, Bahis={bahisFb}, MinMax={_minOdemeTL}-{_maxOdemeTL}, Kaynak={(adminSenaryo1Aktif ? "AdminPreset1" : "PedagojikAsama1")}. Sıfır ödeme fallback üretildi.");
+                    Debug.LogWarning($"[SENARYO1][FALLBACK_BLOKE] Band dışı fallback engellendi ama zorlanacak tumble kaydı yok. Nihai={nihaiFb}, Bahis={bahisFb}, MinMax={0}-{2000}, Kaynak={(adminSenaryo1Aktif ? "AdminPreset1" : "PedagojikAsama1")}. Sıfır ödeme fallback üretildi.");
                     sonDenemeKayit = ZorunluBosSpinIcinSifirKayitUret(fillLimit);
                     nihaiFb = 0;
                     bandUygun = true;
@@ -940,7 +938,7 @@ public partial class OyunYoneticisi
                 {
                     int tumbleEsikLog = OyunKorumaServisi.TUMBLE_SABIT_ESIK;
                     bool payOk = SpinKaydiHamPaytableIleUyumluMu(sonDenemeKayit, bahis, tumbleEsikLog);
-                    Debug.LogWarning($"[USTUSTE][FALLBACK] Ödeme modeli son denemede uyumsuz; ham/adım paytable sonucu korunuyor (uydurma yok). BeklenenFaz={(_ustUsteKazancFaziAktif ? "KAZANÇ" : "KAYIP")} KazancHedef={_ustUsteKazancHedef} KayipHedef={_ustUsteKayipHedef} FallbackOdeme={fallbackNihaiOdeme} Bahis={bahis} Reroll={maxReroll} PaytableUyumlu={payOk}");
+                    Debug.LogWarning($"[USTUSTE][FALLBACK] Ödeme modeli son denemede uyumsuz; ham/adım paytable sonucu korunuyor (uydurma yok). BeklenenFaz={(false ? "KAZANÇ" : "KAYIP")} KazancHedef={0} KayipHedef={0} FallbackOdeme={fallbackNihaiOdeme} Bahis={bahis} Reroll={maxReroll} PaytableUyumlu={payOk}");
                 }
             }
 

@@ -140,12 +140,12 @@ public class PanelKopru : MonoBehaviour
 
             case "minCarpan":
                 minCarpan = float.Parse(deger, System.Globalization.CultureInfo.InvariantCulture);
-                _oy?.AdminSetMinOdemeCarpan(minCarpan);
+                // LEGACY: AdminSetMinOdemeCarpan kaldırıldı (Faz 35.27 YOL Z). Panel değeri saklanır, motor okumaz.
                 break;
 
             case "maksCarpan":
                 maksCarpan = float.Parse(deger, System.Globalization.CultureInfo.InvariantCulture);
-                _oy?.AdminSetMaksOdemeCarpan(maksCarpan);
+                // LEGACY: AdminSetMaksOdemeCarpan kaldırıldı (Faz 35.27 YOL Z). Panel değeri saklanır, motor okumaz.
                 break;
 
             case "yakinKacirma":
@@ -320,8 +320,6 @@ public class PanelKopru : MonoBehaviour
                 maksCarpan = 0f;
                 yakinKacirma = 20f;
                 _oy?.AdminNormalOyunUygula();
-                _oy?.AdminSetMinOdemeCarpan(0f);
-                _oy?.AdminSetMaksOdemeCarpan(0f);
                 break;
 
             case "hook":  // Yeni avlanan modu — yüksek kazanma, düşük tavan
@@ -330,8 +328,6 @@ public class PanelKopru : MonoBehaviour
                 maksCarpan = 5f;
                 yakinKacirma = 60f;
                 _oy?.AdminSetOdemeEgilimi(85);
-                _oy?.AdminSetMinOdemeCarpan(0f);
-                _oy?.AdminSetMaksOdemeCarpan(5f);
                 break;
 
             case "yontma":  // Oyuncuyu yıprat
@@ -340,8 +336,6 @@ public class PanelKopru : MonoBehaviour
                 maksCarpan = 3f;
                 yakinKacirma = 70f;
                 _oy?.AdminSetOdemeEgilimi(25);
-                _oy?.AdminSetMinOdemeCarpan(0f);
-                _oy?.AdminSetMaksOdemeCarpan(3f);
                 break;
 
             case "tutma":  // Oyuncuyu tut
@@ -350,8 +344,6 @@ public class PanelKopru : MonoBehaviour
                 maksCarpan = 8f;
                 yakinKacirma = 80f;
                 _oy?.AdminSetOdemeEgilimi(45);
-                _oy?.AdminSetMinOdemeCarpan(0.5f);
-                _oy?.AdminSetMaksOdemeCarpan(8f);
                 break;
 
             case "koruma":  // Kasa koru
@@ -360,8 +352,6 @@ public class PanelKopru : MonoBehaviour
                 maksCarpan = 2f;
                 yakinKacirma = 90f;
                 _oy?.AdminSetOdemeEgilimi(15);
-                _oy?.AdminSetMinOdemeCarpan(0f);
-                _oy?.AdminSetMaksOdemeCarpan(2f);
                 break;
         }
 
@@ -396,8 +386,6 @@ public class PanelKopru : MonoBehaviour
         bonusModu = "manuel";
         aktifSenaryo = "normal";
         _oy?.AdminNormalOyunUygula();
-        _oy?.AdminSetMinOdemeCarpan(0f);
-        _oy?.AdminSetMaksOdemeCarpan(0f);
         Debug.Log("[PanelKopru] Varsayılan ayarlara dönüldü");
     }
 

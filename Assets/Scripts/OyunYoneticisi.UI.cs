@@ -729,20 +729,14 @@ public partial class OyunYoneticisi
     /// <summary>SaveLoad save için Anlatıcı dinamik admin override değerlerini oku (private field'lar).</summary>
     public int GetAdminOdemeEgilimi() => _odemeEgilimiYuzde;
 
-    /// <summary>SaveLoad save için maxOdemeTL override (private field).</summary>
-    public int GetAdminMaxOdeme() => _maxOdemeTL;
+    /// <summary>SaveLoad save için maxOdemeTL override (LEGACY: alan kaldırıldı, sabit 2000 döner).</summary>
+    public int GetAdminMaxOdeme() => 2000;
 
-    /// <summary>AnlaticiSeritKopru için: üst üste kazanç/kayıp fazı state'ini sıfırla
-    /// (önceki oturumdan kalan _ustUsteKazancFaziAktif=true gibi durumlar Anlatıcı eğilim ayarını bypass edebiliyor).</summary>
+    /// <summary>AnlaticiSeritKopru için: legacy üst üste döngü state'ini sıfırla (alan kaldırıldıktan sonra no-op).</summary>
     public void AnlaticiKazancFaziniSifirla()
     {
-        _ustUsteKazancFaziAktif = false;
-        _ustUsteFazdaKalan = 0;
-        _ustUsteKazancHedef = 0;
-        _ustUsteKayipHedef = 0;
         SpinPolitikasiniYenile();
         OncedenHesaplananSpinOnbelleginiTemizle();
-        Debug.Log("[Admin] UstUsteKazancFazi mekanizması sıfırlandı (Anlatıcı takeover).");
     }
 
     /// <summary>Bahis +/- butonlarına basıldığında çağrılır (2026-04-30 hibrit).

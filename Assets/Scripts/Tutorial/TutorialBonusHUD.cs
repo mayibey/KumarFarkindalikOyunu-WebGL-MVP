@@ -21,8 +21,9 @@ namespace KumarFarkindalik.Tutorial
 
         public static TutorialBonusHUD Ornek { get; private set; }
 
-        private const float PANEL_GENISLIK = 300f;
-        private const float PANEL_YUKSEKLIK = 200f;
+        // PAKET 3B-fix-14: Görev Paneli ile aynı X sütununda, altında — 280×180
+        private const float PANEL_GENISLIK = 280f;
+        private const float PANEL_YUKSEKLIK = 180f;
         private const float PULSE_PERIYOT = 1.0f;
         private const float PULSE_OLCEK = 1.02f;
 
@@ -115,14 +116,14 @@ namespace KumarFarkindalik.Tutorial
             if (_aktif)
             {
                 if (_kalanSpinText != null)
-                    _kalanSpinText.text = $"<size=14><color=#BFBFBF>Kalan Spin Hakkı</color></size>\n<size=30><b>{_oy.BonusHakKalan} / 10</b></size>";
+                    _kalanSpinText.text = $"<size=14><color=#BFBFBF>Kalan Spin Hakkı</color></size>\n<size=24><b>{_oy.BonusHakKalan} / 10</b></size>";
                 if (_kazancText != null)
                 {
                     int kazanc = _oy.OturumKazanc;
                     string formatli = kazanc >= 1000
                         ? kazanc.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("tr-TR"))
                         : kazanc.ToString();
-                    _kazancText.text = $"<size=14><color=#BFBFBF>Oturum Kazancı</color></size>\n<size=28><b>{formatli} TL</b></size>";
+                    _kazancText.text = $"<size=14><color=#BFBFBF>Oturum Kazancı</color></size>\n<size=22><b>{formatli} TL</b></size>";
                 }
             }
         }
@@ -173,16 +174,17 @@ namespace KumarFarkindalik.Tutorial
             scaler.referenceResolution = new Vector2(1920, 1080);
             scaler.matchWidthOrHeight = 0.5f;
 
-            // Panel — SAĞ orta dikey ortalı (görev paneli zaten sağ-üst'te 280×320, bu altta görünür)
+            // PAKET 3B-fix-14: Panel — Görev Paneli (anchor 0.5/0.5 pos 801,222 size 280×320) ALTINDA.
+            // Görev Paneli alt kenarı Y=62 (merkezden); HUD üst kenarı Y=50 → 12px boşluk.
             var panel = new GameObject("HUDPanel",
                 typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(CanvasGroup));
             panel.transform.SetParent(_root.transform, false);
             _panelRt = panel.GetComponent<RectTransform>();
-            _panelRt.anchorMin = new Vector2(1f, 0.5f);
-            _panelRt.anchorMax = new Vector2(1f, 0.5f);
-            _panelRt.pivot = new Vector2(1f, 0.5f);
-            _panelRt.sizeDelta = new Vector2(PANEL_GENISLIK, PANEL_YUKSEKLIK);
-            _panelRt.anchoredPosition = new Vector2(-30f, 0f); // sağdan 30px iç
+            _panelRt.anchorMin = new Vector2(0.5f, 0.5f);
+            _panelRt.anchorMax = new Vector2(0.5f, 0.5f);
+            _panelRt.pivot = new Vector2(0.5f, 1f); // üst-orta pivot (HUD üst kenarı pos.y'de)
+            _panelRt.sizeDelta = new Vector2(PANEL_GENISLIK, PANEL_YUKSEKLIK); // 280×180
+            _panelRt.anchoredPosition = new Vector2(801f, 50f); // X aynı (görev paneli ile), Y=50 (üst kenar)
             var panelImg = panel.GetComponent<Image>();
             panelImg.color = PANEL_ZEMIN;
             panelImg.raycastTarget = false;
@@ -220,13 +222,13 @@ namespace KumarFarkindalik.Tutorial
             ayirImg.color = ALTIN_YARI;
             ayirImg.raycastTarget = false;
 
-            // Kalan spin — orta üst
+            // Kalan spin — orta üst (PANEL_YUKSEKLIK 180 için alt sınır orta üstüne 25px = daha geniş alan)
             var spinGo = new GameObject("KalanSpin", typeof(RectTransform), typeof(CanvasRenderer));
             spinGo.transform.SetParent(panel.transform, false);
             var spinRt = spinGo.GetComponent<RectTransform>();
             spinRt.anchorMin = new Vector2(0f, 0.5f);
             spinRt.anchorMax = new Vector2(1f, 1f);
-            spinRt.offsetMin = new Vector2(10f, 0f);
+            spinRt.offsetMin = new Vector2(10f, -25f); // alt sınır panel ortasının 25px ÜSTÜNDE
             spinRt.offsetMax = new Vector2(-10f, -50f);
             _kalanSpinText = spinGo.AddComponent<TextMeshProUGUI>();
             _kalanSpinText.alignment = TextAlignmentOptions.Center;
@@ -234,7 +236,7 @@ namespace KumarFarkindalik.Tutorial
             _kalanSpinText.fontStyle = FontStyles.Normal;
             _kalanSpinText.richText = true;
             _kalanSpinText.color = Color.white;
-            _kalanSpinText.text = "<size=14><color=#BFBFBF>Kalan Spin Hakkı</color></size>\n<size=30><b>10 / 10</b></size>";
+            _kalanSpinText.text = "<size=14><color=#BFBFBF>Kalan Spin Hakkı</color></size>\n<size=24><b>10 / 10</b></size>";
             _kalanSpinText.raycastTarget = false;
 
             // Oturum kazancı — orta alt
@@ -251,7 +253,7 @@ namespace KumarFarkindalik.Tutorial
             _kazancText.fontStyle = FontStyles.Normal;
             _kazancText.richText = true;
             _kazancText.color = Color.white;
-            _kazancText.text = "<size=14><color=#BFBFBF>Oturum Kazancı</color></size>\n<size=28><b>0 TL</b></size>";
+            _kazancText.text = "<size=14><color=#BFBFBF>Oturum Kazancı</color></size>\n<size=22><b>0 TL</b></size>";
             _kazancText.raycastTarget = false;
         }
 
