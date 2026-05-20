@@ -47,7 +47,7 @@ public partial class OyunYoneticisi
     public void OnScatterSliderChanged(float value)
     {
         _adminManuelScatterKilidi = true;
-        _adminAyarUIServisi?.ApplyScatter(value);
+        // FAZ35.31.1: ApplyScatter çağrısı silindi (scatter UI Faz 35.31'de kaldırıldı)
         OncedenHesaplananSpinOnbelleginiTemizle();
     }
     public void OnCarpanOlasilikSliderChanged(float value)
