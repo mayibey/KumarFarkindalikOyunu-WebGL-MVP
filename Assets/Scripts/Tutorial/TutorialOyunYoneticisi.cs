@@ -1420,7 +1420,6 @@ namespace KumarFarkindalik.Tutorial
             "bahisAzaltButon",
             "BakiyeYukleButon",
             "BonusSatinAlButton",
-            "OtomatikSpinButton",
             "paraCekButon",
             "ParaCekButon",
         };

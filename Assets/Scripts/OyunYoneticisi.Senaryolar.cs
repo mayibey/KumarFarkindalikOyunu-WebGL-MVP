@@ -250,8 +250,7 @@ public partial class OyunYoneticisi
                     limit,
                     _easyBias01,
                     kayit,
-                    SenaryoYoneticisi.I != null,
-                    _otomatikSpinKalan))
+                    SenaryoYoneticisi.I != null))
             {
                 Debug.LogWarning($"[KONSTRUKTE] KolayZorlukTumblesiz reddi: adimSayisi={kayit?.Adimlar?.Count}");
                 return null;
@@ -461,7 +460,7 @@ public partial class OyunYoneticisi
             {
                 Debug.LogWarning("[S2_KAZ] KolayZorluk reddi"); return null;
             }
-            if (spinPolitikasi.KolayZorlukTumblesizSonuctaYenidenDene(bonusSpin, zorlaCarpanVardi, limit, _easyBias01, kayit, SenaryoYoneticisi.I != null, _otomatikSpinKalan))
+            if (spinPolitikasi.KolayZorlukTumblesizSonuctaYenidenDene(bonusSpin, zorlaCarpanVardi, limit, _easyBias01, kayit, SenaryoYoneticisi.I != null))
             {
                 Debug.LogWarning("[S2_KAZ] KolayZorlukTumblesiz reddi"); return null;
             }
@@ -775,7 +774,7 @@ public partial class OyunYoneticisi
             {
                 Debug.LogWarning("[S3_KAZ] KolayZorluk reddi"); return null;
             }
-            if (spinPolitikasi.KolayZorlukTumblesizSonuctaYenidenDene(bonusSpin, zorlaCarpanVardi, limit, _easyBias01, kayit, SenaryoYoneticisi.I != null, _otomatikSpinKalan))
+            if (spinPolitikasi.KolayZorlukTumblesizSonuctaYenidenDene(bonusSpin, zorlaCarpanVardi, limit, _easyBias01, kayit, SenaryoYoneticisi.I != null))
             {
                 Debug.LogWarning("[S3_KAZ] KolayZorlukTumblesiz reddi"); return null;
             }

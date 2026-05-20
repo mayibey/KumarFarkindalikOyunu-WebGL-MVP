@@ -35,8 +35,6 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
         carpanSadeceBonus = carpanAyarlari.CarpanSadeceBonus;
         carpanUretimOlasiligi = Mathf.Clamp01(carpanAyarlari.CarpanUretimOlasiligi);
         maxCarpanAdedi = Mathf.Max(0, carpanAyarlari.MaxCarpanAdedi);
-        carpanHavuzu = Mathf.Max(0, carpanAyarlari.CarpanHavuzu);
-        yuksekCarpanOrani = Mathf.Clamp01(carpanAyarlari.YuksekCarpanOrani);
         zorlaSiradakiCarpan = Mathf.Max(0, carpanAyarlari.ZorlaSiradakiCarpan);
 
         carpanSembolSprite = carpanAyarlari.CarpanSembolSprite;
@@ -116,13 +114,6 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
     GameObject SahneBaglamaServisi.IBaglamaHedefi.BonusEndPanel { get => bonusEndPanel; set => bonusEndPanel = value; }
     CanvasGroup SahneBaglamaServisi.IBaglamaHedefi.BonusEndCanvasGroup { get => bonusEndCanvasGroup; set => bonusEndCanvasGroup = value; }
     CanvasGroup SahneBaglamaServisi.IBaglamaHedefi.BonusStartCanvasGroup { get => bonusStartCanvasGroup; set => bonusStartCanvasGroup = value; }
-    Button SahneBaglamaServisi.IBaglamaHedefi.OtomatikSpinButton { get => otomatikSpinButton; set => otomatikSpinButton = value; }
-    GameObject SahneBaglamaServisi.IBaglamaHedefi.OtomatikSpinPanel { get => otomatikSpinPanel; set => otomatikSpinPanel = value; }
-    TMP_Dropdown SahneBaglamaServisi.IBaglamaHedefi.OtomatikSpinDropdown { get => otomatikSpinDropdown; set => otomatikSpinDropdown = value; }
-    Button SahneBaglamaServisi.IBaglamaHedefi.OtomatikSpinBaslatButon { get => otomatikSpinBaslatButon; set => otomatikSpinBaslatButon = value; }
-    Button SahneBaglamaServisi.IBaglamaHedefi.OtomatikSpinIptalButon { get => otomatikSpinIptalButon; set => otomatikSpinIptalButon = value; }
-    TMP_Text SahneBaglamaServisi.IBaglamaHedefi.OtomatikSpinKalanText { get => otomatikSpinKalanText; set => otomatikSpinKalanText = value; }
-
     // IDonusAkisBaglami — state ve servis erişimi (arayüz DonusAkisServisi.cs içinde)
     UIServisi IDonusAkisBaglami.UIServisi => _uiServisi;
     IzgaraServisi IDonusAkisBaglami.IzgaraServisi => _izgaraServisi;
@@ -251,8 +242,6 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
     }
 
     IEnumerator IDonusAkisBaglami.SimulasyonKaydiniOynat(SpinSimulasyonKaydi kayit) => SimulasyonKaydiniOynatImpl(kayit);
-    void IDonusAkisBaglami.TryResumeOtomatikSpin() => TryResumeOtomatikSpin();
-    bool IDonusAkisBaglami.OtomatikSpinAktifMi => _otomatikSpinKalan > 0;
     bool IDonusAkisBaglami.CarpanTumbleAktif => _carpanTumbleAktif;
     int IDonusAkisBaglami.ArdisikKayipLimiti => _ardisikKayipLimiti;
     int IDonusAkisBaglami.ArdisikKayipSayac { get => _ardisikKayipSayac; set => _ardisikKayipSayac = value; }
@@ -357,7 +346,6 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
     void IOyunUIGuncellemeBaglami.HideBakiyeYuklePanel() => _uiServisi?.HideBakiyeYuklePanel();
     void IOyunUIGuncellemeBaglami.OnParaCekOnay() => _ekonomiServisi?.OnParaCekOnay();
     void IOyunUIGuncellemeBaglami.OnBakiyeYukleOnay() => BakiyeYukle_OnayButton();
-    void IOyunUIGuncellemeBaglami.SyncOtomatikSpinKalanTextVisibility() => OtomatikSpinKalanTextGuncelle();
 
     // IScatterEfektBaglami
     int[,] IScatterEfektBaglami.Grid => grid;
@@ -419,9 +407,6 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
         float temel = bonusAktif ? bonusFallDuration : fallDuration;
         // Çok düşük saha değerlerinde tumble dolumu okunaklı kalsın.
         temel = bonusAktif ? Mathf.Max(0.58f, temel) : Mathf.Max(0.62f, temel);
-        // Sadece admin sahnesinde otomatik spin sırasında meyve düşüşünü biraz yavaşlat.
-        if (_otomatikSpinKalan > 0 && SceneManager.GetActiveScene().name == "04_AdminOyunScene")
-            return temel * 1.35f;
         return temel;
     }
     bool ICokmeAkisBaglami.GetBonusAktif() => bonusAktif;
@@ -569,12 +554,6 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
         _oyunBootstrapServisi.SetBaglam(this);
         _oyunBootstrapServisi.Calistir();
         BahisGorselKilidiniHazirla();
-    }
-
-    private void OnValidate()
-    {
-        inspectorBakiyeTL = Mathf.Max(0, inspectorBakiyeTL);
-        InspectorBakiyesiniYansit();
     }
 
     void IOyunBootstrapBaglami.BootstrapMantiginiCalistir()
@@ -867,30 +846,6 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
             // Slider'ın mevcut değerini, dinleyiciler geç bağlandığında bile anında uygula.
             _adminAyarUIServisi.ApplyZorluk(zorlukSlider.value);
         }
-        if (scatterSliderUI == null)
-            scatterSliderUI = GameObject.Find("BonusDusmeSlider")?.GetComponent<Slider>() ?? GameObject.Find("ScatterSlider")?.GetComponent<Slider>();
-        _adminAyarUIServisi.SetScatterUI(scatterSliderUI, scatterSliderText, v =>
-        {
-            _adminManuelScatterKilidi = true;
-            // Slider 0-100 ise v=56 = %56; 0-1 ise v=0.56 = %56
-            int yuzde;
-            if (v > 1f)
-            {
-                yuzde = Mathf.Clamp(Mathf.RoundToInt(v), 0, 100);
-                scatterChanceNormal = yuzde / 100f;
-            }
-            else
-            {
-                scatterChanceNormal = Mathf.Clamp01(v);
-                yuzde = Mathf.RoundToInt(scatterChanceNormal * 100f);
-            }
-            scatterChanceBonus = 0f;
-            if (yuzde >= 100 || scatterChanceNormal >= 0.99f)
-                maxScatterPerSpin = 5;
-            else if (scatterChanceNormal > 0.0001f)
-                maxScatterPerSpin = Mathf.Max(maxScatterPerSpin, scatterEsik);
-            UnityEngine.Debug.Log($"[SCATTER] Slider -> %{yuzde} (scatterChanceNormal={scatterChanceNormal:F2}), maxScatterPerSpin={maxScatterPerSpin}, esik={scatterEsik}");
-        });
         // CarpanOlasilikValueText / CarpanMaxAdetValueText sabit etiket olarak kalacak; slider değeri yazılmıyor (valueText null).
         _adminAyarUIServisi.SetCarpanOlasilikUI(carpanOlasilikSlider, carpanOlasilikText, null, v =>
         {
@@ -1040,20 +995,6 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
         }
         Debug.Log($"[BAHIS HOOK] ArttirButon={(bahisArttirButon != null)} AzaltButon={(bahisAzaltButon != null)} (popup modu)");
         // Otomatik spin: panel kapalı, dropdown 20/50/100/250, butonlar
-        if (otomatikSpinPanel != null)
-            otomatikSpinPanel.SetActive(false);
-        if (otomatikSpinDropdown != null)
-        {
-            OnOtomatikSpinDropdownChanged(otomatikSpinDropdown.value);
-            otomatikSpinDropdown.onValueChanged.RemoveAllListeners();
-            otomatikSpinDropdown.onValueChanged.AddListener(OnOtomatikSpinDropdownChanged);
-        }
-        if (otomatikSpinButton != null)
-            otomatikSpinButton.onClick.AddListener(OnOtomatikSpinButtonClick);
-        if (otomatikSpinBaslatButon != null)
-            otomatikSpinBaslatButon.onClick.AddListener(OnOtomatikSpinBaslatClick);
-        if (otomatikSpinIptalButon != null)
-            otomatikSpinIptalButon.onClick.AddListener(OnOtomatikSpinIptalClick);
         if (istatistikButon == null)
             istatistikButon = GameObject.Find("BtnLogScene")?.GetComponent<Button>();
         if (istatistikButon != null)
@@ -1067,7 +1008,6 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
             yoneticiBtn.onClick.RemoveAllListeners();
             yoneticiBtn.onClick.AddListener(YoneticiButonTiklandi);
         }
-        OtomatikSpinKalanTextGuncelle();
         _uiServisi?.ResolveMoneyUIRefsIfMissing();
         if (cevirButon != null && cevirButon.GetComponent<ButonBasimHissi>() == null)
             cevirButon.gameObject.AddComponent<ButonBasimHissi>();

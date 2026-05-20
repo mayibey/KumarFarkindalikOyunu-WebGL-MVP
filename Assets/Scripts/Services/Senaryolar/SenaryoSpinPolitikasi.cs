@@ -93,15 +93,14 @@ public interface ISenaryoSpinPolitikasi
     /// <summary>Kolay zorluk + bonus: ödenebilir limite göre minimum altında kalsın reddi.</summary>
     bool KolayZorlukBonusSpindeMinOdemeAltindaReddet(bool bonusSpin, bool zorlaCarpanVardi, int limit, float easyBias01, int nihaiOdeme);
 
-    /// <summary>Kolay zorluk + normal: tumble yoksa senaryo/otomatik kuralına göre yeniden dene.</summary>
+    /// <summary>Kolay zorluk + normal: tumble yoksa senaryo kuralına göre yeniden dene.</summary>
     bool KolayZorlukTumblesizSonuctaYenidenDene(
         bool bonusSpin,
         bool zorlaCarpanVardi,
         int limit,
         float easyBias01,
         SpinSimulasyonKaydi kayit,
-        bool senaryoYoneticisiVar,
-        int otomatikSpinKalan);
+        bool senaryoYoneticisiVar);
 
     /// <summary>Reroll bitti: son denemede tumble adımı yokken pozitif ham kazanç gösterilmemeli (kayıt sıfırlanır).</summary>
     bool SimulasyonSonDenemedeAdimsizPozitifHamIptalEdilsinMi(bool bonusSpin, int tumbleAdimSayisi, int toplamHamKazanc);

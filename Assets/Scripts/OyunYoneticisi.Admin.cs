@@ -432,8 +432,6 @@ public partial class OyunYoneticisi
         _aktifAdminSenaryoIndex = index;
         var p = _adminSenaryoPresetleri[index];
 
-        if (scatterSliderUI != null)
-            scatterSliderUI.SetValueWithoutNotify(Mathf.Clamp(p.ScatterYuzde, scatterSliderUI.minValue, scatterSliderUI.maxValue));
         OnScatterSliderChanged(p.ScatterYuzde);
 
         if (carpanOlasilikSlider != null)

@@ -59,7 +59,6 @@ public interface IOyunUIGuncellemeBaglami
     void HideBakiyeYuklePanel();
     void OnParaCekOnay();
     void OnBakiyeYukleOnay();
-    void SyncOtomatikSpinKalanTextVisibility();
 }
 
 /// <summary>
@@ -175,7 +174,6 @@ public class OyunUIGuncellemeServisi
         if (_ctx.BonusSatinAlRoot != null)
             _ctx.BonusSatinAlRoot.SetActive(!_ctx.GetBonusAktif());
         PanelAcikliginaGoreAnaButonlariGuncelle();
-        _ctx.SyncOtomatikSpinKalanTextVisibility();
     }
 
     private void KazancTextKutudaKalsin()

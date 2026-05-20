@@ -158,9 +158,6 @@ public partial class OyunYoneticisi
     [Tooltip("Açık olduğunda bakiye 50K üstünde 20 spin tumble kapatır. Varsayılan kapalı tutulur.")]
     public bool bakiye50KteTumbleKapamaAktif = false;
 
-    [Header("Test — Inspector bakiye")]
-    [Tooltip("Bu değer değiştiğinde BakiyeText anında güncellenir. Play modunda ekonomi bakiyesi de buna senkronlanır.")]
-    [SerializeField] [Min(0)] private int inspectorBakiyeTL = 100_000;
     private int spinKazancHam = 0;   // tumble patlamalarından gelen ham toplam (bu spin)
     private int oturumKazanc = 0;    // oturum boyunca biriken toplam kazanç
     private bool _spinKazanciOturumaEklendi = false; // bonus'ta double sayma önler
@@ -253,8 +250,6 @@ public partial class OyunYoneticisi
     private int _bonusPendingOdemeTL = 0; // Bonus boyunca havuzdan düşülecek tutarı biriktir (bonus bitince tek seferde düş)
     private int _bonusZorlaCarpanBirikenTL = 0; // Bonus içinde zorla çarpan kazançları; bakiye sadece 10 hak bitince güncellenir
 
-    private int _otomatikSpinKalan = 0;
-    private int _otomatikSpinSecilenAdet = 20; // Varsayılan otomatik spin adedi (panel/dropdown yoksa da çoklu spin sürsün)
 
     [Header("Kasa Bazlı Kazan/Kaybet")]
     [HideInInspector] public bool kasaBazliDengeAktif = true;
@@ -397,8 +392,6 @@ public partial class OyunYoneticisi
     [HideInInspector] [Range(0f, 1f)] public float scatterChanceNormal = 0.005f;
     [HideInInspector] [Range(0f, 1f)] public float scatterChanceBonus = 0f; // Bonus oyununda scatter üretilmez
     [HideInInspector] public int scatterEsik = 4;
-    public Slider scatterSliderUI;
-    public TextMeshProUGUI scatterSliderText;
     public int maxScatterPerSpin = 5;
 
     [Header("Tumble / Eşleşme")]
@@ -483,19 +476,6 @@ public partial class OyunYoneticisi
     public TMP_Text bonusEndWinTMP;
     public Button bonusEndCloseButton;
 
-    [Header("Otomatik Spin")]
-    [Tooltip("Tıklanınca panel açar; spin dönerken 'DURDUR' yazar ve tıklanınca durdurur.")]
-    public Button otomatikSpinButton;
-    [Tooltip("Panel: içinde Dropdown + Baslat + Iptal. Options: 20, 50, 100, 250.")]
-    public GameObject otomatikSpinPanel;
-    public TMP_Dropdown otomatikSpinDropdown;
-    public Button otomatikSpinBaslatButon;
-    public Button otomatikSpinIptalButon;
-    [Tooltip("Otomatik spin dönerken 'Kalan Spin: x' gösterilir; bitince gizlenir.")]
-    public TMP_Text otomatikSpinKalanText;
-    [Tooltip("OtomatikSpinButton'da spin dönmezken görünecek metin.")]
-    public string otomatikSpinButtonNormalText = "Otomatik Spin";
-
     [Header("İstatistik / Log")]
     [Tooltip("İstatistik butonu: tıklanınca Log sahnesine geçer; seçili kullanıcının logları gösterilir. Admin ve senaryo sahnelerinde atanabilir.")]
     public Button istatistikButon;
@@ -525,9 +505,6 @@ public partial class OyunYoneticisi
     public bool carpanSadeceBonus = false;
     [Range(0f, 1f)] public float carpanUretimOlasiligi = 0.15f;
     [Range(1, 10)] public int maxCarpanAdedi = 3;
-    [Range(1, 10)] public int carpanHavuzu = 5; // havuz büyüklüğü (doğal havuz {2,3,5,8,10} → 5 öğe)
-    [Tooltip("DEPRECATED: doğal havuzda kullanılmıyor. 100x/250x/500x yalnızca force path (admin/senaryo 4-5) üzerinden düşer.")]
-    [Range(0f, 1f)] public float yuksekCarpanOrani = 0.0f;
     public int zorlaSiradakiCarpan = 0;
 
 [Header("Çarpan Görseli (Sweet Bonanza tarzı)")]

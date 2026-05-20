@@ -801,9 +801,6 @@ public class AnlaticiSeritKopru : MonoBehaviour
         if (_oy.bahisAzaltButon != null)         { _oy.bahisAzaltButon.interactable = false;         sayac++; }
         if (_oy.bonusSatinAlButon != null)       { _oy.bonusSatinAlButon.interactable = false;       sayac++; }
         if (_oy.bakiyeYukleButon != null)        { _oy.bakiyeYukleButon.interactable = false;        sayac++; }
-        if (_oy.otomatikSpinButton != null)      { _oy.otomatikSpinButton.interactable = false;      sayac++; }
-        if (_oy.otomatikSpinBaslatButon != null) { _oy.otomatikSpinBaslatButon.interactable = false; sayac++; }
-        if (_oy.otomatikSpinIptalButon != null)  { _oy.otomatikSpinIptalButon.interactable = false;  sayac++; }
 
         // Ayarlar butonu: sahnede "AyarlarButton" GameObject'te Button bileşeni var.
         // (AyarlarButtonAdminPanelAcKapa script'i ayrı bir GameObject'te → FindObjectOfType yanlıştı.)

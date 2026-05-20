@@ -77,8 +77,6 @@ if (spinIcon != null) spinIcon.SetRotate(false);
         SenaryoYoneticisi.I?.SetBonusAktif(true);
         int bonusGirisBakiyesi = _ekonomiServisi != null ? _ekonomiServisi.Bakiye : 0;
         SenaryoYoneticisi.I?.LogBonusGirisi(bonusGirisBakiyesi, _sonBonusSatinAlindiMaliyet > 0);
-        if (otomatikSpinKalanText != null)
-            otomatikSpinKalanText.gameObject.SetActive(false);
         _spinKazanciOturumaEklendi = false;
 
         _hizVeSesServisi?.ApplyBonusSpeedIfNeeded();

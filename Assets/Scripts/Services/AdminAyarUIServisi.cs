@@ -12,10 +12,6 @@ public class AdminAyarUIServisi
     private TMP_Text _zorlukValueText;
     private Action<float> _applyZorluk;
 
-    private Slider _scatterSlider;
-    private TMP_Text _scatterSliderText;
-    private Action<float> _applyScatterYuzde;
-
     private Slider _carpanOlasilikSlider;
     private TMP_Text _carpanOlasilikLabelText;
     private TMP_Text _carpanOlasilikValueText;
@@ -31,13 +27,6 @@ public class AdminAyarUIServisi
         _zorlukSlider = zorlukSlider;
         _zorlukValueText = zorlukValueText;
         _applyZorluk = applyZorluk;
-    }
-
-    public void SetScatterUI(Slider scatterSlider, TMP_Text scatterSliderText, Action<float> applyScatterYuzde)
-    {
-        _scatterSlider = scatterSlider;
-        _scatterSliderText = scatterSliderText;
-        _applyScatterYuzde = applyScatterYuzde;
     }
 
     public void SetCarpanOlasilikUI(Slider slider, TMP_Text labelText, TMP_Text valueText, Action<float> applyYuzde)
@@ -65,13 +54,6 @@ public class AdminAyarUIServisi
             OnZorlukValueChanged(_zorlukSlider.value);
         }
 
-        if (_scatterSlider != null)
-        {
-            _scatterSlider.onValueChanged.RemoveAllListeners();
-            _scatterSlider.onValueChanged.AddListener(OnScatterValueChanged);
-            OnScatterValueChanged(_scatterSlider.value);
-        }
-
         if (_carpanOlasilikSlider != null)
         {
             _carpanOlasilikSlider.onValueChanged.RemoveAllListeners();
@@ -94,16 +76,6 @@ public class AdminAyarUIServisi
         if (_zorlukValueText != null)
             _zorlukValueText.text = $"Zorluk: {zorluk}";
         _applyZorluk?.Invoke(value);
-    }
-
-    private void OnScatterValueChanged(float value)
-    {
-        // Slider 0-100 veya 0-1 olabilir; metinde her zaman 0-100 yüzde göster
-        int yuzde = (value > 1f) ? Mathf.RoundToInt(value) : Mathf.RoundToInt(value * 100f);
-        yuzde = Mathf.Clamp(yuzde, 0, 100);
-        if (_scatterSliderText != null)
-            _scatterSliderText.text = $"Scatter Düşme %{yuzde}";
-        _applyScatterYuzde?.Invoke(value);
     }
 
     private void OnCarpanOlasilikValueChanged(float value)
@@ -129,7 +101,6 @@ public class AdminAyarUIServisi
 
     /// <summary>Inspector / dış çağrılar için (slider OnValueChanged OY'da başka yerde bağlıysa).</summary>
     public void ApplyZorluk(float value) => OnZorlukValueChanged(value);
-    public void ApplyScatter(float value) => OnScatterValueChanged(value);
     public void ApplyCarpanOlasilik(float value) => OnCarpanOlasilikValueChanged(value);
     public void ApplyCarpanMaxAdet(float value) => OnCarpanMaxAdetValueChanged(value);
 }

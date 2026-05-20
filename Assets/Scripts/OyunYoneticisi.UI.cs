@@ -89,17 +89,6 @@ public partial class OyunYoneticisi
             paraCekPanel.SetActive(false);
     }
 
-    private void InspectorBakiyesiniYansit()
-
-    {
-        if (bakiyeText != null)
-            bakiyeText.text = "Bakiye: " + OyunFormatServisi.FormatTL(inspectorBakiyeTL);
-
-        if (Application.isPlaying && _ekonomiServisi != null)
-            _ekonomiServisi.SetBakiye(inspectorBakiyeTL);
-    }
-
-
     private static void SetAnchors(GameObject go, Vector2 min, Vector2 max)
     {
         var rt = go.GetComponent<RectTransform>();
@@ -289,19 +278,6 @@ public partial class OyunYoneticisi
         _bahisGorselRtKilidi.sizeDelta = _bahisGorselSizeDelta;
         _bahisGorselRtKilidi.localRotation = _bahisGorselLocalRotation;
         _bahisGorselRtKilidi.localScale = _bahisGorselLocalScale;
-    }
-
-    /// <summary>Play modunda, ekonomi hazırken Inspector'daki değeri anında uygular. (Bileşen sağ tık menüsünden de çağrılabilir.)</summary>
-    [ContextMenu("Bakiyeyi Inspector (inspectorBakiyeTL) Değerine Uygula")]
-    public void InspectorBakiyesiniSimdiUygula()
-
-    {
-        if (_ekonomiServisi == null && Application.isPlaying)
-        {
-            Debug.LogWarning("[OyunYoneticisi] Ekonomi servisi henüz yok; Play modunda oyun başladıktan sonra dene.");
-            return;
-        }
-        InspectorBakiyesiniYansit();
     }
 
     private void EnsureNormalSpinSonucPopup()
@@ -898,97 +874,6 @@ public partial class OyunYoneticisi
         if (_geciciTiklamaKilidiPanel != null)
             _geciciTiklamaKilidiPanel.SetActive(aktif);
     }
-
-    private void OtomatikSpinKalanTextGuncelle()
-    {
-        if (otomatikSpinKalanText != null)
-        {
-            if (_otomatikSpinKalan > 0 && !bonusAktif)
-            {
-                otomatikSpinKalanText.text = $"Kalan Spin: {_otomatikSpinKalan}";
-                otomatikSpinKalanText.gameObject.SetActive(true);
-            }
-            else
-                otomatikSpinKalanText.gameObject.SetActive(false);
-        }
-        if (otomatikSpinButton != null)
-        {
-            var tmp = otomatikSpinButton.GetComponentInChildren<TMP_Text>(true);
-            if (tmp != null)
-                tmp.text = _otomatikSpinKalan > 0 ? "DURDUR" : (string.IsNullOrEmpty(otomatikSpinButtonNormalText) ? "Otomatik Spin" : otomatikSpinButtonNormalText);
-        }
-    }
-
-
-    private void OnOtomatikSpinDropdownChanged(int index)
-    {
-        int[] secenekler = { 20, 50, 100, 250 };
-        _otomatikSpinSecilenAdet = (index >= 0 && index < secenekler.Length) ? secenekler[index] : 20;
-    }
-
-
-    /// <summary>OtomatikSpinButton tıklanınca: spin dönüyorsa durdur, değilse paneli aç.</summary>
-    private void OnOtomatikSpinButtonClick()
-    {
-        if (_otomatikSpinKalan > 0)
-        {
-            OtomatikSpinDurdur();
-            return;
-        }
-        // Sahne 3’te sadece buton kopyaılanmış olabilir; panel yoksa doğrudan varsayılan adetle başlat.
-        if (bonusAktif || spinCalisiyor) return;
-        if (otomatikSpinPanel == null)
-        {
-            if (_ekonomiServisi == null || _ekonomiServisi.Bakiye < _ekonomiServisi.Bahis)
-            {
-                ShowBakiyeYuklePanel(yetersizBakiyeUyarisi: true);
-                return;
-            }
-            _otomatikSpinKalan = (_otomatikSpinSecilenAdet > 0) ? _otomatikSpinSecilenAdet : 20;
-            OtomatikSpinKalanTextGuncelle();
-            StartCoroutine(OtomatikSpinDongusu());
-            return;
-        }
-        if (otomatikSpinPanel != null)
-        {
-            otomatikSpinPanel.SetActive(true);
-            // Panel diğer panellerin üstünde görünsün (sıra: en son = en üstte)
-            if (otomatikSpinPanel.transform.parent != null)
-            {
-                otomatikSpinPanel.transform.SetAsLastSibling();
-                otomatikSpinPanel.transform.parent.SetAsLastSibling();
-            }
-        }
-    }
-
-
-    /// <summary>Paneldeki Baslat: seçilen adet ile döngüyü başlat, paneli kapat.</summary>
-    private void OnOtomatikSpinBaslatClick()
-    {
-        if (otomatikSpinPanel != null)
-            otomatikSpinPanel.SetActive(false);
-        if (bonusAktif || spinCalisiyor) return;
-        if (_ekonomiServisi == null || _ekonomiServisi.Bakiye < _ekonomiServisi.Bahis)
-        {
-            // Bakiye yetersiz: bakiye yükle panelini "bakiye azalıyor, yükleme yapmak ister misin?" ile aç.
-            ShowBakiyeYuklePanel(yetersizBakiyeUyarisi: true);
-            return;
-        }
-        if (otomatikSpinDropdown != null)
-            OnOtomatikSpinDropdownChanged(otomatikSpinDropdown.value);
-        _otomatikSpinKalan = _otomatikSpinSecilenAdet;
-        OtomatikSpinKalanTextGuncelle();
-        StartCoroutine(OtomatikSpinDongusu());
-    }
-
-
-    /// <summary>Paneldeki İptal: paneli kapat, spin başlatma.</summary>
-    private void OnOtomatikSpinIptalClick()
-    {
-        if (otomatikSpinPanel != null)
-            otomatikSpinPanel.SetActive(false);
-    }
-
 
     private void IstatistikButonTiklandi()
     {

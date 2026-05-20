@@ -42,12 +42,6 @@ public class SahneBaglamaServisi
         GameObject BonusEndPanel { get; set; }
         CanvasGroup BonusEndCanvasGroup { get; set; }
         CanvasGroup BonusStartCanvasGroup { get; set; }
-        Button OtomatikSpinButton { get; set; }
-        GameObject OtomatikSpinPanel { get; set; }
-        TMP_Dropdown OtomatikSpinDropdown { get; set; }
-        Button OtomatikSpinBaslatButon { get; set; }
-        Button OtomatikSpinIptalButon { get; set; }
-        TMP_Text OtomatikSpinKalanText { get; set; }
     }
 
     /// <summary>
@@ -127,19 +121,6 @@ public class SahneBaglamaServisi
             target.BonusEndCanvasGroup = target.BonusEndPanel.GetComponent<CanvasGroup>();
         if (target.BonusStartCanvasGroup == null && target.BonusStartPanel != null)
             target.BonusStartCanvasGroup = target.BonusStartPanel.GetComponent<CanvasGroup>();
-
-        if (target.OtomatikSpinButton == null)
-            target.OtomatikSpinButton = FindComp<Button>("OtomatikSpinButton", "AutoSpinButton", "BtnOtomatikSpin");
-        if (target.OtomatikSpinPanel == null)
-            target.OtomatikSpinPanel = FindGO("OtomatikSpinPanel", "AutoSpinPanel");
-        if (target.OtomatikSpinDropdown == null)
-            target.OtomatikSpinDropdown = FindComp<TMP_Dropdown>("OtomatikSpinDropdown", "AutoSpinDropdown");
-        if (target.OtomatikSpinBaslatButon == null)
-            target.OtomatikSpinBaslatButon = FindComp<Button>("OtomatikSpinBaslatButon", "OtomatikSpinBaslatButton", "AutoSpinBaslatButton", "AutoSpinStartButton", "BtnOtomatikSpinBaslat");
-        if (target.OtomatikSpinIptalButon == null)
-            target.OtomatikSpinIptalButon = FindComp<Button>("OtomatikSpinIptalButon", "OtomatikSpinIptalButton", "AutoSpinIptalButton", "AutoSpinCancelButton", "BtnOtomatikSpinIptal");
-        if (target.OtomatikSpinKalanText == null)
-            target.OtomatikSpinKalanText = FindComp<TextMeshProUGUI>("OtomatikSpinKalanText", "AutoSpinKalanText", "AutoSpinRemainingText");
 
         ResolveMoneyUIRefsOnly(target);
 

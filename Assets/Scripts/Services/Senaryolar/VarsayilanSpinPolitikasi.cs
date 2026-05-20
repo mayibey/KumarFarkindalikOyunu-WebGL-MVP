@@ -110,18 +110,14 @@ public class VarsayilanSpinPolitikasi : ISenaryoSpinPolitikasi
         int limit,
         float easyBias01,
         SpinSimulasyonKaydi kayit,
-        bool senaryoYoneticisiVar,
-        int otomatikSpinKalan)
+        bool senaryoYoneticisiVar)
     {
         if (bonusSpin || zorlaCarpanVardi || easyBias01 <= 0.3f || limit < 50
             || kayit?.Adimlar == null || kayit.Adimlar.Count != 0)
             return false;
         if (senaryoYoneticisiVar)
-        {
-            float yenidenDeneOlasilik = otomatikSpinKalan > 0 ? 0.52f : 0.45f;
-            return UnityEngine.Random.value < yenidenDeneOlasilik;
-        }
-        return otomatikSpinKalan <= 0;
+            return UnityEngine.Random.value < 0.45f;
+        return true;
     }
 
     public virtual bool SimulasyonSonDenemedeAdimsizPozitifHamIptalEdilsinMi(

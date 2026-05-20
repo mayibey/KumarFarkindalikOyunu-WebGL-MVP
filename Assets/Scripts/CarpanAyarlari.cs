@@ -162,8 +162,6 @@ public class CarpanAyarlari : MonoBehaviour
             oyunYoneticisi.carpanSadeceBonus = CarpanSadeceBonus;
             oyunYoneticisi.carpanUretimOlasiligi = Mathf.Clamp01(CarpanUretimOlasiligi);
             oyunYoneticisi.maxCarpanAdedi = Mathf.Max(0, MaxCarpanAdedi);
-            oyunYoneticisi.carpanHavuzu = Mathf.Max(0, CarpanHavuzu);
-            oyunYoneticisi.yuksekCarpanOrani = Mathf.Clamp01(YuksekCarpanOrani);
             // Force değeri değişince önceden hesaplanmış (ön spin) sonucu geçersiz kıl; her seferinde son seçim geçerli olsun.
             oyunYoneticisi.AdminForceOncedenHesaplananSpinTemizle();
         }

@@ -70,12 +70,8 @@ public interface IDonusAkisBaglami
     bool Senaryo23SpinSonrasiDonguIlerletilmeliMi(SpinSimulasyonKaydi kayit);
     /// <summary>Kaydedilen spin sonucunu ekranda oynatır (ilk grid + drop-in + tumble adımları).</summary>
     IEnumerator SimulasyonKaydiniOynat(SpinSimulasyonKaydi kayit);
-    /// <summary>Bonus bittikten sonra kalan otomatik spin varsa döngüyü yeniden başlatır.</summary>
-    void TryResumeOtomatikSpin();
     /// <summary>Senaryo sahnesinde: ödeme yapıldıysa ödenebilir bütçeden düş, yapılmadıysa bahisi ekle.</summary>
     void SenaryoOdenebilirGuncelle(int odenen, int bahis);
-    /// <summary>Otomatik spin döngüsü aktifse true; normal spin akışında ilk kare gecikmesi atlanır.</summary>
-    bool OtomatikSpinAktifMi { get; }
     IEnumerator ShowNormalSpinSonucPopup(int odenen, int bahis);
     /// <summary>Brüt kazanç 0 olan normal spinde "The Price is Right Losing Horn" çalar.
     /// tumbleSfxSource öncelikli, yoksa bonusEndSfxSource fallback. spinSonucKayipClip null ise no-op.</summary>
@@ -153,8 +149,7 @@ public class DonusAkisServisi
 
         if (!_ctx.TryConsumeOncedenHesaplanan(false, out kayit))
         {
-            if (!_ctx.OtomatikSpinAktifMi)
-                yield return null;
+            yield return null;
 
             _ctx.StartPrecomputeNextSpin(odenebilirNormal, false);
 
@@ -611,6 +606,5 @@ public class DonusAkisServisi
         _ctx.SpinCalisiyor = false;
         _ctx.UIServisi?.ButonDurumu(true);
         _ctx.UIServisi?.UI_Guncelle();
-        _ctx.TryResumeOtomatikSpin();
     }
 }

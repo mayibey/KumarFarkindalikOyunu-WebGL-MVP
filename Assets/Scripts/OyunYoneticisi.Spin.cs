@@ -294,46 +294,6 @@ public partial class OyunYoneticisi
     }
 
 
-    private IEnumerator OtomatikSpinDongusu()
-    {
-        while (_otomatikSpinKalan > 0 && !bonusAktif && _ekonomiServisi != null && _ekonomiServisi.Bakiye >= _ekonomiServisi.Bahis)
-        {
-            OtomatikSpinKalanTextGuncelle();
-            // Otomatik spinde: spin başından bitene kadar tüm tıklamalar kapalı.
-            SetGlobalTiklamaKilidi(true);
-            yield return BirSpinHazirlaVeAt();
-            SetGlobalTiklamaKilidi(false);
-            _otomatikSpinKalan--;
-            // Sadece sahne 3'te auto spin sırasında spinler arası ekstra nefes ver.
-            if (_otomatikSpinKalan > 0 && SceneManager.GetActiveScene().name == "04_AdminOyunScene")
-                yield return new WaitForSeconds(0.22f);
-        }
-        // Bonus tetiklenince döngüden çıkıyoruz; kalan sayıyı SIFIRLAMA ki panel 5 sn kapansın ve bonus bitince spin devam etsin.
-        if (!bonusAktif)
-            _otomatikSpinKalan = 0;
-        SetGlobalTiklamaKilidi(false);
-        OtomatikSpinKalanTextGuncelle();
-    }
-
-
-    /// <summary>Otomatik spin sırasında 'Durdur' butonu veya dışarıdan çağrı ile kalan sayıyı sıfırlar; mevcut spin biter, sonra döngü durur.</summary>
-    public void OtomatikSpinDurdur()
-    {
-        _otomatikSpinKalan = 0;
-        OtomatikSpinKalanTextGuncelle();
-    }
-
-
-    /// <summary>Bonus bittikten sonra DonusAkisServisi tarafından çağrılır; kalan otomatik spin varsa döngüyü yeniden başlatır.</summary>
-    private void TryResumeOtomatikSpin()
-    {
-        if (_otomatikSpinKalan <= 0 || bonusAktif) return;
-        if (_ekonomiServisi == null || _ekonomiServisi.Bakiye < _ekonomiServisi.Bahis) return;
-        OtomatikSpinKalanTextGuncelle();
-        StartCoroutine(OtomatikSpinDongusu());
-    }
-
-
     private const int SIMULASYON_MAX_REROLL = 28;
     private const int SIMULASYON_MAX_REROLL_ZORLA_CARPAN_TUMBLE = 80;
 
@@ -821,8 +781,7 @@ public partial class OyunYoneticisi
                         limit,
                         _easyBias01,
                         kayit,
-                        SenaryoYoneticisi.I != null,
-                        _otomatikSpinKalan))
+                        SenaryoYoneticisi.I != null))
                     continue;
             }
             // CarpanAktifToggle: seçiliyse zorla çarpanla mutlaka tumble, seçili değilse mutlaka tumble olmasın.
