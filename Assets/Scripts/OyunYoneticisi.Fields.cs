@@ -31,7 +31,6 @@ public partial class OyunYoneticisi
     private BombaInisEfektServisi _bombaInisEfektServisi;
     private TumbleAkisServisi _tumbleAkisServisi;
     private CokmeAkisServisi _cokmeAkisServisi;
-    private readonly SenaryoOdemeModelServisi _senaryoOdemeModelServisi = new SenaryoOdemeModelServisi();
     private IzgaraBaslatmaServisi _izgaraBaslatmaServisi;
     private OyunBootstrapServisi _oyunBootstrapServisi;
     private CarpanYerlestirmeServisi _carpanYerlestirmeServisi;
