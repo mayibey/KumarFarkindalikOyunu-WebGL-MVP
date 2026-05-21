@@ -1213,7 +1213,8 @@ public class AnlaticiSeritKopru : MonoBehaviour
                 "yakınlarına, akrabalarına, arkadaşlarına...\n\n" +
                 "Bu, <color=#EF4444>kumar bağımlılığının yıkıcı evresidir</color>. Bir sonraki ekran o anı temsil ediyor.";
             if (modal != null)
-                yield return modal.ModalGoster(mesaj);
+                // Faz 35.48: kısa metin (4 paragraf, ~50 kelime) — balonda dikey ortala (override).
+                yield return modal.ModalGoster(mesaj, hizalama: TMPro.TextAlignmentOptions.MidlineJustified);
             else
                 Debug.LogWarning("[Anlatici] BasaArayisAkisi — ScriptedModalKopru bulunamadı, modal atlanıyor.");
 

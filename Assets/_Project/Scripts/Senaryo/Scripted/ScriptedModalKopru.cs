@@ -109,7 +109,8 @@ namespace Senaryo.Scripted
         /// <paramref name="gizleAnlatici"/>: false geçilirse sol panel iframe AÇIK kalır (Pre-A1
         /// karşılama gibi — modal "sol panel" anlatırken paneli kullanıcının görmesi gerekiyor).
         /// </summary>
-        public IEnumerator ModalGoster(string mesaj, bool gizleAnlatici = true)
+        public IEnumerator ModalGoster(string mesaj, bool gizleAnlatici = true,
+            TextAlignmentOptions hizalama = TextAlignmentOptions.TopJustified)
         {
             Debug.Log($"[ModalKopru-DEBUG] ModalGoster START — mesaj uzunluğu={mesaj?.Length ?? 0}, _root={(_root != null)}, _mesajText={(_mesajText != null)}");
             if (string.IsNullOrEmpty(mesaj) || _root == null || _mesajText == null)
@@ -117,6 +118,10 @@ namespace Senaryo.Scripted
                 Debug.LogWarning("[ModalKopru-DEBUG] ModalGoster → yield break (mesaj boş veya UI hazır değil) — ModalAcik DEĞİŞMEDİ.");
                 yield break;
             }
+
+            // Faz 35.48: alignment çağrı bazında — 35.46'nın global MidlineJustified yan etkisi giderildi.
+            // Default TopJustified (eski davranış); kısa modallar için çağıran override edebilir.
+            _mesajText.alignment = hizalama;
 
             ModalAcik = true; // Spin butonu bu süre boyunca engellenir
             Debug.Log("[ModalKopru-DEBUG] ModalAcik=true SET edildi (try öncesi)");
@@ -433,9 +438,9 @@ namespace Senaryo.Scripted
             mesajRt.offsetMin = new Vector2(20f, 12f);   // alt 12, sol 20
             mesajRt.offsetMax = new Vector2(-50f, -45f); // sağ 50 (devam ikonuna yer), üst 45 (başlık)
             _mesajText = mesajGo.AddComponent<TextMeshProUGUI>();
-            // Faz 35.46: TopJustified → MidlineJustified (kısa metin balonda dikey ortalansın;
-            // yatay justified davranışı korunur. Uzun modallar zaten balonu doldurur, etkilenmez.)
-            _mesajText.alignment = TextAlignmentOptions.MidlineJustified;
+            // Faz 35.48: UI default TopJustified (eski). ModalGoster runtime'da çağrı bazında
+            // override edebilir (hizalama parametresi). Bu UIYarat sadece initial set.
+            _mesajText.alignment = TextAlignmentOptions.TopJustified;
             _mesajText.fontSize = 19f;
             _mesajText.fontStyle = FontStyles.Normal;
             _mesajText.color = new Color(0.95f, 0.97f, 1f, 1f);
