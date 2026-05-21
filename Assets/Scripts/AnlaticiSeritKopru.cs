@@ -845,7 +845,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
                 "Tam <color=#FFD933>10 spin</color> at ve neler olduğunu görelim. " +
                 "Bakiyenin nasıl yükseldiğine, kazançların sıklığına dikkat edelim.\n\n" +
                 "Sol panelde <color=#5BA0FF>SAHNE ARKASI</color> ve " +
-                "<color=#5BA0FF>OYUNCUNUN KAFASI</color> bölümlerini takip edelim — " +
+                "<color=#5BA0FF>OYUNCUNUN DÜŞÜNCESİ</color> bölümlerini takip edelim — " +
                 "<color=#4DCC59>sistemin gerçekte ne yaptığını</color> orada göreceğiz.";
             string mesaj =
                 "Hoş geldiniz. Bu simülasyonda online kumar oyunlarının oyuncuları nasıl etkilediğini birlikte göreceğiz.\n\n" +

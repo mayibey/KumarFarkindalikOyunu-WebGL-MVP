@@ -189,12 +189,13 @@ namespace Senaryo.Scripted
             basTxt.text = "<color=#EF4444><b>OYUN BİTTİ</b></color>";
             basTxt.raycastTarget = false;
 
-            // İstatistik metni (orta-üst) — Y aralığı: kutu mid+50 (~+50) ila kutu top-110 (~+315)
+            // Istatistik metni — Faz 35.44: Y aralığı +50..+315 → +100..+290 (Aile yazısı ile çakışma giderildi).
+            // Yeni Y: kutu mid+100 ila kutu top-135.
             var istGo = new GameObject("Istatistik", typeof(RectTransform), typeof(CanvasRenderer));
             istGo.transform.SetParent(kutu.transform, false);
             var istRt = istGo.GetComponent<RectTransform>();
             istRt.anchorMin = new Vector2(0f, 0.5f); istRt.anchorMax = new Vector2(1f, 1f);
-            istRt.offsetMin = new Vector2(40f, 50f); istRt.offsetMax = new Vector2(-40f, -110f);
+            istRt.offsetMin = new Vector2(40f, 100f); istRt.offsetMax = new Vector2(-40f, -135f);
             _istatistikText = istGo.AddComponent<TextMeshProUGUI>();
             _istatistikText.alignment = TextAlignmentOptions.Center;
             _istatistikText.fontSize = 24f;
@@ -210,9 +211,9 @@ namespace Senaryo.Scripted
             var aileRt = aileGo.GetComponent<RectTransform>();
             aileRt.anchorMin = new Vector2(0f, 0.5f); aileRt.anchorMax = new Vector2(1f, 0.5f);
             aileRt.pivot = new Vector2(0.5f, 0.5f);
-            // Kompakt: 90 yükseklik, +30 offset → Y aralığı -15 ila +75 (orta hattın üstünde)
+            // Faz 35.44: anchoredPosition +30 → +25, Y aralığı -20..+70 (İstatistik bot +100 ile 30px boşluk).
             aileRt.sizeDelta = new Vector2(0f, 90f);
-            aileRt.anchoredPosition = new Vector2(0f, 30f);
+            aileRt.anchoredPosition = new Vector2(0f, 25f);
             var aileTxt = aileGo.AddComponent<TextMeshProUGUI>();
             aileTxt.alignment = TextAlignmentOptions.Center;
             aileTxt.fontSize = 22f;
@@ -225,13 +226,13 @@ namespace Senaryo.Scripted
                 "<size=18><i>Gerçek hayatta oyuncu burada durmaz; bir sonraki maaş, bir sonraki <color=#EF4444>kredi</color>, bir sonraki dönüş umuduyla devam eder.</i></size>";
             aileTxt.raycastTarget = false;
 
-            // Mesaj (alt) — pedagojik metin + Yeşilay
-            // Y aralığı: kutu bottom+120 (~-305) ila kutu mid-70 (~-70) → ~235px alan, 4 paragraf rahat sığar
+            // Mesaj (alt) — pedagojik metin + Yeşilay. Faz 35.44: offsetMin.y 120→115, offsetMax.y -70→-40.
+            // Yeni Y aralığı: -310 ila -40 (Aile bot -20 ile 20px boşluk, Buton ile 45px boşluk; ~270px alan).
             var mesGo = new GameObject("Mesaj", typeof(RectTransform), typeof(CanvasRenderer));
             mesGo.transform.SetParent(kutu.transform, false);
             var mesRt = mesGo.GetComponent<RectTransform>();
             mesRt.anchorMin = new Vector2(0f, 0f); mesRt.anchorMax = new Vector2(1f, 0.5f);
-            mesRt.offsetMin = new Vector2(40f, 120f); mesRt.offsetMax = new Vector2(-40f, -70f);
+            mesRt.offsetMin = new Vector2(40f, 115f); mesRt.offsetMax = new Vector2(-40f, -40f);
             var mesTxt = mesGo.AddComponent<TextMeshProUGUI>();
             mesTxt.alignment = TextAlignmentOptions.Center;
             // FAZ35.12: degisiklikler.md #30 — "Unutulmamalıdır ki…" pedagojik metin puntosu +%33 büyütüldü (18→24).
