@@ -25,7 +25,7 @@ namespace Senaryo.Scripted
     [Preserve]
     public class ScriptedBonusHUDKopru : MonoBehaviour
     {
-        public const int ANLATICI_SAHNE_BUILD_INDEX = 2;
+        public const int ANLATICI_SAHNE_BUILD_INDEX = 1;
         public static ScriptedBonusHUDKopru Ornek { get; private set; }
 
         // === UI referansları ===

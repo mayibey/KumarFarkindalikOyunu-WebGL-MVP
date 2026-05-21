@@ -16,7 +16,7 @@ namespace Senaryo.Scripted
     [Preserve]
     public class ScriptedFinalEkrani : MonoBehaviour
     {
-        public const int ANLATICI_SAHNE_BUILD_INDEX = 2;
+        public const int ANLATICI_SAHNE_BUILD_INDEX = 1;
         public const int BASLANGIC_BAKIYE = 50000;
         public const int BORC_MIKTARI = 50000;
         public const string YESILAY_HATTI = "115";

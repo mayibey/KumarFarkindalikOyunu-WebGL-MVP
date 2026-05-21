@@ -16,7 +16,7 @@ namespace KumarFarkindalik.Tutorial
     [Preserve]
     public class TutorialAdimGoster : MonoBehaviour
     {
-        public const int TUTORIAL_SAHNE_BUILD_INDEX = 3;
+        public const int TUTORIAL_SAHNE_BUILD_INDEX = 2;
         public const int CANVAS_SORTING_ORDER = 1650;
 
         public static TutorialAdimGoster Ornek { get; private set; }

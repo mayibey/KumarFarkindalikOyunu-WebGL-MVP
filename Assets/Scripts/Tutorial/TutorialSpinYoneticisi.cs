@@ -15,7 +15,7 @@ namespace KumarFarkindalik.Tutorial
     public class TutorialSpinYoneticisi : MonoBehaviour
     {
         /// <summary>04_AdminOyunScene (Tutorial sahnesi) Build Settings index'i.</summary>
-        public const int TUTORIAL_SAHNE_BUILD_INDEX = 3;
+        public const int TUTORIAL_SAHNE_BUILD_INDEX = 2;
 
         /// <summary>true sadece anlatıcı sahnesinde + asset başarıyla yüklendiğinde.</summary>
         public static bool Aktif { get; private set; }

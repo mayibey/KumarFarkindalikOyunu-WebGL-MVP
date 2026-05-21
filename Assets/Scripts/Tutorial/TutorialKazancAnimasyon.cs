@@ -25,7 +25,7 @@ namespace KumarFarkindalik.Tutorial
     [Preserve]
     public class TutorialKazancAnimasyon : MonoBehaviour
     {
-        public const int BUILD_INDEX = 3;
+        public const int BUILD_INDEX = 2;
         public const int CANVAS_SORTING_ORDER = 1700;
 
         public static TutorialKazancAnimasyon Ornek { get; private set; }

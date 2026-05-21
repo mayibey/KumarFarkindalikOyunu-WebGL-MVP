@@ -28,7 +28,7 @@ namespace KumarFarkindalik.Tutorial
     [Preserve]
     public class TutorialOyunYoneticisi : MonoBehaviour
     {
-        public const int TUTORIAL_SAHNE_BUILD_INDEX = 3;
+        public const int TUTORIAL_SAHNE_BUILD_INDEX = 2;
 
         public static TutorialOyunYoneticisi Ornek { get; private set; }
 

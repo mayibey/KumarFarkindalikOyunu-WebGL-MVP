@@ -18,7 +18,7 @@ namespace Senaryo.Scripted
     [Preserve]
     public class ScriptedDusunceBalonu : MonoBehaviour
     {
-        public const int ANLATICI_SAHNE_BUILD_INDEX = 2;
+        public const int ANLATICI_SAHNE_BUILD_INDEX = 1;
         public static ScriptedDusunceBalonu Ornek { get; private set; }
 
         /// <summary>Balon görünür mü? BaloniGoster coroutine süresince true; SpinButonImpl ve

@@ -19,7 +19,7 @@ namespace KumarFarkindalik.Tutorial
     [Preserve]
     public class TutorialModalKopru : MonoBehaviour
     {
-        public const int TUTORIAL_SAHNE_BUILD_INDEX = 3;
+        public const int TUTORIAL_SAHNE_BUILD_INDEX = 2;
         public static TutorialModalKopru Ornek { get; private set; }
 
         /// <summary>Modal görünür mü? ModalGoster coroutine süresince true; SpinButonImpl ve

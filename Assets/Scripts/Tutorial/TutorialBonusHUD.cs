@@ -9,14 +9,14 @@ namespace KumarFarkindalik.Tutorial
 {
     /// <summary>
     /// T11 "Bonus Tetikle" sonrasında bonus oyun aktifken sağ-orta'da görünen HUD.
-    /// ScriptedBonusHUDKopru görsel stil aynası (SOL → SAĞ konum + BUILD_INDEX 3).
+    /// ScriptedBonusHUDKopru görsel stil aynası (SOL → SAĞ konum + BUILD_INDEX 2).
     /// Veri akışı POLLING: OyunYoneticisi.{BonusAktifMi, BonusHakKalan, OturumKazanc} public field/property.
     /// Görev paneli sortingOrder 1650 altı (1640) — modal 1500 üstü.
     /// </summary>
     [Preserve]
     public class TutorialBonusHUD : MonoBehaviour
     {
-        public const int TUTORIAL_SAHNE_BUILD_INDEX = 3;
+        public const int TUTORIAL_SAHNE_BUILD_INDEX = 2;
         public const int CANVAS_SORTING_ORDER = 1640;
 
         public static TutorialBonusHUD Ornek { get; private set; }

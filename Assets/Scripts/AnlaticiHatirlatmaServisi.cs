@@ -15,7 +15,7 @@ using UnityEngine.UI;
 [Preserve]
 public class AnlaticiHatirlatmaServisi : MonoBehaviour
 {
-    public const int ANLATICI_SAHNE_BUILD_INDEX = 2;
+    public const int ANLATICI_SAHNE_BUILD_INDEX = 1;
     public const int CANVAS_SORTING_ORDER = 1620;
 
     public static AnlaticiHatirlatmaServisi Ornek { get; private set; }

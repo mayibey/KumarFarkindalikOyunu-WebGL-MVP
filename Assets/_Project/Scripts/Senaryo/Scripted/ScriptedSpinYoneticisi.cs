@@ -15,7 +15,7 @@ namespace Senaryo.Scripted
     public class ScriptedSpinYoneticisi : MonoBehaviour
     {
         /// <summary>03_SenaryoluOyun sahnesinin Build Settings index'i (Tools → Build Settings).</summary>
-        public const int ANLATICI_SAHNE_BUILD_INDEX = 2;
+        public const int ANLATICI_SAHNE_BUILD_INDEX = 1;
 
         /// <summary>true sadece anlatıcı sahnesinde + asset başarıyla yüklendiğinde.</summary>
         public static bool Aktif { get; private set; }

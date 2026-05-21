@@ -16,7 +16,7 @@ namespace KumarFarkindalik.Tutorial
     [Preserve]
     public class TutorialFinalWatcher : MonoBehaviour
     {
-        public const int ANLATICI_SAHNE_BUILD_INDEX = 2; // 03_SenaryoluOyun
+        public const int ANLATICI_SAHNE_BUILD_INDEX = 1; // 03_SenaryoluOyun (Faz 35.37: 02 silindi, idx kaydı)
 
         public static TutorialFinalWatcher Ornek { get; private set; }
 

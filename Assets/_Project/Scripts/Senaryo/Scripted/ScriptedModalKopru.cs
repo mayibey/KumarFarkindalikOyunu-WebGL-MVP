@@ -20,7 +20,7 @@ namespace Senaryo.Scripted
     [Preserve]
     public class ScriptedModalKopru : MonoBehaviour
     {
-        public const int ANLATICI_SAHNE_BUILD_INDEX = 2;
+        public const int ANLATICI_SAHNE_BUILD_INDEX = 1;
         public static ScriptedModalKopru Ornek { get; private set; }
 
         /// <summary>Modal görünür mü? ModalGoster coroutine süresince true; SpinButonImpl ve

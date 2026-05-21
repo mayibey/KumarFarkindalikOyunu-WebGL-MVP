@@ -337,9 +337,10 @@ public partial class OyunYoneticisi
         // PAKET 14-FAZ33 — TUTORIAL SCRIPTED MODE (build idx 3): KumarFarkindalik.Tutorial.TutorialScriptedYoneticisi
         // aktifse RNG bypass + cache validation bypass. ScriptedSpinUygulayici altyapısı (03 referans) Tutorial
         // T4/T5 pattern motor saatler süren bug'larını çözmek için. Tutorial namespace içinde Aktif=false ise
-        // pattern motor (TutorialSenaryoMotoru) eski path çalışır (fallback). 03 sahnesinde (idx 2) bu branch
+        // pattern motor (TutorialSenaryoMotoru) eski path çalışır (fallback). 03 sahnesinde (idx 1) bu branch
         // koşulu FALSE → ATLANIR, 03 davranışı %100 KORUNUR.
-        if (SceneManager.GetActiveScene().buildIndex == 3
+        // Faz 35.37: 02 silindi, idx kaydı (3 → 2).
+        if (SceneManager.GetActiveScene().buildIndex == 2
             && KumarFarkindalik.Tutorial.TutorialScriptedYoneticisi.Aktif
             && KumarFarkindalik.Tutorial.TutorialScriptedYoneticisi.Ornek != null)
         {

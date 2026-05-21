@@ -24,7 +24,7 @@ namespace KumarFarkindalik.Tutorial
     [Preserve]
     public class ScriptedTutorialGecisEkrani : MonoBehaviour
     {
-        public const int ANLATICI_SAHNE_BUILD_INDEX = 2; // 03_SenaryoluOyun
+        public const int ANLATICI_SAHNE_BUILD_INDEX = 1; // 03_SenaryoluOyun (Faz 35.37: 02 silindi, idx kaydı)
         public const int CANVAS_SORTING_ORDER = 1900;    // Final ekran (1800) + 100
 
 #if UNITY_WEBGL && !UNITY_EDITOR

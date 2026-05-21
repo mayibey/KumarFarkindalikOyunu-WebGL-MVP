@@ -22,7 +22,7 @@ namespace KumarFarkindalik.Tutorial
     [Preserve]
     public class TutorialScriptedYoneticisi : MonoBehaviour
     {
-        public const int BUILD_INDEX = 3;
+        public const int BUILD_INDEX = 2;
 
         /// <summary>Bu pattern için ScriptedSpinKaydi listesi mevcut mu ve sonraki spin var mı? OyunYoneticisi.Spin.cs okur.</summary>
         public static bool Aktif { get; private set; }

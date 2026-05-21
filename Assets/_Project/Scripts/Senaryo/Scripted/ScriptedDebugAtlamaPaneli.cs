@@ -12,7 +12,7 @@ namespace Senaryo.Scripted
 {
     public class ScriptedDebugAtlamaPaneli : MonoBehaviour
     {
-        public const int ANLATICI_SAHNE_BUILD_INDEX = 2;
+        public const int ANLATICI_SAHNE_BUILD_INDEX = 1;
         public static ScriptedDebugAtlamaPaneli Ornek { get; private set; }
 
         private GameObject _root;
