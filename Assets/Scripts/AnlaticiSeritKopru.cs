@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
@@ -897,7 +898,10 @@ public class AnlaticiSeritKopru : MonoBehaviour
         }
     }
 
-    /// <summary>A2 son spini sonrası A3'e geçiş: kayıp kovalama tuzağı uyarısı.</summary>
+    /// <summary>A2 son spini sonrası A3'e geçiş: kayıp kovalama tuzağı uyarısı.
+    /// Faz 35.43: (xx)/(yy) placeholderlari dinamik runtime bakiye degerleriyle doldurulur.
+    /// "hâlâ kârda" cümlesi A2 sonu &gt; başlangıç (50K) varsayar; Faz 35.42 sonrası ~58.150 &gt; 50.000 → doğru.
+    /// Spin tutarları/sembolleri gelecekte değişirse modal otomatik güncel kalır.</summary>
     private System.Collections.IEnumerator A3GecisAkisi()
     {
         AnlaticiOzelAkisAktif = true;
@@ -905,8 +909,17 @@ public class AnlaticiSeritKopru : MonoBehaviour
         {
             var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
             if (modal == null) yield break;
+
+            // _sonBakiye = A2 son spin sonu (A3 ilk spini ATILMADAN önce, aşama geçiş anı).
+            // _tumAsamaSpinNet[0] = A1'in tüm spin net'leri (A1→A2 geçişinde SnapshotMevcutAsama ile cache'lendi).
+            long a2SonuBakiye = _sonBakiye;
+            long a1SonuNet = _tumAsamaSpinNet.TryGetValue(0, out var a1net) && a1net != null ? a1net.Sum() : 0;
+            long a1SonuBakiye = _baslangicBakiye + a1SonuNet;
+            long fark = a1SonuBakiye - a2SonuBakiye;
+            Debug.Log($"[A3GecisAkisi] a2SonuBakiye={a2SonuBakiye}, a1SonuBakiye={a1SonuBakiye}, fark={fark}");
+
             string mesaj =
-                "İkinci aşama tamamlandı. Oyuncunun bu aşama sonundaki <color=#16a34a>bakiyesi</color> (xx), birinci aşamadaki bakiyesine (xx) göre (yy) TL azaldı. Oyuncu aslında hâlâ <color=#16a34a>kârda</color> olmasına rağmen kârdan kaybettiği (yy) TL'yi geri kazanabilmek için bir sonraki aşamaya ismini veren <color=#ea580c>\"kaybettiklerimi geri kazanabilirim\"</color> düşüncesine bürünür. Ancak bu düşünce oyuncunun daha fazla <color=#dc2626>kaybetmesine</color> sebep olur. Oyuncu artık kazanç peşinde değil, <color=#ea580c>\"kaybettiklerimi kurtarsam yeter\"</color> gibi bir düşünceye girebilir. Bu <color=#2563eb>kayıp kovalama</color> denilen psikolojik bir <color=#dc2626>tuzaktır</color>; bir kez bu döngüye girilirse çıkmak çok zordur.";
+                $"İkinci aşama tamamlandı. Oyuncunun bu aşama sonundaki <color=#16a34a>bakiyesi</color> {a2SonuBakiye:N0} TL, birinci aşamadaki bakiyesine {a1SonuBakiye:N0} TL göre {fark:N0} TL azaldı. Oyuncu aslında hâlâ <color=#16a34a>kârda</color> olmasına rağmen kârdan kaybettiği {fark:N0} TL'yi geri kazanabilmek için bir sonraki aşamaya ismini veren <color=#ea580c>\"kaybettiklerimi geri kazanabilirim\"</color> düşüncesine bürünür. Ancak bu düşünce oyuncunun daha fazla <color=#dc2626>kaybetmesine</color> sebep olur. Oyuncu artık kazanç peşinde değil, <color=#ea580c>\"kaybettiklerimi kurtarsam yeter\"</color> gibi bir düşünceye girebilir. Bu <color=#2563eb>kayıp kovalama</color> denilen psikolojik bir <color=#dc2626>tuzaktır</color>; bir kez bu döngüye girilirse çıkmak çok zordur.";
             yield return modal.ModalGoster(mesaj);
         }
         finally
