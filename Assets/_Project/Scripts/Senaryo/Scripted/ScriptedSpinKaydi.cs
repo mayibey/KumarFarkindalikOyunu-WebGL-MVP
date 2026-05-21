@@ -24,11 +24,12 @@ namespace Senaryo.Scripted
         public SpinTipi tip;
 
         /// <summary>
-        /// Bu spin için oyuncuya gösterilecek nihai brüt ödeme (TL). Çarpan SUM uygulandıktan sonraki değer
-        /// SpinSimulasyonKaydi.NihaiCarpanToplam ile birlikte hesaplanır; bu alan ham (çarpansız) toplam.
-        /// Plan tablosundaki "Brüt" sütunuyla eşleşir.
+        /// Sadece 04 Tutorial kullanır (TutorialScriptedYoneticisi:152 SonOdeme = tutorialOdemeHam × carpanToplam).
+        /// 03 Tiyatro paytable hesabını runtime'da yapar (ScriptedSpinUygulayici), bu alana BAKMAZ —
+        /// 03 üreticide her zaman 0 bırakılır. Tutorial üreticisinde ham (çarpansız) değer; carpan SUM
+        /// runtime'da ayrı uygulanır. Faz 35.40: eski "brutOdeme" adı 03/04 çelişkisi yarattığı için rename.
         /// </summary>
-        public long brutOdeme;
+        public long tutorialOdemeHam;
 
         /// <summary>
         /// 30 hücre (6 sütun × 5 satır), 1D row-major (index = y * 6 + x).

@@ -35,14 +35,13 @@ namespace Senaryo.Scripted
         /// DonusAkisServisi.BonusDongusu bu kayıttan grid+tumble yükler. Her oturumda aynı pedagojik
         /// deneyim → "kumar şans" gerçeği tutarlı.
         ///
-        /// FAZ 35.38 — brutOdeme alanının runtime semantiği:
-        ///   • 03 Tiyatro (ScriptedSpinUygulayici): brutOdeme OKUNMAZ. Paytable hesabı runtime'da
-        ///     yeniden yapılır (TumbleAyarlari.CalculateWinWithOwnPayTable). Asset'teki değer sadece
-        ///     dokümantasyon/log amaçlıdır; ScriptedSenaryoAssetUreteci'de Brut() helper'ı ile aynı
-        ///     paytable kullanılarak hesaplanır → asset rakamı runtime ile %100 senkron kalır.
-        ///   • 04 Tutorial (TutorialScriptedYoneticisi:152): brutOdeme OKUNUR ve carpan SUM ile
-        ///     çarpılır (SonOdeme = kayit.brutOdeme × carpanToplam). Tutorial pattern'leri için
-        ///     brutOdeme ham (çarpansız) yazılır — Tiyatro convention'undan farklı.
+        /// FAZ 35.40 — tutorialOdemeHam alanının semantiği (eski adı brutOdeme):
+        ///   • 03 Tiyatro (ScriptedSpinUygulayici): OKUNMAZ. Paytable hesabı runtime'da yeniden
+        ///     yapılır (TumbleAyarlari.CalculateWinWithOwnPayTable). 03 üreticide alan 0 bırakılır;
+        ///     asset YAML'da 0 olarak serialize edilir (önceki Brut() formül bağlama kaldırıldı).
+        ///   • 04 Tutorial (TutorialScriptedYoneticisi:152): OKUNUR ve carpan SUM ile çarpılır
+        ///     (SonOdeme = kayit.tutorialOdemeHam × carpanToplam). Tutorial üreticisi (TutorialAsamaListesiUreteci)
+        ///     ham (çarpansız) değer girer. Alan adı 04'e açıkça işaret eder.
         /// </summary>
         public List<ScriptedSpinKaydi> bonusSpinleri = new List<ScriptedSpinKaydi>();
 

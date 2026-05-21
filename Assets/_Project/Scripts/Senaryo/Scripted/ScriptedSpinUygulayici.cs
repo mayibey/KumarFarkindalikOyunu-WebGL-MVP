@@ -11,7 +11,7 @@ namespace Senaryo.Scripted
     /// Dönüşüm kuralları:
     /// - 1D → 2D grid: index i = y * sutun + x, x = i % sutun, y = i / sutun (sutun=6, satir=5).
     /// - Çarpanlar SUM ile toplanır (Sweet Bonanza mantığı; CarpanServisi içinde _spinCarpanCarpim ismi yanıltıcı).
-    /// - <c>ToplamHamKazanc = brutOdeme / max(1, carpanToplam)</c>; NormalSpinAkisi
+    /// - <c>ToplamHamKazanc = tutorialOdemeHam / max(1, carpanToplam)</c>; NormalSpinAkisi
     ///   <c>teorikToplam = ham × carpan</c> formülünü uyguladığında bakiyeye eklenen
     ///   tutar planın brüt değerine birebir uyar.
     /// - <see cref="ScriptedSpinKaydi.carpanKactiFlag"/> true ise ham 0, çarpan 1 → ödeme 0
@@ -179,7 +179,7 @@ namespace Senaryo.Scripted
             Debug.Log(
                 $"[ScriptedUygulayici] Aşama {kayit.asamaIndex + 1} Spin {kayit.spinSiraNo} | " +
                 $"Adım={sim.Adimlar.Count} | Ham={sim.ToplamHamKazanc} × Çarpan={sim.NihaiCarpanToplam} = " +
-                $"Ödeme {teorikOdeme} TL (plan brüt {kayit.brutOdeme}) | " +
+                $"Ödeme {teorikOdeme} TL (plan brüt {kayit.tutorialOdemeHam}) | " +
                 $"CarpanKacti={kayit.carpanKactiFlag} | ZorlaCarpan={sim.ZorlaCarpanKullanildi}");
 
             // Her tumble için kısa özet: kaç hücre patladı, hangi semboller düşüyor.

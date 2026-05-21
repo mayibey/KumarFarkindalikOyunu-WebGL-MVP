@@ -348,7 +348,7 @@ public partial class OyunYoneticisi
             if (tutorialKayit != null)
             {
                 int gercekBahisT = _ekonomiServisi != null ? _ekonomiServisi.Bahis : tutorialKayit.bahis;
-                Debug.Log($"[TutorialScripted] Spin RNG bypass, brüt {tutorialKayit.brutOdeme} TL (bahis={gercekBahisT})");
+                Debug.Log($"[TutorialScripted] Spin RNG bypass, brüt {tutorialKayit.tutorialOdemeHam} TL (bahis={gercekBahisT})");
                 return ScriptedSpinUygulayici.UygulaKaydi(tutorialKayit, this, gercekBahisT);
             }
         }
@@ -366,7 +366,7 @@ public partial class OyunYoneticisi
                 int bonusSpinIdx = bonusHakBaslangic - bonusHakKalan;
                 scriptedKayit = ScriptedSpinYoneticisi.Ornek.SonrakiBonusSpiniAl(bonusSpinIdx);
                 if (scriptedKayit != null)
-                    Debug.Log($"[ScriptedBonus] Spin {bonusSpinIdx + 1}/10 — RNG bypass, brüt {scriptedKayit.brutOdeme} TL");
+                    Debug.Log($"[ScriptedBonus] Spin {bonusSpinIdx + 1}/10 — RNG bypass, brüt {scriptedKayit.tutorialOdemeHam} TL");
             }
             else if (!bonusSpin)
             {
@@ -374,7 +374,7 @@ public partial class OyunYoneticisi
                 int spinIdx = AnlaticiSeritKopru.Ornek != null ? AnlaticiSeritKopru.Ornek.AsamadakiSpinSayaci : 0;
                 scriptedKayit = ScriptedSpinYoneticisi.Ornek.SonrakiSpiniAl(asamaIdx, spinIdx);
                 if (scriptedKayit != null)
-                    Debug.Log($"[Scripted] Aşama {asamaIdx + 1} Spin {spinIdx + 1} — RNG bypass, brüt {scriptedKayit.brutOdeme}");
+                    Debug.Log($"[Scripted] Aşama {asamaIdx + 1} Spin {spinIdx + 1} — RNG bypass, brüt {scriptedKayit.tutorialOdemeHam}");
             }
             if (scriptedKayit != null)
             {

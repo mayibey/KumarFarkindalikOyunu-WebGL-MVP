@@ -298,7 +298,7 @@ namespace Senaryo.Scripted
                 asamaIndex = 5,
                 bahis = BAHIS_A6,
                 tip = SpinTipi.Sifir,
-                brutOdeme = 0,
+                tutorialOdemeHam = 0,
                 ilkGridSemboller = grid,
                 ilkCarpanDegerleri = new int[HUCRE],
                 tumbleler = new System.Collections.Generic.List<TumbleAdimTanimi>(),
@@ -316,7 +316,7 @@ namespace Senaryo.Scripted
         /// Payline koruması: her satırın ilk 3 reel'inde (sutun 0-1-2) aynı sembol 3 kez peş peşe
         /// gelirse 3. hücre bir sonraki sembolle değiştirilir — slot win pattern'inden kaçınılır.
         /// (Cluster pays mantığı konum bağımsız olduğu için bu kontrol görsel-amaçlıdır;
-        /// brutOdeme=0 zaten kayıp spini garanti eder, motor o sayıyı kullanır.)
+        /// tutorialOdemeHam=0 zaten kayıp spini garanti eder, motor o sayıyı kullanır.)
         /// </summary>
         private static int[] GridRastgeleKayip(int seed)
         {

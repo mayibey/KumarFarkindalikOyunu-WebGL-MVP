@@ -131,7 +131,7 @@ namespace KumarFarkindalik.Tutorial
                 asamaIndex = 0,
                 bahis = TUTORIAL_BAHIS,
                 tip = SpinTipi.Sifir,
-                brutOdeme = 0,
+                tutorialOdemeHam = 0,
                 ilkGridSemboller = grid30,
                 ilkCarpanDegerleri = new int[30],
                 tumbleler = new List<TumbleAdimTanimi>(),
@@ -164,7 +164,7 @@ namespace KumarFarkindalik.Tutorial
                 asamaIndex = 0,
                 bahis = TUTORIAL_BAHIS,
                 tip = SpinTipi.NearMiss,
-                brutOdeme = 0,
+                tutorialOdemeHam = 0,
                 ilkGridSemboller = grid,
                 ilkCarpanDegerleri = carpan,
                 tumbleler = new List<TumbleAdimTanimi>(), // cluster yok → tumble yok
@@ -181,7 +181,7 @@ namespace KumarFarkindalik.Tutorial
         ///   • tumbleSembol >= 0 → 8 hücreye aynı sembol yerleşir → YENİ 8-li cluster oluşur → sonraki tumble patlatır.
         ///   • tumbleSembol == -1 → son tumble dolgu sembolleri düşer (cluster oluşmaz, zincir biter).
         /// Gerçek ödeme ScriptedSpinUygulayici tarafından paytable_8_9 × tumble sayısı × bahis ile hesaplanır;
-        /// brutOdeme field sadece Debug.Log raporlaması için (paytable taraması ile birlikte).</summary>
+        /// tutorialOdemeHam field sadece Debug.Log raporlaması için (paytable taraması ile birlikte).</summary>
         public static ScriptedSpinKaydi UretCokTumbleliKayit(int ilkClusterSembol, int[] tumbleClusterSemboller)
         {
             // İlk grid: 8-li cluster (ilkClusterSembol) + dolgu (max 4 per sembol, scatter hariç)
@@ -235,7 +235,7 @@ namespace KumarFarkindalik.Tutorial
                 });
             }
 
-            // brutOdeme raporlama (paytable_8_9 × bahis × cluster sayısı; ScriptedSpinUygulayici göz ardı eder)
+            // tutorialOdemeHam raporlama (paytable_8_9 × bahis × cluster sayısı; ScriptedSpinUygulayici göz ardı eder)
             long ramToplam = 0;
             var oy = Object.FindObjectOfType<OyunYoneticisi>();
             var ta = oy != null ? oy.tumbleAyarlari : null;
@@ -253,7 +253,7 @@ namespace KumarFarkindalik.Tutorial
                 asamaIndex = 0,
                 bahis = TUTORIAL_BAHIS,
                 tip = SpinTipi.Kazanc,
-                brutOdeme = ramToplam,
+                tutorialOdemeHam = ramToplam,
                 ilkGridSemboller = grid,
                 ilkCarpanDegerleri = new int[30],
                 tumbleler = tumbleler,
@@ -429,8 +429,8 @@ namespace KumarFarkindalik.Tutorial
         }
 
         /// <summary>PAKET 14-FAZ34 İş 7/8/9: Jenerik kazanç kaydı — verilen sembol için 8/10/12-li cluster.
-        /// brutOdeme çağıran tarafından paytable hesabıyla geçirilir (ham, çarpansız).</summary>
-        public static ScriptedSpinKaydi UretCokAdetKazancKayit(int sembolId, int adet, long brutOdeme)
+        /// tutorialOdemeHam çağıran tarafından paytable hesabıyla geçirilir (ham, çarpansız).</summary>
+        public static ScriptedSpinKaydi UretCokAdetKazancKayit(int sembolId, int adet, long tutorialOdemeHam)
         {
             int[] grid = new int[30];
             for (int i = 0; i < 30; i++) grid[i] = -1;
@@ -475,7 +475,7 @@ namespace KumarFarkindalik.Tutorial
                 asamaIndex = 0,
                 bahis = TUTORIAL_BAHIS,
                 tip = SpinTipi.Kazanc,
-                brutOdeme = brutOdeme,
+                tutorialOdemeHam = tutorialOdemeHam,
                 ilkGridSemboller = grid,
                 ilkCarpanDegerleri = carpan,
                 tumbleler = new List<TumbleAdimTanimi> { tumble },
@@ -596,7 +596,7 @@ namespace KumarFarkindalik.Tutorial
                 asamaIndex = 0,
                 bahis = TUTORIAL_BAHIS,
                 tip = SpinTipi.Sifir,
-                brutOdeme = 0,
+                tutorialOdemeHam = 0,
                 ilkGridSemboller = grid,
                 ilkCarpanDegerleri = carpan,
                 tumbleler = new List<TumbleAdimTanimi>(), // cluster yok → tumble yok
@@ -657,7 +657,7 @@ namespace KumarFarkindalik.Tutorial
                 asamaIndex = 0,
                 bahis = TUTORIAL_BAHIS,
                 tip = SpinTipi.MegaWin,
-                brutOdeme = 5000,  // ham (çarpansız) — Muz 12 × 5.0 × bahis 1000
+                tutorialOdemeHam = 5000,  // ham (çarpansız) — Muz 12 × 5.0 × bahis 1000
                 ilkGridSemboller = grid,
                 ilkCarpanDegerleri = carpan,
                 tumbleler = new List<TumbleAdimTanimi> { tumble },
@@ -714,7 +714,7 @@ namespace KumarFarkindalik.Tutorial
                 asamaIndex = 0,
                 bahis = TUTORIAL_BAHIS,
                 tip = SpinTipi.Kazanc,
-                brutOdeme = 500,
+                tutorialOdemeHam = 500,
                 ilkGridSemboller = grid,
                 ilkCarpanDegerleri = carpan,
                 tumbleler = new List<TumbleAdimTanimi> { tumble },
@@ -744,7 +744,7 @@ namespace KumarFarkindalik.Tutorial
                 asamaIndex = 0,
                 bahis = TUTORIAL_BAHIS,
                 tip = SpinTipi.Sifir,
-                brutOdeme = 0,
+                tutorialOdemeHam = 0,
                 ilkGridSemboller = grid,
                 ilkCarpanDegerleri = carpan,
                 tumbleler = new List<TumbleAdimTanimi>(),
@@ -792,7 +792,7 @@ namespace KumarFarkindalik.Tutorial
                 asamaIndex = 0,
                 bahis = TUTORIAL_BAHIS,
                 tip = SpinTipi.Kazanc,
-                brutOdeme = 1000,  // 8 Elma × payCoef 1.0 × bahis 1000 = 1000 ham (çarpan ayrı)
+                tutorialOdemeHam = 1000,  // 8 Elma × payCoef 1.0 × bahis 1000 = 1000 ham (çarpan ayrı)
                 ilkGridSemboller = grid,
                 ilkCarpanDegerleri = carpan,
                 tumbleler = new List<TumbleAdimTanimi> { tumble },
@@ -836,7 +836,7 @@ namespace KumarFarkindalik.Tutorial
                 asamaIndex = 0,
                 bahis = TUTORIAL_BAHIS,
                 tip = SpinTipi.Kazanc,
-                brutOdeme = 500,  // 8 Hindistan × payCoef 0.5 × bahis 1000 = 500 ham
+                tutorialOdemeHam = 500,  // 8 Hindistan × payCoef 0.5 × bahis 1000 = 500 ham
                 ilkGridSemboller = grid,
                 ilkCarpanDegerleri = carpan,
                 tumbleler = new List<TumbleAdimTanimi> { tumble },
@@ -870,7 +870,7 @@ namespace KumarFarkindalik.Tutorial
                 asamaIndex = 0,
                 bahis = TUTORIAL_BAHIS,
                 tip = SpinTipi.Sifir,
-                brutOdeme = 0,
+                tutorialOdemeHam = 0,
                 ilkGridSemboller = grid,
                 ilkCarpanDegerleri = carpan,
                 tumbleler = new List<TumbleAdimTanimi>(), // tumble yok
@@ -904,7 +904,7 @@ namespace KumarFarkindalik.Tutorial
                 asamaIndex = 0,
                 bahis = TUTORIAL_BAHIS,
                 tip = SpinTipi.Sifir,
-                brutOdeme = 0,
+                tutorialOdemeHam = 0,
                 ilkGridSemboller = grid,
                 ilkCarpanDegerleri = carpan,
                 tumbleler = new List<TumbleAdimTanimi>(),
