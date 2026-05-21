@@ -849,7 +849,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
                 "<color=#5BA0FF>OYUNCUNUN DÜŞÜNCESİ</color> bölümlerini takip edelim — " +
                 "<color=#4DCC59>sistemin gerçekte ne yaptığını</color> orada göreceğiz.";
             string mesaj =
-                "Hoş geldiniz. Bu simülasyonda online kumar oyunlarının oyuncuları nasıl etkilediğini birlikte göreceğiz.\n\n" +
+                "Hoş geldiniz. Bu uygulama, kumar bağımlılarının en çok oynadığı slot oyununun bir benzeridir. Burada bu oyunların neden <color=#dc2626>kazandırmadığını</color> ve oyuncuların nasıl <color=#dc2626>manipüle edildiğini</color> birlikte göreceğiz.\n\n" +
                 "<b>Önce oyunu tanıyalım:</b>\n" +
                 "• Ekranda 6×5'lik meyve makinesi var. SPIN tuşuna basıldığında meyveler döner.\n" +
                 "• Aynı meyveden <color=#FFD700><b>8 veya daha fazlası</b></color> bir araya gelirse <color=#4ADE80>kazanç verir</color>.\n" +
