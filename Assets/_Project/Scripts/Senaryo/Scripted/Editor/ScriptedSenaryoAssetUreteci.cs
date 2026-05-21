@@ -262,8 +262,13 @@ namespace Senaryo.Scripted.Editor
                 var t3 = TumbleDolguDusen(g2, new[] { SYM_UZUM }, all);
                 liste.Add(SpinTanimi(1, 0, BAHIS_A1, SpinTipi.Kazanc, 0L, ilk, null, new[] { t1, t2, t3 }, M_A1_S1));
             }
-            // Spin 2: tek cluster üzüm = 1.5×500 = 750
-            liste.Add(TekClusterSpin(2, 0, BAHIS_A1, SYM_UZUM, SpinTipi.Kazanc));
+            // Spin 2: Karpuz×8 + Muz×8 = (0.6+0.8)×500 = 700 (Faz 35.42: Üzüm/Elma tekeli kırma; Karpuz devrede)
+            {
+                int[] all = { SYM_KARPUZ, SYM_MUZ };
+                int[] ilk = GridIlk(all, Seed(0, 2), (SYM_KARPUZ, 8), (SYM_MUZ, 8));
+                var t1 = TumbleDolguDusen(ilk, all, all);
+                liste.Add(SpinTanimi(2, 0, BAHIS_A1, SpinTipi.Kazanc, 0L, ilk, null, new[] { t1 }));
+            }
             // Spin 3: 8 elma + 8 üzüm + ilk grid x2 çarpan = (1.0+1.5)×500×2 = 2500
             {
                 int[] all = { SYM_ELMA, SYM_UZUM };
@@ -271,15 +276,20 @@ namespace Senaryo.Scripted.Editor
                 var t1 = TumbleDolguDusen(g, new[] { SYM_ELMA, SYM_UZUM }, all);
                 liste.Add(SpinTanimi(3, 0, BAHIS_A1, SpinTipi.Kazanc, 0L, g, c, new[] { t1 }));
             }
-            // Spin 4: 8 üzüm tek cluster = 1.5×500 = 750 | modal A1_S4
-            liste.Add(TekClusterSpin(4, 0, BAHIS_A1, SYM_UZUM, SpinTipi.Kazanc, M_A1_S4));
-            // Spin 5: 2 tumble {üzüm→elma} = (1.5+1.0)×500 = 1250
+            // Spin 4: Erik×8 + Elma×8 = (0.4+1.0)×500 = 700 | modal A1_S4 (Faz 35.42: Erik devrede)
             {
-                int[] all = { SYM_UZUM, SYM_ELMA };
-                int[] ilk = GridIlk(all, Seed(0, 5), (SYM_UZUM, 8));
-                var t1 = TumbleTekDusen(ilk, new[] { SYM_UZUM }, SYM_ELMA);
+                int[] all = { SYM_ERIK, SYM_ELMA };
+                int[] ilk = GridIlk(all, Seed(0, 4), (SYM_ERIK, 8), (SYM_ELMA, 8));
+                var t1 = TumbleDolguDusen(ilk, all, all);
+                liste.Add(SpinTanimi(4, 0, BAHIS_A1, SpinTipi.Kazanc, 0L, ilk, null, new[] { t1 }, M_A1_S4));
+            }
+            // Spin 5: 2 tumble {muz→üzüm} = (0.8+1.5)×500 = 1150 (Faz 35.42: Muz devrede)
+            {
+                int[] all = { SYM_MUZ, SYM_UZUM };
+                int[] ilk = GridIlk(all, Seed(0, 5), (SYM_MUZ, 8));
+                var t1 = TumbleTekDusen(ilk, new[] { SYM_MUZ }, SYM_UZUM);
                 int[] g1 = GridSonrasiHesapla(ilk, t1);
-                var t2 = TumbleDolguDusen(g1, new[] { SYM_ELMA }, all);
+                var t2 = TumbleDolguDusen(g1, new[] { SYM_UZUM }, all);
                 liste.Add(SpinTanimi(5, 0, BAHIS_A1, SpinTipi.Kazanc, 0L, ilk, null, new[] { t1, t2 }));
             }
             // Spin 6: 7 üzüm near-miss
@@ -292,12 +302,12 @@ namespace Senaryo.Scripted.Editor
                 var t1 = TumbleDolguDusen(g, new[] { SYM_UZUM, SYM_ELMA }, all);
                 liste.Add(SpinTanimi(7, 0, BAHIS_A1, SpinTipi.MegaWin, 0L, g, c, new[] { t1 }));
             }
-            // Spin 8: 10 elma + 8 hindistan tek tumble = (3.0+0.5)×500 = 1750
-            // (10 sembol için PAYTABLE_10_11 kullanılır → elma=3.0)
+            // Spin 8: 10 muz + 8 üzüm tek tumble = (2.0+1.5)×500 = 1750 (Faz 35.42: Muz 10-cluster)
+            // (10 sembol için PAYTABLE_10_11 kullanılır → muz=2.0; aynı toplam, farklı görsel)
             {
-                int[] all = { SYM_ELMA, SYM_HINDISTAN };
-                int[] ilk = GridIlk(all, Seed(0, 8), (SYM_ELMA, 10), (SYM_HINDISTAN, 8));
-                var t1 = TumbleDolguDusen(ilk, new[] { SYM_ELMA, SYM_HINDISTAN }, all);
+                int[] all = { SYM_MUZ, SYM_UZUM };
+                int[] ilk = GridIlk(all, Seed(0, 8), (SYM_MUZ, 10), (SYM_UZUM, 8));
+                var t1 = TumbleDolguDusen(ilk, new[] { SYM_MUZ, SYM_UZUM }, all);
                 liste.Add(SpinTanimi(8, 0, BAHIS_A1, SpinTipi.Kazanc, 0L, ilk, null, new[] { t1 }));
             }
         }
@@ -307,36 +317,51 @@ namespace Senaryo.Scripted.Editor
         // ============================================================
         private static void DoldurAsama2(List<ScriptedSpinKaydi> liste)
         {
-            // Spin 1: 8 elma = 1.0×1000 = 1000
-            liste.Add(TekClusterSpin(1, 1, BAHIS_A2, SYM_ELMA, SpinTipi.Kazanc));
-            // Spin 2: 8 hindistan = 0.5×1000 = 500 — manipülasyon farkındalığı modali
+            // Spin 1: Erik×8 + Karpuz×8 = (0.4+0.6)×1000 = 1000 (Faz 35.42: Erik+Karpuz devrede)
+            {
+                int[] all = { SYM_ERIK, SYM_KARPUZ };
+                int[] ilk = GridIlk(all, Seed(1, 1), (SYM_ERIK, 8), (SYM_KARPUZ, 8));
+                var t1 = TumbleDolguDusen(ilk, all, all);
+                liste.Add(SpinTanimi(1, 1, BAHIS_A2, SpinTipi.Kazanc, 0L, ilk, null, new[] { t1 }));
+            }
+            // Spin 2: Armut×10 = 0.5×1000 = 500 — manipülasyon farkındalığı modali
             // (1000 bahis - 500 brüt = 500 net kayıp ama ekran "KAZANÇ 500 TL" yazar; sömürü görünür).
-            liste.Add(TekClusterSpin(2, 1, BAHIS_A2, SYM_HINDISTAN, SpinTipi.Kazanc, M_A2_S2));
+            // Faz 35.42: Hindistan×8 yerine Armut×10 — aynı tutar, farklı görsel (10-cluster yanılsaması).
+            {
+                int[] all = { SYM_ARMUT };
+                int[] ilk = GridIlk(all, Seed(1, 2), (SYM_ARMUT, 10));
+                var t1 = TumbleDolguDusen(ilk, all, all);
+                liste.Add(SpinTanimi(2, 1, BAHIS_A2, SpinTipi.Kazanc, 0L, ilk, null, new[] { t1 }, M_A2_S2));
+            }
             // Spin 3: normal sıfır brüt kayıp spini (3-yıldız sahnesi A4 S1'e taşındı —
             // A4 girişinde "neredeyse oluyordu" hissi pedagojik olarak daha güçlü).
             liste.Add(SpinTanimi(3, 1, BAHIS_A2, SpinTipi.Sifir, 0,
                 GridSifir(Seed(1, 3)), null, NoTumble()));
-            // Spin 4: 8 üzüm = 1.5×1000 = 1500 (kasıtlı kazanç) | SONRA modal A2_S4
-            liste.Add(TekClusterSpin(4, 1, BAHIS_A2, SYM_UZUM, SpinTipi.Kazanc, M_A2_S4));
-            // Spin 5: 2 tumble {hindistan→muz} = (0.5+0.8)×1000 = 1300
-            // Faz 35.38: plan brüt 750 idi (yanlış); paytable formülü doğru değeri (1300) üretir.
+            // Spin 4: Karpuz×10 = 1.5×1000 = 1500 (kasıtlı kazanç) | SONRA modal A2_S4
+            // Faz 35.42: Üzüm×8 yerine Karpuz×10 — aynı tutar, Karpuz 10-cluster görseli.
             {
-                int[] all = { SYM_HINDISTAN, SYM_MUZ };
-                int[] ilk = GridIlk(all, Seed(1, 5), (SYM_HINDISTAN, 8));
-                var t1 = TumbleTekDusen(ilk, new[] { SYM_HINDISTAN }, SYM_MUZ);
+                int[] all = { SYM_KARPUZ };
+                int[] ilk = GridIlk(all, Seed(1, 4), (SYM_KARPUZ, 10));
+                var t1 = TumbleDolguDusen(ilk, all, all);
+                liste.Add(SpinTanimi(4, 1, BAHIS_A2, SpinTipi.Kazanc, 0L, ilk, null, new[] { t1 }, M_A2_S4));
+            }
+            // Spin 5: 2 tumble {çilek→elma} = (0.3+1.0)×1000 = 1300 (Faz 35.42: Çilek devrede)
+            {
+                int[] all = { SYM_CILEK, SYM_ELMA };
+                int[] ilk = GridIlk(all, Seed(1, 5), (SYM_CILEK, 8));
+                var t1 = TumbleTekDusen(ilk, new[] { SYM_CILEK }, SYM_ELMA);
                 int[] g1 = GridSonrasiHesapla(ilk, t1);
-                var t2 = TumbleDolguDusen(g1, new[] { SYM_MUZ }, all);
+                var t2 = TumbleDolguDusen(g1, new[] { SYM_ELMA }, all);
                 liste.Add(SpinTanimi(5, 1, BAHIS_A2, SpinTipi.Kazanc, 0L, ilk, null, new[] { t1, t2 }));
             }
             // Spin 6: 7 üzüm + 7 elma near-miss (modal "kıl payı kaçtı" pekişme)
             liste.Add(SpinTanimi(6, 1, BAHIS_A2, SpinTipi.NearMiss, 0,
                 GridIlk(null, Seed(1, 6), (SYM_UZUM, 7), (SYM_ELMA, 7)), null, NoTumble(), M_A2_S6));
-            // Spin 7: 2 tumble {elma→hindistan} = (1.0+0.5)×1000 = 1500
-            // Faz 35.38: plan brüt 750 typo idi; paytable formülü doğru değeri (1500) üretir.
+            // Spin 7: 2 tumble {muz→hindistan} = (0.8+0.5)×1000 = 1300 (Faz 35.42: Muz devrede, Üzüm/Elma yok)
             {
-                int[] all = { SYM_ELMA, SYM_HINDISTAN };
-                int[] ilk = GridIlk(all, Seed(1, 7), (SYM_ELMA, 8));
-                var t1 = TumbleTekDusen(ilk, new[] { SYM_ELMA }, SYM_HINDISTAN);
+                int[] all = { SYM_MUZ, SYM_HINDISTAN };
+                int[] ilk = GridIlk(all, Seed(1, 7), (SYM_MUZ, 8));
+                var t1 = TumbleTekDusen(ilk, new[] { SYM_MUZ }, SYM_HINDISTAN);
                 int[] g1 = GridSonrasiHesapla(ilk, t1);
                 var t2 = TumbleDolguDusen(g1, new[] { SYM_HINDISTAN }, all);
                 liste.Add(SpinTanimi(7, 1, BAHIS_A2, SpinTipi.Kazanc, 0L, ilk, null, new[] { t1, t2 }));
@@ -357,8 +382,13 @@ namespace Senaryo.Scripted.Editor
                 GridIlk(null, Seed(2, 3), (SYM_ELMA, 7)), null, NoTumble(), M_A3_S3));
             liste.Add(SpinTanimi(4, 2, BAHIS_A3, SpinTipi.NearMiss, 0,
                 GridIlk(null, Seed(2, 4), (SYM_UZUM, 7), (SYM_ELMA, 7)), null, NoTumble()));
-            // S5: 8 hindistan = 0.5×1500 = 750 (bahis iadesi tam yarısı — "kazandım" hissi ama gerçekte net -750)
-            liste.Add(TekClusterSpin(5, 2, BAHIS_A3, SYM_HINDISTAN, SpinTipi.BahisIadesi));
+            // S5: Çilek×8 + Armut×8 = (0.3+0.2)×1500 = 750 bahis iadesi (Faz 35.42: Çilek+Armut devrede)
+            {
+                int[] all = { SYM_CILEK, SYM_ARMUT };
+                int[] ilk = GridIlk(all, Seed(2, 5), (SYM_CILEK, 8), (SYM_ARMUT, 8));
+                var t1 = TumbleDolguDusen(ilk, all, all);
+                liste.Add(SpinTanimi(5, 2, BAHIS_A3, SpinTipi.BahisIadesi, 0L, ilk, null, new[] { t1 }));
+            }
             liste.Add(SpinTanimi(6, 2, BAHIS_A3, SpinTipi.NearMiss, 0,
                 GridIlk(null, Seed(2, 6), (SYM_SCATTER, 3)), null, NoTumble(), M_A3_S6));
             // Spin 7: bahis A3 Spin 6 sonu otomatik 2500'e yükseltildi → bu spin 2500 TL ile oynanır
@@ -451,25 +481,35 @@ namespace Senaryo.Scripted.Editor
             liste.Add(SpinTanimi(1, 4, BAHIS_BONUS, SpinTipi.NearMiss, 0,
                 GridIlk(null, Seed(7, 1), (SYM_UZUM, 7)), null, NoTumble()));
 
-            // Spin 2: HINDISTAN × 8 = 0.5×1000 = 500 (ilk küçük kazanç)
-            liste.Add(TekClusterSpin(2, 4, BAHIS_BONUS, SYM_HINDISTAN, SpinTipi.Kazanc));
+            // Spin 2: ARMUT × 10 = 0.5×1000 = 500 (Faz 35.42: 10-cluster yanılsama "büyük cluster ama küçük ödeme")
+            {
+                int[] all = { SYM_ARMUT };
+                int[] ilk = GridIlk(all, Seed(7, 2), (SYM_ARMUT, 10));
+                var t1 = TumbleDolguDusen(ilk, all, all);
+                liste.Add(SpinTanimi(2, 4, BAHIS_BONUS, SpinTipi.Kazanc, 0L, ilk, null, new[] { t1 }));
+            }
 
             // Spin 3: 7 ELMA near-miss → 0 (umutsuzluk)
             liste.Add(SpinTanimi(3, 4, BAHIS_BONUS, SpinTipi.NearMiss, 0,
                 GridIlk(null, Seed(7, 3), (SYM_ELMA, 7)), null, NoTumble()));
 
-            // Spin 4: MUZ × 8 = 0.8×1000 = 800 (orta kazanç)
-            liste.Add(TekClusterSpin(4, 4, BAHIS_BONUS, SYM_MUZ, SpinTipi.Kazanc));
+            // Spin 4: ÇİLEK×8 + HİNDİSTAN×8 = (0.3+0.5)×1000 = 800 (Faz 35.42: Çilek devrede, çift cluster)
+            {
+                int[] all = { SYM_CILEK, SYM_HINDISTAN };
+                int[] ilk = GridIlk(all, Seed(7, 4), (SYM_CILEK, 8), (SYM_HINDISTAN, 8));
+                var t1 = TumbleDolguDusen(ilk, all, all);
+                liste.Add(SpinTanimi(4, 4, BAHIS_BONUS, SpinTipi.Kazanc, 0L, ilk, null, new[] { t1 }));
+            }
 
             // Spin 5: 7 UZUM + 7 ELMA çift near-miss → 0 (sembol yaklaştı, patlamadı)
             liste.Add(SpinTanimi(5, 4, BAHIS_BONUS, SpinTipi.NearMiss, 0,
                 GridIlk(null, Seed(7, 5), (SYM_UZUM, 7), (SYM_ELMA, 7)), null, NoTumble()));
 
-            // Spin 6: ELMA × 8 + ARMUT × 8 = (1.0+0.2)×1000 = 1200 ("büyük gelecek" hissi)
+            // Spin 6: ERİK × 8 + MUZ × 8 = (0.4+0.8)×1000 = 1200 (Faz 35.42: Erik+Muz devrede, "büyük gelecek" hissi)
             {
-                int[] all = { SYM_ELMA, SYM_ARMUT };
-                int[] ilk = GridIlk(all, Seed(7, 6), (SYM_ELMA, 8), (SYM_ARMUT, 8));
-                var t1 = TumbleDolguDusen(ilk, new[] { SYM_ELMA, SYM_ARMUT }, all);
+                int[] all = { SYM_ERIK, SYM_MUZ };
+                int[] ilk = GridIlk(all, Seed(7, 6), (SYM_ERIK, 8), (SYM_MUZ, 8));
+                var t1 = TumbleDolguDusen(ilk, new[] { SYM_ERIK, SYM_MUZ }, all);
                 liste.Add(SpinTanimi(6, 4, BAHIS_BONUS, SpinTipi.Kazanc, 0L, ilk, null, new[] { t1 }));
             }
 
@@ -477,8 +517,13 @@ namespace Senaryo.Scripted.Editor
             liste.Add(SpinTanimi(7, 4, BAHIS_BONUS, SpinTipi.NearMiss, 0,
                 GridIlk(null, Seed(7, 7), (SYM_CILEK, 7)), null, NoTumble()));
 
-            // Spin 8: HINDISTAN × 8 = 0.5×1000 = 500 (küçük kazanç tekrar)
-            liste.Add(TekClusterSpin(8, 4, BAHIS_BONUS, SYM_HINDISTAN, SpinTipi.Kazanc));
+            // Spin 8: ÇİLEK×8 + ARMUT×8 = (0.3+0.2)×1000 = 500 (Faz 35.42: Çilek+Armut devrede, küçük kazanç tekrar)
+            {
+                int[] all = { SYM_CILEK, SYM_ARMUT };
+                int[] ilk = GridIlk(all, Seed(7, 8), (SYM_CILEK, 8), (SYM_ARMUT, 8));
+                var t1 = TumbleDolguDusen(ilk, all, all);
+                liste.Add(SpinTanimi(8, 4, BAHIS_BONUS, SpinTipi.Kazanc, 0L, ilk, null, new[] { t1 }));
+            }
 
             // Spin 9: HINDISTAN × 10 = 1.0×1000 = 1000 (büyük cluster boyut yanılsaması — 10 sembol görsel ama 1000 TL)
             // (PAYTABLE_10_11[hindistan]=1.0)
