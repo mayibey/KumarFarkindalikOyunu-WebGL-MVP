@@ -36,7 +36,7 @@ namespace Senaryo.Scripted
             Debug.Log("[ScriptedTANI] OtomatikInit ÇAĞRILDI — bootstrap; sceneLoaded event'e abone olunuyor.");
             // RuntimeInitializeOnLoadMethod WebGL'de SADECE bootstrap'ta tetikleniyor (sahne geçişlerinde
             // tekrar çağrılmıyor). Bu nedenle SceneManager.sceneLoaded event'ine abone oluyoruz: her
-            // sahne yüklendiğinde OnSceneLoaded çağrılır → idx==2 ise scripted GameObject yaratılır.
+            // sahne yüklendiğinde OnSceneLoaded çağrılır → idx==ANLATICI_SAHNE_BUILD_INDEX ise scripted GameObject yaratılır.
             SceneManager.sceneLoaded -= OnSceneLoaded; // idempotent
             SceneManager.sceneLoaded += OnSceneLoaded;
 
