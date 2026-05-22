@@ -142,10 +142,10 @@
     <div class="spin-bolum">
       <div class="spin-row">
         <span class="section-label label-spin" style="margin: 0;">SPİN İLERLEMESİ</span>
-        <span class="spin-sayac" id="spinSayac">0 / 10</span>
+        <span class="spin-sayac" id="spinSayac">0 / 8</span>
       </div>
       <div class="spin-bar" id="spinBar"></div>
-      <div class="spin-info" id="spinInfo">10 spin sonra aşama 2 başlayacak</div>
+      <div class="spin-info" id="spinInfo">8 spin sonra aşama 2 başlayacak</div>
     </div>
     <div class="bakiye" id="bakiyeBolum">
       <div class="bakiye-tek-satir">
@@ -211,8 +211,8 @@
   ];
   var aktifAsama = 0, aktifSpin = 0, SPIN_PER_ASAMA = 10, bakiyeNet = 0, toplamSpin = 0;
   // Aşama spin eşiği (Unity → JSON state.hedefSpin). Aşama 7 = 999 (dinamik tükeniş), görsel max 10.
-  var ASAMA_SPIN_HEDEF = [10, 10, 8, 5, 4, 5, 999]; // PAKET 11: A4=5, A5=4 (BonusTetik son spin), A6=5 (C# _asamaSpinSayisi ile senkron)
-  var hedefSpin = 10;
+  var ASAMA_SPIN_HEDEF = [8, 8, 8, 5, 4, 5, 999]; // Faz 35.50: A1=8, A2=8 motor _asamaSpinSayisi ile senkronlandı
+  var hedefSpin = 8;
   var ASAMA7_GORSEL_MAX = 10;
   var spinNetleri = []; // mevcut aşamadaki spin başına net (+/-) TL
 

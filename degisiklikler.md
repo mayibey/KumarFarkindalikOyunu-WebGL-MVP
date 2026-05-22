@@ -1153,3 +1153,7 @@ Kaçış limiti kutusuna 3 yaz. Yani 3 kayıptan sonra sistem otomatik kazanç v
 
 ---
 
+## <span style="color:#2563eb;font-weight:bold">FAZ NOTLARI</span>
+
+- **Faz 35.50** — anlatici.html ASAMA_SPIN_HEDEF A1/A2 10→8 senkronlandı (motor 8 spin, panel eski 10 gösteriyordu). Etkilenen 4 satır: sat 145 (`0 / 10` → `0 / 8`), sat 148 (`10 spin sonra...` → `8 spin sonra...`), sat 214 (dizi `[10,10,...]` → `[8,8,...]` + yorum), sat 215 (`var hedefSpin = 10` → `8`).
+
