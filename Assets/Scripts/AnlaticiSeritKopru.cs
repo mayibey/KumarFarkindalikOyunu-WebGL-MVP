@@ -216,8 +216,8 @@ public class AnlaticiSeritKopru : MonoBehaviour
 
     /// <summary>Aşama bazlı önerilen bahis (yeniAsama geçişinde set edilir, kullanıcı sonra manuel değiştirebilir).
     /// Pedagojik eğri: 50K → 60K → 75K → 70K → 55K → 30K → 10K → 0 (~61 spin).</summary>
-    // Faz 35.45: A2 (idx 1) bahis 1000 → 2000 (sertleştirme; A2 net hedefi -8000).
-    private static readonly int[] _onerilenBahisler = new int[] { 500, 2000, 1500, 2500, 4000, 10000, 1500 };
+    // Faz 35.49: A2 (idx 1) bahis 2000 → 1500 (Faz 35.45 -8000 hedefi -6600'e ayarlandı).
+    private static readonly int[] _onerilenBahisler = new int[] { 500, 1500, 1500, 2500, 4000, 10000, 1500 };
 
     /// <summary>Aşama başına spin eşiği. PAKET 10: A4 8→5 (asset zaten 5 spin tanımlı, son spin 100x MegaWin).
     /// PAKET 11: A5 10→4 (Spin 4 = BonusTetik son spin; bonus oyun A6'ya manuel geçer, 5. spin asset'te
