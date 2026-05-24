@@ -1774,12 +1774,12 @@ function dbg(text) {
                       if (msg.aktif) {
                           // Faz 35.46: hover-zoom height 700→820, calc 220→160 (oran korundu).
                           c.style.width = '1300px';
-                          c.style.height = 'clamp(380px, 74vh, 780px)';
+                          c.style.height = 'clamp(360px, 70vh, 740px)';
                           c.style.zIndex = '200';
                       } else {
                           // Faz 35.46: pasif height 600→720 (%20 buyume, alt sinir asagi indi). Width sabit.
                           c.style.width = '460px';
-                          c.style.height = 'clamp(340px, 64vh, 680px)';
+                          c.style.height = 'clamp(330px, 60vh, 640px)';
                           c.style.zIndex = '100';
                       }
                       return;
@@ -1822,7 +1822,7 @@ function dbg(text) {
           // (Hover-zoom mesajı geldiğinde container width 460→900px animate, z-index 100→200 anlık.)
           // FAZ35.16.1: height de hover-zoom'da animate olur (1300×calc(100vh-200px) hedefi).
           // Faz 35.46: ilk default height 600→720 (hover-zoom mesajıyla senkron, panel asagi buyur).
-          container.style.cssText = 'position:fixed;top:18vh;left:20px;width:460px;height:clamp(340px, 64vh, 680px);overflow:hidden;z-index:100;pointer-events:auto;transform:none;opacity:1;transition:width 180ms ease-out, height 180ms ease-out, transform 0.4s ease, opacity 0.4s ease, z-index 0s;';
+          container.style.cssText = 'position:fixed;top:23vh;left:20px;width:460px;height:clamp(330px, 60vh, 640px);overflow:hidden;z-index:100;pointer-events:auto;transform:none;opacity:1;transition:width 180ms ease-out, height 180ms ease-out, transform 0.4s ease, opacity 0.4s ease, z-index 0s;';
   
           var iframe = document.createElement('iframe');
           iframe.id = 'anlaticiPanelIframe';
