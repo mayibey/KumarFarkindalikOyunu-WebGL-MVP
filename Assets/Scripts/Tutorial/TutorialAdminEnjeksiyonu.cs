@@ -434,7 +434,9 @@ namespace KumarFarkindalik.Tutorial
             }
 
             // Space tuşu için: overlay sadece mouse raycast yutar, klavye için global flag gerekli.
-            TutorialOyunYoneticisi.SpinKilitli = !parametreTamam;
+            // PAKET 14-FAZ35.62: Race penceresinde (spin bitiş↔modal/adım geçişi arası, SayaciGecikmeliArtir aktif)
+            // SpinSonuBekleniyor=true → SpinKilitli=true zorla. Fazladan SPIN tıkı engellenir (yeni adıma sızma fix).
+            TutorialOyunYoneticisi.SpinKilitli = !parametreTamam || TutorialOyunYoneticisi.SpinSonuBekleniyor;
         }
     }
 }

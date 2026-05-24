@@ -124,6 +124,10 @@ namespace KumarFarkindalik.Tutorial
 
         // PAKET 14-FAZ35.61: Mod dropdown değişiminde bar Clear için public reset (TutorialAdminEnjeksiyonu çağırır).
         public static void OncekiBakiyeSifirla(long b) { _oncekiBakiye = b; }
+
+        // PAKET 14-FAZ35.62: Spin bitiş ↔ modal/adım geçişi arası race penceresinde SpinKilitli=true tutmak için bayrak.
+        // SayaciGecikmeliArtir başında true, sonunda false. AdimDegisti'de defansif false (StopCoroutine race koruması).
+        public static bool SpinSonuBekleniyor { get; private set; }
         // PAKET 14-FAZ35.0: Faz 34.8 BUG N fix'i OturumKazanc yanlış kaynağıydı (sadece bonus modunda
         // artar, normal Tutorial spin'lerinde 0 kalır → her bar kırmızı regression).
         // BakiyeFark yöntemine geri dönüldü (simdikiBakiye - _oncekiBakiye = net).
@@ -637,6 +641,9 @@ namespace KumarFarkindalik.Tutorial
             if (_sayacKoroutin != null) { StopCoroutine(_sayacKoroutin); _sayacKoroutin = null; }
             _oncekiSpinCalisiyor = false;
             _spinBekliyor = false;
+            // PAKET 14-FAZ35.62: StopCoroutine coroutine sonunu çalıştırmadan keser → SpinSonuBekleniyor true kalabilir
+            // → SPIN kalıcı kilit. Defansif reset (yeni adım için zaten parametreTamam=false → SpinKilitli=true).
+            SpinSonuBekleniyor = false;
             // PAKET 14-FAZ14: Spin geçmişi net listesi her adım başında sıfırlanır + bakiye cache reset.
             // PAKET 14-FAZ16: 03 referansı — net = simdikiBakiye - oncekiBakiye (bahis çıkarma + kazanç ekleme tek farkta).
             AktifAdimSpinNetleri.Clear();
@@ -983,6 +990,9 @@ namespace KumarFarkindalik.Tutorial
                 if (_spinBekliyor)
                 {
                     _spinBekliyor = false;
+                    // PAKET 14-FAZ35.62: Race penceresinde (spin bitiş↔modal/adım geçişi) fazladan tık engellenir.
+                    // TutorialAdminEnjeksiyonu Update bunu okuyup SpinKilitli=true zorlayacak.
+                    SpinSonuBekleniyor = true;
                     // PAKET 6A: SpinCalisiyorMu false oluyor AMA counting up / kazanç UI animation
                     // hâlâ devam ediyor olabilir → 0.8sn gecikmeli sayaç++ ile Modal C "zart" açılma fix.
                     _sayacKoroutin = StartCoroutine(SayaciGecikmeliArtir());
@@ -1120,6 +1130,10 @@ namespace KumarFarkindalik.Tutorial
             TutorialT6YeniOyuncuModalKontrol();
             TutorialT8OdemeModalKontrol();
             TutorialT11CarpanZorlaModalKontrol();
+            // PAKET 14-FAZ35.62: Race penceresi kapandı (sayaç arttı, modal/adım geçişi tetiklendiyse parametreTamam reset olur).
+            // Sonraki normal spin için SPIN serbest. AdimDegisti tetiklendiyse zaten UygulamaOnaylandi=false → SpinKilitli=true yeni adım için.
+            SpinSonuBekleniyor = false;
+            _sayacKoroutin = null;
         }
 
         // PAKET 9: T5 (Bonus Sembolü) 1. spin sonrası — bonus yarım kes + ara modal göster.
