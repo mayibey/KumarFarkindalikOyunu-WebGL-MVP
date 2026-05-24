@@ -128,6 +128,10 @@ namespace KumarFarkindalik.Tutorial
         // PAKET 14-FAZ35.62: Spin bitiş ↔ modal/adım geçişi arası race penceresinde SpinKilitli=true tutmak için bayrak.
         // SayaciGecikmeliArtir başında true, sonunda false. AdimDegisti'de defansif false (StopCoroutine race koruması).
         public static bool SpinSonuBekleniyor { get; private set; }
+
+        // PAKET 14-FAZ35.64 (CS0272 fix): private setter olduğu için dışarıdan (TutorialModalKopru finally) yazılamıyor.
+        // Bu kapsüllenmiş public method ile modal kapanışı flag'i serbest bırakabilir; setter private kalır (içeride mevcut atamalar etkilenmez).
+        public static void SpinSonuBeklemeyiBitir() { SpinSonuBekleniyor = false; }
         // PAKET 14-FAZ35.0: Faz 34.8 BUG N fix'i OturumKazanc yanlış kaynağıydı (sadece bonus modunda
         // artar, normal Tutorial spin'lerinde 0 kalır → her bar kırmızı regression).
         // BakiyeFark yöntemine geri dönüldü (simdikiBakiye - _oncekiBakiye = net).
@@ -1136,9 +1140,29 @@ namespace KumarFarkindalik.Tutorial
             TutorialT6YeniOyuncuModalKontrol();
             TutorialT8OdemeModalKontrol();
             TutorialT11CarpanZorlaModalKontrol();
-            // PAKET 14-FAZ35.62: Race penceresi kapandı (sayaç arttı, modal/adım geçişi tetiklendiyse parametreTamam reset olur).
-            // Sonraki normal spin için SPIN serbest. AdimDegisti tetiklendiyse zaten UygulamaOnaylandi=false → SpinKilitli=true yeni adım için.
-            SpinSonuBekleniyor = false;
+            // PAKET 14-FAZ35.64: ModalKontrol'lerin StartCoroutine ile başlattığı GosterAraModal'ın iç ModalGoster
+            // MoveNext'i Unity scheduler'a kaldı — ModalAcik=true bu frame'de senkron set EDİLMEMİŞ olabilir.
+            // 2 frame yield ver ki inner ModalGoster MoveNext olsun, ModalAcik=true set etsin → güvenli kontrol.
+            yield return null;
+            yield return null;
+            // Adım tamamlandı mı? Son spin'inde KosulSagla=true → AdimAkisi while break → AdimGec → AdimDegisti
+            // → Faz 35.61 defansif SpinSonuBekleniyor=false. SpinSonuBekleniyor=true bırakmak güvenli (ölü-durum yok).
+            int delta = TutorialSpinSayaci - (AdimYoneticisi?.AdimBaslangicSpin ?? 0);
+            int gerekli = AdimYoneticisi?.MevcutAdimVerisi?.gerekliSpin ?? 0;
+            bool adimTamamlandi = gerekli > 0 && delta >= gerekli;
+            if (adimTamamlandi || TutorialModalKopru.ModalAcik)
+            {
+                // SpinSonuBekleniyor=true BIRAK → SPIN kilitli kalır.
+                // Çıkış: (1) modal kapanışı finally → false (Faz 35.64 Değişiklik 1), VEYA
+                //        (2) KosulSagla=true → AdimAkisi while break → AdimGec → AdimDegisti → false (Faz 35.61 defansif).
+                // Kullanıcı kuralı: modal gelene kadar SPIN açılmaz.
+                Debug.Log($"[Tutorial Spin-Gate 35.64] SpinSonuBekleniyor=true bırakıldı (adimTamamlandi={adimTamamlandi}, ModalAcik={TutorialModalKopru.ModalAcik})");
+            }
+            else
+            {
+                // Normal ara spin (modal yok, adım devam): SPIN sonraki normal spin için açık.
+                SpinSonuBekleniyor = false;
+            }
             _sayacKoroutin = null;
         }
 

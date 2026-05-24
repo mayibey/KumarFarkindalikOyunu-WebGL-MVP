@@ -194,6 +194,10 @@ namespace KumarFarkindalik.Tutorial
             {
                 Debug.Log("[ModalKopru-DEBUG] ModalGoster finally — ModalAcik=false SET ediliyor");
                 ModalAcik = false; // Spin butonu tekrar serbest
+                // PAKET 14-FAZ35.64: SayaciGecikmeliArtir, modal açıldığında SpinSonuBekleniyor=true bıraktı
+                // (race fix — modal gelene kadar SPIN açılmasın). Modal kapanışında flag'i serbest bırak.
+                // try/finally içinde olduğu için her durumda (TAMAM/exception/StopCoroutine) çalışır — kalıcı kilit yok.
+                TutorialOyunYoneticisi.SpinSonuBeklemeyiBitir();
 
                 // PAKET 14-FAZ20: OneAl çağrısı KALDIRILDI (ArkayaAt da kaldırıldığı için gereksiz).
                 // Panel hep önde + opak kalır.
