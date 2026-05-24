@@ -1143,7 +1143,7 @@ namespace KumarFarkindalik.Tutorial
                 && AdimYoneticisi.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T8
                 && TutorialNearMissAnimasyon.Ornek != null)
             {
-                TutorialNearMissAnimasyon.Ornek.BaslatRotate();
+                TutorialNearMissAnimasyon.Ornek.BaslatRotate(sonOynanmis);
             }
             // PAKET 14-FAZ33.1: Tutorial scripted pattern idx ilerletmesi gerçek spin tamamlandığında.
             // Pre-compute coroutine yeniden tetiklenirse aynı kayıt döner; sadece burada idx++.
