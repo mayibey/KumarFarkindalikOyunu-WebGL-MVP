@@ -96,6 +96,10 @@ namespace KumarFarkindalik.Tutorial
 
         // PAKET 14-FAZ35.61: SayaciGecikmeliArtir handle — adım değişiminde durdurmak için.
         private Coroutine _sayacKoroutin;
+
+        // PAKET 14-FAZ35.66: Bonus aktif state takibi — bonus true→false geçişinde polling state reset (fantom önle).
+        // DonusAkisServisi:603 BonusAktif=false set edince Faz 35.61 guard kalkar, fantom segment riskini önler.
+        private bool _oncekiBonusAktif;
         private OyunYoneticisi _oyRef;
 
         // PAKET 9: T4 (Çarpan Olasılığı) 2-aşamalı akış state — TutorialAdminEnjeksiyonu okur
@@ -631,6 +635,10 @@ namespace KumarFarkindalik.Tutorial
             // Önceki adımın vurgularını temizle
 #if UNITY_WEBGL && !UNITY_EDITOR
             TumVurgulariKapat();
+            // PAKET 14-FAZ35.65: Panel kapanma engellemelerini TAZELE (closeBtn gizleme + paneliKapat override).
+            // Mevcut iframe üzerinde idempotent style+override uygular, RELOAD YAPMAZ — Tutorial polling timeout
+            // yüzünden engellemeler kurulmadıysa burada her adım başında garanti uygulanır.
+            PaneliSolaAl();
 #endif
             // AdimGoster'ı gizle (modal süresince görünmesin, modal sonra göster)
             TutorialAdimGoster.Ornek?.Gizle();
@@ -982,6 +990,18 @@ namespace KumarFarkindalik.Tutorial
             }
 
             bool simdi = _oyRef.SpinCalisiyorMu;
+
+            // PAKET 14-FAZ35.66: Bonus aktif true→false geçişini yakala — popup kapanışında DonusAkisServisi:603
+            // _ctx.BonusAktif=false set edince Faz 35.61 guard kalkar; eğer _oncekiSpinCalisiyor=true ise polling
+            // spin-bitti tespiti tetiklenir → fantom segment (kullanıcı: "2. bar maviye dönüyor"). Bonus akışı
+            // segment sayımına HİÇ katkı yapmamalı (bonus tetik spini ve iç turlar ayrı). Geçişte state reset.
+            bool simdiBonus = _oyRef.BonusAktifMi;
+            if (_oncekiBonusAktif && !simdiBonus)
+            {
+                _oncekiSpinCalisiyor = false;
+                _spinBekliyor = false;
+            }
+            _oncekiBonusAktif = simdiBonus;
 
             // Spin bitiş geçişi (true → false)
             // PAKET 14-FAZ35.61: Bonus aktifken spin-bitti tespiti fantom sayım üretir

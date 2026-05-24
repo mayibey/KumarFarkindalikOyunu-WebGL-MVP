@@ -354,7 +354,7 @@ public partial class OyunYoneticisi
     private int _scatterIndexCache = 7;
 
     [Header("BONUS SCATTER EFEKT")]
-    [HideInInspector] public float scatterScaleUp = 1.6f;        // (LEGACY)
+    [HideInInspector] public float scatterScaleUp = 2.6f;        // Faz 35.66: 1.6 → 2.6 (daha belirgin yıldız büyümesi). NOT: BonusAyarlari.ScatterScaleUp Inspector'dan set edilmişse override eder (OyunYoneticisi.cs:525 bonus!=null branch); Inspector override'lıysa default etkisiz.
     [HideInInspector] public float scatterAnimDuration = 0.6f;   // (LEGACY)
     [HideInInspector] public AudioSource bonusBellAudio;         // (LEGACY)
 

@@ -2086,9 +2086,12 @@ function dbg(text) {
           };
   
           iframe.addEventListener('load', uygula);
+          // Faz 35.65: iframe contentDocument hazırsa polling beklemeden SENKRON uygula — engellemeler/tooltip/revert ANINDA kurulsun.
+          if (uygula()) return;
+          // Senkron başarısızsa polling fallback (önceki 20×100ms=2sn yetersizdi; 100×100ms=10sn — yavaş yükleme/cihaz tolere edilir).
           var deneme = 0;
           var poll = setInterval(function() {
-              if (deneme++ > 20 || uygula()) clearInterval(poll);
+              if (deneme++ > 100 || uygula()) clearInterval(poll);
           }, 100);
       }
 
@@ -2120,9 +2123,12 @@ function dbg(text) {
           };
   
           iframe.addEventListener('load', uygula);
+          // Faz 35.65: iframe contentDocument hazırsa polling beklemeden SENKRON uygula — engellemeler/tooltip/revert ANINDA kurulsun.
+          if (uygula()) return;
+          // Senkron başarısızsa polling fallback (önceki 20×100ms=2sn yetersizdi; 100×100ms=10sn — yavaş yükleme/cihaz tolere edilir).
           var deneme = 0;
           var poll = setInterval(function() {
-              if (deneme++ > 20 || uygula()) clearInterval(poll);
+              if (deneme++ > 100 || uygula()) clearInterval(poll);
           }, 100);
       }
 
@@ -9540,9 +9546,12 @@ function dbg(text) {
               } catch (e) { return false; }
           };
           iframe.addEventListener('load', uygula);
+          // Faz 35.65: iframe contentDocument hazırsa polling beklemeden SENKRON uygula — engellemeler/tooltip/revert ANINDA kurulsun.
+          if (uygula()) return;
+          // Senkron başarısızsa polling fallback (önceki 20×100ms=2sn yetersizdi; 100×100ms=10sn — yavaş yükleme/cihaz tolere edilir).
           var deneme = 0;
           var poll = setInterval(function() {
-              if (deneme++ > 20 || uygula()) clearInterval(poll);
+              if (deneme++ > 100 || uygula()) clearInterval(poll);
           }, 100);
       }
 

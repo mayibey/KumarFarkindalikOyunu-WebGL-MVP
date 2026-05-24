@@ -63,6 +63,11 @@ public class ScatterEfektServisi
         if (scatterImages.Count == 0)
             yield break;
 
+        // Faz 35.66: Yıldızları hierarchy'de en sona al → render order üstte (meyvelerin altında kalmasın).
+        // UI Image render sırası child sibling index'ine bağlı; SetAsLastSibling tüm scatter Image'larını öne çeker.
+        foreach (var sImg in scatterImages)
+            if (sImg != null) sImg.transform.SetAsLastSibling();
+
         float scatterScaleUp = _ctx.ScatterScaleUp;
         float scatterAnimDuration = _ctx.ScatterAnimDuration;
         if (scatterAnimDuration <= 0f) scatterAnimDuration = 0.01f;
@@ -148,16 +153,17 @@ public class ScatterEfektServisi
             yield return null;
         }
 
-        // Sonraki renderlarda konum/ölçek bozulmasın; bonus paneli açılana kadar scatter'lar görünmez kalsın.
+        // Faz 35.66: Konum/ölçek orijinaline döner, ALPHA KORUNUR — yıldızlar bonus oyunu başlayana kadar
+        // tahtada görünür kalır. Akış: BonusBaslangicAkisi → ShowBonusStartMessage logo (yıldızlar arka planda görünür)
+        // → BonusDongusu başlangıcı grid refill scatter sembollerini yeni sembollerle değiştirir (doğal kaybolma).
+        // Eski "c.a = 0f" set KALDIRILDI — kullanıcı kuralı: yıldızlar bonus oyunu başlayana kadar görünür kalsın.
         for (int i = 0; i < adet; i++)
         {
             var img = scatterImages[i];
             if (img == null || img.rectTransform == null) continue;
             img.rectTransform.anchoredPosition = baslangicPos[i];
             img.rectTransform.localScale = baslangicScale[i];
-            var c = baslangicRenk[i];
-            c.a = 0f;
-            img.color = c;
+            img.color = baslangicRenk[i]; // alpha dahil orijinal renk geri yüklendi
         }
     }
 }
