@@ -195,9 +195,9 @@ namespace Senaryo.Scripted
             istGo.transform.SetParent(kutu.transform, false);
             var istRt = istGo.GetComponent<RectTransform>();
             istRt.anchorMin = new Vector2(0f, 0.5f); istRt.anchorMax = new Vector2(1f, 1f);
-            istRt.offsetMin = new Vector2(40f, 80f); istRt.offsetMax = new Vector2(-40f, -135f);
+            istRt.offsetMin = new Vector2(40f, 80f); istRt.offsetMax = new Vector2(-40f, -125f);
             _istatistikText = istGo.AddComponent<TextMeshProUGUI>();
-            _istatistikText.alignment = TextAlignmentOptions.Center;
+            _istatistikText.alignment = TextAlignmentOptions.Top;
             _istatistikText.fontSize = 24f;
             _istatistikText.color = new Color(0.95f, 0.97f, 1f, 1f);
             _istatistikText.enableWordWrapping = true;
