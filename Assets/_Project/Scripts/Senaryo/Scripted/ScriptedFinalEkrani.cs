@@ -213,7 +213,7 @@ namespace Senaryo.Scripted
             aileRt.pivot = new Vector2(0.5f, 0.5f);
             // Faz 35.44: anchoredPosition +30 → +25, Y aralığı -20..+70 (İstatistik bot +100 ile 30px boşluk).
             aileRt.sizeDelta = new Vector2(0f, 90f);
-            aileRt.anchoredPosition = new Vector2(0f, 55f);
+            aileRt.anchoredPosition = new Vector2(0f, 90f);
             var aileTxt = aileGo.AddComponent<TextMeshProUGUI>();
             aileTxt.alignment = TextAlignmentOptions.Center;
             aileTxt.fontSize = 22f;
