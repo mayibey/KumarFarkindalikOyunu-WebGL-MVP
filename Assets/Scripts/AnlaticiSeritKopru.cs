@@ -843,10 +843,10 @@ public class AnlaticiSeritKopru : MonoBehaviour
             // PreA1 üçüncü modal — kullanıcıyı spin atmaya davet + sol panel takip yönlendirmesi.
             const string A1_DAVET =
                 "<b>Şimdi deneyelim</b>\n\n" +
-                "Tam <color=#FFD933>10 spin</color> at ve neler olduğunu görelim. " +
+                "Tam <color=#FFD933>8 spin</color> at ve neler olduğunu görelim. " +
                 "Bakiyenin nasıl yükseldiğine, kazançların sıklığına dikkat edelim.\n\n" +
                 "Sol panelde <color=#5BA0FF>SAHNE ARKASI</color> ve " +
-                "<color=#5BA0FF>OYUNCUNUN DÜŞÜNCESİ</color> bölümlerini takip edelim — " +
+                "<color=#5BA0FF>OYUNCU DÜŞÜNCESİ</color> bölümlerini takip edelim — " +
                 "<color=#4DCC59>sistemin gerçekte ne yaptığını</color> orada göreceğiz.";
             string mesaj =
                 "Hoş geldiniz. Bu uygulama, kumar bağımlılarının en çok oynadığı slot oyununun bir benzeridir. Burada bu oyunların neden <color=#dc2626>kazandırmadığını</color> ve oyuncuların nasıl <color=#dc2626>manipüle edildiğini</color> birlikte göreceğiz.\n\n" +
@@ -870,7 +870,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
             yield return modal.ModalGoster(A1_ANLATIM, gizleAnlatici: false);
             // HOTFIX: ardışık ModalGoster yarış riski için bir frame ara
             yield return null;
-            // PreA1 üçüncü modal — kullanıcıyı 10 spin atmaya davet et
+            // PreA1 üçüncü modal — kullanıcıyı 8 spin atmaya davet et
             yield return modal.ModalGoster(A1_DAVET, gizleAnlatici: false);
         }
         finally
@@ -1213,8 +1213,9 @@ public class AnlaticiSeritKopru : MonoBehaviour
                 "yakınlarına, akrabalarına, arkadaşlarına...\n\n" +
                 "Bu, <color=#EF4444>kumar bağımlılığının yıkıcı evresidir</color>. Bir sonraki ekran o anı temsil ediyor.";
             if (modal != null)
-                // Faz 35.48: kısa metin (4 paragraf, ~50 kelime) — balonda dikey ortala (override).
-                yield return modal.ModalGoster(mesaj, hizalama: TMPro.TextAlignmentOptions.MidlineJustified);
+                // Faz 35.52: diğer 16 modalla tutarlı üstten hizalama (default TopJustified). Faz 35.48'in
+                // kısa-metin MidlineJustified override'ı kaldırıldı — tutarlılık görsel boşluğa tercih edildi.
+                yield return modal.ModalGoster(mesaj);
             else
                 Debug.LogWarning("[Anlatici] BasaArayisAkisi — ScriptedModalKopru bulunamadı, modal atlanıyor.");
 

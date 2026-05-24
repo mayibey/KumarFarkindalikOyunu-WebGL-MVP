@@ -195,7 +195,7 @@ namespace Senaryo.Scripted
             istGo.transform.SetParent(kutu.transform, false);
             var istRt = istGo.GetComponent<RectTransform>();
             istRt.anchorMin = new Vector2(0f, 0.5f); istRt.anchorMax = new Vector2(1f, 1f);
-            istRt.offsetMin = new Vector2(40f, 100f); istRt.offsetMax = new Vector2(-40f, -135f);
+            istRt.offsetMin = new Vector2(40f, 60f); istRt.offsetMax = new Vector2(-40f, -135f);
             _istatistikText = istGo.AddComponent<TextMeshProUGUI>();
             _istatistikText.alignment = TextAlignmentOptions.Center;
             _istatistikText.fontSize = 24f;
@@ -213,7 +213,7 @@ namespace Senaryo.Scripted
             aileRt.pivot = new Vector2(0.5f, 0.5f);
             // Faz 35.44: anchoredPosition +30 → +25, Y aralığı -20..+70 (İstatistik bot +100 ile 30px boşluk).
             aileRt.sizeDelta = new Vector2(0f, 90f);
-            aileRt.anchoredPosition = new Vector2(0f, 25f);
+            aileRt.anchoredPosition = new Vector2(0f, 55f);
             var aileTxt = aileGo.AddComponent<TextMeshProUGUI>();
             aileTxt.alignment = TextAlignmentOptions.Center;
             aileTxt.fontSize = 22f;

@@ -210,9 +210,9 @@ namespace Senaryo.Scripted
             aciklamaRt.offsetMax = new Vector2(-40f, -130f);
             var aciklamaTxt = aciklamaGo.AddComponent<TextMeshProUGUI>();
             aciklamaTxt.alignment = TextAlignmentOptions.Center;
-            aciklamaTxt.fontSize = 22f;
-            aciklamaTxt.fontStyle = FontStyles.Italic;
-            aciklamaTxt.color = new Color(0.85f, 0.85f, 0.85f, 1f);
+            aciklamaTxt.fontSize = 28f;
+            aciklamaTxt.fontStyle = FontStyles.Bold;
+            aciklamaTxt.color = new Color(1f, 0.92f, 0.92f, 1f);
             aciklamaTxt.enableWordWrapping = true;
             aciklamaTxt.richText = true;
             aciklamaTxt.text = "Aileden, kredi kartından veya iş arkadaşından <color=#EF4444>borç alarak</color> oyuna devam etmek istiyor musun? <color=#EF4444><b>Borçla kumar oynamak</b></color> bağımlılığın klasik göstergelerinden biridir.";

@@ -67,7 +67,7 @@ mergeInto(LibraryManager.library, {
                     } else {
                         // Faz 35.46: pasif height 600→720 (%20 buyume, alt sinir asagi indi). Width sabit.
                         c.style.width = '460px';
-                        c.style.height = 'min(720px, calc(100vh - 200px))';
+                        c.style.height = 'min(720px, calc(100vh - 240px))';
                         c.style.zIndex = '100';
                     }
                     return;
@@ -220,7 +220,7 @@ mergeInto(LibraryManager.library, {
         // (Hover-zoom mesajı geldiğinde container width 460→900px animate, z-index 100→200 anlık.)
         // FAZ35.16.1: height de hover-zoom'da animate olur (1300×calc(100vh-200px) hedefi).
         // Faz 35.46: ilk default height 600→720 (hover-zoom mesajıyla senkron, panel asagi buyur).
-        container.style.cssText = 'position:fixed;top:200px;left:20px;width:460px;height:min(720px, calc(100vh - 200px));overflow:hidden;z-index:100;pointer-events:auto;transform:none;opacity:1;transition:width 180ms ease-out, height 180ms ease-out, transform 0.4s ease, opacity 0.4s ease, z-index 0s;';
+        container.style.cssText = 'position:fixed;top:200px;left:20px;width:460px;height:min(720px, calc(100vh - 240px));overflow:hidden;z-index:100;pointer-events:auto;transform:none;opacity:1;transition:width 180ms ease-out, height 180ms ease-out, transform 0.4s ease, opacity 0.4s ease, z-index 0s;';
 
         var iframe = document.createElement('iframe');
         iframe.id = 'anlaticiPanelIframe';

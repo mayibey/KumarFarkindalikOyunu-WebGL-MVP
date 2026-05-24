@@ -11814,9 +11814,9 @@ MonoBehaviour:
   - 25
   - 0
   ScatterIndex: 8
-  PopDuration: 0.15
-  FallDuration: 0.18
-  BetweenStepsDelay: 0.05
+  PopDuration: 0.7
+  FallDuration: 0.8
+  BetweenStepsDelay: 0.35
   SpawnFromTopOffset: 120
   BonusYavasMod: 1
   BonusPopDuration: 0.7
