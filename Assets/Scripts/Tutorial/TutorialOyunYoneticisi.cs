@@ -1553,7 +1553,13 @@ namespace KumarFarkindalik.Tutorial
 #if UNITY_WEBGL && !UNITY_EDITOR
             PaneliSolaAl();
             DropdownTooltipEkle(); // PAKET 3B-fix-7: oyun modu <option> title attribute (native tooltip)
-            DropdownAutoRevertEkle(); // PAKET 5: Uygula basılmadan blur olursa dropdown eski değere döner
+            // PAKET 14-FAZ35.67: DropdownAutoRevertEkle DEVRE DIŞI — blur 200ms timeout kullanıcı yavaş Uygula
+            // bastığında dropdown'u "normal"e çeviriyordu → senaryoUygula secim="normal" gönderiyordu →
+            // PanelKopru.aktifSenaryo="normal" → T3_HOOK/YONTMA/TUTMA/KORUMA parametreKosulu (aktifSenaryo==X) FAIL →
+            // SpinKilitli=true → kullanıcı SPIN atamıyor. Auto-revert yan etkisi pedagojik akışı sabote ediyor;
+            // kullanıcı dropdown seçimi Uygula'ya kadar korunmalı. jslib fonksiyon TANIMI duruyor (sat 242), sadece
+            // çağrı kaldırıldı — ileride gerekirse tekrar aktive edilebilir.
+            // DropdownAutoRevertEkle(); // KALDIRILDI (PAKET 14-FAZ35.67)
 #endif
         }
 
