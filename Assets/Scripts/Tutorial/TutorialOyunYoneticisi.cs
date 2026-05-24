@@ -1124,6 +1124,12 @@ namespace KumarFarkindalik.Tutorial
             // PAKET 14-FAZ33.1: Tutorial scripted pattern idx ilerletmesi gerçek spin tamamlandığında.
             // Pre-compute coroutine yeniden tetiklenirse aynı kayıt döner; sadece burada idx++.
             TutorialScriptedYoneticisi.Ornek?.SpinTamamlandi();
+            // PAKET 14-FAZ35.63: Add(net) sonrası segment renk Update polling'i (TutorialAdimGoster.SpinGecmisiRenkGuncelle)
+            // bu frame'de uygulasın + render olsun, SONRA modal kontrol çağrılsın. Kullanıcı kuralı: segment
+            // renklenmeden modal gelmesin (sıra: spin → segment renk → modal → adım → SPIN açılır).
+            // WaitForEndOfFrame Render'dan sonra çalışır — segment renk EKRANA çizilmiş olarak garanti edilir.
+            // SpinTamamlandi'lar (motor bildirimi) yield'dan önce mevcut sırada, ModalKontrol'ler yield'dan sonra.
+            yield return new WaitForEndOfFrame();
             TutorialT3TutmaModalKontrol();
             TutorialT4CarpanOlasilikModalKontrol();
             TutorialT5BonusModalKontrol();
