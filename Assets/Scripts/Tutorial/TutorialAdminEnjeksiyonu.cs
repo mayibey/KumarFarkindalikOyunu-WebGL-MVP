@@ -192,6 +192,13 @@ namespace KumarFarkindalik.Tutorial
                             case "normal": TutorialScriptedYoneticisi.Ornek?.DeaktifEt(); break;
                         }
                         TutorialSenaryoMotoru.PatternBaslat(value);
+                        // PAKET 14-FAZ35.61: Mod dropdown değişiminde bar listesi Clear + bakiye snapshot reset.
+                        // Aksi halde T3 alt-modlar arası geçişte (hook→yontma vb) eski net'ler yeni moda yapışır
+                        // ("ilk spin mavi" / "uygula demeden bar değişiyor" bug, #4). AdimDegisti sadece adım
+                        // geçişinde Clear yapıyor; mod dropdown değişimi adım değiştirmez.
+                        TutorialOyunYoneticisi.AktifAdimSpinNetleri.Clear();
+                        var oyMod = UnityEngine.Object.FindObjectOfType<OyunYoneticisi>();
+                        TutorialOyunYoneticisi.OncekiBakiyeSifirla(oyMod != null ? oyMod.BahisPanelMevcutBakiye() : 0L);
                     }
                     break;
                 case "uygulamaOnayi":

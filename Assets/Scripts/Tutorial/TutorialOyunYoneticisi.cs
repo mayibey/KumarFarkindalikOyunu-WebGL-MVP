@@ -93,6 +93,9 @@ namespace KumarFarkindalik.Tutorial
         // (tıklama anında değil — Modal C erken açılma sorunu fix)
         private bool _spinBekliyor = false;
         private bool _oncekiSpinCalisiyor = false;
+
+        // PAKET 14-FAZ35.61: SayaciGecikmeliArtir handle — adım değişiminde durdurmak için.
+        private Coroutine _sayacKoroutin;
         private OyunYoneticisi _oyRef;
 
         // PAKET 9: T4 (Çarpan Olasılığı) 2-aşamalı akış state — TutorialAdminEnjeksiyonu okur
@@ -118,6 +121,9 @@ namespace KumarFarkindalik.Tutorial
         public static System.Collections.Generic.List<int> AktifAdimSpinNetleri =
             new System.Collections.Generic.List<int>();
         private static long _oncekiBakiye = 0;
+
+        // PAKET 14-FAZ35.61: Mod dropdown değişiminde bar Clear için public reset (TutorialAdminEnjeksiyonu çağırır).
+        public static void OncekiBakiyeSifirla(long b) { _oncekiBakiye = b; }
         // PAKET 14-FAZ35.0: Faz 34.8 BUG N fix'i OturumKazanc yanlış kaynağıydı (sadece bonus modunda
         // artar, normal Tutorial spin'lerinde 0 kalır → her bar kırmızı regression).
         // BakiyeFark yöntemine geri dönüldü (simdikiBakiye - _oncekiBakiye = net).
@@ -626,6 +632,11 @@ namespace KumarFarkindalik.Tutorial
             // PAKET 14-FAZ18: Uygula onayı her adım başında reset — yeni adımda Uygula tekrar gerekli.
             TutorialAdminEnjeksiyonu.UygulamaOnaylandi = false;
 
+            // PAKET 14-FAZ35.61: Önceki adımdan kalan SayaciGecikmeliArtir coroutine'i durdur (race fix).
+            // Aksi halde bekleyen coroutine yeni adımın boş listesine fantom net segment ekler ("spin atmadan sayıldı" bug, #6/#9).
+            if (_sayacKoroutin != null) { StopCoroutine(_sayacKoroutin); _sayacKoroutin = null; }
+            _oncekiSpinCalisiyor = false;
+            _spinBekliyor = false;
             // PAKET 14-FAZ14: Spin geçmişi net listesi her adım başında sıfırlanır + bakiye cache reset.
             // PAKET 14-FAZ16: 03 referansı — net = simdikiBakiye - oncekiBakiye (bahis çıkarma + kazanç ekleme tek farkta).
             AktifAdimSpinNetleri.Clear();
@@ -962,7 +973,11 @@ namespace KumarFarkindalik.Tutorial
             bool simdi = _oyRef.SpinCalisiyorMu;
 
             // Spin bitiş geçişi (true → false)
-            if (_oncekiSpinCalisiyor && !simdi)
+            // PAKET 14-FAZ35.61: Bonus aktifken spin-bitti tespiti fantom sayım üretir
+            // (OyunYoneticisi.Bonus.cs:54 BaslatBonus spinCalisiyor=false set ediyor → polling false-geçişi tetikler →
+            // bonus oyunu sırasında SayaciGecikmeliArtir çalışır → fantom segment ekler, #7 bug).
+            // Bonus aktifken sayım coroutine'i tetiklenmesin; bonus oyunu bitince normal akış devam eder.
+            if (_oncekiSpinCalisiyor && !simdi && (_oyRef == null || !_oyRef.BonusAktifMi))
             {
                 _oncekiSpinCalisiyor = false;
                 if (_spinBekliyor)
@@ -970,7 +985,7 @@ namespace KumarFarkindalik.Tutorial
                     _spinBekliyor = false;
                     // PAKET 6A: SpinCalisiyorMu false oluyor AMA counting up / kazanç UI animation
                     // hâlâ devam ediyor olabilir → 0.8sn gecikmeli sayaç++ ile Modal C "zart" açılma fix.
-                    StartCoroutine(SayaciGecikmeliArtir());
+                    _sayacKoroutin = StartCoroutine(SayaciGecikmeliArtir());
                 }
             }
 
