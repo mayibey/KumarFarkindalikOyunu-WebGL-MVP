@@ -381,7 +381,7 @@ namespace Senaryo.Scripted
             asamaRt.anchorMax = new Vector2(0.5f, 1f);
             asamaRt.pivot = new Vector2(0.5f, 1f);
             asamaRt.sizeDelta = new Vector2(800f, 100f);
-            asamaRt.anchoredPosition = new Vector2(0f, -40f);
+            asamaRt.anchoredPosition = new Vector2(0f, -90f);
             var asamaTxt = asamaGo.AddComponent<TextMeshProUGUI>();
             asamaTxt.alignment = TextAlignmentOptions.Center;
             asamaTxt.fontSize = 30f;

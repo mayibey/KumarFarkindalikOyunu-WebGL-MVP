@@ -186,7 +186,7 @@ namespace Senaryo.Scripted
             basTxt.fontStyle = FontStyles.Bold;
             basTxt.color = new Color(1f, 0.45f, 0.45f, 1f);
             basTxt.richText = true;
-            basTxt.text = "<color=#EF4444><b>OYUN BİTTİ</b></color>";
+            basTxt.text = "<color=#EF4444><b>SENARYO TAMAMLANDI</b></color>";
             basTxt.raycastTarget = false;
 
             // Istatistik metni — Faz 35.44: Y aralığı +50..+315 → +100..+290 (Aile yazısı ile çakışma giderildi).
@@ -195,7 +195,7 @@ namespace Senaryo.Scripted
             istGo.transform.SetParent(kutu.transform, false);
             var istRt = istGo.GetComponent<RectTransform>();
             istRt.anchorMin = new Vector2(0f, 0.5f); istRt.anchorMax = new Vector2(1f, 1f);
-            istRt.offsetMin = new Vector2(40f, 60f); istRt.offsetMax = new Vector2(-40f, -135f);
+            istRt.offsetMin = new Vector2(40f, 80f); istRt.offsetMax = new Vector2(-40f, -135f);
             _istatistikText = istGo.AddComponent<TextMeshProUGUI>();
             _istatistikText.alignment = TextAlignmentOptions.Center;
             _istatistikText.fontSize = 24f;
