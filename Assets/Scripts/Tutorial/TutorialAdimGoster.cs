@@ -528,23 +528,31 @@ namespace KumarFarkindalik.Tutorial
 
             // PAKET 5: Sayaç başlık fontSize 18→24
             // FAZ35.15: sizeDelta height 30→44 + wrap aç (uzun kategori adi 2 satir olabilir)
+            // FAZ35.71: wrap KAPALI + AutoSize 16-24. Uzun başlıklar otomatik küçülür, 2 satıra düşmez → çakışma yok.
             _sayacText = MetinYarat(header.transform, "Baslik", new Vector2(0f, -4f),
                 new Vector2(260f, 44f), 24f, FontStyles.Bold, ALTIN_ACIK,
                 TextAlignmentOptions.Center, "ADIM ?/11");
             _sayacText.outlineWidth = 0.18f;
             _sayacText.outlineColor = ALTIN_KOYU;
-            _sayacText.enableWordWrapping = true;
-            _sayacText.overflowMode = TextOverflowModes.Overflow;
+            _sayacText.enableAutoSizing = true;
+            _sayacText.fontSizeMin = 16f;
+            _sayacText.fontSizeMax = 24f;
+            _sayacText.enableWordWrapping = false;
+            _sayacText.overflowMode = TextOverflowModes.Truncate;
 
             // PAKET 5: Alt başlık fontSize 14→18, pos -32→-34
             // FAZ35.15: characterSpacing 4→0 (~%25 yatay kazanc, KRITIK) + sizeDelta height 22→36 + wrap aç
             // FAZ35.15: pos -34→-48 (header buyudugu icin alt basliik daha asagi)
+            // FAZ35.71: wrap KAPALI + AutoSize 14-18. Uzun alt başlıklar otomatik küçülür, tek satırda kalır.
             _altBaslikText = MetinYarat(header.transform, "AltBaslik", new Vector2(0f, -48f),
                 new Vector2(260f, 36f), 18f, FontStyles.Bold, ALTIN_RENK,
                 TextAlignmentOptions.Center, "");
             _altBaslikText.characterSpacing = 0f;
-            _altBaslikText.enableWordWrapping = true;
-            _altBaslikText.overflowMode = TextOverflowModes.Overflow;
+            _altBaslikText.enableAutoSizing = true;
+            _altBaslikText.fontSizeMin = 14f;
+            _altBaslikText.fontSizeMax = 18f;
+            _altBaslikText.enableWordWrapping = false;
+            _altBaslikText.overflowMode = TextOverflowModes.Truncate;
 
             // === YAPILACAKLAR BLOK (PAKET 5: fontlar büyütüldü 13→16/18, satır yüksekliği 25→30) ===
             _yapilacaklarBlok = new GameObject("YapilacaklarBlok", typeof(RectTransform));
