@@ -481,6 +481,12 @@ namespace KumarFarkindalik.Tutorial
 
         private void Update()
         {
+            // FAZ35.70: Yeni scripted sistem (TutorialScriptedYoneticisi) aktifken eski motor cache'e dokunmaz.
+            // İki paralel motor çatışması — scripted kazanç kaydı motor RNG kaydıyla eziliyordu (reflection
+            // _oncedenHesaplananKayit override). Spin.cs:343 Tutorial branch fiilen erişilmez kalıyordu.
+            // T3 (hook/yontma/tutma/koruma) + T4 + T6YO + T7 bu çatışmadan etkileniyordu — guard hepsini düzeltir.
+            if (TutorialScriptedYoneticisi.Aktif) return;
+
             if (!_motorAktif)
             {
                 // PAKET 6C2-EXT: T6YO aktifken motor pasifse cache bypass uyarısı (saniyede 1).
