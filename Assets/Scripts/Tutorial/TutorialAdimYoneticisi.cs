@@ -338,14 +338,15 @@ namespace KumarFarkindalik.Tutorial
                 mesajBaslangic = T8_BASLANGIC,
                 mesajAksiyon = T8_AKSIYON,
                 mesajKapanis = T8_KAPANIS,
-                altBaslik = "5'DE KAÇ NEAR MISS?",
-                // PAKET 6C3: 5'lik N mantığı — slider değeri/2 = 5'de N near miss
-                yapilacaklar = new[] { "Near miss slider'ını ayarla", "Uygula bas", "5 spin at" },
+                altBaslik = "NEREDEYSE OLUYORDU",
+                // PAKET 14-FAZ35.69: T8 yeniden tasarımı — slider yerine AÇ/KAPA toggle, 2 spin (Karpuz + Erik).
+                yapilacaklar = new[] { "Yakın Kaçırma'yı aç", "Uygula bas", "2 spin at" },
                 sira = 9,
                 vurguSelectorlari = new[] { "#yakinKacirma" },
-                gerekliSpin = 5,
-                // PAKET 14-FAZ35.7: Near miss slider'ı KESIN 3 (talimat metni güncellendi: "3'e getir").
-                parametreKosulu = () => Mathf.Abs(PanelKopru.yakinKacirma - 3f) < 0.01f,
+                gerekliSpin = 2,
+                // FAZ35.69: Toggle/değer açık (>0.5) → near-miss aktif → SPIN açılır. Kapalı (0) → parametreKosulu
+                // false → SpinKilitli=true → kullanıcı toggle'ı açana kadar SPIN + ayarlar pasif.
+                parametreKosulu = () => PanelKopru.yakinKacirma > 0.5f,
                 degisimAnahtarlari = new[] { "yakinKacirma" },
             };
 
@@ -577,15 +578,15 @@ namespace KumarFarkindalik.Tutorial
             "Aralık dar (3-5x) ama her spin garanti kazanç. " +
             "Kumar siteleri bunu kullanıcıya 'şanslı seri' gibi gösterir. Gerçekte sistem her şeyi kontrol eder.";
 
-        // PAKET 6C3: T8 (Near Miss) — 5'lik N mantığı, dinamik pattern motor (7-sembol layout)
+        // PAKET 6C3 / FAZ35.69: T8 (Near Miss) — AÇ/KAPA toggle, 2 spin (Karpuz + Erik) near-miss demo.
         private const string T8_BASLANGIC =
             "<color=#2563eb>\"Neredeyse kazanıyordun\"</color> hissi, slot oyununun en güçlü <color=#dc2626>tuzaklarından</color> biridir. <color=#2563eb>8 sembol</color> ödeme yapacakken ekrana hep <color=#2563eb>7 sembol</color> düşürerek oyuncuya <color=#ea580c>\"neredeyse oluyordu, bir sonraki turda kesin olacak\"</color> diye düşündürür.";
         private const string T8_AKSIYON =
-            "\"Neredeyse Kazanıyordu Hissi\" ayarında, kaç tur üst üste neredeyse kazanıyordun hissinin yaşatılacağı belirlenir. Uygulaya bas ve 5 spin at. Seçilen tur sayısı kadar bu hissin nasıl yaşatıldığını göreceksin.";
+            "Soldaki panelden <color=#16a34a>Yakın Kaçırma</color>'yı <color=#16a34a>AÇ</color> ve <color=#2563eb>Uygula</color>'ya bas, sonra <color=#2563eb>2 spin</color> at. <color=#ea580c>Karpuz</color> ve <color=#ea580c>erik</color> için <color=#ea580c>\"az kalsın kazanıyordum\"</color> hissinin nasıl yaratıldığını göreceksin.";
         private const string T8_KAPANIS =
-            "Gördüğümüz üzere 7 aynı sembol düştü ama 1 EKSİK. Küme 8'den başlıyor. " +
-            "Oyuncunun beyni 'KAZANIYORDUM' der oysa hiç şansı yoktur. " +
-            "Bu manipülasyon dopamin hormonunu salgılar. Bu hormon, bağımlılığın temel mekanizmasıdır.";
+            "Gördüğün gibi <color=#2563eb>7 aynı meyve</color> düştü ama kazanmak için <color=#2563eb>8</color> gerekiyordu — hep <color=#dc2626>1 EKSİK</color>. " +
+            "Bu <color=#dc2626>\"neredeyse\"</color> hissi, oyuncuyu <color=#ea580c>\"bir daha denesem kazanırım\"</color> diye tutar. " +
+            "Beyin dopamin salgılar; bu hormon bağımlılığın temel mekanizmasıdır.";
 
         // PAKET 6D: T9 (Kaçış Frenleme) — 3 kayıp + 1 kazanç deterministik demo
         private const string T9_BASLANGIC =

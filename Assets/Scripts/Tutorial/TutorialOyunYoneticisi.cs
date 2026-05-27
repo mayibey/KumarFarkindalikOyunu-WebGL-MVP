@@ -793,13 +793,14 @@ namespace KumarFarkindalik.Tutorial
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T8) // NEAR MISS (sira=9)
             {
-                // PAKET 6C3: Default N=2. Slider değişince AsamaSetNearMiss yeniden çağrılır.
-                // PAKET 14-FAZ35.10: TutorialSenaryoMotoru.DinamikPatternBaslat("nearMiss", N) çağrısı
-                // KALDIRILDI — dinamik motor "nearMiss" modunda 5-N kayıt sembolId=-1/adet=0 (boş kayıp)
-                // üretiyor, scripted Üzüm 8 cluster kazanç planını override ediyordu. Motor.Durdur()
-                // ile pasif → scripted (AsamaSetNearMiss) tek başına spin akışına girer (T6 emsali).
+                // PAKET 14-FAZ35.69: T8 yeniden tasarımı — toggle KAPALI girer, kullanıcı açıp Uygula basana
+                // kadar SPIN pasif. Açınca 2 spin (Karpuz + Erik) near-miss. Eski AsamaSetNearMiss(N) (5 spin
+                // slider tabanlı) paralel duruyor ama T8'de artık çağrılmıyor.
+                // T8 girişinde toggle kapalı reset: yakinKacirma=0 → parametreKosulu(>0.5) false → SpinKilitli=true.
+                // Panel UI senkronu PARÇA 4'te (toggle reset HTML JS); şimdilik C# tarafı temiz başlangıç.
+                PanelKopru.yakinKacirma = 0f;
                 TutorialSenaryoMotoru.Durdur();
-                TutorialScriptedYoneticisi.Ornek?.AsamaSetNearMiss(2);
+                TutorialScriptedYoneticisi.Ornek?.AsamaSetNearMiss2Spin();
             }
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T7) // ÖDEME ARALIĞI (sira=8, UI "T8")
             {

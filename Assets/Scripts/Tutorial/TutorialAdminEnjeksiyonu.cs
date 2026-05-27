@@ -256,18 +256,28 @@ namespace KumarFarkindalik.Tutorial
                     }
                     break;
                 case "yakinKacirma":
-                    // PAKET 6C3 + UI-5LIK: T9 (Near Miss) — slider 0-5 doğrudan N (artık scale yok)
+                    // PAKET 14-FAZ35.69: T8 yeniden tasarımı — AÇ/KAPA toggle (PARÇA 4) veya slider değeri
+                    // (geçiş döneminde). value >0.5 → toggle AÇIK → AsamaSetNearMiss2Spin (Karpuz+Erik) yükle
+                    // + idx reset. KAPALI ise scripted'i tekrar yüklemeye gerek yok (parametreKosulu=false
+                    // SpinKilitli=true ile zaten engelliyor; kullanıcı açtığında yeni 2 spin yüklenir).
+                    // Sayısal parse: bool toggle "true"/"false" veya "0"/"1" gelebilir; float parse universal.
                     {
                         var ayN = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
-                        if (ayN != null && ayN.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T8
-                            && int.TryParse(value, out int nmSliderVal))
+                        if (ayN != null && ayN.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T8)
                         {
-                            int n = Mathf.Clamp(nmSliderVal, 0, 5);
-                            // PAKET 14-FAZ35.10.B: Dinamik motor "nearMiss" modunda 5-N kaydı sembolId=-1
-                            // (boş kayıp) üretiyor, scripted Üzüm 8 cluster kazanç planını override ediyordu.
-                            // Slider değişimi yolu — T8 girişindeki fix ile aynı pattern (Durdur → AsamaSet sırası).
-                            TutorialSenaryoMotoru.Durdur();
-                            TutorialScriptedYoneticisi.Ornek?.AsamaSetNearMiss(n);
+                            bool acik;
+                            if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out float nmVal))
+                                acik = nmVal > 0.5f;
+                            else
+                                acik = value == "true" || value == "True";
+
+                            if (acik)
+                            {
+                                // T8 girişindeki pattern ile uyumlu: motor pasif + scripted yükle (idx=0 reset).
+                                TutorialSenaryoMotoru.Durdur();
+                                TutorialScriptedYoneticisi.Ornek?.AsamaSetNearMiss2Spin();
+                            }
+                            // KAPALI: scripted yüklü kalır ama parametreKosulu false → SpinKilitli=true.
                         }
                     }
                     break;

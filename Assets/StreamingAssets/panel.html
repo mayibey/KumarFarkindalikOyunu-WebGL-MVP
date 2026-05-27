@@ -1034,7 +1034,7 @@
           <div class="ifsa-line">Burada yapılan ayarla oyuncuların kazandığında alacağı miktar bahisinin kaç katı olabileceği belirlenir. (en az – en çok)</div>
         </div>
 
-        <!-- 4. NEREDEYSE OLUYORDU MODU -->
+        <!-- 4. NEREDEYSE OLUYORDU MODU — FAZ35.69: slider → AÇ/KAPA toggle -->
         <div class="setting-card">
           <div class="setting-header">
             <div class="setting-header-left">
@@ -1042,11 +1042,14 @@
               <label>Neredeyse Oluyordu Hissi</label>
               <span class="help-icon" data-tip="nearMiss">?</span>
             </div>
-            <span class="value-display" id="yakinKacirmaDeger">5'de 2</span>
+            <div id="yakinKacirma" style="display:flex;align-items:center;gap:8px;">
+              <span class="toggle-label" id="yakinKacirmaLabel">Kapalı</span>
+              <div class="toggle" id="yakinKacirmaToggle" onclick="toggleDegisti('yakinKacirma')">
+                <div class="toggle-dot"></div>
+              </div>
+            </div>
           </div>
-          <input type="range" id="yakinKacirma" min="0" max="5" step="1" value="2"
-                 oninput="yakinKacirmaInputDegisti(this.value)">
-          <div class="ifsa-line">Burada yapılan ayarla oyunculara 5 oyundan kaçında "neredeyse kazanıyordum" hissinin yaşatılacağı belirlenir.</div>
+          <div class="ifsa-line">Açıkken oyunculara 7 aynı meyveye 1 kalmış gibi gösterilerek "neredeyse kazanıyordum" hissi yaşatılır.</div>
         </div>
 
         <!-- 5. KAÇIŞ FRENLEME -->
@@ -1356,13 +1359,10 @@
     unityeGonder(anahtar, Number(deger));
   }
 
-  // Neredeyse Oluyordu Hissi: HTML slider 0-5, Unity'e doğrudan N gönder (scale yok)
-  function yakinKacirmaInputDegisti(deger) {
-    var n = parseInt(deger, 10);
-    if (isNaN(n)) n = 0;
-    document.getElementById('yakinKacirmaDeger').textContent = "5'de " + n;
-    unityeGonder('yakinKacirma', n);
-  }
+  // FAZ35.69: yakinKacirmaInputDegisti KALDIRILDI — slider yerine AÇ/KAPA toggle.
+  // Toggle handler: toggleDegisti('yakinKacirma') (sat 1414+) → unityeGonder('yakinKacirma', bool).
+  // C# tarafı (TutorialAdminEnjeksiyonu) hem bool hem sayısal parse eder; senaryoUygula akışı sayısal
+  // preset değer gönderir (03 backend Random near-miss zinciri korunur).
 
   // Kazandırma Sıklığı: HTML slider 0-5, Unity'e doğrudan N gönder (scale yok)
   function kazanmaOraniInputDegisti(deger) {
@@ -1473,9 +1473,8 @@
     });
     document.getElementById('minCarpan').value  = s.minCarpan;
     document.getElementById('maksCarpan').value = s.maksCarpan;
-    animateValueSet(document.getElementById('yakinKacirma'), s.yakinKacirma, function(v) {
-      document.getElementById('yakinKacirmaDeger').textContent = "5'de " + Math.round(v);
-    });
+    // FAZ35.69: yakinKacirma slider→toggle. Preset sayısal değer >0.5 → toggle.active (UI senkron).
+    setToggleClass('yakinKacirma', s.yakinKacirma > 0.5);
     document.getElementById('ardisikKayip').value = s.ardisikKayip;
     setToggleClass('yeniOyuncu', s.yeniOyuncu);
     setToggleClass('carpanOdeme', s.carpanOdeme);
@@ -1563,8 +1562,10 @@
     // T6 slider=4 (4 kazanç + 1 kayıp) → preset eziyordu (s.kazanmaOrani=3 → 3 kazanç + 2 kayıp).
     var kazSlider = document.getElementById('kazanmaOrani');
     var kazDom = kazSlider ? parseInt(kazSlider.value, 10) : s.kazanmaOrani;
-    var ykSlider = document.getElementById('yakinKacirma');
-    var ykDom = ykSlider ? parseInt(ykSlider.value, 10) : s.yakinKacirma;
+    // FAZ35.69: yakinKacirma slider→toggle. Slider DOM artık yok; preset sayısal değer doğrudan
+    // gönderilir (03 backend DonusAkisServisi Random near-miss zinciri preset değerine bağımlı).
+    // Tutorial T8 manuel toggle değişimi ayrı kanal: toggleDegisti('yakinKacirma') bool postMessage gönderir.
+    var ykDom = s.yakinKacirma;
     var minSlider = document.getElementById('minCarpan');
     var minDom = minSlider ? parseFloat(minSlider.value) : s.minCarpan;
     var maksSlider = document.getElementById('maksCarpan');
@@ -1628,7 +1629,7 @@
       case 'bonusYuzde':      return 'Bonus sembolü düşme olasılığı %' + value + ' olarak uygulandı';
       case 'bonusOtomatikOran': return 'Bonus otomatik tetik oranı %' + value + ' olarak uygulandı';
       case 'kazanmaOrani':    return "Kazanma sıklığı 5'te " + value + ' olarak uygulandı';
-      case 'yakinKacirma':    return "Yakın kaçırma sıklığı 5'te " + value + ' olarak uygulandı';
+      case 'yakinKacirma':    return 'Yakın kaçırma ' + ((value === true || value === 'true' || value === 'True' || (typeof value === 'number' && value > 0.5)) ? 'açıldı' : 'kapatıldı');
       case 'minCarpan':       return 'Min ödeme çarpanı ' + value + 'x olarak uygulandı';
       case 'maksCarpan':      return 'Maks ödeme çarpanı ' + value + 'x olarak uygulandı';
       case 'ardisikKayip':    return 'Ardışık kayıp limiti ' + value + ' olarak uygulandı';
@@ -1666,8 +1667,8 @@
   function varsayilanaDon() {
     document.getElementById('kazanmaOrani').value            = 3;
     document.getElementById('kazanmaOraniDeger').textContent = "5'de 3";
-    document.getElementById('yakinKacirma').value            = 2;
-    document.getElementById('yakinKacirmaDeger').textContent = "5'de 2";
+    // FAZ35.69: slider→toggle, varsayılan KAPALI (eski "5'de 2" anlamsız).
+    setToggleClass('yakinKacirma', false);
     document.getElementById('minCarpan').value               = 0;
     document.getElementById('maksCarpan').value              = 0;
     document.getElementById('ardisikKayip').value            = 8;
@@ -1683,7 +1684,7 @@
       kazanmaOrani:   Number(document.getElementById('kazanmaOrani').value),
       minCarpan:      Number(document.getElementById('minCarpan').value),
       maksCarpan:     Number(document.getElementById('maksCarpan').value),
-      yakinKacirma:   Number(document.getElementById('yakinKacirma').value),
+      yakinKacirma:   document.getElementById('yakinKacirmaToggle').classList.contains('active'), // FAZ35.69: toggle bool
       ardisikKayip:   Number(document.getElementById('ardisikKayip').value),
       yeniOyuncuModu: document.getElementById('yeniOyuncuToggle').classList.contains('active'),
       bonusModu:      document.getElementById('bonusManuel').classList.contains('active') ? 'manuel' : 'otomatik'
@@ -1707,8 +1708,8 @@
     document.getElementById('kazanmaOraniDeger').textContent = "5'de " + s.kazanmaOrani;
     document.getElementById('minCarpan').value               = s.minCarpan;
     document.getElementById('maksCarpan').value              = s.maksCarpan;
-    document.getElementById('yakinKacirma').value            = s.yakinKacirma;
-    document.getElementById('yakinKacirmaDeger').textContent = "5'de " + s.yakinKacirma;
+    // FAZ35.69: yakinKacirma slider→toggle. Preset sayısal değer >0.5 → toggle.active (UI senkron).
+    setToggleClass('yakinKacirma', s.yakinKacirma > 0.5);
     document.getElementById('ardisikKayip').value            = s.ardisikKayip;
     setToggleClass('yeniOyuncu',  s.yeniOyuncu);
     setToggleClass('carpanOdeme', s.carpanOdeme);
@@ -1822,8 +1823,8 @@
       if (mkMin) mkMin.value = a.minCarpan || 0;
       var mkMax = document.getElementById('maksCarpan');
       if (mkMax) mkMax.value = a.maksCarpan || 0;
-      var sliderYK = document.getElementById('yakinKacirma');
-      if (sliderYK) { var ykOndaG = Math.max(0, Math.min(5, Math.round(a.yakinKacirma))); sliderYK.value = ykOndaG; document.getElementById('yakinKacirmaDeger').textContent = "5'de " + ykOndaG; }
+      // FAZ35.69: yakinKacirma slider→toggle. Backend'den gelen sayısal değer >0.5 → toggle.active.
+      setToggleClass('yakinKacirma', (typeof a.yakinKacirma === 'number') ? a.yakinKacirma > 0.5 : !!a.yakinKacirma);
       var akInput = document.getElementById('ardisikKayip');
       if (akInput) akInput.value = a.ardisikKayipLimiti;
       var tog = document.getElementById('yeniOyuncuToggle'), lbl = document.getElementById('yeniOyuncuLabel');

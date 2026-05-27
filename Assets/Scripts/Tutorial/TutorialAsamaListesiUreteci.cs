@@ -142,19 +142,47 @@ namespace KumarFarkindalik.Tutorial
             };
         }
 
-        /// <summary>PAKET 14-FAZ34 İş 3: T8 Near Miss dizilimi — 7 bitişik Hindistan cluster (eşik 8'in BIR ALTINDA).
-        /// Pozisyonlar (1,0)(2,0)(3,0)(1,1)(2,1)(3,1)(2,2) → 7 yan yana → cluster oluşmaz, ödeme yok.
-        /// Pedagojik etki: "neredeyse 8 oldu, neredeyse kazanıyordum" hissi. Ham 0, NET -1000 (bahis kaybı).
-        /// Geri kalan 23 hücre dolgu (Hindistan hariç 6 meyve dengeli, hiçbiri 7+ olmasın).</summary>
-        public static ScriptedSpinKaydi UretNearMissKayit()
+        /// <summary>PAKET 14-FAZ34 İş 3 / FAZ35.69: T8 Near Miss dizilimi — clusterSembol için 7 bitişik
+        /// (cluster eşik 8'in BIR ALTINDA → cluster oluşmaz, ödeme 0, net -bahis = "neredeyse oluyordu" hissi).
+        /// FAZ35.69: clusterSembol parametre (default 3=Hindistan → geriye uyum: eski parametresiz çağrılar
+        /// kırılmaz); pozisyon HARDCODED yerine OlusturRastgeleClusterPozlari(8) havuzundan no-replace random
+        /// çekilen 8-li pattern'in ilk 7 hücresi → her çağrıda farklı yere düşer (Karpuz ≠ Erik konumu).
+        /// Geri kalan 23 hücre dolgu (clusterSembol hariç 7 meyve, max 4/sembol → cluster oluşmaz garanti).
+        /// tumble YOK (FAZ35.68 sembol-bağımsız rotate ilkGridSemboller==ekran garantisine dayanır).</summary>
+        public static ScriptedSpinKaydi UretNearMissKayit(int clusterSembol = 3)
         {
             int[] grid = new int[30];
-            // Near miss cluster: 7 bitişik Hindistan
-            grid[0] = 0;  grid[1] = 3;  grid[2] = 3;  grid[3] = 3;  grid[4] = 1;  grid[5] = 2;   // y=0
-            grid[6] = 4;  grid[7] = 3;  grid[8] = 3;  grid[9] = 3;  grid[10] = 5; grid[11] = 0;  // y=1
-            grid[12] = 6; grid[13] = 1; grid[14] = 3; grid[15] = 6; grid[16] = 2; grid[17] = 4;  // y=2 — (2,2)=14 → 7. Hindistan
-            grid[18] = 4; grid[19] = 5; grid[20] = 6; grid[21] = 5; grid[22] = 0; grid[23] = 5;  // y=3
-            grid[24] = 1; grid[25] = 2; grid[26] = 4; grid[27] = 2; grid[28] = 0; grid[29] = 1;  // y=4
+            for (int i = 0; i < 30; i++) grid[i] = -1;
+
+            // FAZ35.69: 8-li cluster havuzundan random pattern → ilk 7 hücre = 7 bitişik
+            // (cluster eşik 8 olduğundan 7 hücre TumbleAyarlari flood-fill'inde küme olarak patlamaz → ödeme 0).
+            var clusterPozlari = OlusturRastgeleClusterPozlari(8);
+            int hucreSayisi = Mathf.Min(7, clusterPozlari.Count);
+            for (int i = 0; i < hucreSayisi; i++)
+            {
+                var p = clusterPozlari[i];
+                grid[p.y * 6 + p.x] = clusterSembol;
+            }
+
+            // Dolgu: clusterSembol hariç 7 meyve, max 4/sembol (cluster oluşmaz) — UretCokAdetKazancKayit emsali.
+            var dolguSayaclar = new int[8];
+            dolguSayaclar[clusterSembol] = hucreSayisi;
+            int adimSembol = 0;
+            for (int i = 0; i < 30; i++)
+            {
+                if (grid[i] != -1) continue;
+                int sec = -1;
+                for (int t = 0; t < 8; t++)
+                {
+                    int aday = (adimSembol + t) % 8;
+                    if (aday == clusterSembol) continue;
+                    if (dolguSayaclar[aday] < 4) { sec = aday; break; }
+                }
+                if (sec < 0) sec = (clusterSembol == 0) ? 1 : 0;
+                grid[i] = sec;
+                dolguSayaclar[sec]++;
+                adimSembol = (adimSembol + 1) % 8;
+            }
 
             int[] carpan = new int[30]; // hepsi 0
 

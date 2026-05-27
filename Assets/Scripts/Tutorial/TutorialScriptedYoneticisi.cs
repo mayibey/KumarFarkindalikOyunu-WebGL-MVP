@@ -249,6 +249,34 @@ namespace KumarFarkindalik.Tutorial
             Debug.Log($"[TutorialScriptedYoneticisi] AsamaSetNearMiss(N={N}) — {N} near-miss + {5 - N} Üzüm 8 teselli kazanç (sabit sıra), Aktif=true.");
         }
 
+        /// <summary>PAKET 14-FAZ35.69: T8 yeniden tasarımı — toggle açıkken 2 spin (Karpuz + Erik) near-miss.
+        /// Eski AsamaSetNearMiss(N) (N near-miss + 5-N Üzüm teselli) paralel duruyor; yeni akış:
+        /// 1. spin = Karpuz(4) 7 bitişik near-miss, 2. spin = Erik(2) 7 bitişik near-miss. Farklı sembol +
+        /// her çağrıda farklı pozisyon (OlusturRastgeleClusterPozlari no-replace havuz garantisi: 8-li
+        /// havuzdaki 6 pattern'den 2 farklı çekilir → Karpuz ≠ Erik konumu).
+        /// Rotate animasyonu (FAZ35.68 sembol-bağımsız) → karpuz/erik otomatik döner, ekstra kod yok.
+        /// Anahtar "nearMiss" eski metotla paylaşılıyor — son çağrı kazanır (T8 girişinde tek çağrı garanti).</summary>
+        public void AsamaSetNearMiss2Spin()
+        {
+            var liste = new List<ScriptedSpinKaydi>(2)
+            {
+                TutorialAsamaListesiUreteci.UretNearMissKayit(4), // 1. spin: Karpuz
+                TutorialAsamaListesiUreteci.UretNearMissKayit(2), // 2. spin: Erik
+            };
+
+            if (_patternSpinleri == null)
+                _patternSpinleri = new Dictionary<string, List<ScriptedSpinKaydi>>();
+            _patternSpinleri["nearMiss"] = liste;
+            _aktifPattern = "nearMiss";
+            _spinIdx = 0;
+            Aktif = true;
+
+            var oy = Object.FindObjectOfType<OyunYoneticisi>();
+            oy?.ScriptedSenaryoCacheTazele();
+
+            Debug.Log("[TutorialScriptedYoneticisi] AsamaSetNearMiss2Spin — Karpuz(4) + Erik(2) near-miss (rastgele pozisyon), Aktif=true.");
+        }
+
         /// <summary>PAKET 14-FAZ34 İş 4: T9 Kaçış Frenleme — N kayıp + 1 kazanç (başabaş) + (4-N) doldurma.
         /// SHUFFLE YOK — sıra önemli: önce kayıplar → kazanç → "tam kaçacaktım ama kazandım" pedagojisi.
         /// N max 3 (kullanıcı 4-5 girse de clamp 1-3).</summary>
