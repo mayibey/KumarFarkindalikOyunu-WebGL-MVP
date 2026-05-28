@@ -142,8 +142,7 @@ public partial class OyunYoneticisi
     // Kaçış Frenleme: ardışık kayıp eşiği aşıldığında SONRAKİ spin'in grid'i cluster oluşacak şekilde zorlanır.
     // Bayrak SimuleEtVeKaydetImpl tarafından okunur ve bir kez tüketilir.
     private bool _kacisFrenlemeBuSpinAktif = false;
-    private bool _yeniOyuncuModuAktif = false;
-    private float _yeniOyuncuBaslangicZamani = 0f;
+    // FAZ35.76: _yeniOyuncuModuAktif + _yeniOyuncuBaslangicZamani field'ları SİLİNDİ (AdminSetYeniOyuncuModu kaldırıldı).
     [Range(0, 100)] [SerializeField] private int _odemeEgilimiYuzde = 50;
 
     public TMPro.TextMeshProUGUI carpanOlasilikValueText;

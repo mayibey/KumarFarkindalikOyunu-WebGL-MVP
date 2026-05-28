@@ -972,45 +972,13 @@
       </div>
       <div class="accordion-content">
 
-        <!-- 1. YENİ OYUNCU MODU -->
+        <!-- FAZ35.76: "Yeni oyuncu modu" + "Kazandırma sıklığı" kartları silindi (Tutorial 35.74'te T6YO+T6 modları kaldırılmıştı; bu kutular 03 senaryolarında da kullanılmıyordu — C# SenaryoUygula AdminSetOdemeEgilimi'ye doğrudan yüzde gönderiyor, slider/toggle bağımsız). -->
+
+        <!-- 1. ÖDEME ARALIĞI -->
         <div class="setting-card">
           <div class="setting-header">
             <div class="setting-header-left">
               <span class="badge-num">1</span>
-              <label>Yeni oyuncu modu</label>
-              <span class="help-icon" data-tip="yeniOyuncu">?</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <span class="toggle-label" id="yeniOyuncuLabel">Aktif</span>
-              <div class="toggle active" id="yeniOyuncuToggle" onclick="toggleDegisti('yeniOyuncu')">
-                <div class="toggle-dot"></div>
-              </div>
-            </div>
-          </div>
-          <div class="description">İlk 30 dakika boyunca %85 kazandırma aktif</div>
-          <div class="ifsa-line">Açıkken yeni oyuncuya ilk 30 dakika boyunca yüksek kazandırma uygulanır, böylece oyuna alışıp bağlanması sağlanır.</div>
-        </div>
-
-        <!-- 3. KAZANDIRMA SIKLIĞI -->
-        <div class="setting-card">
-          <div class="setting-header">
-            <div class="setting-header-left">
-              <span class="badge-num">2</span>
-              <label>Kazandırma sıklığı</label>
-              <span class="help-icon" data-tip="kazanmaOrani">?</span>
-            </div>
-            <span class="value-display" id="kazanmaOraniDeger">5'de 3</span>
-          </div>
-          <input type="range" id="kazanmaOrani" min="0" max="5" step="1" value="3"
-                 oninput="kazanmaOraniInputDegisti(this.value)">
-          <div class="ifsa-line">Burada yapılan ayarla oyunculara 5 oyundan kaçında "kazandım" hissinin yaşatılacağı belirlenir.</div>
-        </div>
-
-        <!-- 3. ÖDEME ARALIĞI -->
-        <div class="setting-card">
-          <div class="setting-header">
-            <div class="setting-header-left">
-              <span class="badge-num">3</span>
               <label>Ödeme aralığı</label>
               <span class="badge-critical">EN KRİTİK</span>
               <span class="help-icon" data-tip="odemeAraligi">?</span>
@@ -1038,7 +1006,7 @@
         <div class="setting-card">
           <div class="setting-header">
             <div class="setting-header-left">
-              <span class="badge-num">4</span>
+              <span class="badge-num">2</span>
               <label>Neredeyse Oluyordu Hissi</label>
               <span class="help-icon" data-tip="nearMiss">?</span>
             </div>
@@ -1056,7 +1024,7 @@
         <div class="setting-card">
           <div class="setting-header">
             <div class="setting-header-left">
-              <span class="badge-num">5</span>
+              <span class="badge-num">3</span>
               <label>Kaçış Frenleme</label>
               <span class="help-icon" data-tip="kacisFreni">?</span>
             </div>
@@ -1084,7 +1052,7 @@
         <div class="setting-card realtime">
           <div class="setting-header">
             <div class="setting-header-left">
-              <span class="badge-num">6</span>
+              <span class="badge-num">4</span>
               <label>Bonus tetikleme</label>
               <span class="help-icon" data-tip="bonusTetik">?</span>
             </div>
@@ -1101,7 +1069,7 @@
         <div class="setting-card realtime">
           <div class="setting-header">
             <div class="setting-header-left">
-              <span class="badge-num">7</span>
+              <span class="badge-num">5</span>
               <label>Çarpan zorla</label>
               <span class="help-icon" data-tip="carpanZorla">?</span>
             </div>
@@ -1164,11 +1132,6 @@
       + '<p>Aynı slot oyununun <strong>5 farklı ruh hali</strong>. Her senaryo, oyuncunun yaşadığı deneyimi tamamen değiştirir.</p>'
       + '<p>Operatör tek tuşla moddan moda geçebilir. Oyuncu fark edemez — oyunun adı, görseli, sesleri hiç değişmez; sadece <strong>kazandırma algoritması</strong> değişir.</p>',
 
-    kazanmaOrani: '<h4>Kazandırma Sıklığı</h4>'
-      + '<p>10 oyundan kaç tanesinde oyuncuya "kazandım" hissi yaşatılacağını belirler. Doğal slot oyunlarında bu oran <strong>10\'da 3 civarındadır</strong> — bu istatistiksel rastlantıdır.</p>'
-      + '<p>Operatör bu değeri <strong>10\'da 8</strong>\'e çekerse oyuncu sürekli kazanır gibi hisseder, oyuna çekilir. <strong>10\'da 1</strong>\'e indirirse oyuncu sürekli kaybeder, ama "birazdan kazanırım" umuduyla devam eder.</p>'
-      + '<p><strong>Önemli:</strong> Bu "kazanma" her zaman gerçek kâr anlamına gelmez — ödeme aralığı düşükse, kazansa bile bahisinden az alabilir. İki ayar birlikte çalışır: bu sıklık <em>"hissi"</em>, ödeme aralığı <em>"gerçek miktarı"</em> belirler.</p>',
-
     odemeAraligi: '<h4>Ödeme Aralığı (En Kritik Ayar)</h4>'
       + '<p>Bu, kasanın kâr garantisinin teknik adıdır. Min ve Max değerleri <strong>bahsin katı</strong> olarak çalışır.</p>'
       + '<p><em>Min × bahis</em> → Oyuncuya verilebilecek minimum kazanç. <em>Max × bahis</em> → Asla aşılamayacak tavan.</p>'
@@ -1188,12 +1151,6 @@
       + '<p>Eşik kayıp sayısına ulaşıldığında bir sonraki spinde <strong>zorunlu küçük kazanç</strong> üretilir. Genellikle bahsin yarısı veya katı kadar. Önemli olan miktar değil, <strong>"şansım döndü"</strong> hissini yaratmaktır.</p>'
       + '<p>Oyuncu içinden "neyse ki bekledim, kazandım" der. Hâlbuki o spin\'i <strong>operatör ona hediye etti</strong> — kalmasını istediği için.</p>'
       + '<p>Eşik 8 ise: 8 üst üste kayıptan sonra zorunlu kırıntı. Düşük tutarsan oyuncu sık "tutunuyor" hisseder. Yüksek tutarsan oyuncu yorulup gidebilir.</p>',
-
-    yeniOyuncu: '<h4>Yeni Oyuncu Modu (Hook Fazı)</h4>'
-      + '<p>Bağımlılık literatüründe "kanca" olarak bilinir. Yeni gelen oyuncuya <strong>ilk 30 dakikada</strong> yüksek kazandırma uygulanır — sistem ona kasten para kaybettirmez.</p>'
-      + '<p>Bu süre içinde oyuncunun beyni <strong>"bu oyun bana yarıyor"</strong> kalıbını öğrenir. Dopamin yolları "kazanç beklentisi" üzerine programlanır.</p>'
-      + '<p>Hook fazı bittiğinde oyuncu artık bağlıdır. Sonraki saatlerde, günlerde, haftalarda kaybetse bile bu <strong>ilk başarı anısı</strong> ona "geri gelecek" umudunu yaşatır.</p>'
-      + '<p>Bağımlılık uzmanı Natasha Schüll (MIT, <em>Addiction by Design</em>): "İlk yarım saat, oyuncunun hayatının sonraki 5 yılını şekillendirir."</p>',
 
     bonusTetik: '<h4>Bonus Tetikleme</h4>'
       + '<p>Bonus oyunu, slot oyunlarındaki <strong>en yoğun dopamin patlama anıdır.</strong> Animasyon, müzik, parlak renkler — hepsi maksimum heyecan için tasarlanır.</p>'
@@ -1364,13 +1321,7 @@
   // C# tarafı (TutorialAdminEnjeksiyonu) hem bool hem sayısal parse eder; senaryoUygula akışı sayısal
   // preset değer gönderir (03 backend Random near-miss zinciri korunur).
 
-  // Kazandırma Sıklığı: HTML slider 0-5, Unity'e doğrudan N gönder (scale yok)
-  function kazanmaOraniInputDegisti(deger) {
-    var n = parseInt(deger, 10);
-    if (isNaN(n)) n = 0;
-    document.getElementById('kazanmaOraniDeger').textContent = "5'de " + n;
-    unityeGonder('kazanmaOrani', n);
-  }
+  // FAZ35.76: kazanmaOraniInputDegisti SİLİNDİ — "Kazandırma sıklığı" kartı kaldırıldı.
 
   // Çarpan düşme olasılığı: slider (0-50) + number input (0-100) senkron
   function carpanOlasilikSliderDegisti(deger) {
@@ -1424,11 +1375,11 @@
   // ===== SENARYO UYGULA =====
   // UI-5LIK: kazanmaOrani + yakinKacirma artık 0-5 ölçekte (eski 0-10 ve 0-100 değerleri /2 ve /20 ile adapte edildi).
   var SENARYOLAR = {
-    normal:  { kazanmaOrani: 2, minCarpan: 1,   maksCarpan: 100, yakinKacirma: 1, yeniOyuncu: false, ardisikKayip: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 0.5, carpanOdeme: false },
-    hook:    { kazanmaOrani: 4, minCarpan: 2,   maksCarpan: 20,  yakinKacirma: 2, yeniOyuncu: false, ardisikKayip: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 3.3, carpanOdeme: false },
-    yontma:  { kazanmaOrani: 3, minCarpan: 0.5, maksCarpan: 3,   yakinKacirma: 3, yeniOyuncu: false, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: false },
-    tutma:   { kazanmaOrani: 2, minCarpan: 1,   maksCarpan: 50,  yakinKacirma: 2, yeniOyuncu: false, ardisikKayip: 5, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: true  },
-    koruma:  { kazanmaOrani: 1, minCarpan: 0.5, maksCarpan: 2,   yakinKacirma: 5, yeniOyuncu: false, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: false }
+    normal:  { minCarpan: 1,   maksCarpan: 100, yakinKacirma: 1, ardisikKayip: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 0.5, carpanOdeme: false },
+    hook:    { minCarpan: 2,   maksCarpan: 20,  yakinKacirma: 2, ardisikKayip: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 3.3, carpanOdeme: false },
+    yontma:  { minCarpan: 0.5, maksCarpan: 3,   yakinKacirma: 3, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: false },
+    tutma:   { minCarpan: 1,   maksCarpan: 50,  yakinKacirma: 2, ardisikKayip: 5, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: true  },
+    koruma:  { minCarpan: 0.5, maksCarpan: 2,   yakinKacirma: 5, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: false }
   };
 
   // Son APPLY edilen state — sayfa açılışta normal preset
@@ -1468,15 +1419,13 @@
 
   // Tüm input'ları preset'e göre UI olarak güncelle (postMessage YOK)
   function uygulaUI(s) {
-    animateValueSet(document.getElementById('kazanmaOrani'), s.kazanmaOrani, function(v) {
-      document.getElementById('kazanmaOraniDeger').textContent = "5'de " + Math.round(v);
-    });
+    // FAZ35.76: kazanmaOrani animate SİLİNDİ — kart yok.
     document.getElementById('minCarpan').value  = s.minCarpan;
     document.getElementById('maksCarpan').value = s.maksCarpan;
     // FAZ35.69: yakinKacirma slider→toggle. Preset sayısal değer >0.5 → toggle.active (UI senkron).
     setToggleClass('yakinKacirma', s.yakinKacirma > 0.5);
     document.getElementById('ardisikKayip').value = s.ardisikKayip;
-    setToggleClass('yeniOyuncu', s.yeniOyuncu);
+    // FAZ35.76: setToggleClass('yeniOyuncu') SİLİNDİ — kart yok.
     setToggleClass('carpanOdeme', s.carpanOdeme);
     document.getElementById('bonusManuel').classList.toggle('active', s.bonusModu === 'manuel');
     document.getElementById('bonusOtomatik').classList.toggle('active', s.bonusModu === 'otomatik');
@@ -1551,17 +1500,14 @@
     trackingAktif = false;
 
     // PAKET 14-FAZ34.3 BUG B v2: Toggle'lar DOM state'ten oku — preset ezme, kullanıcının manuel
-    // açtığı yeniOyuncu/carpanOdeme toggle'ları korunur. T6YO ve T10 spin butonu kilit kalmaz.
-    var togYO = document.getElementById('yeniOyuncuToggle');
-    var yoOnDom = togYO && togYO.classList.contains('active');
+    // açtığı carpanOdeme toggle'ı korunur. T10 spin butonu kilit kalmaz.
+    // FAZ35.76: yeniOyuncuToggle SİLİNDİ — kart kaldırıldı.
     var togCO = document.getElementById('carpanOdemeToggle');
     var coOnDom = togCO && togCO.classList.contains('active');
 
     // PAKET 14-FAZ34.5 BUG J: Slider'lar DOM state'ten oku — kullanıcının manuel ayarladığı
-    // kazanmaOrani/yakinKacirma/min-maksCarpan/ardisikKayip preset (SENARYOLAR.normal.X) ile ezilmez.
-    // T6 slider=4 (4 kazanç + 1 kayıp) → preset eziyordu (s.kazanmaOrani=3 → 3 kazanç + 2 kayıp).
-    var kazSlider = document.getElementById('kazanmaOrani');
-    var kazDom = kazSlider ? parseInt(kazSlider.value, 10) : s.kazanmaOrani;
+    // yakinKacirma/min-maksCarpan/ardisikKayip preset (SENARYOLAR.normal.X) ile ezilmez.
+    // FAZ35.76: kazanmaOrani slider SİLİNDİ — kart kaldırıldı.
     // FAZ35.69: yakinKacirma slider→toggle. Slider DOM artık yok; preset sayısal değer doğrudan
     // gönderilir (03 backend DonusAkisServisi Random near-miss zinciri preset değerine bağımlı).
     // Tutorial T8 manuel toggle değişimi ayrı kanal: toggleDegisti('yakinKacirma') bool postMessage gönderir.
@@ -1573,16 +1519,15 @@
     var akSlider = document.getElementById('ardisikKayip');
     var akDom = akSlider ? parseInt(akSlider.value, 10) : s.ardisikKayip;
 
-    // postMessage'lar fire et — kazanmaOrani + yakinKacirma artık 0-5 ölçek (scale yok)
+    // postMessage'lar fire et — yakinKacirma artık 0-5 ölçek (scale yok)
+    // FAZ35.76: kazanmaOrani + yeniOyuncu unityeGonder SİLİNDİ — kartlar kaldırıldı.
     // PAKET 14-FAZ18: Uygula onayı sinyali — Tutorial slider değişimi tek başına spin açmasın.
     unityeGonder('uygulamaOnayi',     true);
     unityeGonder('oyunModu',          secim);
-    unityeGonder('kazanmaOrani',      kazDom);    // DOM state — preset ezmedi
     unityeGonder('minCarpan',         minDom);    // DOM state
     unityeGonder('maksCarpan',        maksDom);   // DOM state
     unityeGonder('yakinKacirma',      ykDom);     // DOM state
     unityeGonder('ardisikKayip',      akDom);     // DOM state
-    unityeGonder('yeniOyuncu',        yoOnDom);   // DOM state — preset ezmedi
     unityeGonder('bonusModu',         s.bonusModu);
     // PAKET 14-FAZ24: bonusOtomatikOran preset gönderimi KALDIRILDI. Slider değişiminde kullanıcı değeri
     // (bonusYuzde + bonusOtomatikOran) zaten ANINDA Unity'e gönderiliyor. senaryoUygula preset 200 değerini
@@ -1628,12 +1573,10 @@
       case 'carpanOlasilik':  return 'Çarpan düşme olasılığı %' + value + ' olarak uygulandı';
       case 'bonusYuzde':      return 'Bonus sembolü düşme olasılığı %' + value + ' olarak uygulandı';
       case 'bonusOtomatikOran': return 'Bonus otomatik tetik oranı %' + value + ' olarak uygulandı';
-      case 'kazanmaOrani':    return "Kazanma sıklığı 5'te " + value + ' olarak uygulandı';
       case 'yakinKacirma':    return 'Yakın kaçırma ' + ((value === true || value === 'true' || value === 'True' || (typeof value === 'number' && value > 0.5)) ? 'açıldı' : 'kapatıldı');
       case 'minCarpan':       return 'Min ödeme çarpanı ' + value + 'x olarak uygulandı';
       case 'maksCarpan':      return 'Maks ödeme çarpanı ' + value + 'x olarak uygulandı';
       case 'ardisikKayip':    return 'Ardışık kayıp limiti ' + value + ' olarak uygulandı';
-      case 'yeniOyuncu':      return 'Yeni oyuncu modu ' + ((value === true || value === 'true' || value === 'True') ? 'açıldı' : 'kapatıldı');
       case 'carpanOdeme':     return 'Çarpan ödemesi ' + ((value === true || value === 'true' || value === 'True') ? 'açıldı' : 'kapatıldı');
       case 'carpanZorla':     return 'Çarpan zorla ' + value + 'x uygulandı';
       case 'bonusModu':       return 'Bonus modu: ' + value;
@@ -1665,8 +1608,7 @@
   }
 
   function varsayilanaDon() {
-    document.getElementById('kazanmaOrani').value            = 3;
-    document.getElementById('kazanmaOraniDeger').textContent = "5'de 3";
+    // FAZ35.76: kazanmaOrani DOM reset SİLİNDİ — kart kaldırıldı.
     // FAZ35.69: slider→toggle, varsayılan KAPALI (eski "5'de 2" anlamsız).
     setToggleClass('yakinKacirma', false);
     document.getElementById('minCarpan').value               = 0;
@@ -1681,12 +1623,11 @@
   function tumAyarlariUygula() {
     var tumAyarlar = {
       oyunModu:       document.getElementById('oyunModu').value,
-      kazanmaOrani:   Number(document.getElementById('kazanmaOrani').value),
+      // FAZ35.76: kazanmaOrani + yeniOyuncuModu field'ları SİLİNDİ — kartlar kaldırıldı.
       minCarpan:      Number(document.getElementById('minCarpan').value),
       maksCarpan:     Number(document.getElementById('maksCarpan').value),
       yakinKacirma:   document.getElementById('yakinKacirmaToggle').classList.contains('active'), // FAZ35.69: toggle bool
       ardisikKayip:   Number(document.getElementById('ardisikKayip').value),
-      yeniOyuncuModu: document.getElementById('yeniOyuncuToggle').classList.contains('active'),
       bonusModu:      document.getElementById('bonusManuel').classList.contains('active') ? 'manuel' : 'otomatik'
     };
     unityeGonder('tumAyarlar', tumAyarlar);
@@ -1702,16 +1643,14 @@
   function panelInitNormalApply() {
     var s = SENARYOLAR.normal;
 
-    // UI anlık yaz (animasyonsuz) — kazanmaOrani + yakinKacirma artık 0-5 ölçek
+    // UI anlık yaz (animasyonsuz) — yakinKacirma artık 0-5 ölçek
+    // FAZ35.76: kazanmaOrani DOM senkron + setToggleClass('yeniOyuncu') SİLİNDİ — kartlar kaldırıldı.
     document.getElementById('oyunModu').value                = 'normal';
-    document.getElementById('kazanmaOrani').value            = s.kazanmaOrani;
-    document.getElementById('kazanmaOraniDeger').textContent = "5'de " + s.kazanmaOrani;
     document.getElementById('minCarpan').value               = s.minCarpan;
     document.getElementById('maksCarpan').value              = s.maksCarpan;
     // FAZ35.69: yakinKacirma slider→toggle. Preset sayısal değer >0.5 → toggle.active (UI senkron).
     setToggleClass('yakinKacirma', s.yakinKacirma > 0.5);
     document.getElementById('ardisikKayip').value            = s.ardisikKayip;
-    setToggleClass('yeniOyuncu',  s.yeniOyuncu);
     setToggleClass('carpanOdeme', s.carpanOdeme);
     document.getElementById('bonusManuel').classList.toggle('active',   s.bonusModu === 'manuel');
     document.getElementById('bonusOtomatik').classList.toggle('active', s.bonusModu === 'otomatik');
@@ -1742,14 +1681,13 @@
     if (btn)  btn.classList.remove('apply-btn-pulsing');
     if (hint) hint.style.display = 'none';
 
-    // Unity'e gönder (apply olarak) — kazanmaOrani 0-5 doğrudan (scale yok)
+    // Unity'e gönder (apply olarak) — yakinKacirma 0-5 doğrudan (scale yok)
+    // FAZ35.76: kazanmaOrani + yeniOyuncu unityeGonder SİLİNDİ — kartlar kaldırıldı.
     unityeGonder('oyunModu',          'normal');
-    unityeGonder('kazanmaOrani',      s.kazanmaOrani);
     unityeGonder('minCarpan',         s.minCarpan);
     unityeGonder('maksCarpan',        s.maksCarpan);
     unityeGonder('yakinKacirma',      s.yakinKacirma);
     unityeGonder('ardisikKayip',      s.ardisikKayip);
-    unityeGonder('yeniOyuncu',        s.yeniOyuncu);
     unityeGonder('bonusModu',         s.bonusModu);
     if (s.bonusSembolOlasilik > 0)
       unityeGonder('bonusOtomatikOran', Math.round(100 / s.bonusSembolOlasilik));
@@ -1817,8 +1755,7 @@
       var a = JSON.parse(d.value);
       var modu = document.getElementById('oyunModu');
       if (modu && a.aktifSenaryo) { modu.value = a.aktifSenaryo; modAciklamasiniGuncelle(a.aktifSenaryo); }
-      var sliderKO = document.getElementById('kazanmaOrani');
-      if (sliderKO) { var koOnda = Math.max(0, Math.min(5, Math.round(a.kazanmaOrani))); sliderKO.value = koOnda; document.getElementById('kazanmaOraniDeger').textContent = "5'de " + koOnda; }
+      // FAZ35.76: kazanmaOrani slider DOM senkron SİLİNDİ — kart kaldırıldı.
       var mkMin = document.getElementById('minCarpan');
       if (mkMin) mkMin.value = a.minCarpan || 0;
       var mkMax = document.getElementById('maksCarpan');
@@ -1827,8 +1764,7 @@
       setToggleClass('yakinKacirma', (typeof a.yakinKacirma === 'number') ? a.yakinKacirma > 0.5 : !!a.yakinKacirma);
       var akInput = document.getElementById('ardisikKayip');
       if (akInput) akInput.value = a.ardisikKayipLimiti;
-      var tog = document.getElementById('yeniOyuncuToggle'), lbl = document.getElementById('yeniOyuncuLabel');
-      if (tog && lbl) { tog.classList.toggle('active', !!a.yeniOyuncuModu); lbl.textContent = a.yeniOyuncuModu ? 'Aktif' : 'Kapalı'; }
+      // FAZ35.76: yeniOyuncuToggle/Label DOM senkron SİLİNDİ — kart kaldırıldı.
       var ctTog = document.getElementById('carpanOdemeToggle'), ctLbl = document.getElementById('carpanOdemeLabel');
       if (ctTog && ctLbl && a.carpanTumbleAktif !== undefined) { ctTog.classList.toggle('active', !!a.carpanTumbleAktif); ctLbl.textContent = a.carpanTumbleAktif ? 'Aktif' : 'Kapalı'; }
       if (a.bonusModu) {

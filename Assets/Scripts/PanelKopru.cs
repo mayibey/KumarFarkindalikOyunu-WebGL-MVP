@@ -49,12 +49,11 @@ public class PanelKopru : MonoBehaviour
     private static extern void BahisPaneliBakiyeGonder(int bakiye);
 
     // ===== OYUN AYARLARI (panel state takibi) =====
-    public static float kazanmaOrani = 65f;
+    // FAZ35.76: kazanmaOrani + yeniOyuncuModu static field'ları SİLİNDİ — panel kartları kaldırıldı.
     public static float minCarpan = 0f;         // min ödeme bahis katı (0=devre dışı)
     public static float maksCarpan = 0f;        // maks ödeme bahis katı (0=devre dışı)
     public static float yakinKacirma = 40f;     // bu projede karşılığı YOK
     public static int ardisikKayipLimiti = 8;
-    public static bool yeniOyuncuModu = true;
     public static bool carpanTumbleAktif = true;
     public static string bonusModu = "manuel";
     public static int bonusOtomatikSpinPeriyodu = 200;
@@ -133,10 +132,8 @@ public class PanelKopru : MonoBehaviour
                 SenaryoUygula(deger);
                 break;
 
-            case "kazanmaOrani":
-                kazanmaOrani = float.Parse(deger, System.Globalization.CultureInfo.InvariantCulture);
-                _oy?.AdminSetOdemeEgilimi(Mathf.RoundToInt(kazanmaOrani));
-                break;
+            // FAZ35.76: case "kazanmaOrani" SİLİNDİ — panel slider kaldırıldı. AdminSetOdemeEgilimi 03 ana
+            // ödeme metodu olarak KORUNDU; 03 senaryoları SenaryoUygula üzerinden sabit yüzde gönderiyor.
 
             case "minCarpan":
                 minCarpan = float.Parse(deger, System.Globalization.CultureInfo.InvariantCulture);
@@ -162,13 +159,7 @@ public class PanelKopru : MonoBehaviour
                 _oy?.AdminSetArdisikKayipLimiti(ardisikKayipLimiti);
                 break;
 
-            case "yeniOyuncu":
-                // FAZ35.74 PARÇA 2: T6YO Tutorial bypass check SİLİNDİ (T6_YENI_OYUNCU enum'dan çıktı,
-                // referans derleme hatası verirdi). 03 admin path KORUNDU — yeniOyuncuModu state güncelleme
-                // + AdminSetYeniOyuncuModu çağrısı düz akışla yapılır (artık koşullu değil).
-                yeniOyuncuModu = deger == "True" || deger == "true";
-                _oy?.AdminSetYeniOyuncuModu(yeniOyuncuModu);
-                break;
+            // FAZ35.76: case "yeniOyuncu" SİLİNDİ — panel toggle kaldırıldı + AdminSetYeniOyuncuModu metodu silindi.
 
             case "bonusModu":
                 bonusModu = deger;
@@ -303,8 +294,9 @@ public class PanelKopru : MonoBehaviour
     {
         switch (senaryo)
         {
+            // FAZ35.76: kazanmaOrani = X satırları SİLİNDİ (static field kaldırıldı). AdminSetOdemeEgilimi
+            // çağrıları KORUNDU — 03 senaryolarının ödeme eğilimi yolu sağlam (sabit yüzde 85/25/45/15).
             case "normal":
-                kazanmaOrani = 65f;
                 minCarpan = 0f;
                 maksCarpan = 0f;
                 yakinKacirma = 20f;
@@ -312,7 +304,6 @@ public class PanelKopru : MonoBehaviour
                 break;
 
             case "hook":  // Yeni avlanan modu — yüksek kazanma, düşük tavan
-                kazanmaOrani = 85f;
                 minCarpan = 0f;
                 maksCarpan = 5f;
                 yakinKacirma = 60f;
@@ -320,7 +311,6 @@ public class PanelKopru : MonoBehaviour
                 break;
 
             case "yontma":  // Oyuncuyu yıprat
-                kazanmaOrani = 25f;
                 minCarpan = 0f;
                 maksCarpan = 3f;
                 yakinKacirma = 70f;
@@ -328,7 +318,6 @@ public class PanelKopru : MonoBehaviour
                 break;
 
             case "tutma":  // Oyuncuyu tut
-                kazanmaOrani = 45f;
                 minCarpan = 0.5f;
                 maksCarpan = 8f;
                 yakinKacirma = 80f;
@@ -336,7 +325,6 @@ public class PanelKopru : MonoBehaviour
                 break;
 
             case "koruma":  // Kasa koru
-                kazanmaOrani = 15f;
                 minCarpan = 0f;
                 maksCarpan = 2f;
                 yakinKacirma = 90f;
@@ -366,12 +354,11 @@ public class PanelKopru : MonoBehaviour
     // ===== VARSAYILANA DÖN =====
     private void VarsayilanaDon()
     {
-        kazanmaOrani = 65f;
+        // FAZ35.76: kazanmaOrani + yeniOyuncuModu reset SİLİNDİ — static field'lar kaldırıldı.
         minCarpan = 0f;
         maksCarpan = 0f;
         yakinKacirma = 40f;
         ardisikKayipLimiti = 8;
-        yeniOyuncuModu = true;
         bonusModu = "manuel";
         aktifSenaryo = "normal";
         _oy?.AdminNormalOyunUygula();
@@ -383,13 +370,12 @@ public class PanelKopru : MonoBehaviour
     {
         string json = JsonUtility.ToJson(new AyarlarSnapshot
         {
-            kazanmaOrani       = kazanmaOrani,
+            // FAZ35.76: kazanmaOrani + yeniOyuncuModu snapshot field'ları SİLİNDİ.
             minCarpan          = minCarpan,
             maksCarpan         = maksCarpan,
             bahis              = _oy != null ? _oy.GetMevcutBahis() : 0,
             yakinKacirma       = yakinKacirma,
             ardisikKayipLimiti = ardisikKayipLimiti,
-            yeniOyuncuModu     = yeniOyuncuModu,
             carpanTumbleAktif  = PanelKopru.carpanTumbleAktif,
             bonusModu          = bonusModu,
             aktifSenaryo       = aktifSenaryo
@@ -412,13 +398,12 @@ public class PanelKopru : MonoBehaviour
     [System.Serializable]
     private class AyarlarSnapshot
     {
-        public float  kazanmaOrani;
+        // FAZ35.76: kazanmaOrani + yeniOyuncuModu field'ları SİLİNDİ.
         public float  minCarpan;
         public float  maksCarpan;
         public int    bahis;
         public float  yakinKacirma;
         public int    ardisikKayipLimiti;
-        public bool   yeniOyuncuModu;
         public bool   carpanTumbleAktif;
         public string bonusModu;
         public string aktifSenaryo;

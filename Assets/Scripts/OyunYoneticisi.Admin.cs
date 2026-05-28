@@ -535,8 +535,8 @@ public partial class OyunYoneticisi
         Debug.Log($"[ADMIN][PANEL] ArdisikKayipLimiti = {_ardisikKayipLimiti}");
     }
 
-    private Coroutine _yeniOyuncuKoroutin;
-    private int _yeniOyuncuOncekiEgilim = 65;
+    // FAZ35.76: _yeniOyuncuKoroutin + _yeniOyuncuOncekiEgilim field'ları SİLİNDİ
+    // (AdminSetYeniOyuncuModu + YeniOyuncuModuSureKontrol coroutine ile birlikte kaldırıldı).
 
     [HideInInspector] public int bonusOtomatikSpinPeriyodu = 0; // 0 = devre dışı
     public void AdminSetBonusOtomatikSpinPeriyodu(int oran)
@@ -598,36 +598,12 @@ public partial class OyunYoneticisi
         BaslatBonus();
     }
 
-    public void AdminSetYeniOyuncuModu(bool aktif)
-    {
-        if (aktif)
-        {
-            _yeniOyuncuModuAktif = true;
-            _yeniOyuncuBaslangicZamani = Time.time;
-            _yeniOyuncuOncekiEgilim = _odemeEgilimiYuzde;
-            AdminSetOdemeEgilimi(85);
-            AdminSetMaxOdeme(1000);
-            if (_yeniOyuncuKoroutin != null) StopCoroutine(_yeniOyuncuKoroutin);
-            _yeniOyuncuKoroutin = StartCoroutine(YeniOyuncuModuSureKontrol());
-            Debug.Log("[ADMIN][PANEL] Yeni oyuncu modu AKTİF — 30 dk cömert mod başladı.");
-        }
-        else
-        {
-            _yeniOyuncuModuAktif = false;
-            if (_yeniOyuncuKoroutin != null) { StopCoroutine(_yeniOyuncuKoroutin); _yeniOyuncuKoroutin = null; }
-            AdminSetOdemeEgilimi(_yeniOyuncuOncekiEgilim);
-            Debug.Log("[ADMIN][PANEL] Yeni oyuncu modu kapatıldı, önceki ayarlar geri yüklendi.");
-        }
-    }
-
-    private System.Collections.IEnumerator YeniOyuncuModuSureKontrol()
-    {
-        yield return new WaitForSeconds(1800f);
-        _yeniOyuncuModuAktif = false;
-        _yeniOyuncuKoroutin = null;
-        AdminSetOdemeEgilimi(_yeniOyuncuOncekiEgilim);
-        Debug.Log("[ADMIN] Yeni oyuncu modu 30 dakika doldu, otomatik sonlandı.");
-    }
+    // FAZ35.76: AdminSetYeniOyuncuModu + YeniOyuncuModuSureKontrol coroutine SİLİNDİ. Panel.html'de
+    // "Yeni oyuncu modu" toggle kaldırıldığı için bu metoda çağrı kalmadı. AdminSetOdemeEgilimi'ye
+    // dolaylı çağrılar (85 set + restore) bu metot içindeydi; metot silindiği için ilgili
+    // ödeme eğilimi geçişleri ortadan kalktı. 03 senaryolarının ödeme eğilimi yolu (PanelKopru.
+    // SenaryoUygula → AdminSetOdemeEgilimi(sabit) ve AnlaticiSeritKopru/SenaryoOtomatikAkis kendi
+    // parametreleriyle) etkilenmedi.
 
     public bool AdminBahisAyarla(int hedefBahis)
     {
