@@ -59,10 +59,12 @@ namespace KumarFarkindalik.Tutorial
             int[] grid = new int[30];
             for (int i = 0; i < 30; i++) grid[i] = -1;
 
-            // FAZ35.69: 8-li cluster havuzundan random pattern → ilk 7 hücre = 7 bitişik
-            // (cluster eşik 8 olduğundan 7 hücre TumbleAyarlari flood-fill'inde küme olarak patlamaz → ödeme 0).
-            var clusterPozlari = OlusturRastgeleClusterPozlari(8);
-            int hucreSayisi = Mathf.Min(7, clusterPozlari.Count);
+            // FAZ35.75: Doğrudan 7 dağınık hücre (önceki 8-li havuzdan ilk 7 = bitişik blok parçası yerine).
+            // 7 < MinClusterSize=8 → pay-anywhere sayım kontrolü 0 ödeme verir (near-miss tanımı korunur).
+            // 35.68 rotate gridSemboller[i]==hedefSembol ile dağınık 7 sembolü de bulup döndürür — pozisyondan
+            // bağımsız animasyon (keşif teyit etti).
+            var clusterPozlari = OlusturDaginikPozlari(7);
+            int hucreSayisi = clusterPozlari.Count;
             for (int i = 0; i < hucreSayisi; i++)
             {
                 var p = clusterPozlari[i];
@@ -121,8 +123,11 @@ namespace KumarFarkindalik.Tutorial
             int[] grid = new int[30];
             for (int i = 0; i < 30; i++) grid[i] = -1;
 
-            // PAKET 14-FAZ35.2: No-replace random pattern → T7 3 spin'i 3 farklı pozisyon.
-            var clusterPozlari = OlusturRastgeleClusterPozlari(8);
+            // PAKET 14-FAZ35.75: T7 3 spin'inin her biri için yeni DAĞINIK 8 hücre (bitişik blok yerine serpiştirilmiş).
+            // Spin içinde tumble adımları AYNI dağınık 8 hücreyi kullanır (ScriptedSpinUygulayici pipeline "patlama
+            // yeri = düşme yeri" varsayımı gereği; farklı pozisyon kullanmak paytable hesabını bozardı).
+            // Spinler arası farklı (her UretCokTumbleliKayit çağrısı yeni Fisher-Yates → 3 spin = 3 farklı dağınık).
+            var clusterPozlari = OlusturDaginikPozlari(8);
             foreach (var p in clusterPozlari) grid[p.y * 6 + p.x] = ilkClusterSembol;
 
             var dolguSayaclar = new int[8];
@@ -361,6 +366,29 @@ namespace KumarFarkindalik.Tutorial
             _patternHavuzu.Clear();
         }
 
+        /// <summary>FAZ35.75: 30 hücreden N tanesini RASTGELE DAĞINIK seç (bitişiklik YOK, Fisher-Yates partial shuffle).
+        /// Pay-anywhere mantığında ödeme sayım bazlı olduğu için dağınık 8/10/12 sembol de paytable_8_9/10_11/12+ ile öder.
+        /// Konvansiyon: idx = y*6+x → x = idx%6 (sütun 0-5), y = idx/6 (satır 0-4) — OlusturRastgeleClusterPozlari ile aynı.</summary>
+        public static List<Vector2Int> OlusturDaginikPozlari(int adet)
+        {
+            adet = Mathf.Clamp(adet, 0, 30);
+            var indices = new List<int>(30);
+            for (int i = 0; i < 30; i++) indices.Add(i);
+            // Fisher-Yates partial: ilk `adet` elemanı uniform shuffle (O(adet) seçim)
+            for (int i = 0; i < adet; i++)
+            {
+                int j = UnityEngine.Random.Range(i, 30);
+                int tmp = indices[i]; indices[i] = indices[j]; indices[j] = tmp;
+            }
+            var sonuc = new List<Vector2Int>(adet);
+            for (int i = 0; i < adet; i++)
+            {
+                int idx = indices[i];
+                sonuc.Add(new Vector2Int(idx % 6, idx / 6));
+            }
+            return sonuc;
+        }
+
         /// <summary>PAKET 14-FAZ34 İş 7/8/9: Jenerik kazanç kaydı — verilen sembol için 8/10/12-li cluster.
         /// tutorialOdemeHam çağıran tarafından paytable hesabıyla geçirilir (ham, çarpansız).</summary>
         public static ScriptedSpinKaydi UretCokAdetKazancKayit(int sembolId, int adet, long tutorialOdemeHam, List<Vector2Int> sabitPozisyonlar = null)
@@ -368,14 +396,16 @@ namespace KumarFarkindalik.Tutorial
             int[] grid = new int[30];
             for (int i = 0; i < 30; i++) grid[i] = -1;
 
-            // PAKET 14-FAZ35.2: No-replace random pattern çekim → her T3/T6/T6YO/T9 spininde farklı pozisyon.
-            // PAKET 14-FAZ35.73: sabitPozisyonlar verildiyse (Hook'a özel örtüşmeyen pattern'ler) onu kullan;
-            // null/uyuşmaz ise mevcut havuz çekimi (diğer modlar — Yontma/Tutma/Koruma/T6/T8/T9 — etkilenmez).
+            // PAKET 14-FAZ35.73: sabitPozisyonlar verildiyse (Hook'a özel) onu kullan; null/uyuşmaz ise dağınık üret.
+            // PAKET 14-FAZ35.75: null path artık OlusturRastgeleClusterPozlari (bitişik blok havuz) YERİNE
+            // OlusturDaginikPozlari (Fisher-Yates rastgele 8/10/12 hücre) çağırıyor — bitişik blok yerine
+            // ekrana SERPİŞTİRİLMİŞ dağınık sembol. Pay-anywhere mantığı sayı bazlı olduğu için ödeme korunur.
+            // Yontma/Tutma/Koruma/T8 NearMiss (sabitPozisyonlar=null çağrıları) otomatik dağınık olur.
             List<Vector2Int> clusterPozlari;
             if (sabitPozisyonlar != null && sabitPozisyonlar.Count == adet)
                 clusterPozlari = sabitPozisyonlar;
             else
-                clusterPozlari = OlusturRastgeleClusterPozlari(adet);
+                clusterPozlari = OlusturDaginikPozlari(adet);
             foreach (var p in clusterPozlari)
                 grid[p.y * 6 + p.x] = sembolId;
 
@@ -470,13 +500,18 @@ namespace KumarFarkindalik.Tutorial
                 new Vector2Int(1,2), new Vector2Int(2,2), new Vector2Int(3,2), new Vector2Int(4,2),
                 new Vector2Int(1,3), new Vector2Int(2,3), new Vector2Int(3,3), new Vector2Int(4,3),
             };
+            // FAZ35.75: 35.73 sabit bitişik pattern parametreleri KALDIRILDI (muzPoz/hindistanPoz/uzumPoz/elmaPoz/
+            // karpuzPoz tanımları yukarıda DURUYOR ama artık kullanılmıyor — ölü kod temizliği ayrı işte yapılacak).
+            // Çağrılar parametresiz → UretCokAdetKazancKayit null path'i OlusturDaginikPozlari ile dağınık üretir.
+            // Sonuç: 5 farklı sembol (35.72) + her biri DAĞINIK serpiştirilmiş pozisyon (35.75). 35.73'ün "5 farklı
+            // bölge" düzeni yerine tam rastgele dağıtım — kullanıcı isteği. Net +7000 ödeme korunur (pay-anywhere).
             return new List<ScriptedSpinKaydi>
             {
-                UretCokAdetKazancKayit(5, 10, 2000, muzPoz),       // Muz 10 — üst yatay şerit (col 0-4, row 0-1)
-                UretCokAdetKazancKayit(3, 12, 2500, hindistanPoz), // Hindistan 12 — alt yatay şerit (col 0-5, row 3-4); S1↔S2 örtüşme 0
-                UretCokAdetKazancKayit(7, 8,  1500, uzumPoz),      // Üzüm 8 — sağ dikey kenar (col 4-5, row 0-3)
-                UretCokAdetKazancKayit(6, 10, 3000, elmaPoz),      // Elma 10 — sol dikey kenar (col 0-1, row 0-4); S3↔S4 örtüşme 0
-                UretCokAdetKazancKayit(4, 12, 3000, karpuzPoz),    // Karpuz 12 — orta 4×3 blok (col 1-4, row 1-3)
+                UretCokAdetKazancKayit(5, 10, 2000),  // Muz 10 — dağınık
+                UretCokAdetKazancKayit(3, 12, 2500),  // Hindistan 12 — dağınık
+                UretCokAdetKazancKayit(7, 8,  1500),  // Üzüm 8 — dağınık
+                UretCokAdetKazancKayit(6, 10, 3000),  // Elma 10 — dağınık
+                UretCokAdetKazancKayit(4, 12, 3000),  // Karpuz 12 — dağınık
             };
         }
 
