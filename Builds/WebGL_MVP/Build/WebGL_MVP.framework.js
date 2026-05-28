@@ -9516,12 +9516,14 @@ function dbg(text) {
   
           // Sol kenar slim container — modal overlay YOK (koyu zemin yok, slot ekranı tıklanabilir kalır).
           // top:5vh + height:90vh → ekranın büyük çoğunluğunu kaplar (yukarıda/aşağıda küçük nefes).
-          // left:20px sabit → ekran sol kenarına yapışık.
+          // FAZ35.79: left:20px → 5px (sola yapışık), overflow:hidden eklendi → iframe içeriği container'ı şişiremez,
+          // panel boyutu sabit kalır, panel.html iç scroll mekaniği (.panel-content overflow-y:auto, body overflow-x:auto)
+          // 35.18/35.19'dan beri kurulu → içerik genişleyince panel.html kendi içinde scroll yapar.
           // width:520px → panel kartlarının okunabilir genişliği (98% modal yerine sabit slim).
           // background:transparent → arka karartma yok.
           var container = document.createElement('div');
           container.id = 'panelOverlay';
-          container.style.cssText = 'position:fixed;top:5vh;left:20px;width:520px;height:90vh;background:transparent;z-index:9998;';
+          container.style.cssText = 'position:fixed;top:5vh;left:5px;width:520px;height:90vh;background:transparent;z-index:9998;overflow:hidden;';
   
           var iframe = document.createElement('iframe');
           iframe.id = 'panelIframe';
