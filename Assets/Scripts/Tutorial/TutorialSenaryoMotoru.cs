@@ -22,7 +22,7 @@ namespace KumarFarkindalik.Tutorial
     [Preserve]
     public class TutorialSenaryoMotoru : MonoBehaviour
     {
-        public const int BUILD_INDEX = 2;
+        public const int BUILD_INDEX = 3; // FAZ35.77: Tutorial eski 04 idx 3.
         public static TutorialSenaryoMotoru Ornek { get; private set; }
 
         private struct SpinDesen

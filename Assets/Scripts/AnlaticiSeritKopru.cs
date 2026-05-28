@@ -266,7 +266,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
         AnlaticiOzelAkisAktif = false;
 
         string aktifSahne = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-        if (aktifSahne != "03_SenaryoluOyun")
+        if (aktifSahne != "02_SenaryoluOyun") // FAZ35.77: eski 03 → 02 rename.
         {
             Debug.Log("[AnlaticiSeritKopru] Aktif sahne " + aktifSahne + ", anlatici devre disi.");
             SenaryoEgitimiAktif = false;

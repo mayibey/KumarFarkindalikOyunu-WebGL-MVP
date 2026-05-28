@@ -16,7 +16,7 @@ namespace KumarFarkindalik.Tutorial
     [Preserve]
     public class TutorialBonusHUD : MonoBehaviour
     {
-        public const int TUTORIAL_SAHNE_BUILD_INDEX = 2;
+        public const int TUTORIAL_SAHNE_BUILD_INDEX = 3; // FAZ35.77: Tutorial eski 04 idx 3.
         public const int CANVAS_SORTING_ORDER = 1640;
 
         public static TutorialBonusHUD Ornek { get; private set; }

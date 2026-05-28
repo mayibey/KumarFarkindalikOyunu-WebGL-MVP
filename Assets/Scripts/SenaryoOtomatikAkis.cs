@@ -34,7 +34,7 @@ public class SenaryoOtomatikAkis : MonoBehaviour
             return;
         }
         string sahne = SceneManager.GetActiveScene().name;
-        if (sahne != "03_SenaryoluOyun") return;
+        if (sahne != "02_SenaryoluOyun") return; // FAZ35.77: eski 03 → 02 rename.
         var go = new GameObject("[OturumHUD]");
         DontDestroyOnLoad(go);
         go.AddComponent<SenaryoOtomatikAkis>();

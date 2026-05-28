@@ -289,7 +289,7 @@ namespace KumarFarkindalik.Tutorial
 #if UNITY_WEBGL && !UNITY_EDITOR
             AnlaticiPaneliKapat(); // defansif — 03 yeniden start'ta AnlaticiPaneliAc zaten remove yapar ama defansif
 #endif
-            SceneManager.LoadScene("03_SenaryoluOyun");
+            SceneManager.LoadScene("02_SenaryoluOyun"); // FAZ35.77: eski 03 → 02 rename (YENİDEN OYNA senaryolu sahneye dönüş).
         }
 
         private void OnHadiGorelimTiklandi()
@@ -304,7 +304,7 @@ namespace KumarFarkindalik.Tutorial
 #if UNITY_WEBGL && !UNITY_EDITOR
             AnlaticiPaneliKapat(); // 04'te AnlaticiSeritKopru pasif → iframe DOM'da kalır; yüklemeden önce kapat
 #endif
-            SceneManager.LoadScene("04_AdminOyunScene");
+            SceneManager.LoadScene("03_AdminOyunScene"); // FAZ35.77: HADİ GÖRELİM → yeni 03_AdminOyunScene (Tutorial'sız admin).
         }
 
         /// <summary>

@@ -124,7 +124,8 @@ public class PanelKopru : MonoBehaviour
                 // SenaryoUygula "normal" branch'i AdminNormalOyunUygula çağırıyor → kullanıcı T4 %100
                 // sliderından gelen carpanUretimOlasiligi=1.00 default 0.15'e EZİLİYORDU. Tutorial
                 // pattern motoru zaten ayrı yoldan (TutorialAdminEnjeksiyonu → PatternBaslat) tetikleniyor.
-                if (SceneManager.GetActiveScene().buildIndex == 2)
+                // FAZ35.77: Yeni 03_AdminOyunScene (Tutorial'sız) idx 2'ye girince eski 04 (Tutorial) idx 2→3.
+                if (SceneManager.GetActiveScene().buildIndex == 3)
                 {
                     Debug.Log($"[PanelKopru] Tutorial sahnesi → SenaryoUygula BYPASS (kullanıcı slider değerleri korunur). senaryo={deger}");
                     break;
@@ -176,9 +177,10 @@ public class PanelKopru : MonoBehaviour
                     // PAKET 14-FAZ26: Tutorial sahnesinde (build idx 3) bonusOtomatikSpinPeriyodu kullanıcı
                     // slider hareketinde değişmesin. T5 slider %100 → periyot=1 → otomatik bonus tetiği
                     // pattern motoru ile çakışıyor (4 scatter düşmeden bonus oyun açılıyor).
-                    if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex == 2)
+                    // FAZ35.77: Yeni 03_AdminOyunScene (Tutorial'sız) idx 2'ye girince eski 04 (Tutorial) idx 2→3.
+                    if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex == 3)
                     {
-                        Debug.Log($"[PanelKopru] Tutorial sahnesi (idx 2) — bonusOtomatikOran={oran} BYPASS (pattern motor yönetiyor)");
+                        Debug.Log($"[PanelKopru] Tutorial sahnesi (idx 3) — bonusOtomatikOran={oran} BYPASS (pattern motor yönetiyor)");
                         break;
                     }
                     bonusOtomatikSpinPeriyodu = oran;

@@ -5,7 +5,7 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Button))]
 public class OyunaBaslaButton : MonoBehaviour
 {
-    [SerializeField] private string hedefSahne = "03_SenaryoluOyun";
+    [SerializeField] private string hedefSahne = "02_SenaryoluOyun"; // FAZ35.77: eski 03 → 02 rename.
 
     void Awake()
     {

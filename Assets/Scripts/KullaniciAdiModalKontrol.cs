@@ -24,7 +24,7 @@ public class KullaniciAdiModalKontrol : MonoBehaviour
     [SerializeField] private RectTransform modalPanel;
 
     [Header("Geçiş")]
-    [SerializeField] private string hedefSahne = "03_SenaryoluOyun";
+    [SerializeField] private string hedefSahne = "02_SenaryoluOyun"; // FAZ35.77: eski 03 → 02 rename.
 
     [Header("Animasyon")]
     [SerializeField] private float fadeSuresi = 0.4f;

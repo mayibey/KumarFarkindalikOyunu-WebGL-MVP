@@ -28,7 +28,7 @@ namespace KumarFarkindalik.Tutorial
     [Preserve]
     public class TutorialOyunYoneticisi : MonoBehaviour
     {
-        public const int TUTORIAL_SAHNE_BUILD_INDEX = 2;
+        public const int TUTORIAL_SAHNE_BUILD_INDEX = 3; // FAZ35.77: yeni 03_AdminOyunScene (Tutorial'sız) idx 2'ye girince eski 04 (Tutorial) idx 2→3.
 
         public static TutorialOyunYoneticisi Ornek { get; private set; }
 
@@ -1331,8 +1331,10 @@ namespace KumarFarkindalik.Tutorial
                         TutorialSenaryoMotoru.Durdur();
                         TutorialScriptedYoneticisi.Ornek?.DeaktifEt();
                         TutorialNearMissAnimasyon.Ornek?.DurdurRotate();
+                        // FAZ35.77: Tutorial bittikten sonra "Kendin Oyna" → yeni 03_AdminOyunScene (Tutorial'sız serbest mod).
+                        // Eski 04'e reload Tutorial'ı yeniden başlatırdı — istenmez.
                         UnityEngine.SceneManagement.SceneManager.LoadScene(
-                            "04_AdminOyunScene",
+                            "03_AdminOyunScene",
                             UnityEngine.SceneManagement.LoadSceneMode.Single);
                     },
                     sagBtnCallback: () =>

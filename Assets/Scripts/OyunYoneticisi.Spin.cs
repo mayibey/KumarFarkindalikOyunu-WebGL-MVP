@@ -340,7 +340,8 @@ public partial class OyunYoneticisi
         // pattern motor (TutorialSenaryoMotoru) eski path çalışır (fallback). 03 sahnesinde (idx 1) bu branch
         // koşulu FALSE → ATLANIR, 03 davranışı %100 KORUNUR.
         // Faz 35.37: 02 silindi, idx kaydı (3 → 2).
-        if (SceneManager.GetActiveScene().buildIndex == 2
+        // FAZ35.77: Yeni 03_AdminOyunScene (Tutorial'sız) idx 2'ye girince eski 04 (Tutorial) idx 2→3.
+        if (SceneManager.GetActiveScene().buildIndex == 3
             && KumarFarkindalik.Tutorial.TutorialScriptedYoneticisi.Aktif
             && KumarFarkindalik.Tutorial.TutorialScriptedYoneticisi.Ornek != null)
         {

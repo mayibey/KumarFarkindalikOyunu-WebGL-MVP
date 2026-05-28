@@ -160,8 +160,9 @@ public partial class OyunYoneticisi
     }
     private static bool AdminOyunSahnesiMi()
     {
+        // FAZ35.77: Yeni 03_AdminOyunScene (Tutorial'sız) + eski 04_AdminOyunScene (Tutorial dahil) ikisi de admin sahnesi.
         string sn = SceneManager.GetActiveScene().name;
-        return sn == "04_AdminOyunScene";
+        return sn == "03_AdminOyunScene" || sn == "04_AdminOyunScene";
     }
     private void UstUsteDonguyuSpinSonucuIleIlerle(bool kazancGerceklesti)
     {

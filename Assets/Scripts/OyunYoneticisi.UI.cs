@@ -886,12 +886,14 @@ public partial class OyunYoneticisi
 
     private void YoneticiButonTiklandi()
     {
+        // FAZ35.77: Anlatıcı sahnesinden Yönetici butonu → yeni 03_AdminOyunScene (Tutorial'sız admin paneli).
+        // Eski 04_AdminOyunScene Tutorial sandbox olarak korunur, manuel açılır.
         AdminGirisDogrulama.Ac(() =>
         {
             if (GameManager.I != null)
-                GameManager.I.LoadScene("04_AdminOyunScene");
+                GameManager.I.LoadScene("03_AdminOyunScene");
             else
-                UnityEngine.SceneManagement.SceneManager.LoadScene("04_AdminOyunScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
+                UnityEngine.SceneManagement.SceneManager.LoadScene("03_AdminOyunScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
         });
     }
 
