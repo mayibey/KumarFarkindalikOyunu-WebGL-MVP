@@ -44,8 +44,8 @@ namespace KumarFarkindalik.Tutorial
         private static readonly Dictionary<string, SpinDesen[]> _patternlar = new()
         {
             // PAKET 14 — T3_HOOK: 5 spin — 2000/2500/2000/2500/3000 TL (toplam 12.000 TL).
-            // SENARYOLAR.hook.yeniOyuncu=false → AdminSetYeniOyuncuModu çağrılmaz → maxOdeme=1000
-            // limiti yok → "bol kazanç" pedagojisi: bahsin 2-3× üstü ödemeler kanca hissi yaratır.
+            // (Faz 35.74 PARÇA 1: T6YO yeniOyuncu mod yorumu kaldırıldı; mod silindi.)
+            // maxOdeme=1000 limiti yok → "bol kazanç" pedagojisi: bahsin 2-3× üstü ödemeler kanca hissi yaratır.
             // 5 spin → 12.000 kazanç vs 5.000 bahis = NET +7.000 TL.
             ["hook"] = new[]
             {
@@ -125,21 +125,8 @@ namespace KumarFarkindalik.Tutorial
             {
                 new SpinDesen { sembolId = 3, adet = 8 },   // 500 TL + çarpan yok (slider %0)
             },
-            // PAKET 14-FAZ7 — T6_YENI_OYUNCU TERS senaryo:
-            // 1.aşama (toggle AÇIK): yeniOyuncu_acik — 3 spin, 2 kazanç + 1 kayıp (NET kazanç, kanca pedagojisi)
-            // 2.aşama (toggle KAPALI): yeniOyuncu_kapali — 3 spin HEPSİ kayıp (gerçek RTP, sömürü ortaya çıkar)
-            ["yeniOyuncu_kapali"] = new[]
-            {
-                new SpinDesen { sembolId = -1, adet = 0 },   // Kayıp
-                new SpinDesen { sembolId = -1, adet = 0 },   // Kayıp
-                new SpinDesen { sembolId = -1, adet = 0 },   // Kayıp (hepsi → -3000 TL net)
-            },
-            ["yeniOyuncu_acik"] = new[]
-            {
-                new SpinDesen { sembolId = 3, adet = 12 },   // 2500 TL hindistan (x12+[3]=2.5)
-                new SpinDesen { sembolId = 5, adet = 12 },   // 2000 TL muz (farklı meyve, x12+[5]=2.0)
-                new SpinDesen { sembolId = -1, adet = 0 },   // Kayıp — 3.spin kayıp, net +2500 TL
-            },
+            // FAZ35.74 PARÇA 1: ["yeniOyuncu_kapali"] + ["yeniOyuncu_acik"] pattern dict girdileri SİLİNDİ
+            // (T6_YENI_OYUNCU modu kaldırıldı). PatternBaslat çağrıları aynı parçada (giriş bloğu + handler) silindi.
             // PAKET 14-FAZ2: T7 Ödeme aralığı artık DİNAMİK (DinamikOdemePatternBaslat ile paytable
             // taramasından üretilir). Eski sabit "odeme_dusukMaks" ve "odeme_aralik3_5" KALDIRILDI.
             // PAKET 6D — T10 (Kaçış): 3 kayıp + 1 kazanç (limit anında otomatik frenleme)
@@ -484,19 +471,13 @@ namespace KumarFarkindalik.Tutorial
             // FAZ35.70: Yeni scripted sistem (TutorialScriptedYoneticisi) aktifken eski motor cache'e dokunmaz.
             // İki paralel motor çatışması — scripted kazanç kaydı motor RNG kaydıyla eziliyordu (reflection
             // _oncedenHesaplananKayit override). Spin.cs:343 Tutorial branch fiilen erişilmez kalıyordu.
-            // T3 (hook/yontma/tutma/koruma) + T4 + T6YO + T7 bu çatışmadan etkileniyordu — guard hepsini düzeltir.
+            // T3 (hook/yontma/tutma/koruma) + T4 + T7 bu çatışmadan etkileniyordu — guard hepsini düzeltir.
+            // (Faz 35.74 PARÇA 1: T6YO listeden çıkarıldı; mod silindi.)
             if (TutorialScriptedYoneticisi.Aktif) return;
 
             if (!_motorAktif)
             {
-                // PAKET 6C2-EXT: T6YO aktifken motor pasifse cache bypass uyarısı (saniyede 1).
-                // Beklenen davranış: T6YO branch'i PatternBaslat("yeniOyuncu_kapali") çağırmış olmalı.
-                if (Time.frameCount % 60 == 0)
-                {
-                    var ayDbg = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
-                    if (ayDbg != null && ayDbg.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T6_YENI_OYUNCU)
-                        Debug.LogWarning($"[TutorialSenaryoMotoru] T6YO AKTİF ama motor PASİF — pattern enjekte edilmiyor (_aktifPattern='{_aktifPattern}', _spinIdx={_spinIdx}). Bakiye RNG akışıyla artıyor olabilir.");
-                }
+                // FAZ35.74 PARÇA 1: T6YO debug uyarısı SİLİNDİ (T6_YENI_OYUNCU modu kaldırıldı).
                 return;
             }
             if (_kayitField == null || _hazirField == null) return;

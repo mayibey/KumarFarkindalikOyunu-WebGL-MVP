@@ -15,8 +15,10 @@ namespace KumarFarkindalik.Tutorial
             T1, T2,
             T3_HOOK, T3_YONTMA, T3_TUTMA, T3_KORUMA,  // PAKET 8: T3_NORMAL kaldırıldı (4 senaryo)
             T4, T5,
-            T6_YENI_OYUNCU,
-            T6, T7, T8, T9, T10, T11,
+            // FAZ35.74 PARÇA 2: T6_YENI_OYUNCU + T6 enum girdileri SİLİNDİ (Yeni Oyuncu ve 5'de Kaç modları
+            // Taze Kan/Kaçış Engelleme ile aynı işi yapıyordu, gereksiz). Enum integer auto-shift: T5'ten
+            // sonra T7=8 olur, IleriTiklandi:66 (int)+1 sıralı geçişte T5 → T7 direkt geçer (boşluk yok).
+            T7, T8, T9, T10, T11,
             T_SON
         }
 
@@ -265,49 +267,8 @@ namespace KumarFarkindalik.Tutorial
                 degisimAnahtarlari = new[] { "bonusYuzde" },
             };
 
-            _adimlar[TutorialAdimId.T6_YENI_OYUNCU] = new AdimVerisi
-            {
-                id = TutorialAdimId.T6_YENI_OYUNCU,
-                aktifMi = true,
-                mesajBaslangic = T6YO_BASLANGIC,
-                mesajAksiyon = T6YO_AKSIYON,
-                mesajKapanis = T6YO_KAPANIS,
-                altBaslik = "YENİ OYUNCU MODU",
-                // PAKET 14-FAZ34.3 BUG G: 2 aşamalı (toggle aç / toggle kapat) — altSayac dinamik.
-                altSayac = "1/2",
-                // PAKET 14-FAZ8: T6YO TEMİZ — 1.aşama kullanıcı AÇAR (kazanç), ara modal sonrası KAPATIR (kayıp).
-                // yapilacaklar 2 madde — TutorialT6YeniOyuncuModalKontrol içinde 1.madde dinamik mutate edilir
-                // (ara modal sonrası "kapat"'a geçer).
-                yapilacaklar = new[] { "Yeni Oyuncu Modu'nu aç", "6 spin at" },
-                sira = 6,
-                vurguSelectorlari = new[] { "#yeniOyuncuToggle" },
-                gerekliSpin = 6,
-                parametreKosulu = () => TutorialOyunYoneticisi.T6AraModalGosterildi
-                    ? !PanelKopru.yeniOyuncuModu       // 2.aşama: toggle KAPATILMALI
-                    : PanelKopru.yeniOyuncuModu,       // 1.aşama: toggle AÇILMALI (giriş kapalı, kullanıcı açacak)
-                // PAKET 14-FAZ34.5 BUG H: degisimAnahtarlari ekle → UygulamaOnaylandi guard aktive olur.
-                // Önceki: null → toggle aç anında SpinKilitli=false (Uygula bypass). Yeni: toggle aç → Uygula gerek.
-                degisimAnahtarlari = new[] { "yeniOyuncu" },
-            };
-
-            _adimlar[TutorialAdimId.T6] = new AdimVerisi
-            {
-                id = TutorialAdimId.T6,
-                aktifMi = true,
-                mesajBaslangic = T6_BASLANGIC,
-                mesajAksiyon = T6_AKSIYON,
-                mesajKapanis = T6_KAPANIS,
-                altBaslik = "5'DE KAÇ KAZANÇ?",
-                // PAKET 6C3: 5'lik N mantığı — slider değeri/2 = 5'de N kazanç
-                yapilacaklar = new[] { "Kazandırma sıklığı slider'ını ayarla", "Uygula bas", "5 spin at" },
-                sira = 7,
-                vurguSelectorlari = new[] { "#kazanmaOrani" },
-                gerekliSpin = 5,
-                // PAKET 14-FAZ35.7: Slider KESIN 3'e ayarlanmalı (talimat metni "3'e ayarla").
-                // Eski `> 0` lambda kullanıcı 1/2/4/5'te de kabul ediyordu → pedagojik mesaj bozuk.
-                parametreKosulu = () => Mathf.Abs(PanelKopru.kazanmaOrani - 3f) < 0.01f,
-                degisimAnahtarlari = new[] { "kazanmaOrani" },
-            };
+            // FAZ35.74 PARÇA 2: _adimlar[T6_YENI_OYUNCU] (Yeni Oyuncu Modu) + _adimlar[T6] (5'de Kaç Kazandıralım)
+            // SİLİNDİ. Tutorial 11 → 9 ana adım. T5 sonrası T7 direkt gelir (enum auto-shift).
 
             _adimlar[TutorialAdimId.T7] = new AdimVerisi
             {
@@ -321,7 +282,7 @@ namespace KumarFarkindalik.Tutorial
                 // Eski 2 aşamalı (gerekliSpin=6) tasarım kaldırıldı — paytable_8_9 max 1.5 olduğu için
                 // 3-5x bandı eşleşmiyordu + ilk 3 spin 0 kazanç regression vardı.
                 yapilacaklar = new[] { "Min=3, Maks=5 ayarla (varsayılan)", "Uygula bas", "3 spin at" },
-                sira = 8,
+                sira = 6, // FAZ35.74: T6YO+T6 silindi, sira 8 → 6
                 vurguSelectorlari = new[] { "#minCarpan", "#maksCarpan" },
                 gerekliSpin = 3,
                 // PAKET 14-FAZ35.7: Min=3 ve Maks=5 KESIN değer kontrolü (talimat "Min=3, Maks=5 ayarla").
@@ -341,7 +302,7 @@ namespace KumarFarkindalik.Tutorial
                 altBaslik = "NEREDEYSE OLUYORDU",
                 // PAKET 14-FAZ35.69: T8 yeniden tasarımı — slider yerine AÇ/KAPA toggle, 2 spin (Karpuz + Erik).
                 yapilacaklar = new[] { "Yakın Kaçırma'yı aç", "Uygula bas", "2 spin at" },
-                sira = 9,
+                sira = 7, // FAZ35.74: sira 9 → 7
                 vurguSelectorlari = new[] { "#yakinKacirma" },
                 gerekliSpin = 2,
                 // FAZ35.69: Toggle/değer açık (>0.5) → near-miss aktif → SPIN açılır. Kapalı (0) → parametreKosulu
@@ -360,7 +321,7 @@ namespace KumarFarkindalik.Tutorial
                 altBaslik = "ÇIKMA ANINDA YAKALAMA",
                 // PAKET 6D: 3 kayıp + 1 kazanç (limit'e ulaşıldığında otomatik frenleme)
                 yapilacaklar = new[] { "Kaçış limiti kutusuna 3 yaz", "Uygula bas", "4 spin at" },
-                sira = 10,
+                sira = 8, // FAZ35.74: sira 10 → 8
                 vurguSelectorlari = new[] { "#ardisikKayip" },
                 gerekliSpin = 4,
                 // PAKET 14-FAZ35.7: Kaçış limiti KESIN 3 (talimat "3 yaz"). Eski 1-4 aralığı pedagojik
@@ -383,7 +344,7 @@ namespace KumarFarkindalik.Tutorial
                 // PAKET 6D: 2-aşamalı — Aşama 1 (toggle KAPALI + ×500 = ödeme yok), ara modal,
                 // Aşama 2 (toggle AÇIK + ×500 = mega kazanç)
                 yapilacaklar = new[] { "×500 butonuna bas (toggle KAPALI)", "'Çarpan Ödeme' toggle aç", "×500 tekrar bas" },
-                sira = 11,
+                sira = 9, // FAZ35.74: sira 11 → 9
                 vurguSelectorlari = new[] { "#carpanOdemeToggle", "#carpanZorla500" },
                 gerekliSpin = 2,
                 parametreKosulu = () => TutorialAdminEnjeksiyonu.SonCarpanZorla == 500,
@@ -399,7 +360,7 @@ namespace KumarFarkindalik.Tutorial
                 mesajKapanis = T11_KAPANIS,
                 altBaslik = "BONUS TETİKLE",
                 yapilacaklar = new[] { "Bonus Tetikle butonuna bas" },
-                sira = 12,
+                sira = 10, // FAZ35.74: sira 12 → 10 (son ana adım)
                 vurguSelectorlari = new[] { "#bonusTetikleBtn" },
                 gerekliSpin = 0,
                 parametreKosulu = () => TutorialAdminEnjeksiyonu.BonusTetiklendi,
@@ -416,12 +377,13 @@ namespace KumarFarkindalik.Tutorial
                 mesajBaslangic = "",
                 altBaslik = "TAMAMLANDI",
                 yapilacaklar = null,
-                sira = 12,
+                sira = 10, // FAZ35.74: T11 ile aynı (son adım göstergesi "ADIM 10/10")
                 gerekliSpin = 0,
             };
 
             // PAKET 14-FAZ34.6 İş 1: Tüm adımlara kategori bilgisi ata.
-            // Yan panel kategorileri: OLASILIK AYARLARI (4) / MANİPÜLASYON (7) / ANLIK MÜDAHALE (2) / BİTİŞ.
+            // Yan panel kategorileri: OLASILIK AYARLARI (4) / MANİPÜLASYON (5) / ANLIK MÜDAHALE (2) / BİTİŞ.
+            // (FAZ35.74: MANİPÜLASYON 7 → 5; T6_YENI_OYUNCU + T6 silindi.)
             KategoriBilgileriDoldur();
         }
 
@@ -434,13 +396,12 @@ namespace KumarFarkindalik.Tutorial
             Kategori(TutorialAdimId.T3_TUTMA,   1, "OLASILIK AYARLARI", 3, 4);
             Kategori(TutorialAdimId.T3_KORUMA,  1, "OLASILIK AYARLARI", 4, 4);
 
-            Kategori(TutorialAdimId.T4,                2, "MANİPÜLASYON", 1, 7);
-            Kategori(TutorialAdimId.T5,                2, "MANİPÜLASYON", 2, 7);
-            Kategori(TutorialAdimId.T6_YENI_OYUNCU,    2, "MANİPÜLASYON", 3, 7);
-            Kategori(TutorialAdimId.T6,                2, "MANİPÜLASYON", 4, 7);
-            Kategori(TutorialAdimId.T7,                2, "MANİPÜLASYON", 5, 7);
-            Kategori(TutorialAdimId.T8,                2, "MANİPÜLASYON", 6, 7);
-            Kategori(TutorialAdimId.T9,                2, "MANİPÜLASYON", 7, 7);
+            // FAZ35.74 PARÇA 2: T6_YENI_OYUNCU + T6 silindiği için MANİPÜLASYON 7 → 5 alt-adım.
+            Kategori(TutorialAdimId.T4,                2, "MANİPÜLASYON", 1, 5);
+            Kategori(TutorialAdimId.T5,                2, "MANİPÜLASYON", 2, 5);
+            Kategori(TutorialAdimId.T7,                2, "MANİPÜLASYON", 3, 5);
+            Kategori(TutorialAdimId.T8,                2, "MANİPÜLASYON", 4, 5);
+            Kategori(TutorialAdimId.T9,                2, "MANİPÜLASYON", 5, 5);
 
             Kategori(TutorialAdimId.T10, 3, "ANLIK MÜDAHALE", 1, 2);
             Kategori(TutorialAdimId.T11, 3, "ANLIK MÜDAHALE", 2, 2);
@@ -545,27 +506,8 @@ namespace KumarFarkindalik.Tutorial
         private const string T5_KAPANIS =
             "%100 ayarında bonus garanti açıldı. %0 ayarında ise hiç açılmadı. Kumar siteleri bu çarpan ayarlarını oyuncudan gizler.";
 
-        // PAKET 14-FAZ8 — T6_YENI_OYUNCU: kullanıcı toggle AÇAR (bol kazanç) → ara modal → KAPATIR (kayıp)
-        private const string T6YO_BASLANGIC =
-            "Şimdi kumar sitelerinin gizli silahını göreceğiz: Yeni oyuncu modu. " +
-            "Bu ayar açıkken sistem, oyuncuyu yeni gelen olarak algılar ve ona özel bir strateji uygular: bol kazandırma, yumuşak kayıplar.";
-        private const string T6YO_AKSIYON =
-            "Manipülasyon ayarlarında \"Yeni Oyuncu Modu\" özelliğini aç ve 3 spin at (sistem oyuncuya kazandıracak). " +
-            "Sonra özelliği kapat ve 3 spin daha at. Aradaki fark netleşecek.";
-        public const string T6YO_ARA_MODAL =
-            "<color=#FFD933>3 spin</color> attık (toggle açık). Sonuç: <color=#4DCC59>BOL KAZANÇ</color> — sistem oyuncuyu çekiyor.\n\n" +
-            "Şimdi <color=#5BA0FF>Manipülasyon Ayarları</color>'nda <color=#5BA0FF>'Yeni Oyuncu Modu'</color> toggle'ını <color=#F24D40>KAPAT</color>. " +
-            "Ardından <color=#FFD933>3 spin</color> daha at. <color=#F24D40>Gerçek ortaya çıkacak</color>.";
-        private const string T6YO_KAPANIS =
-            "Gördüğümüz üzere aynı slot, aynı bahis. Yeni oyuncu modu özelliği açık halde tutunca bol kazanç; özelliği kapatınca net kayıp.";
-
-        // PAKET 6C3: T6 (Kazandırma) — 5'lik N mantığı, dinamik pattern motor
-        private const string T6_BASLANGIC =
-            "Şimdi \"Kazandırma Sıklığı'na\" bakalım. Bu ayar, 5 spinin kaçında kullanıcıya kazanç verileceğini belirler.";
-        private const string T6_AKSIYON =
-            "Slider'ı kaydır. Slider değeri = 5'te kaç kazanç. Örneğin slider 3 → 5'te 3 kazanç. Uygula bas, 5 spin at.";
-        private const string T6_KAPANIS =
-            "Mod ayarı 5'ten seçilen sayı değeri kadar ayarlanıp kazanç sağlandı. Kalanı ise kumar siteleri tarafından kaybettirilmiştir.";
+        // FAZ35.74 PARÇA 2: T6YO_BASLANGIC/AKSIYON/ARA_MODAL/KAPANIS + T6_BASLANGIC/AKSIYON/KAPANIS const'ları
+        // SİLİNDİ (T6_YENI_OYUNCU ve T6 adımları kaldırıldı).
 
         // PAKET 6D: T7 (Ödeme Aralığı) — 2-aşamalı maks 3x vs min 3-maks 5x karşılaştırma
         private const string T7_BASLANGIC =

@@ -207,54 +207,11 @@ namespace KumarFarkindalik.Tutorial
                     UygulamaOnaylandi = true;
                     Debug.Log("[Tutorial] UygulamaOnaylandi=true (Uygula butonu basıldı).");
                     break;
-                case "yeniOyuncu":
-                    // PAKET 14-FAZ8: T6YO ÇİFT YÖN TETİK
-                    //   AÇMA  → 1.aşama (yeniOyuncu_acik, 3 spin: 2 kazanç + 1 kayıp)
-                    //   KAPATMA → 2.aşama (yeniOyuncu_kapali, 3 spin: hepsi kayıp) — ara modal sonrası
-                    {
-                        bool yeniDeger = value == "True" || value == "true";
-                        var ayY = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
-                        if (ayY != null && ayY.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T6_YENI_OYUNCU)
-                        {
-                            if (yeniDeger
-                                && !TutorialOyunYoneticisi.T6AraModalGosterildi
-                                && !TutorialOyunYoneticisi.T6IlkAsamaPatternBasladi)
-                            {
-                                TutorialOyunYoneticisi.T6IlkAsamaPatternBasladi = true;
-                                // PAKET 14-FAZ34 İş 8: ScriptedSpinUygulayici altyapısı T6YO açık için.
-                                TutorialScriptedYoneticisi.Ornek?.AsamaSetYeniOyuncuAcik();
-                                TutorialSenaryoMotoru.PatternBaslat("yeniOyuncu_acik");
-                                Debug.Log("[Tutorial T6YO] Toggle AÇILDI → 1.aşama pattern başladı (yeniOyuncu_acik)");
-                            }
-                            else if (!yeniDeger
-                                     && TutorialOyunYoneticisi.T6AraModalGosterildi
-                                     && !TutorialOyunYoneticisi.T6IkinciAsamaBasladi)
-                            {
-                                TutorialOyunYoneticisi.T6IkinciAsamaBasladi = true;
-                                // PAKET 14-FAZ34 İş 8: ScriptedSpinUygulayici altyapısı T6YO kapalı için.
-                                TutorialScriptedYoneticisi.Ornek?.AsamaSetYeniOyuncuKapali();
-                                TutorialSenaryoMotoru.PatternBaslat("yeniOyuncu_kapali");
-                                // PAKET 14-FAZ34.3 BUG G: Alt sayaç "1/2" → "2/2"
-                                TutorialOyunYoneticisi.Ornek?.AdimYoneticisi?.AltSayacGuncelle("2/2");
-                                Debug.Log("[Tutorial T6YO] Toggle KAPATILDI → 2.aşama pattern başladı (yeniOyuncu_kapali)");
-                            }
-                        }
-                    }
-                    break;
-                case "kazanmaOrani":
-                    // PAKET 6C3 + UI-5LIK: T7 (Kazandırma) — slider 0-5 doğrudan N (artık scale yok)
-                    {
-                        var ayK = TutorialOyunYoneticisi.Ornek?.AdimYoneticisi;
-                        if (ayK != null && ayK.mevcutAdim == TutorialAdimYoneticisi.TutorialAdimId.T6
-                            && int.TryParse(value, out int kazSliderVal))
-                        {
-                            int n = Mathf.Clamp(kazSliderVal, 0, 5);
-                            // PAKET 14-FAZ35.0: Scripted havuz (5 kazanç + 5 kayıp). Eski DinamikPatternBaslat
-                            // ("kazandirma") paralel çağrısı kaldırıldı — scripted aktifken motor bypass'lanıyor.
-                            TutorialScriptedYoneticisi.Ornek?.AsamaSetKazanmaSikligi(n);
-                        }
-                    }
-                    break;
+                // FAZ35.74 PARÇA 1: case "yeniOyuncu" (T6_YENI_OYUNCU handler) + case "kazanmaOrani" (T6 handler) SİLİNDİ.
+                // İki Tutorial modu kaldırılıyor; panel.html toggle/slider 03 senaryo presetleri için KORUNDU
+                // ama Tutorial branch'leri burada idi → tamamen çıkarıldı. 03 admin: PanelKopru.cs:165-180 case
+                // "yeniOyuncu" 03 admin path'i + PanelKopru.cs:136-138 case "kazanmaOrani" (AdminSetOdemeEgilimi)
+                // KORUNDU — bu Tutorial handler'larından bağımsız.
                 case "yakinKacirma":
                     // PAKET 14-FAZ35.69: T8 yeniden tasarımı — AÇ/KAPA toggle (PARÇA 4) veya slider değeri
                     // (geçiş döneminde). value >0.5 → toggle AÇIK → AsamaSetNearMiss2Spin (Karpuz+Erik) yükle

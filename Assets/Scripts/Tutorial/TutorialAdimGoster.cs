@@ -43,7 +43,7 @@ namespace KumarFarkindalik.Tutorial
         private static readonly Color SEG_KAYIP  = new Color(1f, 0.333f, 0.333f, 1f);      // #FF5555
         private static readonly Color SEG_NOTR   = new Color(0.376f, 0.647f, 0.980f, 1f);  // #60A5FA
 
-        private const int TOPLAM_ADIM = 12; // PAKET 6C2: T6_YENI_OYUNCU eklendi (11 → 12)
+        private const int TOPLAM_ADIM = 10; // FAZ35.74: T6_YENI_OYUNCU + T6 silindi (12 → 10 ana adım). "ADIM x/10"
         private const float PULSE_PERIYOT = 2.5f;
         private const float PULSE_OLCEK = 1.012f;
 

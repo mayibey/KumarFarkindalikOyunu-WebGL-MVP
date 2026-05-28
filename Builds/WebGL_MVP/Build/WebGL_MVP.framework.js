@@ -9555,83 +9555,6 @@ function dbg(text) {
           }, 100);
       }
 
-  function _ToggleAc(idPtr) {
-          var iframe = document.getElementById('panelIframe');
-          if (!iframe) { console.warn('[Tutorial] ToggleAc: panelIframe yok'); return; }
-          var id = UTF8ToString(idPtr);
-          var deneme = 0;
-          var uygula = function() {
-              try {
-                  var doc = iframe.contentDocument;
-                  var win = iframe.contentWindow;
-                  if (!doc || !win) return false;
-                  var el = doc.getElementById(id);
-                  if (!el) return false;
-                  el.classList.add('active');
-                  var labelId = id.replace('Toggle', 'Label');
-                  var lbl = doc.getElementById(labelId);
-                  if (lbl) lbl.textContent = 'Aktif';
-                  if (win.unityeGonder) {
-                      var key = id.replace('Toggle', '');
-                      win.unityeGonder(key, true);
-                  }
-                  console.log('[Tutorial] ToggleAc (force):', id, '→ class eklendi, label=Aktif, Unity true');
-                  return true;
-              } catch (e) {
-                  console.warn('[Tutorial] ToggleAc hata:', e);
-                  return false;
-              }
-          };
-          if (!uygula()) {
-              var poll = setInterval(function() {
-                  if (deneme++ > 10 || uygula()) clearInterval(poll);
-              }, 100);
-          }
-      }
-
-  function _ToggleKapat(idPtr) {
-          var iframe = document.getElementById('panelIframe');
-          if (!iframe) { console.warn('[Tutorial] ToggleKapat: panelIframe yok'); return; }
-          var id = UTF8ToString(idPtr);
-          var deneme = 0;
-          var uygula = function() {
-              try {
-                  var doc = iframe.contentDocument;
-                  var win = iframe.contentWindow;
-                  if (!doc || !win) return false;
-                  var el = doc.getElementById(id);
-                  if (!el) return false;
-  
-                  // 1. Direkt class kaldır (toggleDegisti'yi tetiklemeden — yarış riski sıfır)
-                  el.classList.remove('active');
-  
-                  // 2. Label senkron ("Aktif" → "Kapalı")
-                  var labelId = id.replace('Toggle', 'Label');
-                  var lbl = doc.getElementById(labelId);
-                  if (lbl) lbl.textContent = 'Kapalı';
-  
-                  // 3. Unity'ye direkt false bildir (PanelKopru.yeniOyuncuModu set + OyunYoneticisi davranış kapanır)
-                  if (win.unityeGonder) {
-                      var key = id.replace('Toggle', '');
-                      win.unityeGonder(key, false);
-                  }
-  
-                  console.log('[Tutorial] ToggleKapat (force):', id, '→ class kaldırıldı, label=Kapalı, Unity false');
-                  return true;
-              } catch (e) {
-                  console.warn('[Tutorial] ToggleKapat hata:', e);
-                  return false;
-              }
-          };
-  
-          if (!uygula()) {
-              // Retry: iframe henüz yüklenmemiş olabilir, 100ms aralık 10 deneme
-              var poll = setInterval(function() {
-                  if (deneme++ > 10 || uygula()) clearInterval(poll);
-              }, 100);
-          }
-      }
-
   function _TumVurgulariKapat() {
           var iframe = document.getElementById('panelIframe');
           if (!iframe) return;
@@ -18580,8 +18503,6 @@ var wasmImports = {
   "PaneliAc": _PaneliAc,
   "PaneliKapat": _PaneliKapat,
   "PaneliSolaAl": _PaneliSolaAl,
-  "ToggleAc": _ToggleAc,
-  "ToggleKapat": _ToggleKapat,
   "TumVurgulariKapat": _TumVurgulariKapat,
   "TutorialPanelKilitGonderJslib": _TutorialPanelKilitGonderJslib,
   "TutorialPaneliKapat": _TutorialPaneliKapat,
@@ -19291,11 +19212,11 @@ var dynCall_jijii = Module["dynCall_jijii"] = createExportWrapper("dynCall_jijii
 /** @type {function(...*):?} */
 var dynCall_viiiifii = Module["dynCall_viiiifii"] = createExportWrapper("dynCall_viiiifii");
 /** @type {function(...*):?} */
-var dynCall_fi = Module["dynCall_fi"] = createExportWrapper("dynCall_fi");
-/** @type {function(...*):?} */
 var dynCall_viiiffi = Module["dynCall_viiiffi"] = createExportWrapper("dynCall_viiiffi");
 /** @type {function(...*):?} */
 var dynCall_iiiiiiiiiii = Module["dynCall_iiiiiiiiiii"] = createExportWrapper("dynCall_iiiiiiiiiii");
+/** @type {function(...*):?} */
+var dynCall_fi = Module["dynCall_fi"] = createExportWrapper("dynCall_fi");
 /** @type {function(...*):?} */
 var dynCall_iifffi = Module["dynCall_iifffi"] = createExportWrapper("dynCall_iifffi");
 /** @type {function(...*):?} */

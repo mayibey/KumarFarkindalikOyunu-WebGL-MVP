@@ -55,8 +55,8 @@ namespace KumarFarkindalik.Tutorial
         [DllImport("__Internal")] private static extern void PaneliSolaAl();
         [DllImport("__Internal")] private static extern void DropdownTooltipEkle();
         [DllImport("__Internal")] private static extern void DropdownAutoRevertEkle(); // PAKET 5: Uygula basmadan kaçınca revert
-        [DllImport("__Internal")] private static extern void ToggleKapat(string id); // HOTFIX T6YO: yeniOyuncuToggle force kapat
-        [DllImport("__Internal")] private static extern void ToggleAc(string id);    // PAKET 14-FAZ7: T6YO ters — toggle force aç
+        // FAZ35.74 PARÇA 1: ToggleKapat/ToggleAc DllImport'ları SİLİNDİ — T6YO modu kaldırıldı, tek kullanım yeri
+        // (T6YO giriş bloğunda yeniOyuncuToggle force kapat) artık yok. ToggleAc hiç çağrılmıyordu (extern ölü).
         [DllImport("__Internal")] private static extern void VurguAc(string selector);
         [DllImport("__Internal")] private static extern void VurguKapat(string selector);
         [DllImport("__Internal")] private static extern void TumVurgulariKapat();
@@ -110,13 +110,8 @@ namespace KumarFarkindalik.Tutorial
         public static bool T5AraModalGosterildi { get; set; }
         public static bool T5IkinciAsamaBasladi { get; set; }
 
-        // PAKET 6C2: T6_YENI_OYUNCU 2-aşamalı akış state (TutorialAdminEnjeksiyonu okur)
-        public static bool T6AraModalGosterildi { get; set; }
-        public static bool T6IkinciAsamaBasladi { get; set; }
-
-        // PAKET 14-FAZ8: T6YO — kullanıcı toggle AÇTIĞINDA 1.aşama tek seferlik tetiklensin
-        // (her açma-kapama döngüsünde tekrar pattern yenilemesin).
-        public static bool T6IlkAsamaPatternBasladi { get; set; }
+        // FAZ35.74 PARÇA 2: T6AraModalGosterildi + T6IkinciAsamaBasladi + T6IlkAsamaPatternBasladi field
+        // tanımları SİLİNDİ — T6_YENI_OYUNCU modu kaldırıldı, kalan kullanıcısı yoktu.
 
         // PAKET 14-FAZ14: Aktif adımın spin net listesi (03'teki ilerleme çubuğu pattern'i).
         // Her spin sonu net (bakiye farkı) eklenir, adım değişiminde temizlenir.
@@ -253,10 +248,9 @@ namespace KumarFarkindalik.Tutorial
             // Property private setter olduğu için reflection ile reset.
             ScriptedModalKopruModalAcikReset();
 
-            // PAKET 14-FAZ8: T6YO 2-aşama bayrakları önceki oturumdan kalıntı reset
-            T6AraModalGosterildi = false;
-            T6IkinciAsamaBasladi = false;
-            T6IlkAsamaPatternBasladi = false;
+            // FAZ35.74 PARÇA 1: T6YO 2-aşama bayrak reset bloğu SİLİNDİ (T6_YENI_OYUNCU modu kaldırıldı).
+            // Field tanımları (sat 114-119) PARÇA 2'de adım tanımı + lambda ile birlikte silinecek
+            // — lambda hâlâ TutorialAdimYoneticisi.cs:285'te okunuyor (T6YO adım tanımı).
 
             AdimYoneticisi = gameObject.AddComponent<TutorialAdimYoneticisi>();
             Enjeksiyon = gameObject.AddComponent<TutorialAdminEnjeksiyonu>();
@@ -643,8 +637,7 @@ namespace KumarFarkindalik.Tutorial
             // AdimGoster'ı gizle (modal süresince görünmesin, modal sonra göster)
             TutorialAdimGoster.Ornek?.Gizle();
 
-            // PAKET 14-FAZ8: T6YO 1.aşama tetik bayrağı — yeni adıma geçişte reset (kalıntı önlemi).
-            T6IlkAsamaPatternBasladi = false;
+            // FAZ35.74 PARÇA 1: T6YO 1.aşama tetik bayrağı reset SİLİNDİ (T6_YENI_OYUNCU modu kaldırıldı).
             // PAKET 14-FAZ18: Uygula onayı her adım başında reset — yeni adımda Uygula tekrar gerekli.
             TutorialAdminEnjeksiyonu.UygulamaOnaylandi = false;
 
@@ -733,64 +726,10 @@ namespace KumarFarkindalik.Tutorial
                 TutorialScriptedYoneticisi.Ornek?.AsamaSet("bonusTest_100");
                 TutorialSenaryoMotoru.PatternBaslat("bonusTest_100");
             }
-            else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T6_YENI_OYUNCU)
-            {
-                T6AraModalGosterildi = false;
-                T6IkinciAsamaBasladi = false;
-                // PAKET 14 (İş 4): T5'te cache'lenen kayıp ses klibini restore — T6YO ve sonrası
-                // normal kayıp horn'u çalışsın.
-                if (_spinSonucKayipClipCachelendi)
-                {
-                    var oyT6Sound = Object.FindObjectOfType<OyunYoneticisi>();
-                    if (oyT6Sound != null)
-                    {
-                        oyT6Sound.spinSonucKayipClip = _orijinalSpinSonucKayipClip;
-                        // PAKET 14-FAZ3 (İş 2): BonusUIServisi'nin de restore et.
-                        BonusUIServisiKayipClipAyarla(oyT6Sound, _orijinalSpinSonucKayipClip);
-                    }
-                    _spinSonucKayipClipCachelendi = false;
-                    Debug.Log("[Tutorial T6YO] spinSonucKayipClip restore edildi (OyunYoneticisi + BonusUIServisi).");
-                }
-                // PAKET 14-FAZ8: T6YO TEMİZ AKIŞ — toggle KAPALI başla, kullanıcı AÇINCA 1.aşama
-                // pattern (yeniOyuncu_acik, 2 kazanç + 1 kayıp), ara modal sonrası kullanıcı KAPATINCA
-                // 2.aşama pattern (yeniOyuncu_kapali, 3 kayıp). Kilit yok — kullanıcı serbestçe yönetir.
-                T6IlkAsamaPatternBasladi = false;
-                PanelKopru.yeniOyuncuModu = false;
-                var oyT6 = Object.FindObjectOfType<OyunYoneticisi>();
-                // PAKET 14-FAZ13: maxOdeme=99999 set'i Tutorial başına (PanelAcildiSonrasi) taşındı.
-                // T6YO branch'inde duplicate yapmaya gerek yok — tüm Tutorial boyunca 99999 etkili.
-                // PAKET 14-FAZ15: T6YO'da çarpan kapat — T4'ten kalan carpanUretimiAktif=true ise pattern
-                // 2500 × çarpan x10+ = 25K+ TL kontrol dışı ödemeler oluyordu. Saf 2500/3000 enjekte için.
-                if (oyT6 != null) oyT6.carpanUretimiAktif = false;
-#if UNITY_WEBGL && !UNITY_EDITOR
-                ToggleKapat("yeniOyuncuToggle");
-#endif
-                // PAKET 14-FAZ9: Pattern motoru ÖNCEDEN aktive et — kullanıcı toggle açıp HIZLICA spin atarsa
-                // pre-compute akışı RNG kullanmasın, motor zaten hazır olsun. SpinKilitli toggle açana kadar
-                // true (lambda yeniOyuncuModu==true gerek) → spin engellenir, pattern güvenli bekler.
-                // Toggle açtığında AdminEnjeksiyonu PatternBaslat'ı idempotent restart yapar (sorun değil).
-                // PAKET 14-FAZ34 İş 8: ScriptedSpinUygulayici altyapısı T6YO için (toggle açılınca AsamaSetYeniOyuncuAcik).
-                TutorialScriptedYoneticisi.Ornek?.AsamaSetYeniOyuncuAcik();
-                TutorialSenaryoMotoru.PatternBaslat("yeniOyuncu_acik");
-                Debug.Log("[Tutorial T6YO] Giriş — toggle KAPALI, pattern yeniOyuncu_acik önceden aktif (toggle açılınca enjekte hazır).");
-            }
-            else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T6) // KAZANDIRMA (sira=7)
-            {
-                // PAKET 6C3: Default N=3 (slider değişene kadar). Slider hareket → AyarDegisti güncellenir.
-                // PAKET 14-FAZ35.0: Scripted havuz (5 kazanç + 5 kayıp). Eski DinamikPatternBaslat
-                // ("kazandirma") paralel çağrısı kaldırıldı — scripted aktifken motor bypass'lanıyor.
-                // PAKET 14-FAZ35.3 BUG Q DEFANSIF: T3.4 Koruma sonrası AdminSet(0) → Mathf.Max(1,0)=1
-                // nedeniyle KAÇIŞ_FRENLEME limit=1 kalmış olabilir. T6 girişinde reflection ile zorla 0.
-                var oyT6 = Object.FindObjectOfType<OyunYoneticisi>();
-                if (oyT6 != null)
-                {
-                    var akField = typeof(OyunYoneticisi).GetField("_ardisikKayipLimiti",
-                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                    akField?.SetValue(oyT6, 0);
-                    PanelKopru.ardisikKayipLimiti = 0;
-                }
-                TutorialScriptedYoneticisi.Ornek?.AsamaSetKazanmaSikligi(3);
-            }
+            // FAZ35.74 PARÇA 1: T6_YENI_OYUNCU (Yeni Oyuncu modu) + T6 (5'de Kaç Kazandıralım modu) giriş blokları
+            // SİLİNDİ. İki Tutorial modu tamamen kaldırıldı. PARÇA 2'de enum + adım tanımı + kategori + modal
+            // metinleri gidecek. Adım sıra otomatik kayacak: T5 → T7 direkt geçiş (enum integer auto-shift).
+            // 03 admin tarafı etkilenmedi (PanelKopru.cs yeniOyuncu/kazanmaOrani case handler'ları KORUNDU).
             else if (v.id == TutorialAdimYoneticisi.TutorialAdimId.T8) // NEAR MISS (sira=9)
             {
                 // PAKET 14-FAZ35.69: T8 yeniden tasarımı — toggle KAPALI girer, kullanıcı açıp Uygula basana
@@ -1154,7 +1093,8 @@ namespace KumarFarkindalik.Tutorial
             // 2.spinde tekrar görüyordu, son kayıt (Karpuz) hiç tüketilmiyordu. Idx artık ilerletildi → cache'i
             // invalidate edip yeni idx ile yeniden precompute et (CacheTazele sat 80 temizle + sat 87 precompute).
             // Aktif=false (pattern bitti, son spin) ise atlanır → fazla precompute yok. Tüm scripted senaryolar
-            // (Hook/Yontma/Tutma/Koruma/YeniOyuncu/KazanmaSikligi/NearMiss2Spin/Kacis/OdemeAraligi) düzelir.
+            // (Hook/Yontma/Tutma/Koruma/NearMiss2Spin/Kacis/OdemeAraligi) düzelir.
+            // (Faz 35.74 PARÇA 1: YeniOyuncu + KazanmaSikligi listeden çıkarıldı — modlar silindi.)
             if (TutorialScriptedYoneticisi.Aktif)
             {
                 oy?.ScriptedSenaryoCacheTazele();
@@ -1168,7 +1108,7 @@ namespace KumarFarkindalik.Tutorial
             TutorialT3TutmaModalKontrol();
             TutorialT4CarpanOlasilikModalKontrol();
             TutorialT5BonusModalKontrol();
-            TutorialT6YeniOyuncuModalKontrol();
+            // FAZ35.74 PARÇA 1: TutorialT6YeniOyuncuModalKontrol() çağrısı + metod tanımı SİLİNDİ (T6YO modu kaldırıldı).
             TutorialT8OdemeModalKontrol();
             TutorialT11CarpanZorlaModalKontrol();
             // PAKET 14-FAZ35.64: ModalKontrol'lerin StartCoroutine ile başlattığı GosterAraModal'ın iç ModalGoster
@@ -1303,24 +1243,9 @@ namespace KumarFarkindalik.Tutorial
             }
         }
 
-        // PAKET 6C2: T6_YENI_OYUNCU 3. spin sonrası ara modal
-        // PAKET 14-FAZ8: Yapılacaklar 1. madde "Yeni Oyuncu Modu'nu aç" → "Yeni Oyuncu Modu'nu kapat" mutate.
-        private void TutorialT6YeniOyuncuModalKontrol()
-        {
-            if (AdimYoneticisi == null) return;
-            if (AdimYoneticisi.mevcutAdim != TutorialAdimYoneticisi.TutorialAdimId.T6_YENI_OYUNCU) return;
-            if (T6AraModalGosterildi) return;
-
-            int sayac = TutorialSpinSayaci - AdimYoneticisi.AdimBaslangicSpin;
-            if (sayac == 3)
-            {
-                T6AraModalGosterildi = true;
-                AdimYoneticisi.YapilacakMaddesiniGuncelle(0, "Yeni Oyuncu Modu'nu kapat");
-                Debug.Log("[Tutorial T6_YENI_OYUNCU] Aşama 1 bitti (3 spin kazanç), ara modal + motor pasif + yapilacak[0]='kapat'");
-                TutorialSenaryoMotoru.Durdur();
-                StartCoroutine(GosterAraModal(TutorialAdimYoneticisi.T6YO_ARA_MODAL));
-            }
-        }
+        // FAZ35.74 PARÇA 1: TutorialT6YeniOyuncuModalKontrol() metod tanımı SİLİNDİ (T6YO modu kaldırıldı).
+        // Çağrı yeri sat 1116 de aynı parçada çıkarıldı. T6AraModalGosterildi field + T6YO_ARA_MODAL const
+        // PARÇA 2'de (adım tanımı + modal metinleri + field tanımları birlikte) silinecek.
 
         // PAKET 6A: T11 bonus oyun yarım kesme — bonus oyun başlatıldı, 3sn görsel hissedildi,
         // sonra reflection ile state cleanup → 10 free spin oynamadan T_SON'a geçilir.

@@ -40,107 +40,12 @@ namespace KumarFarkindalik.Tutorial
         }
 
         // ─────────────────────────────────────────────────────────────────────────
-        // PAKET 14-FAZ35.0: T6 Kazandırma Sıklığı için 5'er elemanlı kazanç + kayıp HAVUZLARI.
-        // AsamaSetKazanmaSikligi(N) → havuzlardan N kazanç + (5-N) kayıp peş peşe (final shuffle YOK).
-        // Eski tek-tip UretKazancKayit (çarpanlı 1500) çıkarıldı; çarpansız 2000-3000 bandında 5 farklı sembol.
+        // FAZ35.74 PARÇA 1: UretKazancHavuzu / UretKayipHavuzu / KayipKayitOlustur SİLİNDİ.
+        // T6 Kazandırma modu kaldırıldığı için bu havuzlar artık çağrılmıyor (tek-çağrı:
+        // TutorialScriptedYoneticisi.AsamaSetKazanmaSikligi → o da silindi). KayipKayitOlustur
+        // sadece UretKayipHavuzu içinde kullanılıyordu (grep teyit). Tek-tip kayıp (T9 Kacis için)
+        // UretKayipKayit farklı bir metot — KORUNDU.
         // ─────────────────────────────────────────────────────────────────────────
-
-        /// <summary>T6 kazanç havuzu: 5 farklı sembol × cluster boyutu kombinasyonu, hepsi çarpansız 2000-3000 TL bandı.
-        /// Sembol ID: 0=Armut, 1=Çilek, 2=Erik, 3=Hindistan, 4=Karpuz, 5=Muz, 6=Elma, 7=Üzüm (TumbleAyarlari.cs:16-22).
-        /// K1: Muz(5)×10 = 2.0×1000 = 2000 TL · K2: Erik(2)×12 = 2.0×1000 = 2000 TL ·
-        /// K3: Hindistan(3)×12 = 2.5×1000 = 2500 TL · K4: Karpuz(4)×12 = 3.0×1000 = 3000 TL ·
-        /// K5: Elma(6)×10 = 3.0×1000 = 3000 TL.</summary>
-        public static List<ScriptedSpinKaydi> UretKazancHavuzu()
-        {
-            return new List<ScriptedSpinKaydi>
-            {
-                UretCokAdetKazancKayit(5, 10, 2000), // K1: Muz × 10
-                UretCokAdetKazancKayit(2, 12, 2000), // K2: Erik × 12
-                UretCokAdetKazancKayit(3, 12, 2500), // K3: Hindistan × 12
-                UretCokAdetKazancKayit(4, 12, 3000), // K4: Karpuz × 12
-                UretCokAdetKazancKayit(6, 10, 3000), // K5: Elma × 10
-            };
-        }
-
-        /// <summary>T6 kayıp havuzu: 5 farklı dolgu deseni, hepsinde cluster yok (4-bağlantılı max=1) ve scatter yok.
-        /// Formüller: KY1 (x-2y)%8, KY2 (x+1-2y)%8, KY3 (5-x-2y)%8, KY4 (x+3y)%8, KY5 (x+5y)%8.
-        /// Hepsinde yatay komşu farkı 1, dikey komşu farkı ∈ {-2,3,5} → asla 0 mod 8 → aynı sembol komşu olamaz.</summary>
-        public static List<ScriptedSpinKaydi> UretKayipHavuzu()
-        {
-            // KY1: (x - 2y) mod 8 — mevcut UretKayipKayit ile aynı pattern
-            int[] gridKY1 = new int[]
-            {
-                0, 1, 2, 3, 4, 5,   // y=0
-                6, 7, 0, 1, 2, 3,   // y=1
-                4, 5, 6, 7, 0, 1,   // y=2
-                2, 3, 4, 5, 6, 7,   // y=3
-                0, 1, 2, 3, 4, 5,   // y=4
-            };
-            // KY2: (x + 1 - 2y) mod 8 — yatay shift +1
-            int[] gridKY2 = new int[]
-            {
-                1, 2, 3, 4, 5, 6,
-                7, 0, 1, 2, 3, 4,
-                5, 6, 7, 0, 1, 2,
-                3, 4, 5, 6, 7, 0,
-                1, 2, 3, 4, 5, 6,
-            };
-            // KY3: (5 - x - 2y) mod 8 — yatay ters
-            int[] gridKY3 = new int[]
-            {
-                5, 4, 3, 2, 1, 0,
-                3, 2, 1, 0, 7, 6,
-                1, 0, 7, 6, 5, 4,
-                7, 6, 5, 4, 3, 2,
-                5, 4, 3, 2, 1, 0,
-            };
-            // KY4: (x + 3y) mod 8 — dikey adım +3
-            int[] gridKY4 = new int[]
-            {
-                0, 1, 2, 3, 4, 5,
-                3, 4, 5, 6, 7, 0,
-                6, 7, 0, 1, 2, 3,
-                1, 2, 3, 4, 5, 6,
-                4, 5, 6, 7, 0, 1,
-            };
-            // KY5: (x + 5y) mod 8 — dikey adım +5
-            int[] gridKY5 = new int[]
-            {
-                0, 1, 2, 3, 4, 5,
-                5, 6, 7, 0, 1, 2,
-                2, 3, 4, 5, 6, 7,
-                7, 0, 1, 2, 3, 4,
-                4, 5, 6, 7, 0, 1,
-            };
-
-            return new List<ScriptedSpinKaydi>
-            {
-                KayipKayitOlustur(gridKY1),
-                KayipKayitOlustur(gridKY2),
-                KayipKayitOlustur(gridKY3),
-                KayipKayitOlustur(gridKY4),
-                KayipKayitOlustur(gridKY5),
-            };
-        }
-
-        private static ScriptedSpinKaydi KayipKayitOlustur(int[] grid30)
-        {
-            return new ScriptedSpinKaydi
-            {
-                spinSiraNo = 1,
-                asamaIndex = 0,
-                bahis = TUTORIAL_BAHIS,
-                tip = SpinTipi.Sifir,
-                tutorialOdemeHam = 0,
-                ilkGridSemboller = grid30,
-                ilkCarpanDegerleri = new int[30],
-                tumbleler = new List<TumbleAdimTanimi>(),
-                modalMesaji = null,
-                carpanKactiFlag = false,
-                bonusOyunuTetikle = false,
-                bonusGetirisi = 0,
-            };
-        }
 
         /// <summary>PAKET 14-FAZ34 İş 3 / FAZ35.69: T8 Near Miss dizilimi — clusterSembol için 7 bitişik
         /// (cluster eşik 8'in BIR ALTINDA → cluster oluşmaz, ödeme 0, net -bahis = "neredeyse oluyordu" hissi).
@@ -612,30 +517,10 @@ namespace KumarFarkindalik.Tutorial
         }
 
         // ─────────────────────────────────────────────────────────────────────────
-        // İŞ 8: T6YO YeniOyuncu — açık / kapalı
+        // FAZ35.74 PARÇA 1: UretYeniOyuncuAcikSpinleri/UretYeniOyuncuKapaliSpinleri SİLİNDİ.
+        // T6_YENI_OYUNCU modu kaldırıldı; çağrı yerleri (TutorialScriptedYoneticisi AsamaSetYeniOyuncu*)
+        // aynı parçada silindi. UretKayipKayit (tek-tip kayıp) T9 Kaçış için KORUNDU.
         // ─────────────────────────────────────────────────────────────────────────
-
-        public static List<ScriptedSpinKaydi> UretYeniOyuncuAcikSpinleri()
-        {
-            // PAKET 14-FAZ34.1 BUG 4 FIX: Önceki tasarım (Hin12/Muz12/kayıp NET +4500) abartılıydı;
-            // ayrıca 2.spinde Muz 12 yine Hindistan görünüyordu (sembol indeks veya cluster pozisyon bug).
-            // Yeni tasarım: 3 farklı meyve mütevazı kazanç, kayıp YOK:
-            //   Spin 1: Hindistan 12 (sym=3, PayTable_12+[3]=2.5) → ham 2500
-            //   Spin 2: Muz 10 (sym=5, PayTable_10_11[5]=2.0) → ham 2000
-            //   Spin 3: Karpuz 10 (sym=4, PayTable_10_11[4]=1.5) → ham 1500
-            //   Toplam 6000 - 3000 bahis = NET +3000 (abartı yok, 3 farklı meyve)
-            return new List<ScriptedSpinKaydi>
-            {
-                UretCokAdetKazancKayit(3, 12, 2500),  // Hindistan 12
-                UretCokAdetKazancKayit(5, 10, 2000),  // Muz 10
-                UretCokAdetKazancKayit(4, 10, 1500),  // Karpuz 10
-            };
-        }
-
-        public static List<ScriptedSpinKaydi> UretYeniOyuncuKapaliSpinleri()
-        {
-            return new List<ScriptedSpinKaydi> { UretKayipKayit(), UretKayipKayit(), UretKayipKayit() };
-        }
 
         // ─────────────────────────────────────────────────────────────────────────
         // İŞ 9: T10 Çarpan Zorla — kapalı ödeme / açık ödeme

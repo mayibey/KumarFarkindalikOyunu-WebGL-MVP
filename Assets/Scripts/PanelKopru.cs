@@ -163,22 +163,11 @@ public class PanelKopru : MonoBehaviour
                 break;
 
             case "yeniOyuncu":
-                {
-                    yeniOyuncuModu = deger == "True" || deger == "true";
-                    // PAKET 14-FAZ10: T6YO sırasında AdminSetYeniOyuncuModu çağrısı BYPASS — bu method
-                    // maxOdeme=1000 set ediyor; yeniOyuncu_acik pattern hedefleri 2500/3000 TL limit-aware
-                    // kayıp grid'e çeviriliyordu. Tutorial T6YO adımındaysa state'i sadece PanelKopru'da
-                    // güncelle (parametreKosulu lambda PanelKopru.yeniOyuncuModu okur), OyunYoneticisi
-                    // davranışına dokunma → pattern hedefleri enjekte edilebilir.
-                    bool t6yoAktif = KumarFarkindalik.Tutorial.TutorialOyunYoneticisi.Ornek != null
-                        && KumarFarkindalik.Tutorial.TutorialOyunYoneticisi.Ornek.AdimYoneticisi != null
-                        && KumarFarkindalik.Tutorial.TutorialOyunYoneticisi.Ornek.AdimYoneticisi.mevcutAdim
-                            == KumarFarkindalik.Tutorial.TutorialAdimYoneticisi.TutorialAdimId.T6_YENI_OYUNCU;
-                    if (!t6yoAktif)
-                        _oy?.AdminSetYeniOyuncuModu(yeniOyuncuModu);
-                    else
-                        Debug.Log("[PanelKopru] T6YO aktif — AdminSetYeniOyuncuModu bypass (maxOdeme limiti uygulanmaz, pattern hedefleri korunur)");
-                }
+                // FAZ35.74 PARÇA 2: T6YO Tutorial bypass check SİLİNDİ (T6_YENI_OYUNCU enum'dan çıktı,
+                // referans derleme hatası verirdi). 03 admin path KORUNDU — yeniOyuncuModu state güncelleme
+                // + AdminSetYeniOyuncuModu çağrısı düz akışla yapılır (artık koşullu değil).
+                yeniOyuncuModu = deger == "True" || deger == "true";
+                _oy?.AdminSetYeniOyuncuModu(yeniOyuncuModu);
                 break;
 
             case "bonusModu":
