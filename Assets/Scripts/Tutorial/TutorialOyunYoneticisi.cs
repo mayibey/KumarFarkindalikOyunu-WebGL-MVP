@@ -1149,6 +1149,16 @@ namespace KumarFarkindalik.Tutorial
             // PAKET 14-FAZ33.1: Tutorial scripted pattern idx ilerletmesi gerçek spin tamamlandığında.
             // Pre-compute coroutine yeniden tetiklenirse aynı kayıt döner; sadece burada idx++.
             TutorialScriptedYoneticisi.Ornek?.SpinTamamlandi();
+            // FAZ35.72: Off-by-one cache yarışı fix. DonusAkisServisi.cs:462 lookahead precompute idx ilerlemeden
+            // ÖNCE çalışıp stale cache yazıyordu (mevcut spin kaydı = sonraki spin cache) → kullanıcı 1.kaydı
+            // 2.spinde tekrar görüyordu, son kayıt (Karpuz) hiç tüketilmiyordu. Idx artık ilerletildi → cache'i
+            // invalidate edip yeni idx ile yeniden precompute et (CacheTazele sat 80 temizle + sat 87 precompute).
+            // Aktif=false (pattern bitti, son spin) ise atlanır → fazla precompute yok. Tüm scripted senaryolar
+            // (Hook/Yontma/Tutma/Koruma/YeniOyuncu/KazanmaSikligi/NearMiss2Spin/Kacis/OdemeAraligi) düzelir.
+            if (TutorialScriptedYoneticisi.Aktif)
+            {
+                oy?.ScriptedSenaryoCacheTazele();
+            }
             // PAKET 14-FAZ35.63: Add(net) sonrası segment renk Update polling'i (TutorialAdimGoster.SpinGecmisiRenkGuncelle)
             // bu frame'de uygulasın + render olsun, SONRA modal kontrol çağrılsın. Kullanıcı kuralı: segment
             // renklenmeden modal gelmesin (sıra: spin → segment renk → modal → adım → SPIN açılır).
