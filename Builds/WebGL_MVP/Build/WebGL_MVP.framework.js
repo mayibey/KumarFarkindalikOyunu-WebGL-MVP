@@ -9478,6 +9478,10 @@ function dbg(text) {
           requestOptions.timeout = timeout;
   	}
 
+  function _PanelAcikMi() {
+          return document.getElementById('panelIframe') !== null ? 1 : 0;
+      }
+
   
   function _PaneliAc(urlPtr) {
           PanelBridge.mesajListenerKur();
@@ -9501,6 +9505,33 @@ function dbg(text) {
           overlay.addEventListener('click', function(e) {
               if (e.target === overlay) overlay.remove();
           });
+      }
+
+  
+  function _PaneliAcSolKenar(urlPtr) {
+          PanelBridge.mesajListenerKur();
+  
+          var url = UTF8ToString(urlPtr);
+          if (document.getElementById('panelIframe')) return;
+  
+          // Sol kenar slim container — modal overlay YOK (koyu zemin yok, slot ekranı tıklanabilir kalır).
+          // top:5vh + height:90vh → ekranın büyük çoğunluğunu kaplar (yukarıda/aşağıda küçük nefes).
+          // left:20px sabit → ekran sol kenarına yapışık.
+          // width:520px → panel kartlarının okunabilir genişliği (98% modal yerine sabit slim).
+          // background:transparent → arka karartma yok.
+          var container = document.createElement('div');
+          container.id = 'panelOverlay';
+          container.style.cssText = 'position:fixed;top:5vh;left:20px;width:520px;height:90vh;background:transparent;z-index:9998;';
+  
+          var iframe = document.createElement('iframe');
+          iframe.id = 'panelIframe';
+          iframe.src = url;
+          iframe.style.cssText = 'width:100%;height:100%;border:none;border-radius:12px;background:transparent;';
+          iframe.setAttribute('allowtransparency', 'true');
+  
+          container.appendChild(iframe);
+          document.body.appendChild(container);
+          // Click handler EKLENMEDİ — overlay dışına tıklayınca kapatma YOK; AYARLAR butonu toggle veya panel × butonu kapatır.
       }
 
   function _PaneliKapat() {
@@ -18500,7 +18531,9 @@ var wasmImports = {
   "JS_WebRequest_SetRedirectLimit": _JS_WebRequest_SetRedirectLimit,
   "JS_WebRequest_SetRequestHeader": _JS_WebRequest_SetRequestHeader,
   "JS_WebRequest_SetTimeout": _JS_WebRequest_SetTimeout,
+  "PanelAcikMi": _PanelAcikMi,
   "PaneliAc": _PaneliAc,
+  "PaneliAcSolKenar": _PaneliAcSolKenar,
   "PaneliKapat": _PaneliKapat,
   "PaneliSolaAl": _PaneliSolaAl,
   "TumVurgulariKapat": _TumVurgulariKapat,

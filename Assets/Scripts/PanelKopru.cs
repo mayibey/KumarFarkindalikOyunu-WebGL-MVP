@@ -36,6 +36,13 @@ public class PanelKopru : MonoBehaviour
     [DllImport("__Internal")]
     private static extern void PaneliKapat();
 
+    // FAZ35.78: Yeni 03_AdminOyunScene (idx 2) için sol kenar sabit panel + toggle yardımcı.
+    [DllImport("__Internal")]
+    private static extern void PaneliAcSolKenar(string url);
+
+    [DllImport("__Internal")]
+    private static extern int PanelAcikMi();
+
     [DllImport("__Internal")]
     private static extern void AyarlariPanelleGonder(string json);
 
@@ -64,9 +71,33 @@ public class PanelKopru : MonoBehaviour
     {
         #if UNITY_WEBGL && !UNITY_EDITOR
             string tamYol = "StreamingAssets/" + panelDosyaYolu;
-            PaneliAc(tamYol);
+            int sahneIdx = SceneManager.GetActiveScene().buildIndex;
+            // FAZ35.78: Yeni 03_AdminOyunScene (idx 2, Tutorial'sız admin) — sol kenar toggle.
+            // 02 anlatıcı (idx 1) AyarlarButton kullanmaz; eski 04 Tutorial (idx 3) mevcut modal merkez akışında kalır.
+            if (sahneIdx == 2)
+            {
+                if (PanelAcikMi() != 0) PaneliKapat();
+                else PaneliAcSolKenar(tamYol);
+            }
+            else
+            {
+                PaneliAc(tamYol);
+            }
         #else
             Debug.Log("[PanelKopru] Panel sadece WebGL build'de açılır. Editor'de test için browser'da panel.html'i aç.");
+        #endif
+    }
+
+    // FAZ35.78: Yeni 03 admin sahnesi (idx 2) — sahne yüklenince paneli otomatik sol kenar açar.
+    // 02 ve eski 04'te bu Start no-op (idx 1/3 != 2 guard ile atlanır).
+    private void Start()
+    {
+        #if UNITY_WEBGL && !UNITY_EDITOR
+            if (SceneManager.GetActiveScene().buildIndex == 2)
+            {
+                string tamYol = "StreamingAssets/" + panelDosyaYolu;
+                PaneliAcSolKenar(tamYol);
+            }
         #endif
     }
 

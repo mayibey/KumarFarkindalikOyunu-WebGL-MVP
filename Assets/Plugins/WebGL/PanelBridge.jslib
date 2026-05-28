@@ -121,6 +121,42 @@ mergeInto(LibraryManager.library, {
         if (overlay) overlay.remove();
     },
 
+    // FAZ35.78: Yeni 03_AdminOyunScene (idx 2) için sol kenar sabit, modal OLMAYAN panel açma.
+    // Mevcut PaneliAc'ten türetilmiş — overlay TAMAMI yerine sol kenar slim container.
+    // id='panelOverlay' korundu → mevcut PaneliKapat() ve 'paneliKapat' mesaj handler aynı şekilde çalışır (toggle uyumlu).
+    PaneliAcSolKenar__deps: ['$PanelBridge'],
+    PaneliAcSolKenar: function(urlPtr) {
+        PanelBridge.mesajListenerKur();
+
+        var url = UTF8ToString(urlPtr);
+        if (document.getElementById('panelIframe')) return;
+
+        // Sol kenar slim container — modal overlay YOK (koyu zemin yok, slot ekranı tıklanabilir kalır).
+        // top:5vh + height:90vh → ekranın büyük çoğunluğunu kaplar (yukarıda/aşağıda küçük nefes).
+        // left:20px sabit → ekran sol kenarına yapışık.
+        // width:520px → panel kartlarının okunabilir genişliği (98% modal yerine sabit slim).
+        // background:transparent → arka karartma yok.
+        var container = document.createElement('div');
+        container.id = 'panelOverlay';
+        container.style.cssText = 'position:fixed;top:5vh;left:20px;width:520px;height:90vh;background:transparent;z-index:9998;';
+
+        var iframe = document.createElement('iframe');
+        iframe.id = 'panelIframe';
+        iframe.src = url;
+        iframe.style.cssText = 'width:100%;height:100%;border:none;border-radius:12px;background:transparent;';
+        iframe.setAttribute('allowtransparency', 'true');
+
+        container.appendChild(iframe);
+        document.body.appendChild(container);
+        // Click handler EKLENMEDİ — overlay dışına tıklayınca kapatma YOK; AYARLAR butonu toggle veya panel × butonu kapatır.
+    },
+
+    // FAZ35.78: Panel iframe DOM'da var mı? AYARLAR butonu toggle davranışı için (varsa kapat, yoksa aç).
+    // C# tarafı extern int alır, 0=kapalı 1=açık.
+    PanelAcikMi: function() {
+        return document.getElementById('panelIframe') !== null ? 1 : 0;
+    },
+
     AyarlariPanelleGonder: function(jsonPtr) {
         var json = UTF8ToString(jsonPtr);
         var iframe = document.getElementById('panelIframe');
