@@ -458,13 +458,19 @@ namespace KumarFarkindalik.Tutorial
 
         /// <summary>PAKET 14-FAZ34 İş 7/8/9: Jenerik kazanç kaydı — verilen sembol için 8/10/12-li cluster.
         /// tutorialOdemeHam çağıran tarafından paytable hesabıyla geçirilir (ham, çarpansız).</summary>
-        public static ScriptedSpinKaydi UretCokAdetKazancKayit(int sembolId, int adet, long tutorialOdemeHam)
+        public static ScriptedSpinKaydi UretCokAdetKazancKayit(int sembolId, int adet, long tutorialOdemeHam, List<Vector2Int> sabitPozisyonlar = null)
         {
             int[] grid = new int[30];
             for (int i = 0; i < 30; i++) grid[i] = -1;
 
             // PAKET 14-FAZ35.2: No-replace random pattern çekim → her T3/T6/T6YO/T9 spininde farklı pozisyon.
-            var clusterPozlari = OlusturRastgeleClusterPozlari(adet);
+            // PAKET 14-FAZ35.73: sabitPozisyonlar verildiyse (Hook'a özel örtüşmeyen pattern'ler) onu kullan;
+            // null/uyuşmaz ise mevcut havuz çekimi (diğer modlar — Yontma/Tutma/Koruma/T6/T8/T9 — etkilenmez).
+            List<Vector2Int> clusterPozlari;
+            if (sabitPozisyonlar != null && sabitPozisyonlar.Count == adet)
+                clusterPozlari = sabitPozisyonlar;
+            else
+                clusterPozlari = OlusturRastgeleClusterPozlari(adet);
             foreach (var p in clusterPozlari)
                 grid[p.y * 6 + p.x] = sembolId;
 
@@ -528,13 +534,44 @@ namespace KumarFarkindalik.Tutorial
             //   Spin 4: Elma 10 (sym=6, PayTable_10_11[6]=3.0) → ham 3000
             //   Spin 5: Karpuz 12 (sym=4, PayTable_12+[4]=3.0) → ham 3000
             //   Toplam: 12000 - 5000 bahis = NET +7000 (eski tasarımla aynı)
+            // PAKET 14-FAZ35.73: Pattern havuzu superset (Pattern10li⊃Pattern8li, Pattern12li⊃Pattern10li) yüzünden
+            // Spin 1↔Spin 2 8-10 hücreye kadar örtüşüyordu → "aynı yere düşüyor" şikayeti. 5 sabit ÖRTÜŞMEYEN
+            // pattern: üst yatay şerit (Muz) / alt yatay şerit (Hindistan) / sağ dikey kenar (Üzüm) /
+            // sol dikey kenar (Elma) / orta 4×3 blok (Karpuz). S1↔S2 ve S3↔S4 örtüşme 0; maks çift 4 hücre.
+            // Hepsi 4-bağlantılı bitişik ≥8 → cluster eşiği (MinClusterSize=8) geçer, ödeme korunur.
+            var muzPoz = new List<Vector2Int> {
+                new Vector2Int(0,0), new Vector2Int(1,0), new Vector2Int(2,0), new Vector2Int(3,0), new Vector2Int(4,0),
+                new Vector2Int(0,1), new Vector2Int(1,1), new Vector2Int(2,1), new Vector2Int(3,1), new Vector2Int(4,1),
+            };
+            var hindistanPoz = new List<Vector2Int> {
+                new Vector2Int(0,3), new Vector2Int(1,3), new Vector2Int(2,3), new Vector2Int(3,3), new Vector2Int(4,3), new Vector2Int(5,3),
+                new Vector2Int(0,4), new Vector2Int(1,4), new Vector2Int(2,4), new Vector2Int(3,4), new Vector2Int(4,4), new Vector2Int(5,4),
+            };
+            var uzumPoz = new List<Vector2Int> {
+                new Vector2Int(4,0), new Vector2Int(5,0),
+                new Vector2Int(4,1), new Vector2Int(5,1),
+                new Vector2Int(4,2), new Vector2Int(5,2),
+                new Vector2Int(4,3), new Vector2Int(5,3),
+            };
+            var elmaPoz = new List<Vector2Int> {
+                new Vector2Int(0,0), new Vector2Int(1,0),
+                new Vector2Int(0,1), new Vector2Int(1,1),
+                new Vector2Int(0,2), new Vector2Int(1,2),
+                new Vector2Int(0,3), new Vector2Int(1,3),
+                new Vector2Int(0,4), new Vector2Int(1,4),
+            };
+            var karpuzPoz = new List<Vector2Int> {
+                new Vector2Int(1,1), new Vector2Int(2,1), new Vector2Int(3,1), new Vector2Int(4,1),
+                new Vector2Int(1,2), new Vector2Int(2,2), new Vector2Int(3,2), new Vector2Int(4,2),
+                new Vector2Int(1,3), new Vector2Int(2,3), new Vector2Int(3,3), new Vector2Int(4,3),
+            };
             return new List<ScriptedSpinKaydi>
             {
-                UretCokAdetKazancKayit(5, 10, 2000),  // Muz 10
-                UretCokAdetKazancKayit(3, 12, 2500),  // Hindistan 12
-                UretCokAdetKazancKayit(7, 8,  1500),  // Üzüm 8 (cluster eşik)
-                UretCokAdetKazancKayit(6, 10, 3000),  // Elma 10
-                UretCokAdetKazancKayit(4, 12, 3000),  // Karpuz 12
+                UretCokAdetKazancKayit(5, 10, 2000, muzPoz),       // Muz 10 — üst yatay şerit (col 0-4, row 0-1)
+                UretCokAdetKazancKayit(3, 12, 2500, hindistanPoz), // Hindistan 12 — alt yatay şerit (col 0-5, row 3-4); S1↔S2 örtüşme 0
+                UretCokAdetKazancKayit(7, 8,  1500, uzumPoz),      // Üzüm 8 — sağ dikey kenar (col 4-5, row 0-3)
+                UretCokAdetKazancKayit(6, 10, 3000, elmaPoz),      // Elma 10 — sol dikey kenar (col 0-1, row 0-4); S3↔S4 örtüşme 0
+                UretCokAdetKazancKayit(4, 12, 3000, karpuzPoz),    // Karpuz 12 — orta 4×3 blok (col 1-4, row 1-3)
             };
         }
 
