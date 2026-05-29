@@ -145,6 +145,12 @@ public partial class OyunYoneticisi
     // FAZ35.76: _yeniOyuncuModuAktif + _yeniOyuncuBaslangicZamani field'ları SİLİNDİ (AdminSetYeniOyuncuModu kaldırıldı).
     [Range(0, 100)] [SerializeField] private int _odemeEgilimiYuzde = 50;
 
+    // FAZ35.81 Madde 1: Serbest oyun Min/Maks Çarpan bant kontrolü (kullanıcı yönetici panelinden set eder).
+    // Mevcut OdemeModelineUygunMu reroll mekaniğine bant kontrol eklenir → RNG yeniden üretir (pre-üretim, post-clamp yok).
+    // 0/0 = devre dışı (mevcut davranış); >0 = kazanç bantına zorla (bahis × min/maks).
+    [HideInInspector] public float odemeMinKat = 0f;
+    [HideInInspector] public float odemeMaksKat = 0f;
+
     public TMPro.TextMeshProUGUI carpanOlasilikValueText;
     public TMPro.TextMeshProUGUI carpanMaxAdetValueText;
 

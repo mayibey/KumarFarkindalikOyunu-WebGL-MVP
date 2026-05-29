@@ -950,16 +950,16 @@
 
       <hr style="border:0; border-top:1px solid rgba(244,214,120,0.1); margin:14px 0;">
 
-      <!-- 1.3 Bonus sembolü düşme olasılığı -->
+      <!-- 1.3 Otomatik bonus sıklığı (FAZ35.81 Madde 6: etiket düzeltildi — eski "Bonus sembolü düşme olasılığı" yanıltıcıydı, gerçekte spin sayaç periyodu) -->
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
-        <span style="color:#f4d678; font-size:15px; flex:1;">Bonus sembolü düşme olasılığı</span>
+        <span style="color:#f4d678; font-size:15px; flex:1;">Otomatik bonus sıklığı</span>
         <span class="help-icon" data-tip="bonusSiklik">?</span>
         <span class="value-display" style="font-size:18px;">%<span id="bonusSembolDeger">2</span></span>
       </div>
       <input type="range" id="bonusSembolOlasilik" min="0" max="100" step="1" value="2" style="width:100%;"
              oninput="bonusSembolOlasilikDegisti(this.value)">
       <div style="font-size:14px; color:#b8a875; font-style:italic; margin-top:8px;">
-        Her <span id="bonusSpinHesap">50</span> spin'de 1 bonus
+        Her <span id="bonusSpinHesap">50</span> spin'de 1 otomatik bonus tetiklenir
       </div>
       </div>
     </div>
@@ -1109,8 +1109,10 @@
 
 <script>
   // ===== MOD AÇIKLAMASI =====
+  // FAZ35.81 Madde 5: "Manipülasyon kapalı" yanıltıcıydı (sadece ödeme eğilimi resetlenir, diğer manuel
+  // ayarlar etkili kalır). Dürüst mesaj: kullanıcı tüm sıfırlama için Varsayılana Dön'ü kullansın.
   var MOD_ACIKLAMALARI = {
-    normal:  { vurgu: 'Manipülasyon kapalı',                    aciklama: 'oyun kendi kurallarında akıyor' },
+    normal:  { vurgu: 'Ödeme eğilimi varsayılan (%65)',         aciklama: 'Manuel ayarlarınız korunuyor. Tüm ayarları sıfırlamak için "Varsayılana Dön" butonunu kullanın.' },
     hook:    { vurgu: 'Isındırma ve umut',                      aciklama: 'Yeni gelene bol kazanç verilir, oyuna bağlanır' },
     yontma:  { vurgu: 'Kaybettiklerimi geri kazanabilirim',     aciklama: 'Bakiye sessizce erimeye başlar' },
     tutma:   { vurgu: 'Şansın döndü',                           aciklama: 'Çıkmaya niyetli oyuncuya küçük kazanç hediyesi' },

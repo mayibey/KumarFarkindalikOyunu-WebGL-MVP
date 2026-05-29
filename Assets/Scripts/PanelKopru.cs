@@ -66,6 +66,11 @@ public class PanelKopru : MonoBehaviour
     public static int bonusOtomatikSpinPeriyodu = 200;
     public static string aktifSenaryo = "normal";
 
+    // FAZ35.81 Madde 2: Bonus modu manuel/otomatik geçişlerinde motor periyot cache.
+    // Manuel'e geçerken motor periyodu (>0) cache'lenir + motor 0'lanır.
+    // Otomatik'e dönerken cache restore edilir → kullanıcı slider değeri korunur.
+    private static int _onceki_bonusOtomatikPeriyot = 0;
+
     // ===== PANELİ AÇMA =====
     public void AyarlarButonunaBasildi()
     {
@@ -168,13 +173,16 @@ public class PanelKopru : MonoBehaviour
             // ödeme metodu olarak KORUNDU; 03 senaryoları SenaryoUygula üzerinden sabit yüzde gönderiyor.
 
             case "minCarpan":
+                // FAZ35.81 Madde 1: LEGACY KALDIRILDI — eski 35.27 YOL Z'de motor okumuyordu, panel değeri saklanıyordu.
+                // Şimdi motor odemeMinKat field'ına yansır → OdemeModelineUygunMu reroll bant kontrolü çalışır.
                 minCarpan = float.Parse(deger, System.Globalization.CultureInfo.InvariantCulture);
-                // LEGACY: AdminSetMinOdemeCarpan kaldırıldı (Faz 35.27 YOL Z). Panel değeri saklanır, motor okumaz.
+                _oy?.AdminSetMinCarpanDegeri(minCarpan);
                 break;
 
             case "maksCarpan":
+                // FAZ35.81 Madde 1: LEGACY KALDIRILDI — şimdi motor odemeMaksKat field'ına yansır.
                 maksCarpan = float.Parse(deger, System.Globalization.CultureInfo.InvariantCulture);
-                // LEGACY: AdminSetMaksOdemeCarpan kaldırıldı (Faz 35.27 YOL Z). Panel değeri saklanır, motor okumaz.
+                _oy?.AdminSetMaksCarpanDegeri(maksCarpan);
                 break;
 
             case "yakinKacirma":
@@ -194,7 +202,25 @@ public class PanelKopru : MonoBehaviour
             // FAZ35.76: case "yeniOyuncu" SİLİNDİ — panel toggle kaldırıldı + AdminSetYeniOyuncuModu metodu silindi.
 
             case "bonusModu":
+                // FAZ35.81 Madde 2: bonusModu artık motor tarafına yansır (önce sadece cosmetic field idi).
+                // Manuel → motor bonusOtomatikSpinPeriyodu = 0 (otomatik tetik DEVRE DIŞI).
+                // Otomatik → cache'lenmiş kullanıcı periyodu restore (varsa).
                 bonusModu = deger;
+                if (_oy != null)
+                {
+                    if (deger == "manuel")
+                    {
+                        int simdikiPeriyot = _oy.GetBonusOtomatikSpinPeriyodu();
+                        if (simdikiPeriyot > 0) _onceki_bonusOtomatikPeriyot = simdikiPeriyot;
+                        _oy.AdminSetBonusOtomatikSpinPeriyodu(0);
+                        Debug.Log($"[PanelKopru bonusModu] manuel → periyot 0 (cache={_onceki_bonusOtomatikPeriyot})");
+                    }
+                    else if (deger == "otomatik" && _onceki_bonusOtomatikPeriyot > 0)
+                    {
+                        _oy.AdminSetBonusOtomatikSpinPeriyodu(_onceki_bonusOtomatikPeriyot);
+                        Debug.Log($"[PanelKopru bonusModu] otomatik → periyot {_onceki_bonusOtomatikPeriyot} restore");
+                    }
+                }
                 break;
 
             case "bonusYuzde":
@@ -261,6 +287,13 @@ public class PanelKopru : MonoBehaviour
                 break;
 
             case "varsayilanaDon":
+                // FAZ35.81 Madde 4: Tutorial sahnesinde (eski 04, idx 3) VarsayilanaDon DEVRE DIŞI.
+                // Pedagojik akış scripted pattern'ları + carpanUretimi state'ini yönetir; user reset bunu bozardı.
+                if (SceneManager.GetActiveScene().buildIndex == 3)
+                {
+                    Debug.Log("[PanelKopru] Tutorial sahnesi (idx 3) — VarsayilanaDon BYPASS (pedagojik akış korunur)");
+                    break;
+                }
                 VarsayilanaDon();
                 break;
 
@@ -365,7 +398,13 @@ public class PanelKopru : MonoBehaviour
                 break;
         }
 
-        Debug.Log($"[PanelKopru] Senaryo uygulandı: {senaryo}");
+        // FAZ35.81 Madde 3: Senaryo butonu yakinKacirma motor yansıt bug fix.
+        // Önce SenaryoUygula içinde sadece PanelKopru.yakinKacirma static field set ediliyordu;
+        // motor field yakinKacirmaDegeri10da değişmiyordu → senaryo "near-miss" pedagojisi etkisiz.
+        // Ölçek dönüşümü: panel 0-100 → motor 0-10 (AdminSetYakinKacirma 0-10 ölçek, Admin.cs:582 clamp).
+        _oy?.AdminSetYakinKacirma(Mathf.RoundToInt(yakinKacirma / 10f));
+
+        Debug.Log($"[PanelKopru] Senaryo uygulandı: {senaryo}, yakinKacirma motor 10'da {Mathf.RoundToInt(yakinKacirma / 10f)}");
     }
 
     // ===== BONUS TETİKLEME =====
@@ -395,7 +434,22 @@ public class PanelKopru : MonoBehaviour
         bonusModu = "manuel";
         aktifSenaryo = "normal";
         _oy?.AdminNormalOyunUygula();
-        Debug.Log("[PanelKopru] Varsayılan ayarlara dönüldü");
+
+        // FAZ35.81 Madde 4: FULL RESET — önceki VarsayilanaDon sadece odemeEgilimi (%65) reset ediyordu;
+        // carpanUretimOlasiligi, maxCarpanAdedi, yakinKacirmaDegeri10da, _ardisikKayipLimiti, _carpanTumbleAktif,
+        // bonusOtomatikSpinPeriyodu motor field'ları kullanıcının manuel değerinde kalıyordu → reset yanıltıcı.
+        // Şimdi 6 motor field'ı Fields.cs default'larına çekilir.
+        _oy?.AdminSetCarpanOlasilik(15);          // carpanUretimOlasiligi default 0.15 (Fields.cs:475)
+        _oy?.AdminSetMaxCarpanTekSpin(3);         // maxCarpanAdedi default 3 (Fields.cs:476)
+        _oy?.AdminSetYakinKacirma(0);             // yakinKacirmaDegeri10da default 0 (Admin.cs:581)
+        _oy?.AdminSetArdisikKayipLimiti(8);       // _ardisikKayipLimiti default 8 (Fields.cs:140)
+        _oy?.AdminSetCarpanTumbleAktif(true);     // _carpanTumbleAktif default true (Fields.cs:51)
+        _oy?.AdminSetBonusOtomatikSpinPeriyodu(0); // bonusOtomatikSpinPeriyodu default 0 = devre dışı (Admin.cs:542)
+        // FAZ35.81 Madde 1: Min/Maks Çarpan reset (0 = devre dışı, mevcut RNG akışı).
+        _oy?.AdminSetMinCarpanDegeri(0f);
+        _oy?.AdminSetMaksCarpanDegeri(0f);
+
+        Debug.Log("[PanelKopru] Varsayılan ayarlara dönüldü (FULL RESET: 8 motor field default'a + odemeEgilimi=65 + Min/Maks devre dışı)");
     }
 
     // ===== MEVCUT AYARLARI PANELE GÖNDER =====

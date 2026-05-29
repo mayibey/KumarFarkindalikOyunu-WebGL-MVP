@@ -202,6 +202,24 @@ public partial class OyunYoneticisi
         bool kazanc = nihaiOdeme > bahis;
         if (beklenenKazanc && !kazanc) return false;
         if (!beklenenKazanc && kazanc) return false;
+
+        // FAZ35.81 Madde 1: Serbest oyun Min/Maks Çarpan bant kontrolü (reroll mekaniği — pre-üretim, post-clamp YOK).
+        // ALT-PARÇA 7 (Çakışma 8): Çarpan Zorla aktifken (zorlaSiradakiCarpan > 0) bant atlanır — kullanıcı anlık karar verdi, motor itaat.
+        // Senaryo 1-5 admin senaryoları aktifken bant atlanır — kendi hedef bantlarını yönetiyorlar.
+        // Sadece kazanç spinlerinde uygulanır (kayıp spinler bant kontrolüne tabi değil — kayıp = 0 ödeme).
+        if (beklenenKazanc && kazanc
+            && odemeMinKat > 0f && odemeMaksKat > 0f
+            && zorlaSiradakiCarpan <= 0
+            && !IsAdminSenaryo1Aktif() && !IsAdminSenaryo2Aktif() && !IsAdminSenaryo3Aktif()
+            && !IsAdminSenaryo4Aktif() && !IsAdminSenaryo5Aktif())
+        {
+            int minHedef = Mathf.RoundToInt(bahis * odemeMinKat);
+            int maksHedef = Mathf.RoundToInt(bahis * odemeMaksKat);
+            if (maksHedef < minHedef) { int t = minHedef; minHedef = maksHedef; maksHedef = t; }
+            if (nihaiOdeme < minHedef || nihaiOdeme > maksHedef)
+                return false; // bant dışı → reroll → motor BAŞTAN yeniden üretir
+        }
+
         return true;
     }
     private void AdminZorlaButonReferanslariniBulBirKez()
@@ -548,6 +566,9 @@ public partial class OyunYoneticisi
         Debug.Log("[ADMIN][PANEL] Bonus otomatik spin periyodu = " + bonusOtomatikSpinPeriyodu + " (0 = kapalı)");
     }
 
+    // FAZ35.81 Madde 2: PanelKopru "bonusModu" handler manuel/otomatik geçişlerinde periyodu cache+restore eder.
+    public int GetBonusOtomatikSpinPeriyodu() => bonusOtomatikSpinPeriyodu;
+
     // DonusAkisServisi spin sonu güncellemesinde kullanılan sayaç ve flag.
     [HideInInspector] public int _bonusOtomatikSpinSayaci = 0;
     [HideInInspector] public bool _bonusOtomatikTetikSonrakiSpin = false;
@@ -564,6 +585,23 @@ public partial class OyunYoneticisi
     {
         carpanOlasilikYuzde = Mathf.Clamp(yuzde, 0, 100);
         Debug.Log($"[ADMIN][PANEL] Çarpan düşme olasılığı: {carpanOlasilikYuzde}%");
+    }
+
+    // FAZ35.81 Madde 1: Serbest oyun Min/Maks Çarpan setter'ları.
+    // Kullanıcı 0 set ederse devre dışı (mevcut RNG akışı). >0 set ederse OdemeModelineUygunMu reroll bant'a zorlar.
+    public void AdminSetMinCarpanDegeri(float min)
+    {
+        odemeMinKat = Mathf.Max(0f, min);
+        SpinPolitikasiniYenile();
+        OncedenHesaplananSpinOnbelleginiTemizle();
+        Debug.Log($"[ADMIN][PANEL] Min çarpan kat: {odemeMinKat}x");
+    }
+    public void AdminSetMaksCarpanDegeri(float maks)
+    {
+        odemeMaksKat = Mathf.Max(0f, maks);
+        SpinPolitikasiniYenile();
+        OncedenHesaplananSpinOnbelleginiTemizle();
+        Debug.Log($"[ADMIN][PANEL] Maks çarpan kat: {odemeMaksKat}x");
     }
 
     [HideInInspector] public int maxCarpanTekSpinSayisi = 3;
