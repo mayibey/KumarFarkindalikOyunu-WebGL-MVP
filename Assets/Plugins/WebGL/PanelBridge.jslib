@@ -122,8 +122,14 @@ mergeInto(LibraryManager.library, {
     },
 
     // FAZ35.78: Yeni 03_AdminOyunScene (idx 2) için sol kenar sabit, modal OLMAYAN panel açma.
-    // Mevcut PaneliAc'ten türetilmiş — overlay TAMAMI yerine sol kenar slim container.
-    // id='panelOverlay' korundu → mevcut PaneliKapat() ve 'paneliKapat' mesaj handler aynı şekilde çalışır (toggle uyumlu).
+    // id='panelOverlay' + id='panelIframe' korundu → mevcut PaneliKapat() ve 'paneliKapat' mesaj handler
+    // aynı şekilde çalışır (AyarlarButon toggle + PanelAcikMi check uyumlu).
+    // FAZ35.80: 35.78/35.79 slim container (520×90vh, top:5vh, left:5px) yerine **Tutorial PaneliSolaAl
+    // proven yerleşim mantığı** (eski 04'te düzgün çalışıyordu). Ekran genişliği transparent overlay +
+    // flex sola hizala + 520×720 PX SABİT iframe (90vh yerine sabit px, viewport-bağımsız).
+    // `pointer-events:none` overlay → slot ekranı arkada tıklanır (kullanıcı panel açıkken oyunu kullanabilir).
+    // Tutorial-only kapatma engelleri (closeBtn.style.display='none' + paneliKapat override) ALINMADI —
+    // panel.html'in × butonu çalışır, kullanıcı toggle veya × ile kapatabilir.
     PaneliAcSolKenar__deps: ['$PanelBridge'],
     PaneliAcSolKenar: function(urlPtr) {
         PanelBridge.mesajListenerKur();
@@ -131,26 +137,25 @@ mergeInto(LibraryManager.library, {
         var url = UTF8ToString(urlPtr);
         if (document.getElementById('panelIframe')) return;
 
-        // Sol kenar slim container — modal overlay YOK (koyu zemin yok, slot ekranı tıklanabilir kalır).
-        // top:5vh + height:90vh → ekranın büyük çoğunluğunu kaplar (yukarıda/aşağıda küçük nefes).
-        // FAZ35.79: left:20px → 5px (sola yapışık), overflow:hidden eklendi → iframe içeriği container'ı şişiremez,
-        // panel boyutu sabit kalır, panel.html iç scroll mekaniği (.panel-content overflow-y:auto, body overflow-x:auto)
-        // 35.18/35.19'dan beri kurulu → içerik genişleyince panel.html kendi içinde scroll yapar.
-        // width:520px → panel kartlarının okunabilir genişliği (98% modal yerine sabit slim).
-        // background:transparent → arka karartma yok.
-        var container = document.createElement('div');
-        container.id = 'panelOverlay';
-        container.style.cssText = 'position:fixed;top:5vh;left:5px;width:520px;height:90vh;background:transparent;z-index:9998;overflow:hidden;';
+        // OVERLAY: ekran genişliği transparent, flex sola hizala + dikey orta, tıklamayı geçirir.
+        var overlay = document.createElement('div');
+        overlay.id = 'panelOverlay';
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;'
+            + 'background:transparent;z-index:9998;'
+            + 'display:flex;align-items:center;justify-content:flex-start;padding-left:0px;'
+            + 'pointer-events:none;';
 
+        // IFRAME: 520×720 SABİT PX (Tutorial emsali), tıklanır.
         var iframe = document.createElement('iframe');
         iframe.id = 'panelIframe';
         iframe.src = url;
-        iframe.style.cssText = 'width:100%;height:100%;border:none;border-radius:12px;background:transparent;';
+        iframe.style.cssText = 'width:520px;min-width:520px;max-width:520px;'
+            + 'height:720px;min-height:720px;max-height:720px;'
+            + 'border:none;background:transparent;pointer-events:auto;';
         iframe.setAttribute('allowtransparency', 'true');
 
-        container.appendChild(iframe);
-        document.body.appendChild(container);
-        // Click handler EKLENMEDİ — overlay dışına tıklayınca kapatma YOK; AYARLAR butonu toggle veya panel × butonu kapatır.
+        overlay.appendChild(iframe);
+        document.body.appendChild(overlay);
     },
 
     // FAZ35.78: Panel iframe DOM'da var mı? AYARLAR butonu toggle davranışı için (varsa kapat, yoksa aç).

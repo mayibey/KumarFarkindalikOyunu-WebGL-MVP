@@ -9514,26 +9514,25 @@ function dbg(text) {
           var url = UTF8ToString(urlPtr);
           if (document.getElementById('panelIframe')) return;
   
-          // Sol kenar slim container — modal overlay YOK (koyu zemin yok, slot ekranı tıklanabilir kalır).
-          // top:5vh + height:90vh → ekranın büyük çoğunluğunu kaplar (yukarıda/aşağıda küçük nefes).
-          // FAZ35.79: left:20px → 5px (sola yapışık), overflow:hidden eklendi → iframe içeriği container'ı şişiremez,
-          // panel boyutu sabit kalır, panel.html iç scroll mekaniği (.panel-content overflow-y:auto, body overflow-x:auto)
-          // 35.18/35.19'dan beri kurulu → içerik genişleyince panel.html kendi içinde scroll yapar.
-          // width:520px → panel kartlarının okunabilir genişliği (98% modal yerine sabit slim).
-          // background:transparent → arka karartma yok.
-          var container = document.createElement('div');
-          container.id = 'panelOverlay';
-          container.style.cssText = 'position:fixed;top:5vh;left:5px;width:520px;height:90vh;background:transparent;z-index:9998;overflow:hidden;';
+          // OVERLAY: ekran genişliği transparent, flex sola hizala + dikey orta, tıklamayı geçirir.
+          var overlay = document.createElement('div');
+          overlay.id = 'panelOverlay';
+          overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;'
+              + 'background:transparent;z-index:9998;'
+              + 'display:flex;align-items:center;justify-content:flex-start;padding-left:0px;'
+              + 'pointer-events:none;';
   
+          // IFRAME: 520×720 SABİT PX (Tutorial emsali), tıklanır.
           var iframe = document.createElement('iframe');
           iframe.id = 'panelIframe';
           iframe.src = url;
-          iframe.style.cssText = 'width:100%;height:100%;border:none;border-radius:12px;background:transparent;';
+          iframe.style.cssText = 'width:520px;min-width:520px;max-width:520px;'
+              + 'height:720px;min-height:720px;max-height:720px;'
+              + 'border:none;background:transparent;pointer-events:auto;';
           iframe.setAttribute('allowtransparency', 'true');
   
-          container.appendChild(iframe);
-          document.body.appendChild(container);
-          // Click handler EKLENMEDİ — overlay dışına tıklayınca kapatma YOK; AYARLAR butonu toggle veya panel × butonu kapatır.
+          overlay.appendChild(iframe);
+          document.body.appendChild(overlay);
       }
 
   function _PaneliKapat() {
