@@ -27,6 +27,11 @@ namespace Senaryo.Scripted
         /// OyunUIGuncellemeServisi bu flag'e bakıp Spin butonunu engeller.</summary>
         public static bool ModalAcik { get; private set; }
 
+        /// <summary>FAZ35.82.1 hotfix: Sahne geçişi defansif reset. 02 senaryo sonu "HADİ GÖRELİM"
+        /// → 03 admin sahnesi geçişinde ModalGoster coroutine finally bloğu çalışmadıysa flag true
+        /// kalıyordu → 03'te SpinButonImpl RETURN. Yeni 03 admin sahnesi Start'ında çağrılır.</summary>
+        public static void ResetState() { ModalAcik = false; }
+
         // === UI referansları ===
         private GameObject _root;
         private RectTransform _karakterRt;

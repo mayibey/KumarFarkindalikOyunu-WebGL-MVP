@@ -541,6 +541,29 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
 
     void Start()
     {
+        // FAZ35.82.1 hotfix: Yeni 03 admin sahnesi (idx 2) — 02→03 geçişinde Scripted overlay static
+        // field'ları (ScriptedModalKopru.ModalAcik, vb.) reset edilmiyordu, SPIN bloklanıyordu.
+        // KÖK NEDEN: ScriptedTutorialGecisEkrani "HADİ GÖRELİM" → 03 yüklenince modal coroutine finally
+        // çalışmadan sahne unload, ModalAcik=true static taşıyor. 03'te SpinButonImpl RETURN.
+        // Guard: sadece buildIndex==2 (yeni 03 admin); 02 anlatıcı (idx 1) ve eski 04 Tutorial (idx 3) ETKILENMEZ.
+        if (SceneManager.GetActiveScene().buildIndex == 2)
+        {
+            Senaryo.Scripted.ScriptedModalKopru.ResetState();
+            Senaryo.Scripted.ScriptedYuklemePaneli.ResetState();
+            Senaryo.Scripted.ScriptedFinalEkrani.ResetState();
+            Senaryo.Scripted.ScriptedBonusTuzagiPopup.ResetState();
+            Senaryo.Scripted.ScriptedBonusOyunUygulayici.ResetState();
+            Senaryo.Scripted.ScriptedDusunceBalonu.ResetState();
+            Debug.Log("[FAZ35.82.1] Yeni 03 admin sahnesi — 6 Scripted overlay state reset edildi (SPIN bloğu açıldı)");
+
+            // Bakiye 50000 reset — 02'den taşınan GameManager.ActivePlayer.balance temizlenir.
+            if (GameManager.I != null && GameManager.I.ActivePlayer != null)
+            {
+                GameManager.I.ActivePlayer.balance = 50000;
+                Debug.Log("[FAZ35.82.1] Bakiye 50000 reset edildi (yeni 03 admin sahnesi)");
+            }
+        }
+
         SyncFromAyarClassesIfPresent();
         _oyunBootstrapServisi = new OyunBootstrapServisi();
         _oyunBootstrapServisi.SetBaglam(this);

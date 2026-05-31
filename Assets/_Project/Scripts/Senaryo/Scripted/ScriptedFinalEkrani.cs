@@ -25,6 +25,9 @@ namespace Senaryo.Scripted
         /// <summary>Final ekranı açıkken true; SpinButonImpl bunu kontrol edip spin atımını bloke eder.</summary>
         public static bool IsAcik { get; private set; }
 
+        /// <summary>FAZ35.82.1 hotfix: Sahne geçişi defansif reset (yeni 03 admin sahnesi Start'ında).</summary>
+        public static void ResetState() { IsAcik = false; }
+
         private GameObject _root;
         private bool _gosterildi;
 

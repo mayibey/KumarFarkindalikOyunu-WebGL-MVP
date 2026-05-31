@@ -24,6 +24,9 @@ namespace Senaryo.Scripted
         public static ScriptedBonusTuzagiPopup Ornek { get; private set; }
         public static bool IsAcik { get; private set; }
 
+        /// <summary>FAZ35.82.1 hotfix: Sahne geçişi defansif reset (yeni 03 admin sahnesi Start'ında).</summary>
+        public static void ResetState() { IsAcik = false; }
+
         // === DOM köprü: PanelBridge.jslib içindeki gerçek havai fişek (Canvas + partikül) ===
 #if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")] private static extern void HavaiFisekBaslat();

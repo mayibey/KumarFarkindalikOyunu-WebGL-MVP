@@ -25,6 +25,9 @@ namespace Senaryo.Scripted
         /// OyunUIGuncellemeServisi bu flag'e bakıp Spin butonunu engeller.</summary>
         public static bool BalonAcik { get; private set; }
 
+        /// <summary>FAZ35.82.1 hotfix: Sahne geçişi defansif reset (yeni 03 admin sahnesi Start'ında).</summary>
+        public static void ResetState() { BalonAcik = false; }
+
         // === Animasyon parametreleri ===
         private const float DIM_FADE_SURE = 0.4f;
         private const float KARAKTER_POPIN_SURE = 0.5f;

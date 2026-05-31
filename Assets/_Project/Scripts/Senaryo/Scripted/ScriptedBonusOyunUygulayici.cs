@@ -30,6 +30,10 @@ namespace Senaryo.Scripted
         public static bool IsAcik => Ornek != null && Ornek._aktifMi;
         private bool _aktifMi;
 
+        /// <summary>FAZ35.82.1 hotfix: Sahne geçişi defansif reset (yeni 03 admin sahnesi Start'ında).
+        /// IsAcik computed property → instance _aktifMi false yapılır. Ornek null ise no-op.</summary>
+        public static void ResetState() { if (Ornek != null) Ornek._aktifMi = false; }
+
         /// <summary>A5 Spin 4 cazip pop-up onayı sonrası bakiyenin tamamı bonus oyuna yatırıldı (TL).
         /// Final ekran ve A5_S5 dinamik modal yüzde hesabı için referans.</summary>
         public static int BonusYatirim = 0;

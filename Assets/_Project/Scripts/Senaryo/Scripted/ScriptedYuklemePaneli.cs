@@ -30,6 +30,9 @@ namespace Senaryo.Scripted
         /// <summary>Sahne reset (Yeniden Başla) sırasında çağrılır — borç alındı flag'ini sıfırlar.</summary>
         public static void BorcAlindiSifirla() => BorcAlindi = false;
 
+        /// <summary>FAZ35.82.1 hotfix: Sahne geçişi defansif reset (yeni 03 admin sahnesi Start'ında).</summary>
+        public static void ResetState() { IsAcik = false; }
+
         private GameObject _root;
         private Button _borcAlButton;
 
