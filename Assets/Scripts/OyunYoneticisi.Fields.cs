@@ -163,6 +163,14 @@ public partial class OyunYoneticisi
     private static int _spinAnalizNo = 0;
     [HideInInspector] public int _sonSpinRerollSayisi = -1;
 
+    // FAZ35.85: Mod akışı AKTİF kazanç konstrukte sistemi (Senaryo 1 motoru HedefOdemeMotorBase reuse).
+    // _modSpinBekleniyorKazanc: spin başında 1 kez eğilim RNG ile set, reroll'larda sabit (K5 tutarlılık).
+    //                           OdemeModelineUygunMu da bu field'ı kullanır → reroll'da eğilim kararsızlığı yok.
+    // _modKonstrukteBasarili: ModKazancKonstrukte grid'e hedef küme yerleştirdi mi (K4 reroll bütçesi).
+    //                          true → AsamaIcinMaxReroll 28 yeter (grid hedefli), false → 500 fallback (RNG umudu).
+    [HideInInspector] public bool _modSpinBekleniyorKazanc = false;
+    [HideInInspector] public bool _modKonstrukteBasarili = false;
+
     public TMPro.TextMeshProUGUI carpanOlasilikValueText;
     public TMPro.TextMeshProUGUI carpanMaxAdetValueText;
 

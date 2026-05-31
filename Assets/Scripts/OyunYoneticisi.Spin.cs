@@ -299,14 +299,15 @@ public partial class OyunYoneticisi
 
     /// <summary>Anlatıcı aktifken aşamaya göre reroll bütçesi: yüksek RTP isteyen aşamada (1-2) çok dene,
     /// tükeniş aşamasında (5-7) az dene. RNG'den uygun ödeme bulunamazsa bant zorlanmadan fallback olur.
-    /// FAZ35.83: Mod aktif (odemeMinKat>0 && odemeMaksKat>0) iken reroll=500 — Hook 1.5x-2.5x gibi dar bantların
-    /// 28 reroll içinde yakalanamayıp fallback'e düşmesini önler. Anlatıcı asama mantığından bağımsız (Anlatıcı 02'de).</summary>
+    /// FAZ35.83: Mod aktif (odemeMinKat>0 && odemeMaksKat>0) iken reroll=500.
+    /// FAZ35.85 K4: ModKazancKonstrukte başarılıysa 28 yeter (grid hedefli, ilk deneme kabul edilir),
+    /// başarısızsa 500 fallback (RNG umudu) — akıllı bütçe.</summary>
     private int AsamaIcinMaxReroll()
     {
-        // FAZ35.83: Yeni 03 admin (Anlatıcı yok) + mod aktif → dar bant için reroll yükselt.
+        // FAZ35.83/35.85: Yeni 03 admin (Anlatıcı yok) + mod aktif → konstrukte durumuna göre akıllı reroll.
         var anlaticiCheck83 = AnlaticiSeritKopru.Ornek;
         if (anlaticiCheck83 == null && odemeMinKat > 0f && odemeMaksKat > 0f)
-            return 500; // mod aktif dar bant — Hook 1.5-2.5 gibi katı bantlar 28 reroll'da yakalanamıyordu
+            return _modKonstrukteBasarili ? 28 : 500;
 
         var anlatici = AnlaticiSeritKopru.Ornek;
         if (anlatici == null) return SIMULASYON_MAX_REROLL;
@@ -430,6 +431,44 @@ public partial class OyunYoneticisi
             }
             _tutmaModSpinSayac = (_tutmaModSpinSayac + 1) % 3;
             Debug.Log($"[TUTMA SPIN] faz={faz} ({(faz < 2 ? "kayıp" : "kazanç")}), sonraki sayaç={_tutmaModSpinSayac}");
+        }
+
+        // FAZ35.85: Mod kazanç AKTİF konstrukte branch (Senaryo 1 motoru HedefOdemeMotorBase reuse).
+        // KÖK NEDEN: PASİF reroll RNG'yi sadece kabul/reddet ediyordu, %90 eğilim olsa bile RNG cluster üretmezse kazanç gelmiyordu.
+        // ÇÖZÜM: Eğilim'e göre kazanç bekleniyorsa motor hedef TL seçer + paytable'dan sembol+küme bulur + grid'e enjekte eder.
+        // 02 anlatıcı (ScriptedSpinYoneticisi.Aktif) ve eski 04 Tutorial (TutorialScriptedYoneticisi.Aktif) sat ~344-385'te ERKEN RETURN → bu branch'a girmez.
+        // Senaryo 1-5 guard'ları bypass + Tutma kayıp fazı (_tutmaBuSpinKayipBekleniyor) bypass + zorlaCarpan bypass.
+        _modKonstrukteBasarili = false;
+        _modSpinBekleniyorKazanc = false;
+        if (!bonusSpin && zorlaCarpanDegeri <= 0
+            && odemeMinKat > 0f && odemeMaksKat > 0f
+            && !_tutmaBuSpinKayipBekleniyor
+            && !IsAdminSenaryo1Aktif() && !IsAdminSenaryo2Aktif()
+            && !IsAdminSenaryo3Aktif() && !IsAdminSenaryo4Aktif() && !IsAdminSenaryo5Aktif())
+        {
+            // K5: Spin başında 1 kez eğilim kararı (reroll'larda OdemeModelineUygunMu aynı field'ı kullanır → tutarlılık).
+            _modSpinBekleniyorKazanc = UnityEngine.Random.value <= Mathf.Clamp01(_odemeEgilimiYuzde / 100f);
+            // K2: Tutma kazanç fazı (faz==2) → ModKazancKonstrukte üzerinden bant garantili kazanç.
+            //     _kacisFrenlemeBuSpinAktif fallback olarak korunur (ModKazancKonstrukte başarısızsa cluster zorla devreye girer).
+            if (_tutmaModAktif && (_tutmaModSpinSayac % 3) == 0) // SONRAKİ sayaç 0 ise BU spin faz 2'ydi (kazanç fazı sonu)
+            {
+                // Tutma sayacı zaten ilerletildi (yukarıda); bu spin'in faz tipini geri çıkarmak için sonraki sayaç=0 → bu spin faz==2 idi.
+                _modSpinBekleniyorKazanc = true;
+            }
+
+            if (_modSpinBekleniyorKazanc)
+            {
+                int bahisIcinKonstrukte = _ekonomiServisi != null ? _ekonomiServisi.Bahis : 0;
+                if (TryModKazancKonstrukteGridKur(bahisIcinKonstrukte))
+                {
+                    _modKonstrukteBasarili = true;
+                    OncedenHesaplananSpinOnbelleginiTemizle();
+                    // FAZ35.85 K2: ModKazancKonstrukte başarılı → kaçış frenleme cluster zorla fallback'i devre dışı bırak
+                    // (Tutma faz==2 zaten yukarıda _kacisFrenlemeBuSpinAktif=true set ediyordu; konstrukte garantili → çakışma önle).
+                    // Konstrukte başarısızsa Tutma branch'ın set ettiği _kacisFrenlemeBuSpinAktif aynen kalır (güvenlik ağı).
+                    _kacisFrenlemeBuSpinAktif = false;
+                }
+            }
         }
 
         // Kaçış Frenleme: ardışık kayıp eşiği aşıldığında bir önceki spin sonu flag set etmiştir.
@@ -623,7 +662,16 @@ public partial class OyunYoneticisi
             int fillLimit = adminManuelMod ? int.MaxValue : odenebilirLimit;
             if (zorlaCarpanDegeri > 0 && !carpanToggleSecili)
                 fillLimit = 0;
-            _izgaraServisi?.FillRandomAll(fillLimit);
+            // FAZ35.85: ModKazancKonstrukte ilk denemede grid'i hazırladı, FillRandomAll atlanır (grid ezilmesin).
+            // İkinci+ rerollarda (deneme>0) konstrukte zaten kabul edilmemiş demek → standart RNG akışına dön.
+            if (_modKonstrukteBasarili && deneme == 0)
+            {
+                Debug.Log("[MOD_KONSTRUKTE] İlk denemede hazır grid kullanılıyor (FillRandomAll atlandı)");
+            }
+            else
+            {
+                _izgaraServisi?.FillRandomAll(fillLimit);
+            }
             var scatterKarari = spinPolitikasi.SimulasyonSenaryoScatterVeGarantiyiDegerlendir(bonusSpin);
             if (scatterKarari.Mudahale == SimulasyonScatterGridMudahalesi.DortScatterGaranti)
                 GrideEnAzDortScatterKoy();
@@ -959,6 +1007,46 @@ public partial class OyunYoneticisi
 
         // Modal kapandı — asıl spin akışını başlat (flag set olduğu için ÖNCE bloğu atlanır)
         SpinButonImpl();
+    }
+
+    // FAZ35.85: ModKazancKonstrukte helper — Senaryo 1 motoru (HedefOdemeMotorBase) reuse.
+    // Sadece grid kurar (sembol+küme yerleştirir), kayıt oluşturmaz. Ana reroll loop bu hazır grid'i
+    // kullanır (FillRandomAll guard'la atlanır). Tumble + adım kaydı + ödeme hesabı ana loop'ta.
+    // Senaryo 1 PaytableKonstrukteHedefSpinDene'nin basit versiyonu (tek-tumble, no carpan/bonus limit).
+    private bool TryModKazancKonstrukteGridKur(int bahis)
+    {
+        if (tumbleAyarlari == null || grid == null || _ekonomiServisi == null) return false;
+        int sembolSayisi = tumbleAyarlari.PayTable_8_9?.Length ?? 0;
+        if (sembolSayisi <= 0 || bahis <= 0) return false;
+
+        int minTl = Mathf.RoundToInt(bahis * odemeMinKat);
+        int maxTl = Mathf.RoundToInt(bahis * odemeMaksKat);
+        if (maxTl < minTl) { int t = minTl; minTl = maxTl; maxTl = t; }
+        // Yontma+Koruma (odemeMinKat<1) için minTl bahis altı olabilir; bant aynen kullanılır (paytable seçim TL bantına bakar).
+        int hedefTl = Senaryo1HedefOdemeMotoru.HedefNihaiOdemeSec(minTl, maxTl, 50);
+
+        if (!Senaryo1HedefOdemeMotoru.TryPaytableUyumluTekKumeSec(
+                tumbleAyarlari, bahis, minTl, maxTl, hedefTl,
+                _scatterIndexCache, sutun, satir,
+                out int kSym, out int kCnt, out int beklenenTl))
+        {
+            Debug.LogWarning($"[MOD_KONSTRUKTE] Paytable uyumlu küme YOK: bant={minTl}-{maxTl} hedef={hedefTl} bahis={bahis}");
+            return false;
+        }
+
+        if (!Senaryo1HedefOdemeMotoru.TryTekKumeliIlkGridOlustur(
+                sutun, satir, kSym, kCnt, _scatterIndexCache, sembolSayisi, out int[,] yeniGrid))
+        {
+            Debug.LogWarning($"[MOD_KONSTRUKTE] Grid üretimi başarısız: sym={kSym} cnt={kCnt}");
+            return false;
+        }
+
+        for (int x = 0; x < sutun; x++)
+            for (int y = 0; y < satir; y++)
+                grid[x, y] = yeniGrid[x, y];
+        _tumbleServisi?.SetGrid(grid);
+        Debug.Log($"[MOD_KONSTRUKTE] BAŞARILI: bant={minTl}-{maxTl} hedef={hedefTl} sym={kSym} kümeBoy={kCnt} beklenenTL={beklenenTl}");
+        return true;
     }
 
     /// <summary>Bahis animasyon helper: eski → yeni değere kademeli artar (görsel feedback, "+ tuşu").</summary>

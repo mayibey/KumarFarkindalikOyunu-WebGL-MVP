@@ -196,10 +196,19 @@ public partial class OyunYoneticisi
             beklenenKazanc = Senaryo4DonguSpinTipi() == SenaryoBombSpinTipi.Kazanc;
         else if (IsAdminSenaryo5Aktif())
             beklenenKazanc = Senaryo5DonguSpinTipi() == SenaryoBombSpinTipi.Kazanc;
+        else if (odemeMinKat > 0f && odemeMaksKat > 0f)
+            // FAZ35.85 K5: Mod aktifken spin başında 1 kez set edilen _modSpinBekleniyorKazanc kullan (reroll tutarlılık).
+            // Spin.cs SimuleEtVeKaydetImpl başında set edilir; ModKazancKonstrukte branch'ı + bu kontrol aynı field'ı paylaşır.
+            beklenenKazanc = _modSpinBekleniyorKazanc;
         else
             beklenenKazanc = UnityEngine.Random.value <= Mathf.Clamp01(_odemeEgilimiYuzde / 100f);
 
-        bool kazanc = nihaiOdeme > bahis;
+        // FAZ35.85 K1: Yontma+Koruma "yontma payı" kategorisi — odemeMinKat<1f iken kazanç anlamı "nihaiOdeme > 0".
+        // Hook (1.5-2.5), Tutma (1.2-1.8): odemeMinKat >= 1f → standart kazanç (>bahis).
+        // Yontma (0.3-0.7), Koruma (0.1-0.3): odemeMinKat < 1f → ödeme >0 ise "kazanç" sayılır (bahisten az olsa bile).
+        // Normal mod (odemeMinKat==0): yontmaPayi=false → standart kazanç mantığı (mevcut davranış).
+        bool yontmaPayiKategorisi = (odemeMinKat > 0f && odemeMinKat < 1f);
+        bool kazanc = yontmaPayiKategorisi ? (nihaiOdeme > 0) : (nihaiOdeme > bahis);
         if (beklenenKazanc && !kazanc) return false;
         if (!beklenenKazanc && kazanc) return false;
 
