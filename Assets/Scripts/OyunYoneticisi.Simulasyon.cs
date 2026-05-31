@@ -976,8 +976,11 @@ private int RastgeleCarpan()
         int sahneIdx87 = UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex;
         bool normalModAktif87 = sahneIdx87 == 2 &&
             (PanelKopru.aktifSenaryo == null || PanelKopru.aktifSenaryo == "normal");
+        // FAZ35.95 İŞ1: Normal mod havuz {2,3,5} → {3,5,8} → max çarpan 5x → 8x (+%60 çarpanlı kazanç).
+        // maxCarpanAdedi=1 guard (Faz 35.87 İŞ2) korunur → tek çarpan birikmez.
+        // Diğer modlar {2,3,5,8,10} havuzu korunur — Faz 35.93 _modKonstrukteBasarili guard ile DOGAL akış zaten kapalı.
         int[] havuz = normalModAktif87
-            ? new int[] { 2, 3, 5 }
+            ? new int[] { 3, 5, 8 }
             : new int[] { 2, 3, 5, 8, 10 };
         secilen = havuz[UnityEngine.Random.Range(0, havuz.Length)];
         havuzAdi = normalModAktif87 ? "DOGAL_SADE" : "DOGAL";

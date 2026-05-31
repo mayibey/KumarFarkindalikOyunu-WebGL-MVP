@@ -842,6 +842,35 @@
     padding: 12px 4px 4px;
   }
 
+  /* FAZ35.96 İŞ1: Detaylı Ayarlar toggle header — Oyun Modu kartından sonra, accordion'lardan önce. */
+  .detayli-ayarlar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    margin: 12px 0 8px 0;
+    background: rgba(244, 214, 120, 0.04);
+    border: 1px solid rgba(244, 214, 120, 0.2);
+    border-radius: 8px;
+    user-select: none;
+    cursor: pointer;
+  }
+  .detayli-ayarlar-baslik {
+    color: #f4d678;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 2px;
+  }
+  /* FAZ35.96 İŞ1: Slide-down/up 250ms, default kapalı (max-height:0). Toggle aç → .expanded class → 5000px. */
+  .detayli-ayarlar-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease-out;
+  }
+  .detayli-ayarlar-body.expanded {
+    max-height: 5000px;
+  }
+
   /* Apply pulse — preview modunda Uygula vurgusu */
   .apply-btn-pulsing {
     animation: applyPulse 1.2s ease-in-out infinite;
@@ -918,6 +947,17 @@
         Mod seçilince ayarlar otomatik kilitlenir. Herhangi bir ayar değiştirilirse mod 'Normal'e döner.
       </div>
     </div>
+
+    <!-- FAZ35.96 İŞ1: Detaylı Ayarlar toggle header — açık iken 3 accordion-section görünür, dropdown Normal'e kilitli. -->
+    <div class="detayli-ayarlar-header" id="detayliAyarlarHeader" onclick="detayliAyarlarToggleDegisti()">
+      <span class="detayli-ayarlar-baslik">⚙️ DETAYLI AYARLAR</span>
+      <div class="toggle" id="detayliAyarlarToggle">
+        <div class="toggle-dot"></div>
+      </div>
+    </div>
+
+    <!-- FAZ35.96 İŞ1: Mevcut 3 accordion-section bu wrapper içine taşındı (default collapse — max-height:0). -->
+    <div class="detayli-ayarlar-body" id="detayliAyarlarBody">
 
     <!-- ACCORDION: OLASILIK AYARLARI -->
     <div class="accordion-section" data-open="false">
@@ -1103,6 +1143,8 @@
 
       </div>
     </div>
+
+    </div><!-- FAZ35.96 İŞ1: /detayli-ayarlar-body wrapper sonu -->
 
   </div><!-- /panel-content -->
 
@@ -1307,6 +1349,36 @@
     var section = headerEl.parentElement;
     var isOpen = section.getAttribute('data-open') === 'true';
     section.setAttribute('data-open', isOpen ? 'false' : 'true');
+  }
+
+  // ===== FAZ35.96 İŞ1: DETAYLI AYARLAR TOGGLE =====
+  // Toggle KAPALI (default): 3 accordion-section (Olasılık + Manipülasyon + Anlık Müdahale) wrapper içinde max-height:0 → bütünüyle gizli (sade görünüm).
+  // Toggle AÇIK: dropdown Normal'e kilitli + disabled, 3 başlık slide-down 250ms ile görünür, kullanıcı accordion'ları ayrı ayrı aç/kapa yapabilir.
+  // B → A geçişinde alt panel değerleri DOM'da KORUNUR (sadece CSS gizleme, JS state silmez) — kullanıcı tekrar açtığında son ayarları görür.
+  function detayliAyarlarToggleDegisti() {
+    var toggle = document.getElementById('detayliAyarlarToggle');
+    var body = document.getElementById('detayliAyarlarBody');
+    var dropdown = document.getElementById('oyunModu');
+    var yeniDurum = !toggle.classList.contains('active');
+    toggle.classList.toggle('active');
+
+    if (yeniDurum) {
+      // A → B: detaylı ayarlar AÇIK
+      dropdown.value = 'normal';
+      dropdown.disabled = true;
+      dropdown.style.opacity = '0.5';
+      unityeGonder('oyunModu', 'normal');
+      // senaryoUygula mevcut akışı tetikler — Normal mod motor güncellemesi otomatik (Faz 35.87 akış).
+      if (typeof senaryoUygula === 'function') senaryoUygula();
+      body.classList.add('expanded');
+      console.log('[FAZ35.96 detayliAyarlar] AÇIK — dropdown Normal\'e kilitli, 3 accordion görünür');
+    } else {
+      // B → A: detaylı ayarlar KAPALI
+      dropdown.disabled = false;
+      dropdown.style.opacity = '1';
+      body.classList.remove('expanded');
+      console.log('[FAZ35.96 detayliAyarlar] KAPALI — 3 accordion gizli, dropdown serbest, alt panel değerleri DOM\'da korunur');
+    }
   }
 
   // ===== BİLDİRİM =====

@@ -345,8 +345,18 @@ public class PanelKopru : MonoBehaviour
                 break;
 
             case "paneliKapat":
+                // FAZ35.94 İŞ1: paneliKapat artık SADECE yönetici panelini kapatır (panel.html × butonu için).
+                // Bahis modal kendi 'bahisPaneliKapat' key'ini kullanır (aşağıdaki yeni case). İki modal bağımsız.
+                // Eski davranış: PaneliKapat() + BahisPaneliKapat() — bahis modal "OK" yönetici panelini istemeden kapatıyordu.
                 #if UNITY_WEBGL && !UNITY_EDITOR
                     PaneliKapat();
+                #endif
+                break;
+
+            case "bahisPaneliKapat":
+                // FAZ35.94 İŞ1: Yeni izole key — bahisSec.html "OK"/"iptal" sonrası sadece bahis modal'ı kapatır.
+                // Yönetici paneli açık kalır, kullanıcı bahis seçince paneli kaybetmez.
+                #if UNITY_WEBGL && !UNITY_EDITOR
                     BahisPaneliKapat();
                 #endif
                 break;

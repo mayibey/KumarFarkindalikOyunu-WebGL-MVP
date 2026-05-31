@@ -732,9 +732,21 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
         _izgaraServisi.SetFindClustersToRemove(_tumbleServisi.FindClustersToRemove);
 
         _carpanServisi = new CarpanServisi();
-        _carpanServisi.SetIsCarpanUretimiAktif(() => carpanUretimiAktif);
+        // FAZ35.93 İŞ1: Mod konstrukte başarılı iken (TUTMA/Hook/Yontma/Koruma kazanç fazları) doğal çarpan üretimini KAPAT.
+        // KÖK NEDEN: TryModKazancKonstrukteGridKur grid kurar + bonus carpan force eder, AMA ana reroll tumble loop'unda
+        // CarpanUretVeBirik → _rollCarpanDegeri (RastgeleCarpan) DOGAL carpan üretip multi-tumble'da biriktiriyordu
+        // (5+8+10=18x → 1000 TL bahse 36000 TL ödedi). Bonus carpan force path (zorlaSiradakiCarpan) bağımsız çalışır.
+        // Normal mod (_modKonstrukteBasarili=false) doğal carpan akışı aynen korunur.
+        _carpanServisi.SetIsCarpanUretimiAktif(() => carpanUretimiAktif && !_modKonstrukteBasarili);
         _carpanServisi.SetIsCarpanSadeceBonus(() => carpanSadeceBonus);
-        _carpanServisi.SetGetCarpanUretimOlasiligi(() => carpanUretimOlasiligi);
+        // FAZ35.95 İŞ1: Normal mod özel carpanUretimOlasiligi %5 → %10 (2x sıklık) → çarpan beklenme süresi yarıya iner.
+        // Diğer modlar carpanUretimOlasiligi field değerini okur (varsayılan %5, kullanıcı paneli ayarı korunur).
+        // buildIndex==2 + aktifSenaryo=="normal" guard ile Senaryolu modlar etkilenmez.
+        _carpanServisi.SetGetCarpanUretimOlasiligi(() => {
+            bool normalModAktif95 = SceneManager.GetActiveScene().buildIndex == 2
+                                  && (PanelKopru.aktifSenaryo == null || PanelKopru.aktifSenaryo == "normal");
+            return normalModAktif95 ? 0.10f : carpanUretimOlasiligi;
+        });
         // FAZ35.88 İŞ2: Normal mod baseline → tek çarpan max (havuz {2,3,5} ile birleşince max 5x, mega kazanç imkansız).
         // CarpanServisi.ResetForNewSpin(maxCarpanAdedi) bu delegate'i her spin başında çağırır (cache yok).
         // Normal mod: max 1 → Random.Range(1, 2)=1 → tek çarpan, kalan kota 0 → sonraki tumble'larda ek çarpan yok.

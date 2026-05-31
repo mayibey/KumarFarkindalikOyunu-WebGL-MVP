@@ -526,7 +526,9 @@ public partial class OyunYoneticisi
         _senaryoPresetAktif = false;
         _aktifAdminSenaryoIndex = -1;
 
-        _odemeEgilimiYuzde = 65;
+        // FAZ35.95 İŞ1: Normal mod RTP %17 → ~%55-65 hedef (pedagojik denge).
+        // Eğilim 65 → 75 → OdemeModelineUygunMu RNG kararı daha sık "kazanç bekliyor" → reroll cluster arama agresif.
+        _odemeEgilimiYuzde = 75;
 
         AdminZorlaCarpanSec(0, false, null);
         SpinPolitikasiniYenile();

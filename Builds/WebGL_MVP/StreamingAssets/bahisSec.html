@@ -199,7 +199,9 @@
   function bahisSec(miktar) {
     if (!miktar || miktar < 1) return;
     unityeGonder('bahisSec', miktar);
-    unityeGonder('paneliKapat', true);
+    // FAZ35.94 İŞ1: 'paneliKapat' generic key yönetici panelini de kapatıyordu (PanelKopru.AyariIsle hem PaneliKapat hem BahisPaneliKapat çağırıyordu).
+    // Ayrı 'bahisPaneliKapat' key kullanılıyor — sadece bahis modal'ı kapatır, yönetici paneli açık kalır.
+    unityeGonder('bahisPaneliKapat', true);
   }
 
   function onaylaManuel() {
@@ -235,7 +237,8 @@
     }, 2200);
   }
 
-  function iptal() { unityeGonder('paneliKapat', true); }
+  // FAZ35.94 İŞ1: 'paneliKapat' → 'bahisPaneliKapat' (yalnızca bahis modal kapanır, yönetici paneli açık kalır).
+  function iptal() { unityeGonder('bahisPaneliKapat', true); }
 
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') iptal();
