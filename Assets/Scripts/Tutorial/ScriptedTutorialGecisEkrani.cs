@@ -325,10 +325,19 @@ namespace KumarFarkindalik.Tutorial
             // FAZ35.91 İŞ1: Defansif balance reset — OyunYoneticisi.Start() içindeki reset guard'a takılırsa
             // (GameManager null vb.) burada yedek katman olarak balance=50000 garanti edilir. Çift koruma:
             // hem geçiş anında (TamSaveTemizlik), hem sahne yüklenince (OyunYoneticisi.Start).
+            // FAZ35.92 İŞ1: Detaylı teşhis log — kullanıcı 35.91'de bu defansif log'u görmemişti (else branch'a girmiş demek).
+            // ActivePlayer { get; private set; } olduğu için ActivePlayer NULL ise YENİ INSTANCE yaratılamaz (private setter + tip).
+            // ÇÖZÜM: OyunYoneticisi.Start bootstrap sonrası EkonomiServisi.SetBakiye(50000) (ULTRA-KESIN field-bazlı fallback).
             if (GameManager.I != null && GameManager.I.ActivePlayer != null)
             {
                 GameManager.I.ActivePlayer.balance = 50000;
                 Debug.Log("[FAZ35.91 İŞ1] TamSaveTemizlik içinde defansif balance reset edildi: 50000 TL");
+            }
+            else
+            {
+                bool gmNull92 = GameManager.I == null;
+                bool apNull92 = !gmNull92 && GameManager.I.ActivePlayer == null;
+                Debug.LogWarning($"[FAZ35.92 İŞ1] TamSaveTemizlik: GameManager.I null mu={gmNull92} | ActivePlayer null mu={apNull92} — defansif reset ATLANDI. OyunYoneticisi.Start Bootstrap sonrası EkonomiServisi.SetBakiye(50000) fallback'i kurtaracak.");
             }
             Debug.Log("[ScriptedTutorialGecisEkrani] TamSaveTemizlik: SaveLoad sil + PlayerPrefs DeleteKey x2 + KullaniciVerileri reset.");
         }

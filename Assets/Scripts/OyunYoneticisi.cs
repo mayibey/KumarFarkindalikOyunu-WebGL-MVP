@@ -568,7 +568,12 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
             }
             else
             {
-                Debug.LogWarning($"[FAZ35.91 İŞ1] GameManager.I={GameManager.I == null} veya ActivePlayer null — bakiye reset ATLANDI (kök neden teşhisi gerek)");
+                // FAZ35.92 İŞ1: Detaylı teşhis log — kullanıcı log'unda "GameManager.I=False" görmüştü (yani GameManager.I null değil ama ActivePlayer null).
+                // ActivePlayer { get; private set; } olduğu için yeni instance YARATILAMAZ (compile error + KullaniciVerileri ≠ PlayerProfile tip uyumsuzluğu).
+                // ÇÖZÜM: Bootstrap sonrası EkonomiServisi.SetBakiye(50000) fallback (ALT-PARÇA 2, _bakiye field direkt set).
+                bool gmNull92 = GameManager.I == null;
+                bool apNull92 = !gmNull92 && GameManager.I.ActivePlayer == null;
+                Debug.LogError($"[FAZ35.92 İŞ1] GameManager.I null mu={gmNull92} | ActivePlayer null mu={apNull92} — ActivePlayer.balance reset ATLANDI. Bootstrap sonrası EkonomiServisi.SetBakiye(50000) fallback devreye girecek.");
             }
         }
 
@@ -577,6 +582,17 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
         _oyunBootstrapServisi.SetBaglam(this);
         _oyunBootstrapServisi.Calistir();
         BahisGorselKilidiniHazirla();
+
+        // FAZ35.92 İŞ1 ULTRA-KESIN FALLBACK: Bootstrap sonrası EkonomiServisi'ne direkt 50000 set et.
+        // ALT-PARÇA 1 reset GameManager.ActivePlayer null ise atlandı → kullanıcı yine 0 görüyordu.
+        // EkonomiServisi.SetBakiye(_bakiye field direkt set + EkonomiSenkronizeEt UI update) ActivePlayer null bile olsa garanti çalışır.
+        // Bootstrap içinde EkonomiServisi yaratılıp EkonomiYukleGameManagerVeyaPrefs (ActivePlayer'tan veya PlayerPrefs'ten okur) çağrılır;
+        // bu satır o okumayı EZER ve 50000 zorla yazar. Sonuç: idx 2'de UI 50000 TL garanti, hiçbir guard'a takılmaz.
+        if (SceneManager.GetActiveScene().buildIndex == 2 && _ekonomiServisi != null)
+        {
+            _ekonomiServisi.SetBakiye(50000);
+            Debug.Log("[FAZ35.92 İŞ1] Bootstrap sonrası EkonomiServisi.SetBakiye(50000) — KESIN bakiye reset (ActivePlayer null bile olsa garanti).");
+        }
     }
 
     void IOyunBootstrapBaglami.BootstrapMantiginiCalistir()
