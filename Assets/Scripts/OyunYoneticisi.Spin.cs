@@ -392,6 +392,9 @@ public partial class OyunYoneticisi
         }
 
         _bombaPatlamaSonrasiIlkRefillCarpanEngeli = false;
+        // FAZ35.84: Reroll sayacı reset (her spin başı). Scripted/konstrukte erken return path'leri -1 kalır,
+        // ana reroll loop return öncesi deneme sayısı set edilir (debug analiz için).
+        _sonSpinRerollSayisi = -1;
         bool adminManuelMod = _adminManuelZorlukKilidi || AdminOyunSahnesiMi();
 
         int limit = bonusSpin ? (_senaryoServisi != null ? _senaryoServisi.GetBonusRemainingPayableTL() : int.MaxValue) : odenebilirLimit;
@@ -816,6 +819,8 @@ public partial class OyunYoneticisi
                 _adminVideoArdisikKazancSpinKalan = Mathf.Max(0, _adminVideoArdisikKazancSpinKalan - 1);
                 Debug.Log($"[ADMIN][VIDEO] Arka arkaya kazançlı spin kaldı: {_adminVideoArdisikKazancSpinKalan}");
             }
+            // FAZ35.84: Reroll deneme sayısı yakalama (debug analiz için)
+            _sonSpinRerollSayisi = deneme;
             return kayit;
         }
 

@@ -391,10 +391,21 @@ public class DonusAkisServisi
         if (_runCoroutine != null)
             yield return _runCoroutine(_ctx.ShowNormalSpinSonucPopup(odenen, _ctx.SpinBahisTL));
 
+        // FAZ35.84: SpinAnaliz debug log (her spin tek satır — mod, bakiye, meyveler, çarpan, bant, eğilim, tutma sayaç, reroll)
+        // OyunYoneticisi.SpinAnaliz.cs partial class metodunu çağırır. _ctx interface üzerinden değil, instance üzerinden çağrı.
+        var oyAnaliz = UnityEngine.Object.FindObjectOfType<OyunYoneticisi>();
+        if (oyAnaliz != null && _ctx.EkonomiServisi != null)
+            oyAnaliz.SpinAnalizLog(_ctx.SpinPrevBakiye, _ctx.EkonomiServisi.Bakiye, odenen, _ctx.SpinBahisTL);
+
         // SCRIPTED MOD — kazanç miktarı bakiyeye uçar + counting up. Popup AÇILMAZ; sadece animasyon.
         // Conditional kaynak: BIG WIN+ tier (>=2×bahis) ekran ortasındaki WinFeedback yazısı, aksi halde sağ üst kazancText.
         // SIRALI BEKLEME: yield return ile uçuş tamamlanana kadar bekle — modal hook'u panel/uçuş üstüne binmesin.
-        if (Senaryo.Scripted.ScriptedSpinYoneticisi.Aktif && odenen > 0 && _runCoroutine != null)
+        // FAZ35.84: Yeni 03 admin sahnesi (idx 2) için guard genişletildi. Eski 04 Tutorial (idx 3) kendi
+        // yolundan tetikliyor (TutorialKazancAnimasyon.Update → KazancUcusuKopru) bu branch'a girmez (Aktif=false).
+        // 02 anlatıcı (idx 1): ScriptedSpinYoneticisi.Aktif=true → guard geçer (mevcut). 03 admin (idx 2): YENİ — OR branch ile aç.
+        if ((Senaryo.Scripted.ScriptedSpinYoneticisi.Aktif
+             || SceneManager.GetActiveScene().buildIndex == 2)
+            && odenen > 0 && _runCoroutine != null)
         {
             var oy = UnityEngine.Object.FindObjectOfType<OyunYoneticisi>();
             if (oy != null)

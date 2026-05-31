@@ -158,6 +158,11 @@ public partial class OyunYoneticisi
     [HideInInspector] public int  _tutmaModSpinSayac = 0;
     [HideInInspector] public bool _tutmaBuSpinKayipBekleniyor = false;
 
+    // FAZ35.84: SpinAnaliz debug log sistemi — her spin tek satır detaylı analiz.
+    // _spinAnalizNo: oturum boyu artar (sayaç). _sonSpinRerollSayisi: -1 = scripted/konstrukte path, >=0 = ana reroll loop deneme.
+    private static int _spinAnalizNo = 0;
+    [HideInInspector] public int _sonSpinRerollSayisi = -1;
+
     public TMPro.TextMeshProUGUI carpanOlasilikValueText;
     public TMPro.TextMeshProUGUI carpanMaxAdetValueText;
 
