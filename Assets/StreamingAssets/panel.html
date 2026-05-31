@@ -898,9 +898,16 @@
       <div class="scenario-header">
         <label style="font-size: 19px;">Oyun modu</label>
         <span class="help-icon" data-tip="oyunModu">?</span>
+        <!-- FAZ35.83: Mod Aktif toggle — ON iken mod baskın (tüm ayarlar disabled), OFF iken tüm ayarlar serbest. -->
+        <div style="display:flex; align-items:center; gap:10px; margin-left:auto;">
+          <span class="toggle-label" id="modAktifLabel" style="font-size:15px;">Mod Baskın</span>
+          <div id="modAktifToggle" class="toggle active" onclick="modAktifToggleDegisti()">
+            <div class="toggle-dot"></div>
+          </div>
+        </div>
       </div>
       <div class="scenario-row">
-        <select id="oyunModu" onchange="senaryoPreview(this.value)">
+        <select id="oyunModu" onchange="senaryoOtomatikUygula(this.value)">
           <option value="normal">Normal oyun</option>
           <option value="hook">Taze Kan Modu</option>
           <option value="yontma">Ufak Miktarlarda Kayıp Ettirme Modu</option>
@@ -911,6 +918,10 @@
         <span id="pendingHint" style="display:none; color:#b8a875; font-size:14px; margin-left:10px; font-style:italic; align-self:center;">değişiklikler bekliyor</span>
       </div>
       <div class="mod-aciklama-line" id="modAciklama"></div>
+      <!-- FAZ35.83: Mod toggle açıklama -->
+      <div style="font-size:13px; color:#8a7c5c; font-style:italic; margin-top:6px;">
+        Açık: Modun saf karakteri uygulanır · Kapalı: Tüm ayarlar serbest (manuel kontrol)
+      </div>
     </div>
 
     <!-- ACCORDION: OLASILIK AYARLARI -->
@@ -1375,18 +1386,73 @@
     unityeGonder(anahtar, yeniDurum);
   }
 
+  // ===== FAZ35.83: MOD AKTİF TOGGLE + KAPSAMLI KİLİT =====
+  // Mod ON iken DISABLED olacak TÜM input/toggle/button ID'leri (Karar #1 GENİŞ kapsam).
+  // AKTİF kalan: oyunModu dropdown, modAktifToggle, senaryoUygulaBtn, .btn-secondary (Varsayılana dön),
+  // help-icon, accordion-header (UI navigasyon).
+  var MOD_KILITLI_IDS = [
+    // Olasılık Ayarları
+    'carpanOlasilik', 'carpanOlasilikInput', 'maxCarpanTekSpin', 'bonusSembolOlasilik',
+    // Manipülasyon Ayarları
+    'minCarpan', 'maksCarpan', 'yakinKacirmaToggle', 'ardisikKayipToggle',
+    // Anlık Müdahale
+    'bonusManuel', 'bonusOtomatik', 'bonusTetikleBtn',
+    'carpanInput', 'carpanZorla100', 'carpanZorla250', 'carpanZorla500', 'carpanOdemeToggle'
+  ];
+
+  function modKilitle(modAktif) {
+    for (var i = 0; i < MOD_KILITLI_IDS.length; i++) {
+      var el = document.getElementById(MOD_KILITLI_IDS[i]);
+      if (!el) continue;
+      // .toggle div'leri için: pointer-events + opacity (disabled attribute div'de etkisiz).
+      // input/button için: disabled attribute + opacity + pointer-events.
+      if (typeof el.disabled !== 'undefined') el.disabled = modAktif;
+      el.style.opacity = modAktif ? '0.4' : '1';
+      el.style.pointerEvents = modAktif ? 'none' : 'auto';
+    }
+    console.log('[FAZ35.83 modKilitle] modAktif=' + modAktif + ', kilitli sayi=' + MOD_KILITLI_IDS.length);
+  }
+
+  function modAktifToggleDegisti() {
+    var toggle = document.getElementById('modAktifToggle');
+    var label  = document.getElementById('modAktifLabel');
+    var modAktif = !toggle.classList.contains('active');
+    toggle.classList.toggle('active');
+    if (label) label.textContent = modAktif ? 'Mod Baskın' : 'Manuel';
+
+    unityeGonder('modAktif', modAktif ? 'true' : 'false');
+    modKilitle(modAktif);
+
+    // Mod kapanınca dropdown otomatik Normal'e dönsün (motor da Normal'e döner).
+    if (!modAktif) {
+      document.getElementById('oyunModu').value = 'normal';
+      senaryoPreview('normal');
+    }
+    console.log('[FAZ35.83 modAktifToggle] Mod aktif:', modAktif);
+  }
+
+  // Dropdown otomatik Uygula — Hook 300 TL bug fix (Karar #3 A).
+  // Mod toggle ON iken dropdown değişimi anında senaryoUygula() çağırır (preview + apply tek tıkta).
+  // Mod toggle OFF iken sadece preview (UI feedback), Uygula butonu manuel basılır.
+  function senaryoOtomatikUygula(secim) {
+    senaryoPreview(secim);
+    var modToggle = document.getElementById('modAktifToggle');
+    if (modToggle && modToggle.classList.contains('active')) {
+      senaryoUygula();
+    }
+  }
+
   // ===== SENARYO UYGULA =====
   // UI-5LIK: kazanmaOrani + yakinKacirma artık 0-5 ölçekte (eski 0-10 ve 0-100 değerleri /2 ve /20 ile adapte edildi).
-  // FAZ35.82: Mod-spesifik default'lar — her mod kendi Min/Maks bandını UI'a yansıtır + motor (PanelKopru.SenaryoUygula)
-  // aynı değerleri AdminSetMin/MaksCarpanDegeri ile motor field'larına da yazar (belt+suspenders).
-  // Hook 2x-3x; Yontma 0.3x-0.7x bahisten az; Tutma 1x-2x + deterministik 2-kayıp-1-kazanç (motor sayacı);
-  // Koruma 0.1x-0.5x; Normal 0/0 devre dışı (kullanıcı manuel slider'la aktive eder).
+  // FAZ35.83: Mod karakter revizyonu — her mod saf karakterini yaşatır (geniş bantlar yerine dar bantlar).
+  // Hook (Taze Kan) 1.5x-2.5x + %90 eğilim, Yontma 0.3x-0.7x + %70, Tutma 1.2x-1.8x dar + 2-1 deterministik,
+  // Koruma 0.1x-0.3x + %8, Normal 0/0 (kullanıcı manuel). Eğilim yüzdeleri PanelKopru.SenaryoUygula'da motor'a yazılır.
   var SENARYOLAR = {
     normal:  { minCarpan: 0,   maksCarpan: 0,   yakinKacirma: 0, ardisikKayip: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 2,   carpanOdeme: true  },
-    hook:    { minCarpan: 2,   maksCarpan: 3,   yakinKacirma: 2, ardisikKayip: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 3,   carpanOdeme: true  },
+    hook:    { minCarpan: 1.5, maksCarpan: 2.5, yakinKacirma: 2, ardisikKayip: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 3,   carpanOdeme: true  },
     yontma:  { minCarpan: 0.3, maksCarpan: 0.7, yakinKacirma: 3, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 1,   carpanOdeme: true  },
-    tutma:   { minCarpan: 1,   maksCarpan: 2,   yakinKacirma: 2, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 1,   carpanOdeme: true  },
-    koruma:  { minCarpan: 0.1, maksCarpan: 0.5, yakinKacirma: 5, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: false }
+    tutma:   { minCarpan: 1.2, maksCarpan: 1.8, yakinKacirma: 2, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 1,   carpanOdeme: true  },
+    koruma:  { minCarpan: 0.1, maksCarpan: 0.3, yakinKacirma: 5, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: false }
   };
 
   // Son APPLY edilen state — sayfa açılışta normal preset
@@ -1714,6 +1780,8 @@
     panelInitNormalApply();
     unityeGonder('panelHazir', true);
     modAciklamasiniGuncelle(document.getElementById('oyunModu').value);
+    // FAZ35.83: Mod toggle default ON — sayfa yüklenince tüm ayarlar disabled (mod baskın varsayılan).
+    modKilitle(true);
   });
 
   // PAKET 14-FAZ34 İş 6: Tutorial adım bazlı disabled — aktif selector listesi haricindeki tüm

@@ -298,9 +298,16 @@ public partial class OyunYoneticisi
     private const int SIMULASYON_MAX_REROLL_ZORLA_CARPAN_TUMBLE = 80;
 
     /// <summary>Anlatıcı aktifken aşamaya göre reroll bütçesi: yüksek RTP isteyen aşamada (1-2) çok dene,
-    /// tükeniş aşamasında (5-7) az dene. RNG'den uygun ödeme bulunamazsa bant zorlanmadan fallback olur.</summary>
+    /// tükeniş aşamasında (5-7) az dene. RNG'den uygun ödeme bulunamazsa bant zorlanmadan fallback olur.
+    /// FAZ35.83: Mod aktif (odemeMinKat>0 && odemeMaksKat>0) iken reroll=500 — Hook 1.5x-2.5x gibi dar bantların
+    /// 28 reroll içinde yakalanamayıp fallback'e düşmesini önler. Anlatıcı asama mantığından bağımsız (Anlatıcı 02'de).</summary>
     private int AsamaIcinMaxReroll()
     {
+        // FAZ35.83: Yeni 03 admin (Anlatıcı yok) + mod aktif → dar bant için reroll yükselt.
+        var anlaticiCheck83 = AnlaticiSeritKopru.Ornek;
+        if (anlaticiCheck83 == null && odemeMinKat > 0f && odemeMaksKat > 0f)
+            return 500; // mod aktif dar bant — Hook 1.5-2.5 gibi katı bantlar 28 reroll'da yakalanamıyordu
+
         var anlatici = AnlaticiSeritKopru.Ornek;
         if (anlatici == null) return SIMULASYON_MAX_REROLL;
         int asama = anlatici.AktifAsama;

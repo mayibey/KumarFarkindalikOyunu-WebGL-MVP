@@ -169,6 +169,22 @@ public class PanelKopru : MonoBehaviour
                 SenaryoUygula(deger);
                 break;
 
+            case "modAktif":
+                // FAZ35.83: Mod toggle handler. true → mevcut senaryo motor'a uygulanır, false → Normal'e döner.
+                // Sahne guard: SenaryoUygula içinde buildIndex==1 (02 anlatıcı) + buildIndex==3 (Tutorial) BYPASS var.
+                bool modAktif83 = bool.TryParse(deger, out var bModAk83) && bModAk83;
+                if (modAktif83)
+                {
+                    SenaryoUygula(aktifSenaryo);
+                }
+                else
+                {
+                    aktifSenaryo = "normal";
+                    SenaryoUygula("normal");
+                }
+                Debug.Log($"[PanelKopru FAZ35.83] modAktif={modAktif83}, aktifSenaryo={aktifSenaryo}");
+                break;
+
             // FAZ35.76: case "kazanmaOrani" SİLİNDİ — panel slider kaldırıldı. AdminSetOdemeEgilimi 03 ana
             // ödeme metodu olarak KORUNDU; 03 senaryoları SenaryoUygula üzerinden sabit yüzde gönderiyor.
 
@@ -357,13 +373,23 @@ public class PanelKopru : MonoBehaviour
     }
 
     // ===== SENARYO UYGULAMA =====
-    // FAZ35.82: Her mod kendi Min/Maks bandını + eğilimini + Tutma sayacını motor seviyesinde uygular.
-    // Hook 2x-3x bant + %85 eğilim; Yontma 0.3x-0.7x bant + %50; Tutma 1x-2x bant + %15 eğilim + deterministik 2-kayıp-1-kazanç döngü;
-    // Koruma 0.1x-0.5x bant + %5; Normal 0x-0x (devre dışı, kullanıcı manuel).
-    // Mod değişimi → Tutma OFF (Tutma case'inde tekrar ON). 35.81 Min/Maks reroll mekaniği HARMONIK.
+    // FAZ35.83: Mod karakter revizyonu — saf karakterler, dar bantlar.
+    // Hook 1.5x-2.5x + %90; Yontma 0.3x-0.7x + %70; Tutma 1.2x-1.8x + %15 + 2-1 deterministik döngü;
+    // Koruma 0.1x-0.3x + %8; Normal 0/0 + %65 (kullanıcı manuel slider'la aktive eder).
+    // YENİ 02 GUARD (buildIndex==1): Anlatıcı sahnesinde SenaryoUygula BYPASS — Anlatıcı kendi eğilimini yönetir.
+    // Mevcut Tutorial guard (buildIndex==3) korunur. Mod değişimi → Tutma OFF (Tutma case'inde tekrar ON).
     private void SenaryoUygula(string senaryo)
     {
         if (_oy == null) return;
+
+        // FAZ35.83 YENİ: 02 anlatıcı sahnesi (idx 1) BYPASS — AnlaticiSeritKopru kendi eğilimini set ediyor,
+        // kullanıcı panelden mod değiştirirse Anlatıcı pedagojik akışı bozulurdu.
+        int sahneIdx83 = SceneManager.GetActiveScene().buildIndex;
+        if (sahneIdx83 == 1)
+        {
+            Debug.Log($"[PanelKopru FAZ35.83] 02 anlatıcı sahnesi (idx 1) — SenaryoUygula BYPASS (senaryo={senaryo})");
+            return;
+        }
 
         // FAZ35.82: Her mod değişiminde Tutma otomatik off — Tutma case'inde tekrar on.
         _oy.AdminSetTutmaModAktif(false);
@@ -378,32 +404,36 @@ public class PanelKopru : MonoBehaviour
                 break;
 
             case "hook":
-                _oy.AdminSetOdemeEgilimi(85);
-                _oy.AdminSetMinCarpanDegeri(2f);
-                _oy.AdminSetMaksCarpanDegeri(3f);
-                minCarpan = 2f; maksCarpan = 3f;
+                // FAZ35.83: Taze Kan — %85→%90 eğilim, 2/3→1.5/2.5 bant (dar, saf karakter)
+                _oy.AdminSetOdemeEgilimi(90);
+                _oy.AdminSetMinCarpanDegeri(1.5f);
+                _oy.AdminSetMaksCarpanDegeri(2.5f);
+                minCarpan = 1.5f; maksCarpan = 2.5f;
                 break;
 
             case "yontma":
-                _oy.AdminSetOdemeEgilimi(50);
+                // FAZ35.83: %50→%70 eğilim (sürekli kazanç ama bahisten az → sessiz erime)
+                _oy.AdminSetOdemeEgilimi(70);
                 _oy.AdminSetMinCarpanDegeri(0.3f);
                 _oy.AdminSetMaksCarpanDegeri(0.7f);
                 minCarpan = 0.3f; maksCarpan = 0.7f;
                 break;
 
             case "tutma":
+                // FAZ35.83: bant 1/2→1.2/1.8 (dar bant, hep umut). Deterministik 2-kayıp-1-kazanç korunur.
                 _oy.AdminSetOdemeEgilimi(15);
-                _oy.AdminSetMinCarpanDegeri(1f);
-                _oy.AdminSetMaksCarpanDegeri(2f);
-                minCarpan = 1f; maksCarpan = 2f;
+                _oy.AdminSetMinCarpanDegeri(1.2f);
+                _oy.AdminSetMaksCarpanDegeri(1.8f);
+                minCarpan = 1.2f; maksCarpan = 1.8f;
                 _oy.AdminSetTutmaModAktif(true);
                 break;
 
             case "koruma":
-                _oy.AdminSetOdemeEgilimi(5);
+                // FAZ35.83: %5→%8 eğilim, bant 0.1/0.5→0.1/0.3 (neredeyse hiç kazanç)
+                _oy.AdminSetOdemeEgilimi(8);
                 _oy.AdminSetMinCarpanDegeri(0.1f);
-                _oy.AdminSetMaksCarpanDegeri(0.5f);
-                minCarpan = 0.1f; maksCarpan = 0.5f;
+                _oy.AdminSetMaksCarpanDegeri(0.3f);
+                minCarpan = 0.1f; maksCarpan = 0.3f;
                 break;
         }
         aktifSenaryo = senaryo;
@@ -411,7 +441,7 @@ public class PanelKopru : MonoBehaviour
         // FAZ35.81 Madde 3: yakinKacirma motor yansıt (panel 0-100 → motor 0-10 ölçek).
         _oy.AdminSetYakinKacirma(Mathf.RoundToInt(yakinKacirma / 10f));
 
-        Debug.Log($"[PanelKopru] FAZ35.82 Senaryo uygulandı: {senaryo}, min={minCarpan}, maks={maksCarpan}, tutmaAktif={(senaryo == "tutma")}");
+        Debug.Log($"[PanelKopru] FAZ35.83 Senaryo uygulandı: {senaryo}, min={minCarpan}, maks={maksCarpan}, tutmaAktif={(senaryo == "tutma")}");
     }
 
     // ===== BONUS TETİKLEME =====
@@ -459,7 +489,12 @@ public class PanelKopru : MonoBehaviour
         // FAZ35.82: Tutma modu reset (sayaç sıfırlanır + flag temizlenir).
         _oy?.AdminSetTutmaModAktif(false);
 
-        Debug.Log("[PanelKopru] Varsayılan ayarlara dönüldü (FULL RESET: motor field default'a + odemeEgilimi=65 + Min/Maks devre dışı + Tutma off + ardisikKayip kapalı)");
+        // FAZ35.83: Mod toggle reset — JS taraf sayfa yüklendiğinde modKilitle(true) çağırır (load handler).
+        // VarsayilanaDon C# tarafında ek bir motor state'i yok; yukarıdaki AdminSetMin/MaksCarpanDegeri(0f)
+        // + AdminSetTutmaModAktif(false) zaten mod akışını sıfırlıyor. UI senkron için panel tarafı
+        // varsayilanaDon JS handler'ında dropdown 'normal'e döner + modAktifToggle ON kalır (default).
+
+        Debug.Log("[PanelKopru] Varsayılan ayarlara dönüldü (FULL RESET: motor field default'a + odemeEgilimi=65 + Min/Maks devre dışı + Tutma off + ardisikKayip kapalı + FAZ35.83 mod akışı sıfırlandı)");
     }
 
     // ===== MEVCUT AYARLARI PANELE GÖNDER =====
