@@ -171,6 +171,10 @@ public partial class OyunYoneticisi
     [HideInInspector] public bool _modSpinBekleniyorKazanc = false;
     [HideInInspector] public bool _modKonstrukteBasarili = false;
 
+    // FAZ35.86: Çeşitlilik motoru anti-streak guard — mod akışı son seçilen sembol (-1 = guard yok / başlangıç).
+    // TryPaytableUyumluTekKumeRastgeleSec bu sembolü listeden çıkarır (alternatif varsa) → arka arkaya aynı sembol görünmez.
+    [HideInInspector] public int _modSonSecilenSembol = -1;
+
     public TMPro.TextMeshProUGUI carpanOlasilikValueText;
     public TMPro.TextMeshProUGUI carpanMaxAdetValueText;
 

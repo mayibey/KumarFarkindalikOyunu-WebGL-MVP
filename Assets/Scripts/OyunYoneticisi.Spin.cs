@@ -1022,15 +1022,19 @@ public partial class OyunYoneticisi
         int minTl = Mathf.RoundToInt(bahis * odemeMinKat);
         int maxTl = Mathf.RoundToInt(bahis * odemeMaksKat);
         if (maxTl < minTl) { int t = minTl; minTl = maxTl; maxTl = t; }
-        // Yontma+Koruma (odemeMinKat<1) için minTl bahis altı olabilir; bant aynen kullanılır (paytable seçim TL bantına bakar).
-        int hedefTl = Senaryo1HedefOdemeMotoru.HedefNihaiOdemeSec(minTl, maxTl, 50);
 
-        if (!Senaryo1HedefOdemeMotoru.TryPaytableUyumluTekKumeSec(
-                tumbleAyarlari, bahis, minTl, maxTl, hedefTl,
+        // FAZ35.86 İŞ2: Çeşitlilik motoru — yeni rastgele seçim + anti-streak guard.
+        // Mevcut TryPaytableUyumluTekKumeSec deterministik (KumeBoyuAgirligi 8-9 dominantlığı + tolerance filter →
+        // pratikte aynı sembol/küme tekrar). Yeni metod: tüm bant adayları EŞİT şans + son seçileni atla.
+        // hedefTl parametresi YOK (tolerance filter atlandığı için gereksiz). Senaryo 1-5 mevcut metodu kullanmaya devam eder.
+        int onceki = _modSonSecilenSembol;
+        if (!Senaryo1HedefOdemeMotoru.TryPaytableUyumluTekKumeRastgeleSec(
+                tumbleAyarlari, bahis, minTl, maxTl,
                 _scatterIndexCache, sutun, satir,
+                _modSonSecilenSembol,
                 out int kSym, out int kCnt, out int beklenenTl))
         {
-            Debug.LogWarning($"[MOD_KONSTRUKTE] Paytable uyumlu küme YOK: bant={minTl}-{maxTl} hedef={hedefTl} bahis={bahis}");
+            Debug.LogWarning($"[MOD_KONSTRUKTE] Paytable uyumlu küme YOK: bant={minTl}-{maxTl} bahis={bahis}");
             return false;
         }
 
@@ -1045,7 +1049,9 @@ public partial class OyunYoneticisi
             for (int y = 0; y < satir; y++)
                 grid[x, y] = yeniGrid[x, y];
         _tumbleServisi?.SetGrid(grid);
-        Debug.Log($"[MOD_KONSTRUKTE] BAŞARILI: bant={minTl}-{maxTl} hedef={hedefTl} sym={kSym} kümeBoy={kCnt} beklenenTL={beklenenTl}");
+        // FAZ35.86: Anti-streak için son seçileni güncelle (sonraki spin bu sembolü atlar, alternatif varsa).
+        _modSonSecilenSembol = kSym;
+        Debug.Log($"[MOD_KONSTRUKTE] BAŞARILI: bant={minTl}-{maxTl} sym={kSym} kümeBoy={kCnt} beklenenTL={beklenenTl} (önceki sym={onceki})");
         return true;
     }
 

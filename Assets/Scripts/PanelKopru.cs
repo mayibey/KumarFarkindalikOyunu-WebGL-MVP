@@ -366,6 +366,11 @@ public class PanelKopru : MonoBehaviour
                 MevcutAyarlariGonder();
                 break;
 
+            case "uygulamaOnayi":
+                // FAZ35.86 İŞ1: Tutorial-only field (TutorialAdminEnjeksiyonu.cs case işliyor idx 3'te).
+                // idx 2 (yeni 03 admin) + idx 1 (02 anlatıcı)'de no-op (warning susturma). Akış kesilmez.
+                break;
+
             default:
                 Debug.LogWarning("[PanelKopru] Bilinmeyen ayar: " + anahtar);
                 break;

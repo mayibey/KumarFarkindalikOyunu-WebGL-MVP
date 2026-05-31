@@ -1566,11 +1566,8 @@
     var s = SENARYOLAR[secim];
     if (!s) return;
 
-    // PAKET 14-FAZ35.2: Tutorial sahnesinde confirm atla — Tutorial pedagojik akış, kullanıcı onayı zaten Uygula butonunda.
-    if (!tutorialAktif && !confirm('Bu ayarlar tüm aktif oyunculara hemen uygulanacak. Devam edilsin mi?')) {
-      revertToSavedState();
-      return;
-    }
+    // FAZ35.86 İŞ1: Confirm pop-up regression fix (35.83 senaryoOtomatikUygula sonrası gereksiz pop-up).
+    // Yönetici aracı: dropdown her seçimde direkt uygula. revertToSavedState (sat ~1538) defansif, korunur.
 
     // PAKET 14-FAZ34.3 BUG F: senaryoUygula() preset gönderimi sırasında lastChanged tracking KAPALI →
     // kullanıcının manuel değiştirdiği son ayar (slider/toggle) korunur. Preset bittikten sonra tracking açılır.

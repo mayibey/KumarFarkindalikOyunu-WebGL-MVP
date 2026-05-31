@@ -66,6 +66,58 @@ public abstract class HedefOdemeMotorBase
         return AgirlikliSec(liste, out kazanSembol, out kumeBuyuklugu, out nihaiTl);
     }
 
+    /// <summary>FAZ35.86: Mod akışı çeşitlilik motoru — tüm adayları EŞİT şansla seçer (rastgele).
+    /// KumeBoyuAgirligi atlanır (8-9 küme dominantlığı kalkar), tolerance filter atlanır (tüm bant aday).
+    /// Anti-streak: sonSecilenSembol >= 0 verilmişse VE alternatif varsa o sembolü listeden çıkar
+    /// (aday sayısı 1 ise anti-streak bypass — tek alternatifle devam).
+    /// MEVCUT TryPaytableUyumluTekKumeSec DOKUNULMADI — Senaryo 1-5 motoru aynı imzayı kullanmaya devam eder.
+    /// Mod akışı (OyunYoneticisi.Spin.cs TryModKazancKonstrukteGridKur) bu metodu çağırır.</summary>
+    public static bool TryPaytableUyumluTekKumeRastgeleSec(
+        TumbleAyarlari ta, int bahis, int minTl, int maxTl,
+        int scatterIdx, int sutun, int satir,
+        int sonSecilenSembol,
+        out int kazanSembol, out int kumeBuyuklugu, out int nihaiTl)
+    {
+        kazanSembol = -1; kumeBuyuklugu = 0; nihaiTl = 0;
+        if (ta == null || ta.PayTable_8_9 == null || ta.PayTable_8_9.Length <= 0 || bahis <= 0) return false;
+        int sembolSayisi = ta.PayTable_8_9.Length;
+        int minCluster = Mathf.Max(2, ta.MinClusterSize);
+        int maxHucre = Mathf.Min(12, Mathf.Max(minCluster, sutun * satir));
+
+        // Tüm adayları topla — KumeBoyuAgirligi ATLA, tolerance filter ATLA (mod akışı çeşitlilik öncelikli).
+        var adaylar = new List<(int sym, int cnt, int tl)>();
+        for (int sym = 0; sym < sembolSayisi; sym++)
+        {
+            if (sym == scatterIdx) continue;
+            for (int cnt = minCluster; cnt <= maxHucre; cnt++)
+            {
+                float payKatsayi = ta.GetPayForCount(sym, cnt);
+                if (payKatsayi <= 0f) continue;
+                int tl = Mathf.RoundToInt(payKatsayi * bahis);
+                if (tl < minTl || tl > maxTl) continue;
+                adaylar.Add((sym, cnt, tl));
+            }
+        }
+        if (adaylar.Count == 0) return false;
+
+        // Anti-streak: sonSecilenSembol verilmişse VE alternatif varsa o sembolü listeden çıkar.
+        // Tek aday kalırsa (filtrelenmis boş) anti-streak bypass — orijinal listeden seç.
+        if (sonSecilenSembol >= 0 && adaylar.Count >= 2)
+        {
+            var filtrelenmis = new List<(int sym, int cnt, int tl)>();
+            foreach (var a in adaylar) if (a.sym != sonSecilenSembol) filtrelenmis.Add(a);
+            if (filtrelenmis.Count >= 1) adaylar = filtrelenmis;
+        }
+
+        // Düz rastgele seçim — her aday eşit şans (KumeBoyuAgirligi yok).
+        int secim = Random.Range(0, adaylar.Count);
+        var sec = adaylar[secim];
+        kazanSembol = sec.sym;
+        kumeBuyuklugu = sec.cnt;
+        nihaiTl = sec.tl;
+        return true;
+    }
+
     public static bool TryPaytableUyumluIkiTumbleKumesiSec(
         TumbleAyarlari ta, int bahis, int minTl, int maxTl, int hedefTercihNihai,
         int scatterIdx, int sutun, int satir,
