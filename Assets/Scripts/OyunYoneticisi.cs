@@ -556,11 +556,19 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
             Senaryo.Scripted.ScriptedDusunceBalonu.ResetState();
             Debug.Log("[FAZ35.82.1] Yeni 03 admin sahnesi — 6 Scripted overlay state reset edildi (SPIN bloğu açıldı)");
 
-            // Bakiye 50000 reset — 02'den taşınan GameManager.ActivePlayer.balance temizlenir.
+            // FAZ35.91 İŞ1 KRİTİK: 02→03 geçişinde bakiye 50K reset eksik kalıyordu — kullanıcı log'da reset
+            // log mesajı görmüyor (guard null check'lerinden biri fail etmiş olabilir veya başka mekanizma).
+            // Güçlü versiyon: öncekiBakiye log + else warning ile teşhis kolaylığı, balance 50000 garantili set.
+            // 02 anlatıcıda balance 0'a düşüp HADİ GÖRELİM ile 03'e geçilince 0 ile geliyordu.
             if (GameManager.I != null && GameManager.I.ActivePlayer != null)
             {
+                int oncekiBakiye91 = GameManager.I.ActivePlayer.balance;
                 GameManager.I.ActivePlayer.balance = 50000;
-                Debug.Log("[FAZ35.82.1] Bakiye 50000 reset edildi (yeni 03 admin sahnesi)");
+                Debug.Log($"[FAZ35.91 İŞ1] Yeni 03 admin sahnesi — bakiye reset edildi: {oncekiBakiye91} → 50000 TL");
+            }
+            else
+            {
+                Debug.LogWarning($"[FAZ35.91 İŞ1] GameManager.I={GameManager.I == null} veya ActivePlayer null — bakiye reset ATLANDI (kök neden teşhisi gerek)");
             }
         }
 

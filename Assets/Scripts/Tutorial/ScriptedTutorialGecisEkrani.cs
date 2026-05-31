@@ -13,7 +13,7 @@ namespace KumarFarkindalik.Tutorial
     /// Görsel olarak ScriptedModalKopru patternini birebir taklit eder (renk, layout, typewriter,
     /// karakter görseli, slide-in animasyonu) — TEK FARK: TAMAM yerine 2 buton (sağ-alt yan yana):
     ///   • [YENİDEN OYNA]   → SaveLoadServisi.Sil() + 03_SenaryoluOyun
-    ///   • [HADİ GÖRELİM]   → 04_AdminOyunScene
+    ///   • [HADİ GÖRELİM]   → 03_AdminOyunScene (FAZ35.91: Faz 35.77 renumber sonrası eski "04" yanıltıcıydı, güncellendi)
     ///
     /// PAKET 2: 03_SenaryoluOyun'a runtime'da iliştirilir. ScriptedModalKopru sortingOrder=1500,
     /// final ekran 1800 → bu modal 1900 (en üstte). ScriptedModalKopru.cs DOKUNULMAZ.
@@ -298,7 +298,7 @@ namespace KumarFarkindalik.Tutorial
             _gecisYapildi = true;
             if (_yenidenOynaButton != null) _yenidenOynaButton.interactable = false;
             if (_hadiGorelimButton != null) _hadiGorelimButton.interactable = false;
-            Debug.Log("[ScriptedTutorialGecisEkrani] HADİ GÖRELİM → tam save temizlik + 04_AdminOyunScene");
+            Debug.Log("[ScriptedTutorialGecisEkrani] HADİ GÖRELİM → tam save temizlik + 03_AdminOyunScene"); // FAZ35.91: log adı düzeltildi (eski "04" Faz 35.77 renumber kalıntısı)
             TamSaveTemizlik();
             Gizle();
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -322,6 +322,14 @@ namespace KumarFarkindalik.Tutorial
             PlayerPrefs.DeleteKey("KumarRestoreModuActif");
             PlayerPrefs.Save();
             KullaniciVerileri.KullaniciAdi = "Eğitim Modu";
+            // FAZ35.91 İŞ1: Defansif balance reset — OyunYoneticisi.Start() içindeki reset guard'a takılırsa
+            // (GameManager null vb.) burada yedek katman olarak balance=50000 garanti edilir. Çift koruma:
+            // hem geçiş anında (TamSaveTemizlik), hem sahne yüklenince (OyunYoneticisi.Start).
+            if (GameManager.I != null && GameManager.I.ActivePlayer != null)
+            {
+                GameManager.I.ActivePlayer.balance = 50000;
+                Debug.Log("[FAZ35.91 İŞ1] TamSaveTemizlik içinde defansif balance reset edildi: 50000 TL");
+            }
             Debug.Log("[ScriptedTutorialGecisEkrani] TamSaveTemizlik: SaveLoad sil + PlayerPrefs DeleteKey x2 + KullaniciVerileri reset.");
         }
 
