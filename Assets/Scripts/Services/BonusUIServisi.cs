@@ -560,7 +560,20 @@ public class BonusUIServisi
 
         // Kullanıcı TAMAM tıklayana kadar bekle (JS → SendMessage('BonusBitisOnayla') → flag true)
         // Editor'da BonusBitisGoster fallback flag'i true set eder → coroutine anında devam eder.
-        yield return new WaitUntil(() => AnlaticiSeritKopru.BonusBitisOnaylandi);
+        // FAZ35.89 İŞ1 SHOWSTOPPER FIX: Bu bekleme 02 anlatıcıya (idx 1) özel JS popup + AnlaticiSeritKopru.BonusBitisOnayla() mekanizmasına bağımlı.
+        // Yeni 03 admin (idx 2) ve diğer sahnelerde AnlaticiSeritKopru.Ornek=null → BonusBitisOnaylandi asla true olmuyor → sonsuz bekler →
+        // bonusAktif=true permanent → sonraki SPIN tıklamasında SpinButonImpl sat 180 "if (bonusAktif) return" → SPIN bloklanır.
+        // Çözüm: Sadece idx==1'de WaitUntil aktif; diğer sahnelerde direkt geç, bonusAktif=false akışına devam.
+        int aktifSahneIdx89 = UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex;
+        if (aktifSahneIdx89 == 1)
+        {
+            yield return new WaitUntil(() => AnlaticiSeritKopru.BonusBitisOnaylandi);
+        }
+        else
+        {
+            Debug.Log($"[BonusUIServisi] FAZ35.89 İŞ1: Sahne idx={aktifSahneIdx89} → BonusBitisOnaylandi WaitUntil BYPASS (AnlaticiSeritKopru sadece idx 1'de mevcut, sonsuz bekleme engellendi)");
+            yield return null;
+        }
 
         // Bonus müziğini durdur (mevcut davranış)
         if (_bonusEndMusicAudio != null) _bonusEndMusicAudio.Stop();
