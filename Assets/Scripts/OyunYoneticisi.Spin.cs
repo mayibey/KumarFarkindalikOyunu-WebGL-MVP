@@ -1051,7 +1051,32 @@ public partial class OyunYoneticisi
         _tumbleServisi?.SetGrid(grid);
         // FAZ35.86: Anti-streak için son seçileni güncelle (sonraki spin bu sembolü atlar, alternatif varsa).
         _modSonSecilenSembol = kSym;
-        Debug.Log($"[MOD_KONSTRUKTE] BAŞARILI: bant={minTl}-{maxTl} sym={kSym} kümeBoy={kCnt} beklenenTL={beklenenTl} (önceki sym={onceki})");
+
+        // FAZ35.87 İŞ3: Bonus çarpan uygula (1x %70, 2x %20, 3x %10) — tutar çeşitliliği.
+        // zorlaSiradakiCarpan motor mekanizması (Fields.cs:507) bonus carpan'ı ödeme sonunda uygular.
+        // Bant taşma guard: (beklenenTl × bonusCarpan) <= maxTl × 2 → 3x çarpanla bile maksimum 2 katı aşmasın.
+        int bonusCarpan = ModBonusCarpanSec();
+        if (bonusCarpan > 1)
+        {
+            long yeniTL = (long)beklenenTl * bonusCarpan;
+            int tasmaSinir = maxTl * 2;
+            if (yeniTL <= tasmaSinir)
+            {
+                zorlaSiradakiCarpan = bonusCarpan;
+                _modSonBonusCarpan = bonusCarpan;
+            }
+            else
+            {
+                // Taşma riski → bonus çarpan iptal, log için 1
+                _modSonBonusCarpan = 1;
+            }
+        }
+        else
+        {
+            _modSonBonusCarpan = 1;
+        }
+
+        Debug.Log($"[MOD_KONSTRUKTE+BONUS] bant={minTl}-{maxTl} sym={kSym} kümeBoy={kCnt} beklenenTL={beklenenTl} bonus={_modSonBonusCarpan}x (önceki sym={onceki})");
         return true;
     }
 

@@ -971,10 +971,16 @@ private int RastgeleCarpan()
     }
     else
     {
-        // Asama 1/2 (senaryolu sahne) ve diğer tüm doğal yollar: ortak temiz havuz.
-        int[] havuz = new int[] { 2, 3, 5, 8, 10 };
+        // FAZ35.87 İŞ2: Yeni 03 admin (idx 2) + Normal mod (PanelKopru.aktifSenaryo == "normal") için küçük havuz {2,3,5}.
+        // Max 5x → mega kazanç imkansız, pedagojik "Normal sade" baseline. Diğer sahneler/modlar eski havuz {2,3,5,8,10}.
+        int sahneIdx87 = UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex;
+        bool normalModAktif87 = sahneIdx87 == 2 &&
+            (PanelKopru.aktifSenaryo == null || PanelKopru.aktifSenaryo == "normal");
+        int[] havuz = normalModAktif87
+            ? new int[] { 2, 3, 5 }
+            : new int[] { 2, 3, 5, 8, 10 };
         secilen = havuz[UnityEngine.Random.Range(0, havuz.Length)];
-        havuzAdi = "DOGAL";
+        havuzAdi = normalModAktif87 ? "DOGAL_SADE" : "DOGAL";
     }
     Debug.Log($"[CARPAN] kaynak=DOGAL havuz={havuzAdi} secilen={secilen}x");
     return secilen;

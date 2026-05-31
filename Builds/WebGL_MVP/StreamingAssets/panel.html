@@ -894,17 +894,12 @@
   <div class="panel-content">
 
     <!-- 1. OYUN MODU SENARYOSU — TAM GENİŞLİK -->
+    <!-- FAZ35.87 İŞ4: Mod baskın toggle KALDIRILDI. Yeni mantık: dropdown != normal → mod aktif (ayarlar disabled),
+         ayar değişimi → dropdown otomatik 'normal' (ayarlar serbest). Tek yön kontrol (mod aktif XOR manuel). -->
     <div class="scenario-card">
       <div class="scenario-header">
         <label style="font-size: 19px;">Oyun modu</label>
         <span class="help-icon" data-tip="oyunModu">?</span>
-        <!-- FAZ35.83: Mod Aktif toggle — ON iken mod baskın (tüm ayarlar disabled), OFF iken tüm ayarlar serbest. -->
-        <div style="display:flex; align-items:center; gap:10px; margin-left:auto;">
-          <span class="toggle-label" id="modAktifLabel" style="font-size:15px;">Mod Baskın</span>
-          <div id="modAktifToggle" class="toggle active" onclick="modAktifToggleDegisti()">
-            <div class="toggle-dot"></div>
-          </div>
-        </div>
       </div>
       <div class="scenario-row">
         <select id="oyunModu" onchange="senaryoOtomatikUygula(this.value)">
@@ -918,9 +913,9 @@
         <span id="pendingHint" style="display:none; color:#b8a875; font-size:14px; margin-left:10px; font-style:italic; align-self:center;">değişiklikler bekliyor</span>
       </div>
       <div class="mod-aciklama-line" id="modAciklama"></div>
-      <!-- FAZ35.83: Mod toggle açıklama -->
+      <!-- FAZ35.87 İŞ4: Açıklama güncel — toggle yok, tek yön mantığı -->
       <div style="font-size:13px; color:#8a7c5c; font-style:italic; margin-top:6px;">
-        Açık: Modun saf karakteri uygulanır · Kapalı: Tüm ayarlar serbest (manuel kontrol)
+        Mod seçilince ayarlar otomatik kilitlenir. Herhangi bir ayar değiştirilirse mod 'Normal'e döner.
       </div>
     </div>
 
@@ -1413,32 +1408,34 @@
     console.log('[FAZ35.83 modKilitle] modAktif=' + modAktif + ', kilitli sayi=' + MOD_KILITLI_IDS.length);
   }
 
-  function modAktifToggleDegisti() {
-    var toggle = document.getElementById('modAktifToggle');
-    var label  = document.getElementById('modAktifLabel');
-    var modAktif = !toggle.classList.contains('active');
-    toggle.classList.toggle('active');
-    if (label) label.textContent = modAktif ? 'Mod Baskın' : 'Manuel';
+  // FAZ35.87 İŞ4: modAktifToggleDegisti SİLİNDİ. Yeni akış: senaryoOtomatikUygula içinde dropdown value tabanlı kontrol.
 
-    unityeGonder('modAktif', modAktif ? 'true' : 'false');
-    modKilitle(modAktif);
-
-    // Mod kapanınca dropdown otomatik Normal'e dönsün (motor da Normal'e döner).
-    if (!modAktif) {
-      document.getElementById('oyunModu').value = 'normal';
-      senaryoPreview('normal');
-    }
-    console.log('[FAZ35.83 modAktifToggle] Mod aktif:', modAktif);
-  }
-
-  // Dropdown otomatik Uygula — Hook 300 TL bug fix (Karar #3 A).
-  // Mod toggle ON iken dropdown değişimi anında senaryoUygula() çağırır (preview + apply tek tıkta).
-  // Mod toggle OFF iken sadece preview (UI feedback), Uygula butonu manuel basılır.
+  // FAZ35.87 İŞ4: Dropdown value tabanlı tek yön kontrol (toggle yok artık).
+  // secim != 'normal' → mod aktif (modKilitle + senaryoUygula), secim == 'normal' → manuel (modKilitle false).
   function senaryoOtomatikUygula(secim) {
     senaryoPreview(secim);
-    var modToggle = document.getElementById('modAktifToggle');
-    if (modToggle && modToggle.classList.contains('active')) {
+    if (secim !== 'normal') {
+      modKilitle(true);
       senaryoUygula();
+    } else {
+      modKilitle(false);
+      // Normal'de motor RNG akışı (PanelKopru.cs case "oyunModu" SenaryoUygula("normal") çağrılır).
+      senaryoUygula();
+    }
+  }
+
+  // FAZ35.87 İŞ4: Global "ayar değiştirildi → mod=normal" listener.
+  // Mod aktif iken (dropdown != 'normal') herhangi bir ayar değiştirilirse dropdown otomatik 'normal'e döner,
+  // ayarlar serbest kalır. Tek yön kontrol (mod aktif XOR manuel).
+  function ayarDegistirildi() {
+    var dropdown = document.getElementById('oyunModu');
+    if (dropdown && dropdown.value !== 'normal') {
+      console.log('[FAZ35.87 ayarDegistirildi] Ayar değiştirildi, mod=normal\'e dönülüyor');
+      dropdown.value = 'normal';
+      modKilitle(false);
+      // Programatik dropdown.value değişimi onchange tetiklemez — manuel unityeGonder + motor reset
+      unityeGonder('oyunModu', 'normal');
+      modAciklamasiniGuncelle('normal');
     }
   }
 
@@ -1777,8 +1774,22 @@
     panelInitNormalApply();
     unityeGonder('panelHazir', true);
     modAciklamasiniGuncelle(document.getElementById('oyunModu').value);
-    // FAZ35.83: Mod toggle default ON — sayfa yüklenince tüm ayarlar disabled (mod baskın varsayılan).
-    modKilitle(true);
+    // FAZ35.87 İŞ4: Default dropdown 'normal' → ayarlar serbest (modKilitle(false)).
+    // Toggle yok, dropdown başka mod seçilince modKilitle(true) tetiklenir (senaryoOtomatikUygula içinde).
+    modKilitle(false);
+
+    // FAZ35.87 İŞ4: Tüm modKilitle ID listesi için "ayarDegistirildi" listener — mod aktifken
+    // herhangi bir ayar değişimi dropdown'u 'normal'e zorlar (tek yön kontrol).
+    // Liste MOD_KILITLI_IDS ile aynı kaynak (panel.html:1393 civarı modKilitle fonksiyonunda tanımlı).
+    if (typeof MOD_KILITLI_IDS !== 'undefined') {
+      MOD_KILITLI_IDS.forEach(function (id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('change', ayarDegistirildi);
+        el.addEventListener('input', ayarDegistirildi);   // slider için
+        el.addEventListener('click', ayarDegistirildi);   // toggle div'leri için (input event yok)
+      });
+    }
   });
 
   // PAKET 14-FAZ34 İş 6: Tutorial adım bazlı disabled — aktif selector listesi haricindeki tüm

@@ -34,6 +34,16 @@ public partial class OyunYoneticisi
                   $"TutmaSayac:{tutma} | Reroll:{reroll}");
     }
 
+    // FAZ35.87 İŞ3: Mod akışı bonus çarpan seçimi (1x=%70 çarpansız, 2x=%20, 3x=%10).
+    // ModKazancKonstrukte başarılı sonrası çağrılır, tutar çeşitliliği için zorlaSiradakiCarpan'a atanır.
+    private int ModBonusCarpanSec()
+    {
+        float r = UnityEngine.Random.value;
+        if (r < 0.70f) return 1;
+        if (r < 0.90f) return 2;
+        return 3;
+    }
+
     private string GridDagilimiOzet()
     {
         if (grid == null) return "grid-null";

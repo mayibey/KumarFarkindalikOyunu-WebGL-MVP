@@ -170,19 +170,9 @@ public class PanelKopru : MonoBehaviour
                 break;
 
             case "modAktif":
-                // FAZ35.83: Mod toggle handler. true → mevcut senaryo motor'a uygulanır, false → Normal'e döner.
-                // Sahne guard: SenaryoUygula içinde buildIndex==1 (02 anlatıcı) + buildIndex==3 (Tutorial) BYPASS var.
-                bool modAktif83 = bool.TryParse(deger, out var bModAk83) && bModAk83;
-                if (modAktif83)
-                {
-                    SenaryoUygula(aktifSenaryo);
-                }
-                else
-                {
-                    aktifSenaryo = "normal";
-                    SenaryoUygula("normal");
-                }
-                Debug.Log($"[PanelKopru FAZ35.83] modAktif={modAktif83}, aktifSenaryo={aktifSenaryo}");
+                // FAZ35.87 İŞ4: Mod toggle KALDIRILDI. Bu case backward-compat için no-op.
+                // Yeni akış: panel.html senaryoOtomatikUygula içinde dropdown value tabanlı kontrol; ayrı modAktif komutuna gerek yok.
+                // Eski 35.83 mantığı (modAktif true/false → SenaryoUygula çağrı) silindi — dropdown onchange zaten bu işi yapıyor.
                 break;
 
             // FAZ35.76: case "kazanmaOrani" SİLİNDİ — panel slider kaldırıldı. AdminSetOdemeEgilimi 03 ana

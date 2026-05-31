@@ -206,7 +206,9 @@ mergeInto(LibraryManager.library, {
         overlay.id = 'bahisPanelOverlay';
         // align-items:flex-end + padding-bottom:140px — popup viewport altına yaslanır,
         // SPIN butonu ve alt UI şeridinin azıcık üstünde durur (slot ekran üst kısmı serbest kalır)
-        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:flex-end;justify-content:center;padding-bottom:140px;';
+        // FAZ35.87 İŞ1: Backdrop transparan (rgba 0.7 → 0) — sol panel (yönetici, idx 2) görünür kalır.
+        // Tıklama dışına kapatma korunur (overlay click handler aşağıda).
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0);z-index:10000;display:flex;align-items:flex-end;justify-content:center;padding-bottom:140px;';
 
         var iframe = document.createElement('iframe');
         iframe.id = 'bahisPanelIframe';

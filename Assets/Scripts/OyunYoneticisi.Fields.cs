@@ -175,6 +175,10 @@ public partial class OyunYoneticisi
     // TryPaytableUyumluTekKumeRastgeleSec bu sembolü listeden çıkarır (alternatif varsa) → arka arkaya aynı sembol görünmez.
     [HideInInspector] public int _modSonSecilenSembol = -1;
 
+    // FAZ35.87 İŞ3: Mod akışı bonus çarpan (1x %70 = çarpansız, 2x %20, 3x %10) — tutar çeşitliliği.
+    // ModBonusCarpanSec dağılımıyla seçilir, log için son uygulanan değer.
+    [HideInInspector] public int _modSonBonusCarpan = 1;
+
     public TMPro.TextMeshProUGUI carpanOlasilikValueText;
     public TMPro.TextMeshProUGUI carpanMaxAdetValueText;
 
@@ -502,7 +506,9 @@ public partial class OyunYoneticisi
     [Header("Çarpan Ayarları")]
     public bool carpanUretimiAktif = true;
     public bool carpanSadeceBonus = false;
-    [Range(0f, 1f)] public float carpanUretimOlasiligi = 0.15f;
+    // FAZ35.87 İŞ2: Normal mod baseline default %5 (önceden %15 — gerçek slot davranışı, pedagojik tehlikeli).
+    // Inspector'da serialize edilmiş sahnedeki referans değişmez; bu yeni instance/reset için default.
+    [Range(0f, 1f)] public float carpanUretimOlasiligi = 0.05f;
     [Range(1, 10)] public int maxCarpanAdedi = 3;
     public int zorlaSiradakiCarpan = 0;
 
