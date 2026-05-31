@@ -711,7 +711,15 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
         _carpanServisi.SetIsCarpanUretimiAktif(() => carpanUretimiAktif);
         _carpanServisi.SetIsCarpanSadeceBonus(() => carpanSadeceBonus);
         _carpanServisi.SetGetCarpanUretimOlasiligi(() => carpanUretimOlasiligi);
-        _carpanServisi.SetGetMaxCarpanAdedi(() => maxCarpanAdedi);
+        // FAZ35.88 İŞ2: Normal mod baseline → tek çarpan max (havuz {2,3,5} ile birleşince max 5x, mega kazanç imkansız).
+        // CarpanServisi.ResetForNewSpin(maxCarpanAdedi) bu delegate'i her spin başında çağırır (cache yok).
+        // Normal mod: max 1 → Random.Range(1, 2)=1 → tek çarpan, kalan kota 0 → sonraki tumble'larda ek çarpan yok.
+        // Guard: buildIndex==2 + aktifSenaryo == null/normal. Tutorial (idx 3), 02 anlatıcı (idx 1), mod aktif (Hook/vb) etkilenmez.
+        _carpanServisi.SetGetMaxCarpanAdedi(() => {
+            int sahneIdx88 = SceneManager.GetActiveScene().buildIndex;
+            bool normalSade88 = sahneIdx88 == 2 && (PanelKopru.aktifSenaryo == null || PanelKopru.aktifSenaryo == "normal");
+            return normalSade88 ? 1 : maxCarpanAdedi;
+        });
         _carpanServisi.SetRollCarpanDegeri(RastgeleCarpan);
         _carpanServisi.SetGetSpinKazancHam(() => spinKazancHam);
         _carpanServisi.SetGetBonusRemainingPayableTL(() => _senaryoServisi.GetBonusRemainingPayableTL());

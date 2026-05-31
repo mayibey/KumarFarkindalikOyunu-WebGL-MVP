@@ -528,7 +528,17 @@ public partial class OyunYoneticisi
         AudioSource kaynak = tumbleSfxSource != null ? tumbleSfxSource : bonusEndSfxSource;
         if (kaynak == null) return;
         kaynak.PlayOneShot(spinSonucKayipClip);
-        Debug.Log("[KayipHorn] Brüt 0 — horn çaldı");
+        // FAZ35.88 İŞ3: 1 sn sonra horn kes (uzun rahatsız edici ses kısaltılır, UX iyileşir).
+        // kaynak.Stop() PlayOneShot dahil tüm aktif sesleri keser; brüt 0 spinde tumble pop sesi yok → çakışma riski düşük.
+        StartCoroutine(KesHornGecikmeli(kaynak, 1f));
+        Debug.Log("[KayipHorn] Brüt 0 — horn çaldı (1sn sonra kesilecek)");
+    }
+
+    // FAZ35.88 İŞ3: Horn kesme helper coroutine — gecikmeli AudioSource.Stop çağrısı.
+    private IEnumerator KesHornGecikmeli(AudioSource source, float sure)
+    {
+        yield return new WaitForSeconds(sure);
+        if (source != null) source.Stop();
     }
 
     private void PlayNormalSpinSonucSesi(int odenen, int bahis)

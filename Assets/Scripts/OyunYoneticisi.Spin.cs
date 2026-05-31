@@ -462,6 +462,11 @@ public partial class OyunYoneticisi
                 if (TryModKazancKonstrukteGridKur(bahisIcinKonstrukte))
                 {
                     _modKonstrukteBasarili = true;
+                    // FAZ35.88 İŞ1: Bonus çarpan ezilme fix (35.87 İŞ3 regression).
+                    // KÖK NEDEN: Helper içinde zorlaSiradakiCarpan=bonusCarpan set ediliyor, AMA ana reroll loop sat ~657'de
+                    // "zorlaSiradakiCarpan = zorlaCarpanDegeri" (local, başlangıç 0) ile EZILIYOR → bonus iptal oluyordu.
+                    // FIX: Local zorlaCarpanDegeri'yi de bonus değerine senkronize et — sat 657'de aynı değer set edilir.
+                    if (_modSonBonusCarpan > 1) zorlaCarpanDegeri = _modSonBonusCarpan;
                     OncedenHesaplananSpinOnbelleginiTemizle();
                     // FAZ35.85 K2: ModKazancKonstrukte başarılı → kaçış frenleme cluster zorla fallback'i devre dışı bırak
                     // (Tutma faz==2 zaten yukarıda _kacisFrenlemeBuSpinAktif=true set ediyordu; konstrukte garantili → çakışma önle).
