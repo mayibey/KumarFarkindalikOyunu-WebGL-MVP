@@ -220,6 +220,11 @@ public partial class OyunYoneticisi
                 return false; // bant dışı → reroll → motor BAŞTAN yeniden üretir
         }
 
+        // FAZ35.82: Tutma kayıp spin zorlama — sayaç fazı 0/1 iken RNG kazanç çıkardıysa reroll
+        // (Spin.cs Tutma branch'ı _tutmaBuSpinKayipBekleniyor=true set eder; spin sonunda temizler.)
+        if (_tutmaBuSpinKayipBekleniyor && nihaiOdeme > 0)
+            return false;
+
         return true;
     }
     private void AdminZorlaButonReferanslariniBulBirKez()
@@ -603,6 +608,19 @@ public partial class OyunYoneticisi
         OncedenHesaplananSpinOnbelleginiTemizle();
         Debug.Log($"[ADMIN][PANEL] Maks çarpan kat: {odemeMaksKat}x");
     }
+
+    // FAZ35.82: Tutma modu state yönetimi (mod değişiminde sayaç + flag reset).
+    // PanelKopru.SenaryoUygula tarafından mod seçimi/değişiminde çağrılır. Tutma case'inde true,
+    // diğer 4 mod case'inde false (kullanıcı modlar arası geçince Tutma otomatik kapanır).
+    public void AdminSetTutmaModAktif(bool aktif)
+    {
+        _tutmaModAktif = aktif;
+        _tutmaModSpinSayac = 0;
+        _tutmaBuSpinKayipBekleniyor = false;
+        OncedenHesaplananSpinOnbelleginiTemizle();
+        Debug.Log($"[ADMIN][TUTMA] Mod aktif: {aktif} (sayaç sıfırlandı)");
+    }
+    public bool IsTutmaModAktif() => _tutmaModAktif;
 
     [HideInInspector] public int maxCarpanTekSpinSayisi = 3;
     public void AdminSetMaxCarpanTekSpin(int max)

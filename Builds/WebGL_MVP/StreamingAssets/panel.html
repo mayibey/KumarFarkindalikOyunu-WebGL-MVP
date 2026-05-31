@@ -1020,21 +1020,22 @@
           <div class="ifsa-line">Açıkken oyunculara 7 aynı meyveye 1 kalmış gibi gösterilerek "neredeyse kazanıyordum" hissi yaşatılır.</div>
         </div>
 
-        <!-- 5. KAÇIŞ FRENLEME -->
-        <div class="setting-card">
+        <!-- 5. KAÇIŞ FRENLEME — FAZ35.82: number input → AÇ/KAPA toggle. Sadece Normal modda görünür (uygulaUI tarafından gizlenir/gösterilir). -->
+        <div class="setting-card" id="ardisikKayipKart">
           <div class="setting-header">
             <div class="setting-header-left">
               <span class="badge-num">3</span>
               <label>Kaçış Frenleme</label>
               <span class="help-icon" data-tip="kacisFreni">?</span>
             </div>
+            <div id="ardisikKayip" style="display:flex;align-items:center;gap:8px;">
+              <span class="toggle-label" id="ardisikKayipLabel">Kapalı</span>
+              <div class="toggle" id="ardisikKayipToggle" onclick="toggleDegisti('ardisikKayip')">
+                <div class="toggle-dot"></div>
+              </div>
+            </div>
           </div>
-          <div class="input-row">
-            <input type="number" id="ardisikKayip" value="8" style="max-width:90px;"
-                   oninput="ayarDegisti('ardisikKayip', this.value)">
-            <span>kayıptan sonra zorunlu ödeme</span>
-          </div>
-          <div class="ifsa-line">Burada yapılan ayarla oyuncu üst üste kaç kez kaybettikten sonra ona zorunlu küçük bir kazanç verileceği belirlenir.</div>
+          <div class="ifsa-line">Açıkken 3 üst üste kayıp sonrası bir sonraki spin'de oyuncuya küçük zorunlu kazanç verilir.</div>
         </div>
 
       </div>
@@ -1376,12 +1377,16 @@
 
   // ===== SENARYO UYGULA =====
   // UI-5LIK: kazanmaOrani + yakinKacirma artık 0-5 ölçekte (eski 0-10 ve 0-100 değerleri /2 ve /20 ile adapte edildi).
+  // FAZ35.82: Mod-spesifik default'lar — her mod kendi Min/Maks bandını UI'a yansıtır + motor (PanelKopru.SenaryoUygula)
+  // aynı değerleri AdminSetMin/MaksCarpanDegeri ile motor field'larına da yazar (belt+suspenders).
+  // Hook 2x-3x; Yontma 0.3x-0.7x bahisten az; Tutma 1x-2x + deterministik 2-kayıp-1-kazanç (motor sayacı);
+  // Koruma 0.1x-0.5x; Normal 0/0 devre dışı (kullanıcı manuel slider'la aktive eder).
   var SENARYOLAR = {
-    normal:  { minCarpan: 1,   maksCarpan: 100, yakinKacirma: 1, ardisikKayip: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 0.5, carpanOdeme: false },
-    hook:    { minCarpan: 2,   maksCarpan: 20,  yakinKacirma: 2, ardisikKayip: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 3.3, carpanOdeme: false },
-    yontma:  { minCarpan: 0.5, maksCarpan: 3,   yakinKacirma: 3, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: false },
-    tutma:   { minCarpan: 1,   maksCarpan: 50,  yakinKacirma: 2, ardisikKayip: 5, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: true  },
-    koruma:  { minCarpan: 0.5, maksCarpan: 2,   yakinKacirma: 5, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: false }
+    normal:  { minCarpan: 0,   maksCarpan: 0,   yakinKacirma: 0, ardisikKayip: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 2,   carpanOdeme: true  },
+    hook:    { minCarpan: 2,   maksCarpan: 3,   yakinKacirma: 2, ardisikKayip: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 3,   carpanOdeme: true  },
+    yontma:  { minCarpan: 0.3, maksCarpan: 0.7, yakinKacirma: 3, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 1,   carpanOdeme: true  },
+    tutma:   { minCarpan: 1,   maksCarpan: 2,   yakinKacirma: 2, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 1,   carpanOdeme: true  },
+    koruma:  { minCarpan: 0.1, maksCarpan: 0.5, yakinKacirma: 5, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: false }
   };
 
   // Son APPLY edilen state — sayfa açılışta normal preset
@@ -1420,17 +1425,24 @@
   }
 
   // Tüm input'ları preset'e göre UI olarak güncelle (postMessage YOK)
-  function uygulaUI(s) {
+  // FAZ35.82: secim parametresi eklendi — ardışık kayıp kart Normal modda görünür, diğerlerinde gizli.
+  function uygulaUI(s, secim) {
     // FAZ35.76: kazanmaOrani animate SİLİNDİ — kart yok.
     document.getElementById('minCarpan').value  = s.minCarpan;
     document.getElementById('maksCarpan').value = s.maksCarpan;
     // FAZ35.69: yakinKacirma slider→toggle. Preset sayısal değer >0.5 → toggle.active (UI senkron).
     setToggleClass('yakinKacirma', s.yakinKacirma > 0.5);
-    document.getElementById('ardisikKayip').value = s.ardisikKayip;
+    // FAZ35.82: ardisikKayip number→toggle. Preset sayısal değer >0 → toggle.active.
+    setToggleClass('ardisikKayip', s.ardisikKayip > 0);
     // FAZ35.76: setToggleClass('yeniOyuncu') SİLİNDİ — kart yok.
     setToggleClass('carpanOdeme', s.carpanOdeme);
     document.getElementById('bonusManuel').classList.toggle('active', s.bonusModu === 'manuel');
     document.getElementById('bonusOtomatik').classList.toggle('active', s.bonusModu === 'otomatik');
+
+    // FAZ35.82: Ardışık kayıp kart SADECE Normal modda görünür (diğer modlar kendi davranışına sahip:
+    // Tutma deterministik döngü, Hook/Yontma/Koruma kendi bantları). secim undefined ise göster (defansif).
+    var akKart = document.getElementById('ardisikKayipKart');
+    if (akKart) akKart.style.display = (!secim || secim === 'normal') ? 'block' : 'none';
 
     // Bonus sembolü düşme olasılığı (preview'de animate, postMessage YOK)
     var bonusSembolEl = document.getElementById('bonusSembolOlasilik');
@@ -1448,7 +1460,7 @@
     modAciklamasiniGuncelle(secim);
     var s = SENARYOLAR[secim];
     if (!s) return;
-    uygulaUI(s);
+    uygulaUI(s, secim);  // FAZ35.82: secim parametresi → ardisikKayipKart gizle/göster
     previewAktif = true;
     var btn = document.getElementById('senaryoUygulaBtn');
     if (btn) btn.classList.add('apply-btn-pulsing');
@@ -1459,7 +1471,7 @@
   // İptal sonrası eski state'e geri dön
   function revertToSavedState() {
     document.getElementById('oyunModu').value = savedSenaryo;
-    uygulaUI(savedState);
+    uygulaUI(savedState, savedSenaryo);  // FAZ35.82: secim parametresi
     previewAktif = false;
     var btn = document.getElementById('senaryoUygulaBtn');
     if (btn) btn.classList.remove('apply-btn-pulsing');
@@ -1518,8 +1530,10 @@
     var minDom = minSlider ? parseFloat(minSlider.value) : s.minCarpan;
     var maksSlider = document.getElementById('maksCarpan');
     var maksDom = maksSlider ? parseFloat(maksSlider.value) : s.maksCarpan;
-    var akSlider = document.getElementById('ardisikKayip');
-    var akDom = akSlider ? parseInt(akSlider.value, 10) : s.ardisikKayip;
+    // FAZ35.82: ardisikKayip slider→toggle. DOM state'ten oku (Yakın Kaçırma toggle emsali).
+    // unityeGonder bool gönderir (PanelKopru.cs case "ardisikKayip" → true=3, false=999).
+    var akToggle = document.getElementById('ardisikKayipToggle');
+    var akDom = akToggle ? akToggle.classList.contains('active') : (s.ardisikKayip > 0);
 
     // postMessage'lar fire et — yakinKacirma artık 0-5 ölçek (scale yok)
     // FAZ35.76: kazanmaOrani + yeniOyuncu unityeGonder SİLİNDİ — kartlar kaldırıldı.

@@ -195,7 +195,10 @@ public class PanelKopru : MonoBehaviour
                 break;
 
             case "ardisikKayip":
-                ardisikKayipLimiti = int.Parse(deger);
+                // FAZ35.82: number input → toggle dönüşümü. JS toggleDegisti("ardisikKayip") true/false bool gönderir.
+                // true → 3 (3 üst üste kayıp sonrası kazanç zorla), false → 999 (etkisiz büyük değer = pratikte kapalı).
+                bool ardisikAktif = bool.TryParse(deger, out var bAk) ? bAk : (int.TryParse(deger, out var nAk) && nAk > 0);
+                ardisikKayipLimiti = ardisikAktif ? 3 : 999;
                 _oy?.AdminSetArdisikKayipLimiti(ardisikKayipLimiti);
                 break;
 
@@ -354,57 +357,61 @@ public class PanelKopru : MonoBehaviour
     }
 
     // ===== SENARYO UYGULAMA =====
-    // kazanmaOrani + minCarpan/maksCarpan değerlerini senaryo bazlı ayarlar ve OyunYoneticisi'ne iletir.
-    // yakinKacirma bu projede karşılıksız; sadece state tutulur.
+    // FAZ35.82: Her mod kendi Min/Maks bandını + eğilimini + Tutma sayacını motor seviyesinde uygular.
+    // Hook 2x-3x bant + %85 eğilim; Yontma 0.3x-0.7x bant + %50; Tutma 1x-2x bant + %15 eğilim + deterministik 2-kayıp-1-kazanç döngü;
+    // Koruma 0.1x-0.5x bant + %5; Normal 0x-0x (devre dışı, kullanıcı manuel).
+    // Mod değişimi → Tutma OFF (Tutma case'inde tekrar ON). 35.81 Min/Maks reroll mekaniği HARMONIK.
     private void SenaryoUygula(string senaryo)
     {
+        if (_oy == null) return;
+
+        // FAZ35.82: Her mod değişiminde Tutma otomatik off — Tutma case'inde tekrar on.
+        _oy.AdminSetTutmaModAktif(false);
+
         switch (senaryo)
         {
-            // FAZ35.76: kazanmaOrani = X satırları SİLİNDİ (static field kaldırıldı). AdminSetOdemeEgilimi
-            // çağrıları KORUNDU — 03 senaryolarının ödeme eğilimi yolu sağlam (sabit yüzde 85/25/45/15).
             case "normal":
-                minCarpan = 0f;
-                maksCarpan = 0f;
-                yakinKacirma = 20f;
-                _oy?.AdminNormalOyunUygula();
+                _oy.AdminSetOdemeEgilimi(65);
+                _oy.AdminSetMinCarpanDegeri(0f);
+                _oy.AdminSetMaksCarpanDegeri(0f);
+                minCarpan = 0f; maksCarpan = 0f;
                 break;
 
-            case "hook":  // Yeni avlanan modu — yüksek kazanma, düşük tavan
-                minCarpan = 0f;
-                maksCarpan = 5f;
-                yakinKacirma = 60f;
-                _oy?.AdminSetOdemeEgilimi(85);
+            case "hook":
+                _oy.AdminSetOdemeEgilimi(85);
+                _oy.AdminSetMinCarpanDegeri(2f);
+                _oy.AdminSetMaksCarpanDegeri(3f);
+                minCarpan = 2f; maksCarpan = 3f;
                 break;
 
-            case "yontma":  // Oyuncuyu yıprat
-                minCarpan = 0f;
-                maksCarpan = 3f;
-                yakinKacirma = 70f;
-                _oy?.AdminSetOdemeEgilimi(25);
+            case "yontma":
+                _oy.AdminSetOdemeEgilimi(50);
+                _oy.AdminSetMinCarpanDegeri(0.3f);
+                _oy.AdminSetMaksCarpanDegeri(0.7f);
+                minCarpan = 0.3f; maksCarpan = 0.7f;
                 break;
 
-            case "tutma":  // Oyuncuyu tut
-                minCarpan = 0.5f;
-                maksCarpan = 8f;
-                yakinKacirma = 80f;
-                _oy?.AdminSetOdemeEgilimi(45);
+            case "tutma":
+                _oy.AdminSetOdemeEgilimi(15);
+                _oy.AdminSetMinCarpanDegeri(1f);
+                _oy.AdminSetMaksCarpanDegeri(2f);
+                minCarpan = 1f; maksCarpan = 2f;
+                _oy.AdminSetTutmaModAktif(true);
                 break;
 
-            case "koruma":  // Kasa koru
-                minCarpan = 0f;
-                maksCarpan = 2f;
-                yakinKacirma = 90f;
-                _oy?.AdminSetOdemeEgilimi(15);
+            case "koruma":
+                _oy.AdminSetOdemeEgilimi(5);
+                _oy.AdminSetMinCarpanDegeri(0.1f);
+                _oy.AdminSetMaksCarpanDegeri(0.5f);
+                minCarpan = 0.1f; maksCarpan = 0.5f;
                 break;
         }
+        aktifSenaryo = senaryo;
 
-        // FAZ35.81 Madde 3: Senaryo butonu yakinKacirma motor yansıt bug fix.
-        // Önce SenaryoUygula içinde sadece PanelKopru.yakinKacirma static field set ediliyordu;
-        // motor field yakinKacirmaDegeri10da değişmiyordu → senaryo "near-miss" pedagojisi etkisiz.
-        // Ölçek dönüşümü: panel 0-100 → motor 0-10 (AdminSetYakinKacirma 0-10 ölçek, Admin.cs:582 clamp).
-        _oy?.AdminSetYakinKacirma(Mathf.RoundToInt(yakinKacirma / 10f));
+        // FAZ35.81 Madde 3: yakinKacirma motor yansıt (panel 0-100 → motor 0-10 ölçek).
+        _oy.AdminSetYakinKacirma(Mathf.RoundToInt(yakinKacirma / 10f));
 
-        Debug.Log($"[PanelKopru] Senaryo uygulandı: {senaryo}, yakinKacirma motor 10'da {Mathf.RoundToInt(yakinKacirma / 10f)}");
+        Debug.Log($"[PanelKopru] FAZ35.82 Senaryo uygulandı: {senaryo}, min={minCarpan}, maks={maksCarpan}, tutmaAktif={(senaryo == "tutma")}");
     }
 
     // ===== BONUS TETİKLEME =====
@@ -442,14 +449,17 @@ public class PanelKopru : MonoBehaviour
         _oy?.AdminSetCarpanOlasilik(15);          // carpanUretimOlasiligi default 0.15 (Fields.cs:475)
         _oy?.AdminSetMaxCarpanTekSpin(3);         // maxCarpanAdedi default 3 (Fields.cs:476)
         _oy?.AdminSetYakinKacirma(0);             // yakinKacirmaDegeri10da default 0 (Admin.cs:581)
-        _oy?.AdminSetArdisikKayipLimiti(8);       // _ardisikKayipLimiti default 8 (Fields.cs:140)
+        // FAZ35.82: ardisikKayip number→toggle dönüşümü; toggle kapalı default → 999 (etkisiz büyük değer).
+        _oy?.AdminSetArdisikKayipLimiti(999);
         _oy?.AdminSetCarpanTumbleAktif(true);     // _carpanTumbleAktif default true (Fields.cs:51)
         _oy?.AdminSetBonusOtomatikSpinPeriyodu(0); // bonusOtomatikSpinPeriyodu default 0 = devre dışı (Admin.cs:542)
         // FAZ35.81 Madde 1: Min/Maks Çarpan reset (0 = devre dışı, mevcut RNG akışı).
         _oy?.AdminSetMinCarpanDegeri(0f);
         _oy?.AdminSetMaksCarpanDegeri(0f);
+        // FAZ35.82: Tutma modu reset (sayaç sıfırlanır + flag temizlenir).
+        _oy?.AdminSetTutmaModAktif(false);
 
-        Debug.Log("[PanelKopru] Varsayılan ayarlara dönüldü (FULL RESET: 8 motor field default'a + odemeEgilimi=65 + Min/Maks devre dışı)");
+        Debug.Log("[PanelKopru] Varsayılan ayarlara dönüldü (FULL RESET: motor field default'a + odemeEgilimi=65 + Min/Maks devre dışı + Tutma off + ardisikKayip kapalı)");
     }
 
     // ===== MEVCUT AYARLARI PANELE GÖNDER =====

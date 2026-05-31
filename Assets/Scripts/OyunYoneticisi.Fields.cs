@@ -151,6 +151,13 @@ public partial class OyunYoneticisi
     [HideInInspector] public float odemeMinKat = 0f;
     [HideInInspector] public float odemeMaksKat = 0f;
 
+    // FAZ35.82: Tutma modu deterministik 2-kayıp-1-kazanç döngü sistemi.
+    // _tutmaModSpinSayac: 0,1 = kayıp spin (RNG kazanç reroll); 2 = kazanç spin (cluster zorla + 1x-2x bant).
+    // Mod değişimi (PanelKopru.SenaryoUygula → AdminSetTutmaModAktif) sayacı sıfırlar; bahis/zorla/varsayılan ETKİLEMEZ.
+    [HideInInspector] public bool _tutmaModAktif = false;
+    [HideInInspector] public int  _tutmaModSpinSayac = 0;
+    [HideInInspector] public bool _tutmaBuSpinKayipBekleniyor = false;
+
     public TMPro.TextMeshProUGUI carpanOlasilikValueText;
     public TMPro.TextMeshProUGUI carpanMaxAdetValueText;
 

@@ -398,6 +398,30 @@ public partial class OyunYoneticisi
             if (carpanAyarlari != null)
                 carpanAyarlari.ZorlaSiradakiCarpan = 0;
         }
+        // FAZ35.82: Tutma mod deterministik döngü (2-kayıp-1-kazanç, sonsuz).
+        // _tutmaBuSpinKayipBekleniyor her spin başında reset → OdemeModelineUygunMu reroll'leri içinde sabit kalır.
+        // Senaryo 1-5 aktif iken bypass (Senaryo motorları kendi yolundan ilerler).
+        _tutmaBuSpinKayipBekleniyor = false;
+        if (_tutmaModAktif && !bonusSpin && zorlaCarpanDegeri <= 0
+            && !IsAdminSenaryo1Aktif() && !IsAdminSenaryo2Aktif() && !IsAdminSenaryo3Aktif()
+            && !IsAdminSenaryo4Aktif() && !IsAdminSenaryo5Aktif())
+        {
+            int faz = _tutmaModSpinSayac % 3;
+            if (faz == 2)
+            {
+                // Kazanç spin: mevcut cluster zorlama bayrağını kullan (35.81 Min/Maks bant 1x-2x ile reroll'da bantlanır).
+                _kacisFrenlemeBuSpinAktif = true;
+                OncedenHesaplananSpinOnbelleginiTemizle();
+            }
+            else
+            {
+                // Kayıp spin (faz 0/1): OdemeModelineUygunMu içinde nihaiOdeme>0 → reroll zorlar.
+                _tutmaBuSpinKayipBekleniyor = true;
+            }
+            _tutmaModSpinSayac = (_tutmaModSpinSayac + 1) % 3;
+            Debug.Log($"[TUTMA SPIN] faz={faz} ({(faz < 2 ? "kayıp" : "kazanç")}), sonraki sayaç={_tutmaModSpinSayac}");
+        }
+
         // Kaçış Frenleme: ardışık kayıp eşiği aşıldığında bir önceki spin sonu flag set etmiştir.
         // Bu spinde grid cluster oluşacak şekilde zorlanır; flag tek atımlık (spin başında tüketilir).
         // Bonus / zorla çarpan path'lerinde çakışma olmasın diye sadece normal spinde uygulanır.
