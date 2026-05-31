@@ -1370,8 +1370,12 @@
       unityeGonder('oyunModu', 'normal');
       // senaryoUygula mevcut akışı tetikler — Normal mod motor güncellemesi otomatik (Faz 35.87 akış).
       if (typeof senaryoUygula === 'function') senaryoUygula();
+      // FAZ35.97 İŞ1 HOTFIX: modKilitle(false) DIREKT çağır — roundtrip beklemeden 16 ID input/slider/toggle enable.
+      // 35.96 önceki davranış: dropdown=normal + senaryoUygula() roundtrip sonrası dropdown change event ile modKilitle(false) tetikleniyordu (gecikme/eksik).
+      // Direkt çağrı: alt panel anında enabled, kullanıcı hemen ayar değiştirebilir.
+      if (typeof modKilitle === 'function') modKilitle(false);
       body.classList.add('expanded');
-      console.log('[FAZ35.96 detayliAyarlar] AÇIK — dropdown Normal\'e kilitli, 3 accordion görünür');
+      console.log('[FAZ35.96 detayliAyarlar] AÇIK — dropdown Normal\'e kilitli, 3 accordion görünür, alt panel inputları ENABLED (35.97 hotfix)');
     } else {
       // B → A: detaylı ayarlar KAPALI
       dropdown.disabled = false;
