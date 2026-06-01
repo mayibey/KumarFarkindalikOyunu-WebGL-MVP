@@ -507,8 +507,10 @@ public partial class OyunYoneticisi
     public bool carpanUretimiAktif = true;
     public bool carpanSadeceBonus = false;
     // FAZ35.87 İŞ2: Normal mod baseline default %5 (önceden %15 — gerçek slot davranışı, pedagojik tehlikeli).
+    // FAZ35.104 İŞ1: Default 0.05f → 0.10f. Faz 35.95 delegate sadeleştirildi (state mismatch BUG 1 fix), Normal mod baseline RTP korunur.
+    // Detaylı Ayarlar KAPALI iken %10 (eski Faz 35.95 hardcoded davranış), Detaylı Ayarlar AÇIK + slider %X → kullanıcı değeri.
     // Inspector'da serialize edilmiş sahnedeki referans değişmez; bu yeni instance/reset için default.
-    [Range(0f, 1f)] public float carpanUretimOlasiligi = 0.05f;
+    [Range(0f, 1f)] public float carpanUretimOlasiligi = 0.10f;
     [Range(1, 10)] public int maxCarpanAdedi = 3;
     public int zorlaSiradakiCarpan = 0;
 

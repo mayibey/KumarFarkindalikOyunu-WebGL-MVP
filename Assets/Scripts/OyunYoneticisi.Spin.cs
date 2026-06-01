@@ -438,18 +438,16 @@ public partial class OyunYoneticisi
         // ÇÖZÜM: Eğilim'e göre kazanç bekleniyorsa motor hedef TL seçer + paytable'dan sembol+küme bulur + grid'e enjekte eder.
         // 02 anlatıcı (ScriptedSpinYoneticisi.Aktif) ve eski 04 Tutorial (TutorialScriptedYoneticisi.Aktif) sat ~344-385'te ERKEN RETURN → bu branch'a girmez.
         // Senaryo 1-5 guard'ları bypass + Tutma kayıp fazı (_tutmaBuSpinKayipBekleniyor) bypass + zorlaCarpan bypass.
-        // FAZ35.103 İŞ2: Bonus oyuna girme olasılığı (Normal mod, !bonusSpin guard).
-        // Slider %X → her spin başında RNG check (Random.value <= _bonusGirmeOlasilik) → grid'e 4 scatter ZORLA yerleştir → bonus tetik.
-        // Senaryolu modlar (Hook/Yontma/Tutma/Koruma) ve bonus spin'ler etkilenmez (mevcut akış korunur).
-        // Mod konstrukte bloku ÖNCESİ — Normal mod'da mod konstrukte zaten Faz 35.101 ile devre dışı, çakışma yok.
-        if (!bonusSpin && zorlaCarpanDegeri <= 0
+        // FAZ35.104 İŞ1 BUG 2: Bonus girme olasılığı RNG check (sadece flag set — ASIL ENJEKSİYON reroll loop'a taşındı).
+        // KÖK NEDEN: Önceki nokta (Faz 35.103 İŞ2) burada Force4ScatterEnjekte çağırıyordu AMA `grid` field bu noktada eski state.
+        // Reroll loop sat ~697'de FillRandomAll RNG sembollerle grid'i dolduruyor → benim 4 scatter'ım SİLİNİYORDU.
+        // Kullanıcı log kanıtı: "🧪 BonusKontrol: ScatterSay(ilk)=1" — IlkGrid'de sadece 1 RNG scatter, force enjeksiyon kayboldu.
+        // ÇÖZÜM: Spin başında SADECE flag set (RNG check deterministic). Enjeksiyon reroll loop içinde FillRandomAll SONRASI.
+        bool _bonusGirmeBuSpinAktif = !bonusSpin
+            && zorlaCarpanDegeri <= 0
             && PanelKopru.aktifSenaryo == "normal"
             && _bonusGirmeOlasilik > 0f
-            && UnityEngine.Random.value <= _bonusGirmeOlasilik)
-        {
-            Force4ScatterEnjekte(grid);
-            Debug.Log($"[FAZ35.103 İŞ2] Bonus girme tetiklendi (olasilik={_bonusGirmeOlasilik:F2}) — 4 scatter zorla yerleştirildi.");
-        }
+            && UnityEngine.Random.value <= _bonusGirmeOlasilik;
 
         _modKonstrukteBasarili = false;
         _modSpinBekleniyorKazanc = false;
@@ -707,6 +705,16 @@ public partial class OyunYoneticisi
             {
                 GrideZorlaEnAzBirCluster();
                 _tumbleServisi?.SetGrid(grid);
+            }
+
+            // FAZ35.104 İŞ1 BUG 2: Bonus girme olasılığı tetiklendiyse 4 scatter zorla yerleştir.
+            // FillRandomAll SONRASI çünkü FillRandomAll RNG ile grid'i dolduruyor → scatter'lar silinmesin diye burada enjekte.
+            // Sadece deneme==0 (ilk denemede) — reroll'larda tekrar etmez. Senaryolu modlar + bonus spin yukarıdaki flag guard ile zaten false.
+            if (_bonusGirmeBuSpinAktif && deneme == 0)
+            {
+                Force4ScatterEnjekte(grid);
+                _tumbleServisi?.SetGrid(grid);
+                Debug.Log($"[FAZ35.103 İŞ2] Bonus girme tetiklendi (olasilik={_bonusGirmeOlasilik:F2}) — 4 scatter zorla yerleştirildi (FillRandomAll sonrası, FAZ35.104 İŞ1 BUG 2 fix).");
             }
 
             // Kaçış Frenleme: ardışık kayıp eşiği aşıldı → bu spin'in grid'i cluster oluşacak şekilde zorlanır.

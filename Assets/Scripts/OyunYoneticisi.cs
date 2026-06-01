@@ -739,28 +739,13 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
         // Normal mod (_modKonstrukteBasarili=false) doğal carpan akışı aynen korunur.
         _carpanServisi.SetIsCarpanUretimiAktif(() => carpanUretimiAktif && !_modKonstrukteBasarili);
         _carpanServisi.SetIsCarpanSadeceBonus(() => carpanSadeceBonus);
-        // FAZ35.95 İŞ1: Normal mod özel carpanUretimOlasiligi %5 → %10 (2x sıklık) → çarpan beklenme süresi yarıya iner.
-        // Diğer modlar carpanUretimOlasiligi field değerini okur (varsayılan %5, kullanıcı paneli ayarı korunur).
-        // buildIndex==2 + aktifSenaryo=="normal" guard ile Senaryolu modlar etkilenmez.
-        // FAZ35.98 İŞ1 B: Detaylı Ayarlar AÇIK → kullanıcı slider değeri motora geçer (delegate guard BYPASS).
-        _carpanServisi.SetGetCarpanUretimOlasiligi(() => {
-            bool normalModAktif95 = SceneManager.GetActiveScene().buildIndex == 2
-                                  && (PanelKopru.aktifSenaryo == null || PanelKopru.aktifSenaryo == "normal")
-                                  && !PanelKopru.detayliAyarlarAcik;
-            return normalModAktif95 ? 0.10f : carpanUretimOlasiligi;
-        });
-        // FAZ35.88 İŞ2: Normal mod baseline → tek çarpan max (havuz {2,3,5} ile birleşince max 5x, mega kazanç imkansız).
-        // CarpanServisi.ResetForNewSpin(maxCarpanAdedi) bu delegate'i her spin başında çağırır (cache yok).
-        // Normal mod: max 1 → Random.Range(1, 2)=1 → tek çarpan, kalan kota 0 → sonraki tumble'larda ek çarpan yok.
-        // Guard: buildIndex==2 + aktifSenaryo == null/normal. Tutorial (idx 3), 02 anlatıcı (idx 1), mod aktif (Hook/vb) etkilenmez.
-        // FAZ35.98 İŞ1 B: Detaylı Ayarlar AÇIK → kullanıcı maxCarpanTekSpin değeri motora geçer (delegate guard BYPASS).
-        _carpanServisi.SetGetMaxCarpanAdedi(() => {
-            int sahneIdx88 = SceneManager.GetActiveScene().buildIndex;
-            bool normalSade88 = sahneIdx88 == 2
-                             && (PanelKopru.aktifSenaryo == null || PanelKopru.aktifSenaryo == "normal")
-                             && !PanelKopru.detayliAyarlarAcik;
-            return normalSade88 ? 1 : maxCarpanAdedi;
-        });
+        // FAZ35.104 İŞ1 BUG 1: Faz 35.95 + 35.98 delegate'leri RADİKAL SADELEŞTİRİLDİ.
+        // KÖK NEDEN: PanelKopru.detayliAyarlarAcik field UI↔C# state mismatch çıkarıyordu — kullanıcı slider %100 olsa bile
+        // spin sırasında delegate %10 (Faz 35.95 hardcoded) dönüyordu. Lambda capture sorunu DEĞİL, JS↔C# senkron sorunuydu.
+        // ÇÖZÜM: Lambda'lar SADECE motor field değerini döndürür. Default value Fields.cs:511'de 0.05f → 0.10f çekildi (Faz 35.95 RTP baseline korunur).
+        // Faz 35.93 _modKonstrukteBasarili guard SADECE SetIsCarpanUretimiAktif'te kalır (mod konstrukte koruması intact, yukarıda sat 740).
+        _carpanServisi.SetGetCarpanUretimOlasiligi(() => carpanUretimOlasiligi);
+        _carpanServisi.SetGetMaxCarpanAdedi(() => maxCarpanAdedi);
         _carpanServisi.SetRollCarpanDegeri(RastgeleCarpan);
         _carpanServisi.SetGetSpinKazancHam(() => spinKazancHam);
         _carpanServisi.SetGetBonusRemainingPayableTL(() => _senaryoServisi.GetBonusRemainingPayableTL());
