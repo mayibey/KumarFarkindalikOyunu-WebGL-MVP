@@ -495,9 +495,14 @@ public partial class OyunYoneticisi
         // Reroll loop sat ~697'de FillRandomAll RNG sembollerle grid'i dolduruyor → benim 4 scatter'ım SİLİNİYORDU.
         // Kullanıcı log kanıtı: "🧪 BonusKontrol: ScatterSay(ilk)=1" — IlkGrid'de sadece 1 RNG scatter, force enjeksiyon kayboldu.
         // ÇÖZÜM: Spin başında SADECE flag set (RNG check deterministic). Enjeksiyon reroll loop içinde FillRandomAll SONRASI.
+        // FAZ35.118: Near-miss aktifken bonus 0'a zorlanır (çift güvence — panel UI kilidi sonraki işe bırakıldı, backend tarafı bu guard).
+        // Sebep: Near-miss 3 scatter yerleştiriyor (bonus eşik 4 - 1), eğer Force4ScatterEnjekte de 5 scatter koyarsa
+        // bonus tetiklenir → "neredeyse bonus" mesajı bozulur. Spin başı flag set'te dinamik guard → kullanıcı near-miss
+        // kapatınca _bonusGirmeOlasilik field'ı SET zamanına bağımlı kalmaz (her spin runtime re-evaluate).
         bool _bonusGirmeBuSpinAktif = !bonusSpin
             && zorlaCarpanDegeri <= 0
             && PanelKopru.aktifSenaryo == "normal"
+            && yakinKacirmaDegeri10da <= 0
             && _bonusGirmeOlasilik > 0f
             && UnityEngine.Random.value <= _bonusGirmeOlasilik;
 

@@ -144,38 +144,88 @@ public partial class OyunYoneticisi
         _tumbleServisi?.SetGrid(grid);
     }
 
-    /// <summary>Yakın Kaçırma görsel enjeksiyonu: 7 adet aynı sembol komşu hücrelere yerleştirir.
-    /// Cluster eşiği 8 olduğu için ÖDEME ÜRETMEZ — sadece "az kalmıştı" görsel hissi.</summary>
+    /// <summary>Yakın Kaçırma görsel enjeksiyonu: ÇİFT NEAR-MISS — 7 adet aynı MEYVE (cluster eşik 8 → ödeme yok)
+    /// + TAM 3 SCATTER (bonus eşik 4 → tetik yok). Pedagojik mesaj çift: "neredeyse cluster" + "neredeyse bonus".
+    /// FAZ35.118: Önceki davranış sadece 7 meyve idi; scatter near-miss bonus manipülasyon mesajı için eklendi.</summary>
     private void GrideNearMissEnjekteEt()
     {
         if (grid == null || sutun <= 0 || satir <= 0) return;
         const int NEAR_MISS_ADET = 7;
+        const int SCATTER_HEDEF = 3;  // FAZ35.118: bonus eşik 4'ün 1 altı, tetiklemeden "az kaldı" mesajı.
         int n = (tumbleAyarlari != null && tumbleAyarlari.PayTable_8_9 != null) ? tumbleAyarlari.PayTable_8_9.Length : 9;
         if (n <= 0) return;
         int scatterIdx = _scatterIndexCache;
-        var aday = new List<Vector2Int>();
+
+        // Mevcut scatter pozisyonlarını ve scatter+CARPAN olmayan (meyve veya boş) hücreleri ayrı listele.
+        var mevcutScatterler = new List<Vector2Int>();
+        var bosVeyaMeyve = new List<Vector2Int>();
         for (int x = 0; x < sutun; x++)
+        {
             for (int y = 0; y < satir; y++)
-                if (grid[x, y] != CARPAN_SEMBOL && grid[x, y] >= 0)
-                    aday.Add(new Vector2Int(x, y));
-        if (aday.Count < NEAR_MISS_ADET) return;
-        // Düşük ödemeli sembol seç (index 0-3 arası)
+            {
+                if (grid[x, y] == scatterIdx) mevcutScatterler.Add(new Vector2Int(x, y));
+                else if (grid[x, y] != CARPAN_SEMBOL && grid[x, y] >= 0) bosVeyaMeyve.Add(new Vector2Int(x, y));
+            }
+        }
+        if (bosVeyaMeyve.Count < NEAR_MISS_ADET) return;
+
+        // 7 meyve sembol seç (low-pay 0-3 arası, scatter HARİÇ).
         int sembol = UnityEngine.Random.Range(0, Mathf.Min(4, n));
         if (sembol == scatterIdx) sembol = (sembol + 1) % n;
-        // Karıştır (Fisher-Yates) ki her spinde farklı 7 hücre
-        for (int i = aday.Count - 1; i > 0; i--)
+
+        // FAZ35.118 — Fazla scatter varsa 3'e indir: scatter olan hücreleri farklı low-pay meyveye dönüştür.
+        // sembol'den FARKLI bir low-pay seç (7'lik cluster'ı 8'e çıkarmasın → ödeme bug'ı önle).
+        int silSembol = (sembol + 1) % n;
+        if (silSembol == scatterIdx) silSembol = (silSembol + 1) % n;
+        if (silSembol == sembol) silSembol = (silSembol + 1) % n;  // 3 fruit havuzu varsa fallback
+        if (mevcutScatterler.Count > SCATTER_HEDEF)
+        {
+            int silSayi = mevcutScatterler.Count - SCATTER_HEDEF;
+            for (int i = 0; i < silSayi && i < mevcutScatterler.Count; i++)
+            {
+                var p = mevcutScatterler[i];
+                grid[p.x, p.y] = silSembol;
+                bosVeyaMeyve.Add(p);  // artık meyve hücresi, 7 meyve seçim havuzuna katılabilir
+            }
+            mevcutScatterler.RemoveRange(0, Mathf.Min(silSayi, mevcutScatterler.Count));
+        }
+
+        // bosVeyaMeyve listesini shuffle (Fisher-Yates) — her spinde farklı 7 meyve + farklı scatter hücreleri.
+        for (int i = bosVeyaMeyve.Count - 1; i > 0; i--)
         {
             int j = UnityEngine.Random.Range(0, i + 1);
-            var t = aday[i]; aday[i] = aday[j]; aday[j] = t;
+            var t = bosVeyaMeyve[i]; bosVeyaMeyve[i] = bosVeyaMeyve[j]; bosVeyaMeyve[j] = t;
         }
-        for (int i = 0; i < NEAR_MISS_ADET && i < aday.Count; i++)
+
+        // 7 meyve yerleştir (scatter olmayan hücrelerin ilk 7'sine).
+        int adayIdx = 0;
+        for (int i = 0; i < NEAR_MISS_ADET && adayIdx < bosVeyaMeyve.Count; i++)
         {
-            var p = aday[i];
+            var p = bosVeyaMeyve[adayIdx];
             grid[p.x, p.y] = sembol;
+            adayIdx++;
         }
+
+        // FAZ35.118 — Eksik scatter ekle: kalan boş hücrelerden (meyve yerleştirilenler HARİÇ) tam 3'e tamamla.
+        int eklenecek = SCATTER_HEDEF - mevcutScatterler.Count;
+        while (eklenecek > 0 && adayIdx < bosVeyaMeyve.Count)
+        {
+            var p = bosVeyaMeyve[adayIdx];
+            grid[p.x, p.y] = scatterIdx;
+            eklenecek--;
+            adayIdx++;
+        }
+
         _tumbleServisi?.SetGrid(grid);
-        OturumKayitcisi.EkleEvent("yakin_kacirma", $"7 adet sembol {sembol} yerleştirildi (cluster oluşmaz)", _spinNo);
-        Debug.Log($"[YAKIN_KACIRMA] 7 adet sembol {sembol} grid'e yerleştirildi (eşik 8, ödeme yok).");
+
+        // Final teyit — log için scatter say.
+        int finalSc = 0;
+        for (int x = 0; x < sutun; x++)
+            for (int y = 0; y < satir; y++)
+                if (grid[x, y] == scatterIdx) finalSc++;
+
+        OturumKayitcisi.EkleEvent("yakin_kacirma", $"7 sembol={sembol} + {finalSc} scatter yerleştirildi (cluster=8 eşik ödeme yok, bonus=4 eşik tetik yok)", _spinNo);
+        Debug.Log($"[FAZ35.118 YAKIN_KACIRMA] 7 meyve sembol={sembol} + {finalSc}/{SCATTER_HEDEF} scatter (cluster eşik=8 → ödeme yok, bonus eşik=4 → tetik yok).");
     }
 
     /// <summary>Zorla çarpan + toggle açıkken tumble garantisi: gridde en az 8 aynı sembol (bir cluster) oluşturur.</summary>
