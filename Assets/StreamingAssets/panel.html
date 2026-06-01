@@ -1377,7 +1377,8 @@
       // FAZ35.98 İŞ1 B: Detaylı Ayarlar AÇIK → kullanıcı manuel motor kontrolü istiyor → delegate guard'lar BYPASS.
       unityeGonder('detayliAyarlarAcik', true);
       body.classList.add('expanded');
-      console.log('[FAZ35.96 detayliAyarlar] AÇIK — dropdown Normal\'e kilitli, 3 accordion görünür, alt panel inputları ENABLED (35.97 hotfix) — delegate bypass aktif (35.98)');
+      // FAZ35.99 İŞ1: Console.log string'leri çift tırnaklı — apostrof escape derdi yok (future-proof, preventif).
+      console.log("[FAZ35.96 detayliAyarlar] AÇIK — dropdown Normal'e kilitli, 3 accordion görünür, alt panel inputları ENABLED (35.97 hotfix) — delegate bypass aktif (35.98)");
     } else {
       // B → A: detaylı ayarlar KAPALI
       dropdown.disabled = false;
@@ -1385,7 +1386,8 @@
       body.classList.remove('expanded');
       // FAZ35.98 İŞ1 B: Detaylı Ayarlar KAPALI → Normal mod baseline delegate guard'ları yeniden aktif.
       unityeGonder('detayliAyarlarAcik', false);
-      console.log('[FAZ35.96 detayliAyarlar] KAPALI — 3 accordion gizli, dropdown serbest, alt panel değerleri DOM\'da korunur — delegate guard'lar yeniden aktif (35.98)');
+      // FAZ35.99 İŞ1 KRİTİK: Önceden tek tırnaklı string'de "guard'lar" apostrof escape edilmemişti → JS parse error → 600+ satır script ÖLÜ (toggle açılmıyor, bildirim çıkmıyor, dropdown donmuş). Çift tırnak ile çözüldü.
+      console.log("[FAZ35.96 detayliAyarlar] KAPALI — 3 accordion gizli, dropdown serbest, alt panel değerleri DOM'da korunur — delegate guard'lar yeniden aktif (35.98)");
     }
   }
 
