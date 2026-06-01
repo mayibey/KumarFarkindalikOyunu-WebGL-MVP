@@ -761,6 +761,30 @@ public partial class OyunYoneticisi
             {
                 ForceCarpaniIlkGriddeGuvenliYerlestir(_dogalCarpanDeger);
                 _tumbleServisi?.SetGrid(grid);
+
+                // FAZ35.109 ÇÖZÜM A: Sprite render çağrısı — yerleştirilen çarpan hücresi için sprite + scale 1.5x güncellensin.
+                // KÖK NEDEN: ForceCarpaniIlkGriddeGuvenliYerlestir SADECE logical state set ediyordu (grid[x,y]=CARPAN_SEMBOL + carpanDegerGrid[x,y]=deger)
+                // AMA render çağrısı eksikti → eski banana sprite + scale 1.0 kalıyordu + üstüne çarpan text overlay → "küçük + skateboard" izlenimi.
+                // FIX: RenderSpritesOnlyForCells ile o hücre için sprite çarpan'a switch + scale 1.5x.
+                if (_izgaraServisi != null && carpanDegerGrid != null)
+                {
+                    int satir109 = grid.GetLength(1);
+                    int sutun109 = grid.GetLength(0);
+                    bool bulundu109 = false;
+                    for (int y109 = 0; y109 < satir109 && !bulundu109; y109++)
+                    {
+                        for (int x109 = 0; x109 < sutun109 && !bulundu109; x109++)
+                        {
+                            if (grid[x109, y109] == -2 && carpanDegerGrid[x109, y109] == _dogalCarpanDeger)
+                            {
+                                _izgaraServisi.RenderSpritesOnlyForCells(new[] { new Vector2Int(x109, y109) }, grid);
+                                Debug.Log($"[FAZ35.109 ÇÖZÜM A] Sprite render — hücre ({x109},{y109}) x{_dogalCarpanDeger} çarpan sprite + 1.5x scale.");
+                                bulundu109 = true;
+                            }
+                        }
+                    }
+                }
+
                 Debug.Log($"[FAZ35.105 İŞ1] DOGAL çarpan ilk grid'e yerleştirildi: x{_dogalCarpanDeger} (FAZ35.107 reroll dışı taşındı).");
             }
 
@@ -839,8 +863,15 @@ public partial class OyunYoneticisi
                 }
 
                 // S3/S4/S5 fallback reroll'da da çarpan üretme — konstrukte bandı dar, çarpan bant dışına iter.
-                if (!IsAdminSenaryo3Aktif() && !IsAdminSenaryo4Aktif() && !IsAdminSenaryo5Aktif())
+                // FAZ35.109 ÇÖZÜM B: Multi-tumble çarpan biriktirme — Faz 35.105 spin başı yerleşim aktifse BYPASS.
+                // Pedagojik karar: slider %100 → spin başı 1 çarpan garanti, ek birikme YOK (tek çarpan/spin tutarlı mental model).
+                // Sweet Bonanza tarzı çoklu biriktirme bonus oyunda devam eder (bonusSpin durumunda Faz 35.105 flag false → bu blok normal çalışır).
+                // Senaryolu modlarda (aktifSenaryo != "normal") flag false → multi-tumble normal çalışır.
+                if (!IsAdminSenaryo3Aktif() && !IsAdminSenaryo4Aktif() && !IsAdminSenaryo5Aktif()
+                    && !_dogalCarpanBuSpinAktif)
                     CarpanUretVeBirik();
+                else if (_dogalCarpanBuSpinAktif)
+                    Debug.Log("[FAZ35.109 ÇÖZÜM B] Multi-tumble çarpan biriktirme BYPASS — Faz 35.105 spin başı yerleşim aktif, tek çarpan/spin garantili.");
 
                 int turHam = tumbleAyarlari != null ? tumbleAyarlari.CalculateWinWithOwnPayTable(toRemove, grid, satir, sutun, _ekonomiServisi != null ? _ekonomiServisi.Bahis : 0, tumbleEsik) : 0;
                 int turKazanc = turHam;
