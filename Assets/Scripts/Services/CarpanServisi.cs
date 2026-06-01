@@ -112,13 +112,27 @@ public class CarpanServisi
         }
 
         // Normal/BONUS akışta slider değerleri burada kullanılmalı.
-        if (!carpanUretimiAktif) return false;
-        if (sadeceBonus && !bonusAktif) return false;
-        if (_carpanKalanBuSpin <= 0) return false;
+        // FAZ35.102 İŞ1: SORUN 1 teşhis — çarpan %100 olsa bile her spinde düşmüyor; hangi guard BLOK ediyor net teşhis için 4 erken return'e Debug.Log eklendi.
+        if (!carpanUretimiAktif)
+        {
+            Debug.Log("[CARPAN BLOK] FAZ35.102: carpanUretimiAktif=false (Faz 35.93 _modKonstrukteBasarili guard?)");
+            return false;
+        }
+        if (sadeceBonus && !bonusAktif)
+        {
+            Debug.Log($"[CARPAN BLOK] FAZ35.102: CarpanSadeceBonus=true + bonusAktif={bonusAktif} (CarpanAyarlari Inspector field?)");
+            return false;
+        }
+        if (_carpanKalanBuSpin <= 0)
+        {
+            Debug.Log($"[CARPAN BLOK] FAZ35.102: kota tükendi (_carpanKalanBuSpin={_carpanKalanBuSpin}, maxCarpanAdedi delegate?)");
+            return false;
+        }
 
         float olasilik = _getCarpanUretimOlasiligi != null ? Mathf.Clamp01(_getCarpanUretimOlasiligi()) : 0f;
         if (olasilik <= 0f || UnityEngine.Random.value > olasilik)
         {
+            Debug.Log($"[CARPAN BLOK] FAZ35.102: olasilik={olasilik:F2} RNG fail (slider değeri okunmadı veya Faz 35.95 %10 hardcoded?)");
             _pendingCarpanDusurecek.Clear();
             return false;
         }
