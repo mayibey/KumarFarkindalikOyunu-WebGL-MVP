@@ -1648,8 +1648,12 @@
     setToggleClass('ardisikKayip', s.ardisikKayip > 0);
     // FAZ35.76: setToggleClass('yeniOyuncu') SİLİNDİ — kart yok.
     setToggleClass('carpanOdeme', s.carpanOdeme);
-    document.getElementById('bonusManuel').classList.toggle('active', s.bonusModu === 'manuel');
-    document.getElementById('bonusOtomatik').classList.toggle('active', s.bonusModu === 'otomatik');
+    // FAZ35.126.B: bonusManuel/bonusOtomatik Faz 35.123'te silindi (Anlık Müdahale accordion → bonus modu radio kaldırıldı,
+    // bonus hep otomatik). Null-safe pattern — element yoksa atla, hata atmasın.
+    var __bmUygula = document.getElementById('bonusManuel');
+    if (__bmUygula) __bmUygula.classList.toggle('active', s.bonusModu === 'manuel');
+    var __boUygula = document.getElementById('bonusOtomatik');
+    if (__boUygula) __boUygula.classList.toggle('active', s.bonusModu === 'otomatik');
 
     // FAZ35.82: Ardışık kayıp kart SADECE Normal modda görünür (diğer modlar kendi davranışına sahip:
     // Tutma deterministik döngü, Hook/Yontma/Koruma kendi bantları). secim undefined ise göster (defansif).
@@ -1844,7 +1848,8 @@
     setToggleClass('yakinKacirma', false);
     document.getElementById('minCarpan').value               = 0;
     document.getElementById('maksCarpan').value              = 0;
-    document.getElementById('ardisikKayip').value            = 8;
+    // FAZ35.126.B: ardisikKayip number input Faz 35.122'de silindi (radio mutex'e dönüştü). Eski satır null crash atıyordu.
+    // Radio mutex default kapalı → varsayılana dön'de set gereksiz.
     document.getElementById('oyunModu').value                = 'normal';
     modAciklamasiniGuncelle('normal');
     unityeGonder('varsayilanaDon', true);
@@ -1881,7 +1886,10 @@
     document.getElementById('maksCarpan').value              = s.maksCarpan;
     // FAZ35.69: yakinKacirma slider→toggle. Preset sayısal değer >0.5 → toggle.active (UI senkron).
     setToggleClass('yakinKacirma', s.yakinKacirma > 0.5);
-    document.getElementById('ardisikKayip').value            = s.ardisikKayip;
+    // FAZ35.126.B: ardisikKayip number input Faz 35.122'de silindi (radio mutex odemeDavranisi_kacis'e dönüştü).
+    // Eski satır `document.getElementById('ardisikKayip').value = s.ardisikKayip;` null'a .value set → TypeError →
+    // panelInitNormalApply ortada kesiliyor → alt satırlar (carpanOdeme, bonus init, min/max dispatchEvent, oyunModu)
+    // ATLANIYOR → init eksik. Radio mutex default "kapalı" (DOM'da hiçbir radio .active değil) → preset gereksiz.
     setToggleClass('carpanOdeme', s.carpanOdeme);
     // FAZ35.123: bonusManuel/bonusOtomatik switch DOM'dan kaldırıldı (Anlık Müdahale silindi).
     // bonusModu motora yine gönderiliyor (panelInitNormalApply altta line ~1917 unityeGonder),
@@ -1899,14 +1907,14 @@
       document.getElementById('bonusSpinHesap').textContent = s.bonusSembolOlasilik > 0 ? Math.round(100 / s.bonusSembolOlasilik) : '∞';
     }
 
-    // Ödeme aralığı + ardisikKayip number input'ları için: input + change event fire et
+    // Ödeme aralığı number input'ları için: input + change event fire et
     // (mevcut oninput handler'larını uyandır, Unity'e ek güvence postMessage)
+    // FAZ35.126.B: ardisikKayip akEl dispatch satırı SİLİNDİ — element 35.122'de silindi, akEl her zaman null,
+    // if (akEl) guard güvenliydi ama gereksiz ölü kod, temizlendi.
     var minEl = document.getElementById('minCarpan');
     var maxEl = document.getElementById('maksCarpan');
-    var akEl  = document.getElementById('ardisikKayip');
     if (minEl) { minEl.dispatchEvent(new Event('input', { bubbles: true })); minEl.dispatchEvent(new Event('change', { bubbles: true })); }
     if (maxEl) { maxEl.dispatchEvent(new Event('input', { bubbles: true })); maxEl.dispatchEvent(new Event('change', { bubbles: true })); }
-    if (akEl)  { akEl.dispatchEvent(new Event('input', { bubbles: true }));  akEl.dispatchEvent(new Event('change', { bubbles: true })); }
 
     // savedState init + pulse/hint temizle
     savedSenaryo = 'normal';
@@ -2026,9 +2034,12 @@
       // FAZ35.76: yeniOyuncuToggle/Label DOM senkron SİLİNDİ — kart kaldırıldı.
       var ctTog = document.getElementById('carpanOdemeToggle'), ctLbl = document.getElementById('carpanOdemeLabel');
       if (ctTog && ctLbl && a.carpanTumbleAktif !== undefined) { ctTog.classList.toggle('active', !!a.carpanTumbleAktif); ctLbl.textContent = a.carpanTumbleAktif ? 'Aktif' : 'Kapalı'; }
+      // FAZ35.126.B: bonusManuel/bonusOtomatik Faz 35.123'te silindi. Try-catch crashtan korusa da temiz null-safe.
       if (a.bonusModu) {
-        document.getElementById('bonusManuel').classList.toggle('active', a.bonusModu === 'manuel');
-        document.getElementById('bonusOtomatik').classList.toggle('active', a.bonusModu === 'otomatik');
+        var __bmEv = document.getElementById('bonusManuel');
+        if (__bmEv) __bmEv.classList.toggle('active', a.bonusModu === 'manuel');
+        var __boEv = document.getElementById('bonusOtomatik');
+        if (__boEv) __boEv.classList.toggle('active', a.bonusModu === 'otomatik');
       }
     } catch (err) { console.error('[Panel] Ayar parse hatası:', err); }
   });
