@@ -1364,12 +1364,16 @@
 
     if (yeniDurum) {
       // A → B: detaylı ayarlar AÇIK
+      // FAZ35.125: dropdown.value UI'da 'normal' kalır (Türkçe "Normal" görünür, görsel ipucu kullanıcıya).
+      // AMA backend'e 'ozel' gönderilir → PanelKopru.cs case "ozel" → min/max'a dokunmaz + aktifSenaryo='ozel' →
+      // 3 motor guard'ı (Admin.cs:194/217, Spin.cs:528) "!= normal" testi açılır → min/max aktifleşir.
+      // senaryoUygula() çağrısı SİLİNDİ — içeride unityeGonder('oyunModu', dropdown.value='normal') gönderiyordu,
+      // bizim 'ozel'i override edip min/max'ı 0'a sıfırlatıyordu. Detaylı Ayarlar AÇIK iken preset gönderimi gereksiz —
+      // kullanıcı 3 accordion'dan manuel ayar yapar; her ayar kendi event listener'ında zaten unityeGonder ediyor.
       dropdown.value = 'normal';
       dropdown.disabled = true;
       dropdown.style.opacity = '0.5';
-      unityeGonder('oyunModu', 'normal');
-      // senaryoUygula mevcut akışı tetikler — Normal mod motor güncellemesi otomatik (Faz 35.87 akış).
-      if (typeof senaryoUygula === 'function') senaryoUygula();
+      unityeGonder('oyunModu', 'ozel');
       // FAZ35.97 İŞ1 HOTFIX: modKilitle(false) DIREKT çağır — roundtrip beklemeden 16 ID input/slider/toggle enable.
       // 35.96 önceki davranış: dropdown=normal + senaryoUygula() roundtrip sonrası dropdown change event ile modKilitle(false) tetikleniyordu (gecikme/eksik).
       // Direkt çağrı: alt panel anında enabled, kullanıcı hemen ayar değiştirebilir.

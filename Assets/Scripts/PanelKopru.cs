@@ -490,6 +490,24 @@ public class PanelKopru : MonoBehaviour
                 _oy.AdminSetMaksCarpanDegeri(0.3f);
                 minCarpan = 0.1f; maksCarpan = 0.3f;
                 break;
+
+            // FAZ35.125: "ozel" modu — Detaylı Ayarlar AÇIK iken kullanıcı manuel kontrol.
+            // KÖK NEDEN (keşif 35.125): Önceden Detaylı Ayarlar AÇIK iken panel.html:1370 unityeGonder('oyunModu','normal')
+            // gönderiyordu → SenaryoUygula("normal") → min/max=0 sıfırlanıyor + aktifSenaryo="normal" guard 3 noktada
+            // (Admin.cs:194/217, Spin.cs:528) min/max'ı YOK SAYIYORDU. Kullanıcı min=2 max=5 set etse bile motor görmüyordu.
+            // ÇÖZÜM: panel.html:1370 → 'ozel'. Bu case min/max'a DOKUNMAZ (kullanıcı değeri korunur), aktifSenaryo='ozel'
+            // set edilir (494'te). 3 guard "!= normal" testi → ozel'de TRUE → min/max aktifleşir → OdemeModelineUygunMu
+            // reroll mekanizması nihaiOdeme'yi (çarpan dahil) bant'a sıkıştırır (KARAR 2 doğal davranış: motor bant aşan
+            // simulasyonu reject eder, kabul edilen simulasyondaki çarpan zaten bant içi — görsel düşen çarpan = bant uyumlu).
+            // Eğilim: default %65 (Faz 35.83 normal eğilim) — kullanıcı KARAR 1 isteği: "spin kazandığında bant içinde,
+            // eğilim devrede, kayıp spin olabilir". Tutma OFF (yukarıda 450 zaten set ediyor) — ozel ile çakışmaz.
+            // Tutorial T3 (aktifSenaryo == "hook" vb) etkilenmez — "ozel" string'i hook/yontma/tutma/koruma'dan farklı.
+            // 02 anlatıcı bypass (line 443-446) — "ozel" 02'ye ulaşmaz. Faz 35.95 baseline ("normal") korunur — dropdown
+            // gerçek Normal seçilince case "normal":454-459 min/max=0 sıfırlar, eski davranış.
+            case "ozel":
+                _oy.AdminSetOdemeEgilimi(65);
+                // min/maksCarpan SIFIRLAMA YOK — kullanıcı manuel değeri panel input'lardan korunur.
+                break;
         }
         aktifSenaryo = senaryo;
 
