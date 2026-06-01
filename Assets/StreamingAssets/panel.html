@@ -1722,6 +1722,12 @@
       ? dropdownEl.options[dropdownEl.selectedIndex].text
       : secim;
 
+    // FAZ35.106: Detaylı Ayarlar AÇIK iken toast metni override — dropdown disabled "Normal oyun" yazıyordu, kullanıcı "Detaylı ayarlar uygulandı" beklerken yanlış metin görüyordu.
+    var detayliToggle = document.getElementById('detayliAyarlarToggle');
+    if (detayliToggle && detayliToggle.classList.contains('active')) {
+      secimAd = 'Detaylı ayarlar';
+    }
+
     // PAKET 14-FAZ34.3 BUG F: Spesifik toast metni — son kullanıcı değişiminden üret.
     // Yoksa fallback dropdown senaryosu adı.
     var toastMsg = ozelToastMetni(lastChangedKey, lastChangedValue);

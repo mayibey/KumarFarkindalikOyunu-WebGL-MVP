@@ -733,9 +733,10 @@ public partial class OyunYoneticisi
             // görsel çarpan kalıcı. Kullanıcı mental model: "çarpan düşer, kazanç olsa katlanır, olmasa da düşer."
             // İZOLE: zorlaCarpanDegeri <= 0 guard → Force çarpan path ile çakışma yok. Tumble loop içindeki
             // Spin.cs:803 CarpanUretVeBirik KORUNUR (multi-tumble çarpan biriktirme kazançlı spin'lerde devam).
-            // GUARD'lar: Senaryolu modlar (aktifSenaryo != "normal") + bonus spin + Faz 35.93 _modKonstrukteBasarili → blok pas.
-            if (!bonusSpin
-                && zorlaCarpanDegeri <= 0
+            // GUARD'lar: Senaryolu modlar (aktifSenaryo != "normal") + Faz 35.93 _modKonstrukteBasarili → blok pas.
+            // FAZ35.106 SERTLEŞTİRME: bonusSpin guard KALDIRILDI — kullanıcı kararı: slider %100 → bonus spin'de bile çarpan düşmeli (Sweet Bonanza tarzı multi-tumble biriktirme).
+            // Faz 35.93 _modKonstrukteBasarili guard KORUNUR (TUTMA kazanç fazı vb. mod konstrukte koruması).
+            if (zorlaCarpanDegeri <= 0
                 && PanelKopru.aktifSenaryo == "normal"
                 && carpanUretimiAktif
                 && !_modKonstrukteBasarili

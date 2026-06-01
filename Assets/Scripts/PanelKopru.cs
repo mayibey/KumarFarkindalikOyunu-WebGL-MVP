@@ -291,7 +291,9 @@ public class PanelKopru : MonoBehaviour
                 {
                     bgOlasilik = Mathf.Clamp01(bgOlasilik);
                     _oy?.AdminSetBonusGirmeOlasilik(bgOlasilik);
-                    Debug.Log($"[PanelKopru bonusGirmeOlasilik] olasilik={bgOlasilik:F2} ({(bgOlasilik * 100f):F0}%)");
+                    // FAZ35.106 İŞ1: Precompute cache invalidate — slider değişimi anında etkili olsun.
+                    _oy?.AdminForceOncedenHesaplananSpinTemizle();
+                    Debug.Log($"[PanelKopru bonusGirmeOlasilik] olasilik={bgOlasilik:F2} ({(bgOlasilik * 100f):F0}%) (cache temizlendi)");
                 }
                 break;
 
@@ -303,8 +305,12 @@ public class PanelKopru : MonoBehaviour
                     // ediyor; DesenToKayit'ın okuduğu float carpanUretimOlasiligi default 0.15f kalıyor.
                     // Slider %100 yapsa bile çarpan düşmüyordu — gerçek mekanik field'ı da set et.
                     if (_oy != null) _oy.carpanUretimOlasiligi = Mathf.Clamp01(olasilik / 100f);
+                    // FAZ35.106 İŞ1 KESIN FIX: Precompute cache invalidate — slider değişimi anında etkili olsun.
+                    // ÖNCESI: PrecomputeNextSpinCoroutine arka planda eski carpanUretimOlasiligi ile spin hesaplıyordu;
+                    // kullanıcı slider %100'e çekse bile bir sonraki spin eski state ile koşuyordu (görsel çarpan eksik).
+                    _oy?.AdminForceOncedenHesaplananSpinTemizle();
                     // PAKET 14-FAZ25 (debug): Slider event gerçekten geliyor mu + field set sonrası değer
-                    Debug.Log($"[PanelKopru carpanOlasilik] olasilik={olasilik}, carpanUretimOlasiligi={_oy?.carpanUretimOlasiligi:F2}");
+                    Debug.Log($"[PanelKopru carpanOlasilik] olasilik={olasilik}, carpanUretimOlasiligi={_oy?.carpanUretimOlasiligi:F2} (cache temizlendi)");
                 }
                 break;
 
