@@ -54,8 +54,10 @@ namespace Senaryo.Scripted.Editor
         // A1 Spin 1: ilk kazanç sonrası — saatlerce oynamanın hatırası
         // (manipülasyon farkındalığı M_A2_S2'ye taşındı çünkü A1 S1'de gerçek net kazanç var,
         // manipülasyon görünmez. M_A2_S2 = bahisten az ödeme alan kazanç → manipülasyon net.)
+        // FAZ35.131: Son cümle ("saatlerce oyun başında kalmasının sebebi bu kısa anın hatırasıdır") SİLİNDİ.
+        // Renkler açık palete + bold (Faz 35.129 standardı). Üçlü kontrolü: yeşil+kırmızı = 2 renk ✓ (turuncu YOK).
         private const string M_A1_S1 =
-            "<color=#4ADE80>İlk kazanç</color> oyuncu için en <color=#EF4444>tehlikeli başlangıçtır</color>. Oyuncunun beyni bu anı unutmayacak: saatlerce oyun başında kalmasının sebebi bu kısa anın hatırasıdır.";
+            "<color=#4ade80><b>İlk kazanç</b></color> oyuncu için en <color=#ef4444><b>tehlikeli başlangıçtır</b></color>. Oyuncunun beyni bu anı unutmayacak.";
         // A1 Spin 4: dopamin yakıtı (3. tekil)
         private const string M_A1_S4 = "Oyuncu <color=#4ADE80>ilk kazançları</color> yaşıyor. Oyuncunun beyninde <color=#60A5FA>dopamin</color> salgılanıyor. Bu his, saatlerce oyun oynamasının yakıtı olacak.";
         // A1 Spin 7 ve Spin 8 SONRA modal'ları KALDIRILDI (sade akış, ÖNCE modal SpinButonImpl hook'unda).
@@ -63,9 +65,15 @@ namespace Senaryo.Scripted.Editor
         // A2 Spin 2: bahisten az ödeme alan kazanç — manipülasyon farkındalığı net görünür
         // (Faz 35.49: A2 bahis 2000 → 1500, S2 Hindistan×8 brüt 750 → ekran "KAZANÇ 750 TL"
         //  yazar, bakiyeden 750 TL düşer; pedagojik mesaj aynı, sayılar bahis 1500 ile senkron.)
+        // FAZ35.131: Renkler açık palete + bold (Faz 35.129 standardı). ⚠️ ÜÇLÜ DÜZELTMESİ: önceden
+        // kırmızı(#dc2626) + yeşil(#16a34a) + turuncu(#ea580c) üçü birden vardı (yasak). Çözüm: YEŞİL düz
+        // bırakıldı ("kazanç 750 TL" / "kazandığı" / "kazanç" / "bakiyeyi" düz, çünkü manipülasyon ironisi
+        // zaten kırmızıyla ("750 TL eksildi" / "kayıptadır" / "kasıtlı") vurgulanıyor — yeşil yokluğunda da
+        // pedagojik mesaj net). Sonuç: kırmızı + turuncu + mavi nötr, yeşil YOK → üçlü çözüldü ✓.
+        // Sayılar (1.500/750) korundu — Faz 35.49'da zaten güncellenmiş.
         private const string M_A2_S2 =
-            "<color=#dc2626>DİKKAT: manipülasyon farkındalığı</color>\n\n" +
-            "Oyuncu az önce <color=#2563eb>1.500 TL</color> <color=#ea580c>bahis</color> koydu. Ekrana <color=#16a34a>\"kazanç 750 TL\"</color> yazdı ama bakiyesinden <color=#dc2626>750 TL eksildi</color>; yine de oyuncunun zihninde <color=#ea580c>kazandım hissi</color> oluştu. Bu <color=#2563eb>sistemin</color> bilerek tasarladığı bir durumdur. Burada amaç oyuncuya <color=#dc2626>kaybettiğini</color> hissettirmeden sürekli <color=#16a34a>kazandığı</color> algısını oluşturmaktır. Her <color=#2563eb>spinde</color> yatırılan bahisten daha az ödeme yapılmasına rağmen ekrana büyük puntolarla <color=#16a34a>\"kazanç\"</color> yazılır. Uzun vadede oyuncu daima <color=#dc2626>kayıptadır</color>. <color=#2563eb>Algoritma</color> bunu <color=#dc2626>kasıtlı</color> olarak tasarlar: <color=#16a34a>bakiyeyi</color> sürekli artıyormuş gibi göstererek oyuncuyu oyunda tutmak temel amaçtır.";
+            "<color=#ef4444><b>DİKKAT: manipülasyon farkındalığı</b></color>\n\n" +
+            "Oyuncu az önce <color=#60a5fa><b>1.500 TL</b></color> <color=#fb923c><b>bahis</b></color> koydu. Ekrana \"kazanç 750 TL\" yazdı ama bakiyesinden <color=#ef4444><b>750 TL eksildi</b></color>; yine de oyuncunun zihninde <color=#fb923c><b>kazandım hissi</b></color> oluştu. Bu <color=#60a5fa><b>sistemin</b></color> bilerek tasarladığı bir durumdur. Burada amaç oyuncuya <color=#ef4444><b>kaybettiğini</b></color> hissettirmeden sürekli kazandığı algısını oluşturmaktır. Her <color=#60a5fa><b>spinde</b></color> yatırılan bahisten daha az ödeme yapılmasına rağmen ekrana büyük puntolarla \"kazanç\" yazılır. Uzun vadede oyuncu daima <color=#ef4444><b>kayıptadır</b></color>. <color=#60a5fa><b>Algoritma</b></color> bunu <color=#ef4444><b>kasıtlı</b></color> olarak tasarlar: bakiyeyi sürekli artıyormuş gibi göstererek oyuncuyu oyunda tutmak temel amaçtır.";
         // FAZ35.22: M_A2_S3 ORPHAN const silindi — A4S1YildizModalAkisi runtime'da kullanır, asset'te yer almıyordu.
         // A2 Spin 4 SONRA modal — kontrol yanılsaması vurgusu (3. tekil)
         private const string M_A2_S4 = "Oyuncu <color=#60A5FA>oyunu yönettiğini</color> düşünürken, oyun onu <color=#EF4444>adım adım içine çekiyor</color>.";
@@ -76,13 +84,20 @@ namespace Senaryo.Scripted.Editor
         // A3 modal mesajları
         private const string M_A3_S3 = "İlk ciddi <color=#dc2626>kayıplar</color> yaşanmaktadır. Amaç para kazanmaktan ziyade <color=#2563eb>kayıpları telafi etmeye</color> dönüşür.";
         // A3 Spin 6: kayıp kovalama + bahis 2500'e otomatik yükseltme uyarısı
-        private const string M_A3_S6 = "Oyuncu <color=#dc2626>kayıpları</color> geri kazanmak için daha fazla <color=#dc2626>risk alır</color>. Mantıklı düşünme yetisini kaybeder.\n\nŞimdi oyuncu <color=#ea580c>\"yüksek bahis daha hızlı kurtarır\"</color> yanılgısıyla <color=#ea580c>bahis</color> miktarını <color=#2563eb>2500 TL</color>'ye yükseltecektir. Bu da <color=#2563eb>algoritmanın</color> istediği davranış biçimidir.";
+        // FAZ35.131: "yükseltecektir" → "yükseltecek". Renkler açık palete + bold. Üçlü kontrolü: kırmızı +
+        // turuncu + mavi nötr, yeşil YOK → üçlü yok ✓.
+        private const string M_A3_S6 = "Oyuncu <color=#ef4444><b>kayıpları</b></color> geri kazanmak için daha fazla <color=#ef4444><b>risk alır</b></color>. Mantıklı düşünme yetisini kaybeder.\n\nŞimdi oyuncu <color=#fb923c><b>\"yüksek bahis daha hızlı kurtarır\"</b></color> yanılgısıyla <color=#fb923c><b>bahis</b></color> miktarını <color=#60a5fa><b>2500 TL</b></color>'ye yükseltecek. Bu da <color=#60a5fa><b>algoritmanın</b></color> istediği davranış biçimidir.";
         // A3 Spin 7
         private const string M_A3_S7 = "Bir tur daha = bir <color=#EF4444>kayıp</color> daha.";
         // A3 Spin 8 modali KALDIRILDI
 
         // A4 modal mesajları
-        private const string M_A4_S2 = "Üst üste <color=#dc2626>kayıplar</color> oyuncuyu yıpratmaktadır. <color=#2563eb>Algoritma</color> birkaç <color=#2563eb>spin</color> sonra <color=#16a34a>büyük bir kazanç</color> hazırlamaktadır. Bu, oyuncuda <color=#ea580c>şansım döndü</color> algısı yaratacaktır. Fakat önce kurbanı <color=#2563eb>sistem</color> pes etme eşiğine kadar getirecektir.";
+        // FAZ35.131: Metin değişimi ("yaratacaktır. Fakat önce" → "yaratacak. Fakat sistem, önce") + açık palet
+        // + bold. ⚠️ ÜÇLÜ DÜZELTMESİ: önceden kırmızı(#dc2626) + yeşil(#16a34a "büyük bir kazanç") +
+        // turuncu(#ea580c "şansım döndü") üçü birden vardı (yasak). Çözüm (kullanıcı önerisi): YEŞİL düz
+        // bırakıldı — "büyük bir kazanç" tuzak vurgusu, kazançtan çok manipülasyon bağlamında. Sonuç:
+        // kırmızı + turuncu + mavi nötr, yeşil YOK → üçlü çözüldü ✓.
+        private const string M_A4_S2 = "Üst üste <color=#ef4444><b>kayıplar</b></color> oyuncuyu yıpratmaktadır. <color=#60a5fa><b>Algoritma</b></color> birkaç <color=#60a5fa><b>spin</b></color> sonra büyük bir kazanç hazırlamaktadır. Bu, oyuncuda <color=#fb923c><b>şansım döndü</b></color> algısı yaratacak. Fakat <color=#60a5fa><b>sistem</b></color>, önce kurbanı pes etme eşiğine kadar getirecektir.";
         private const string M_A4_S4 = "Oyuncu çok ciddi <color=#dc2626>kayıplar</color> yaşadığı için oyundan çıkmak üzeredir. Tam bu noktada <color=#2563eb>algoritma</color> <color=#16a34a>büyük bir kazanç</color> vererek oyuncuyu <color=#ea580c>şansının döndüğüne</color> inandıracaktır.";
         // A4 Spin 5 modali asset'ten kaldırıldı — AnlaticiSeritKopru.A4S5CarpanModalAkisi runtime'da çağırır.
 

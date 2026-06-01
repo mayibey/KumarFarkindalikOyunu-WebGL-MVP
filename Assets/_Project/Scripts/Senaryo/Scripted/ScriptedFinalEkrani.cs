@@ -170,7 +170,9 @@ namespace Senaryo.Scripted
             kutu.transform.SetParent(_root.transform, false);
             var kutuRt = kutu.GetComponent<RectTransform>();
             kutuRt.anchorMin = kutuRt.anchorMax = kutuRt.pivot = new Vector2(0.5f, 0.5f);
-            kutuRt.sizeDelta = new Vector2(820f, 850f);
+            // FAZ35.133: Kutu yüksekliği 850→780. Sebep: Mesaj bloğunda "Türkiye'de binlerce kişi" + "hastalıktır"
+            // 2 satır silindi, AileYazisi font büyütüldü (22→30, height 90→130). Net içerik daha kompakt → kutu küçüldü.
+            kutuRt.sizeDelta = new Vector2(820f, 780f);
             kutuRt.anchoredPosition = Vector2.zero;
             kutu.GetComponent<Image>().color = new Color(0.05f, 0.07f, 0.12f, 0.99f);
             BorderEkle(kutu.transform, kutuRt.sizeDelta, 3f, new Color(0.85f, 0.18f, 0.18f, 1f));
@@ -192,15 +194,15 @@ namespace Senaryo.Scripted
             basTxt.text = "<color=#EF4444><b>SENARYO TAMAMLANDI</b></color>";
             basTxt.raycastTarget = false;
 
-            // Istatistik metni — Faz 35.44: Y aralığı +50..+315 → +100..+290 (Aile yazısı ile çakışma giderildi).
-            // Yeni Y: kutu mid+100 ila kutu top-135.
+            // Istatistik metni — FAZ35.133: Y aralığı +120..+270 (kutu 780). Top → Center alignment (X+Y orta).
+            // Baslik bot ~+295 ile 25px boşluk, Istatistik bot +120 ile AileYazisi top +95 arası 25px boşluk.
             var istGo = new GameObject("Istatistik", typeof(RectTransform), typeof(CanvasRenderer));
             istGo.transform.SetParent(kutu.transform, false);
             var istRt = istGo.GetComponent<RectTransform>();
             istRt.anchorMin = new Vector2(0f, 0.5f); istRt.anchorMax = new Vector2(1f, 1f);
-            istRt.offsetMin = new Vector2(40f, 80f); istRt.offsetMax = new Vector2(-40f, -125f);
+            istRt.offsetMin = new Vector2(40f, 120f); istRt.offsetMax = new Vector2(-40f, -120f);
             _istatistikText = istGo.AddComponent<TextMeshProUGUI>();
-            _istatistikText.alignment = TextAlignmentOptions.Top;
+            _istatistikText.alignment = TextAlignmentOptions.Center;
             _istatistikText.fontSize = 24f;
             _istatistikText.color = new Color(0.95f, 0.97f, 1f, 1f);
             _istatistikText.enableWordWrapping = true;
@@ -209,33 +211,36 @@ namespace Senaryo.Scripted
 
             // AİLE YAZISI (vurgulu, dikkat çekici) — istatistikler ile pedagojik metin arası.
             // Net kayıp rakamının somut karşılığını oyuncuya hissettirir.
+            // FAZ35.133: Font 22→30 büyütüldü (iç <size=18>→<size=24>), height 90→130 (font büyüdüğü için yer ister),
+            // anchoredPosition Y=90→30 (kutu mid +30 merkez → Y -35..+95, Istatistik bot +120 ile 25px boşluk).
             var aileGo = new GameObject("AileYazisi", typeof(RectTransform), typeof(CanvasRenderer));
             aileGo.transform.SetParent(kutu.transform, false);
             var aileRt = aileGo.GetComponent<RectTransform>();
             aileRt.anchorMin = new Vector2(0f, 0.5f); aileRt.anchorMax = new Vector2(1f, 0.5f);
             aileRt.pivot = new Vector2(0.5f, 0.5f);
-            // Faz 35.44: anchoredPosition +30 → +25, Y aralığı -20..+70 (İstatistik bot +100 ile 30px boşluk).
-            aileRt.sizeDelta = new Vector2(0f, 90f);
-            aileRt.anchoredPosition = new Vector2(0f, 90f);
+            aileRt.sizeDelta = new Vector2(0f, 130f);
+            aileRt.anchoredPosition = new Vector2(0f, 30f);
             var aileTxt = aileGo.AddComponent<TextMeshProUGUI>();
             aileTxt.alignment = TextAlignmentOptions.Center;
-            aileTxt.fontSize = 22f;
+            aileTxt.fontSize = 30f;
             aileTxt.fontStyle = FontStyles.Bold;
             aileTxt.color = new Color(1f, 0.65f, 0.20f, 1f); // sıcak turuncu — dramatik vurgu
             aileTxt.enableWordWrapping = true;
             aileTxt.lineSpacing = 6f;
             aileTxt.text =
                 "Bu rakam ortalama bir aile için <color=#EF4444>2,5 aylık geçim</color> demek.\n" +
-                "<size=18><i>Gerçek hayatta oyuncu burada durmaz; bir sonraki maaş, bir sonraki <color=#EF4444>kredi</color>, bir sonraki dönüş umuduyla devam eder.</i></size>";
+                "<size=24><i>Gerçek hayatta oyuncu burada durmaz; bir sonraki maaş, bir sonraki <color=#EF4444>kredi</color>, bir sonraki dönüş umuduyla devam eder.</i></size>";
             aileTxt.raycastTarget = false;
 
-            // Mesaj (alt) — pedagojik metin + Yeşilay. Faz 35.44: offsetMin.y 120→115, offsetMax.y -70→-40.
-            // Yeni Y aralığı: -310 ila -40 (Aile bot -20 ile 20px boşluk, Buton ile 45px boşluk; ~270px alan).
+            // Mesaj (alt) — pedagojik metin + Yeşilay. FAZ35.133: İlk 2 satır ("Türkiye'de binlerce kişi" +
+            // "hastalıktır...farkındalıktır") KALDIRILDI — "Unutulmamalıdır ki..." ile başlıyor.
+            // offsetMin Y=115→110, offsetMax Y=-40→-60. Yeni Y aralığı kutu 780'de: -280..-60 (220px).
+            // AileYazisi bot -35 ile 25px boşluk, Buton top -305 ile 25px boşluk.
             var mesGo = new GameObject("Mesaj", typeof(RectTransform), typeof(CanvasRenderer));
             mesGo.transform.SetParent(kutu.transform, false);
             var mesRt = mesGo.GetComponent<RectTransform>();
             mesRt.anchorMin = new Vector2(0f, 0f); mesRt.anchorMax = new Vector2(1f, 0.5f);
-            mesRt.offsetMin = new Vector2(40f, 115f); mesRt.offsetMax = new Vector2(-40f, -40f);
+            mesRt.offsetMin = new Vector2(40f, 110f); mesRt.offsetMax = new Vector2(-40f, -60f);
             var mesTxt = mesGo.AddComponent<TextMeshProUGUI>();
             mesTxt.alignment = TextAlignmentOptions.Center;
             // FAZ35.12: degisiklikler.md #30 — "Unutulmamalıdır ki…" pedagojik metin puntosu +%33 büyütüldü (18→24).
@@ -246,9 +251,9 @@ namespace Senaryo.Scripted
             mesTxt.richText = true;
             mesTxt.color = new Color(0.85f, 0.85f, 0.85f, 1f);
             mesTxt.enableWordWrapping = true;
+            // FAZ35.133: İlk 2 satır ("Türkiye'de binlerce kişi" + "Online kumar bağımlılığı hastalıktır...
+            // farkındalıktır") SİLİNDİ. Metin "Unutulmamalıdır ki..." ile doğrudan başlıyor.
             mesTxt.text =
-                "<i>Bu senaryo Türkiye'de her gün binlerce kişinin başına geliyor.</i>\n" +
-                "<color=#dc2626><i>Online kumar bağımlılığı bir hastalıktır</i></color>; <i>yardım almak güçlü bir farkındalıktır.</i>\n\n" +
                 "Unutulmamalıdır ki <color=#16a34a><b>sanal kumar bağımlılığı çözümsüz değildir</b></color> ve her zaman yeni bir başlangıç yapmak mümkündür. Yaşanan zorluklar ne kadar büyük görünürse görünsün, <color=#16a34a><b>umut her zaman vardır</b></color> ve doğru destekle bu süreç aşılabilir. Bu noktada <color=#ea580c>ailenize, amirlerinize ve güvendiğiniz kişilere</color> durumu açıkça ifade etmek, çözüm yolunda atılacak <color=#16a34a><b>cesur bir adımdır</b></color>. <color=#dc2626><b>Yardım istemek bir zayıflık değil</b></color>, aksine güçlü bir farkındalık ve değişim isteğinin göstergesidir.\n\n" +
                 $"<color=#16a34a><b>Yeşilay Yardım Hattı: {YESILAY_HATTI}</b></color>";
             mesTxt.raycastTarget = false;
@@ -261,7 +266,8 @@ namespace Senaryo.Scripted
             btnRt.anchorMin = btnRt.anchorMax = new Vector2(0.5f, 0f);
             btnRt.pivot = new Vector2(0.5f, 0f);
             btnRt.sizeDelta = new Vector2(320f, 70f);
-            btnRt.anchoredPosition = new Vector2(0f, 28f);
+            // FAZ35.133: anchoredPosition Y=28→15 (kutu 780'e küçüldü, buton üst sınır Y=-305, Mesaj bot -280 ile 25px boşluk).
+            btnRt.anchoredPosition = new Vector2(0f, 15f);
             btnGo.GetComponent<Image>().color = new Color(0.85f, 0.18f, 0.18f, 1f);
             var btn = btnGo.GetComponent<Button>();
             btn.onClick.AddListener(OnYenidenBaslaTiklandi);
