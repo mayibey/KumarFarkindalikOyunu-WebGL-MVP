@@ -934,6 +934,28 @@ private float BiasMultiplier(float easyMult, float hardMult)
         int ridx = _izgaraServisi.XYToIndex(secim.x, secim.y);
         if (carpanDegerByCellIndex != null && ridx >= 0 && ridx < carpanDegerByCellIndex.Length)
             carpanDegerByCellIndex[ridx] = carpanDegeri;
+
+        // FAZ35.110: TAM görsel state — sprite + scale + text overlay direkt set (logical state yeterli değil).
+        // KÖK NEDEN (Faz 35.110 keşif): Faz 35.109 ÇÖZÜM A RenderSpritesOnlyForCells simülasyon sırasında render yapıyordu
+        // AMA oynatma sırasında CokmeAkisServisi düşme animasyonu scale'i 1.0'a resetliyordu → "meyve sonradan çarpana dönüyor" timing.
+        // FIX: Helper TAM görsel sorumluluk alır. Force çarpan + DOGAL Faz 35.105 + diğer çağrı noktaları AYNI helper kullanır → tutarlılık.
+        if (ridx >= 0)
+        {
+            var img = _izgaraServisi.GetCellImage(ridx);
+            var sprite = _izgaraServisi.GetCarpanSembolSprite();
+            if (img != null && sprite != null)
+            {
+                img.sprite = sprite;
+                img.rectTransform.localScale = new UnityEngine.Vector3(1.5f, 1.5f, 1f);
+            }
+            var txt = _izgaraServisi.GetCarpanHucreText(ridx);
+            if (txt != null && carpanDegeri > 0)
+            {
+                IzgaraServisi.SetCarpanText(txt, carpanDegeri);
+                txt.gameObject.SetActive(true);
+            }
+            UnityEngine.Debug.Log($"[FAZ35.110] Helper TAM görsel set — hücre idx={ridx} ({secim.x},{secim.y}) x{carpanDegeri} sprite + 1.5x scale + text overlay.");
+        }
     }
 
     int ICarpanYerlestirmeBaglami.GetSutun() => sutun;

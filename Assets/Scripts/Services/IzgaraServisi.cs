@@ -189,6 +189,21 @@ public class IzgaraServisi
 
     public virtual int HucreSayisi() => _sutun * _satir;
 
+    // FAZ35.110: Helper'ın görsel state set yapabilmesi için 3 public getter.
+    // ForceCarpaniIlkGriddeGuvenliYerlestir helper artık sprite + scale + text overlay tam görsel sorumluluk alır.
+    // Faz 35.109 ÇÖZÜM A RenderSpritesOnlyForCells yedek olarak çağrılmaya devam eder (Spin.cs:751).
+    public virtual UnityEngine.UI.Image GetCellImage(int idx)
+    {
+        if (_hucreler == null || idx < 0 || idx >= _hucreler.Length) return null;
+        return _hucreler[idx];
+    }
+    public virtual UnityEngine.Sprite GetCarpanSembolSprite() => _carpanSembolSprite;
+    public virtual TMPro.TextMeshProUGUI GetCarpanHucreText(int idx)
+    {
+        if (_carpanHücreTextleri == null || idx < 0 || idx >= _carpanHücreTextleri.Length) return null;
+        return _carpanHücreTextleri[idx];
+    }
+
     public virtual int ScatterSay()
     {
         return ScatterSay(_grid);
