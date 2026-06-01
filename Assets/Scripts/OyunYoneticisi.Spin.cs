@@ -752,8 +752,16 @@ public partial class OyunYoneticisi
 
             // FAZ35.104 İŞ1 BUG 2: Bonus girme olasılığı tetiklendiyse 4 scatter zorla yerleştir.
             // FillRandomAll SONRASI çünkü FillRandomAll RNG ile grid'i dolduruyor → scatter'lar silinmesin diye burada enjekte.
-            // Sadece deneme==0 (ilk denemede) — reroll'larda tekrar etmez. Senaryolu modlar + bonus spin yukarıdaki flag guard ile zaten false.
-            if (_bonusGirmeBuSpinAktif && deneme == 0)
+            // FAZ35.114: deneme==0 guard kaldırıldı (Faz 35.113 deneme==0 fix'inin birebir ikizi).
+            // KÖK NEDEN: Spin başı flag set (line 489-493) deterministik AMA placement deneme==0 ile kısıtlıydı.
+            // İlk attempt OdemeModelineUygunMu/limit ile reddedilince → deneme=1,2,...'de guard FAIL → Force4ScatterEnjekte
+            // çağrılmaz → UI_CarpanSifirla+FillRandomAll önceki iter scatter'ını wipe ettiği için kabul edilen iter'da
+            // scatter eksik → BonusKontrol sc<esik → bonus tetiklenmiyor (kullanıcı %100 slider'da bonus girmiyor gözlemi).
+            // FIX: Her iterasyonda re-inject; Force4ScatterEnjekte idempotent (line 1238 mevcut>=5 → no-op, çift sayım yok).
+            // Scatter cluster üretmez (5 < 8 cluster eşiği TUMBLE_SABIT_ESIK) → spinKazancHam katkı yok → reroll/limit/eğilim
+            // kararı şişmez → çarpandaki gibi DEĞİŞİM 2 GEREKSİZ. 02 paylaşım: ScriptedSpinYoneticisi.Aktif early-return
+            // (Spin.cs:383-407) flag set'i 02'de ÖLÜ kılar → 02 davranışı bit-for-bit aynı.
+            if (_bonusGirmeBuSpinAktif)
             {
                 Force4ScatterEnjekte(grid);
                 _tumbleServisi?.SetGrid(grid);
