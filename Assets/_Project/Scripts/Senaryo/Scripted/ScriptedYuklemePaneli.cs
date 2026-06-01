@@ -27,8 +27,13 @@ namespace Senaryo.Scripted
         /// <summary>BORÇ AL butonuna fiilen tıklandı mı (A7 final ekranı gerçek yatırım hesabı için).</summary>
         public static bool BorcAlindi { get; private set; }
 
+        /// <summary>FAZ35.134: Borç eklenmeden ÖNCEKİ bakiye (~4K bonus-sonu kalan). A7 final ekranı
+        /// "Geri aldığın" değeri olarak okur — borç parası (+50K) "geri alınan" sayılmaz,
+        /// pedagojik mesaj: kullanıcı bonus tuzağından kurtardığı kendi parasını görür.</summary>
+        public static int BorcOncesiBakiye { get; private set; }
+
         /// <summary>Sahne reset (Yeniden Başla) sırasında çağrılır — borç alındı flag'ini sıfırlar.</summary>
-        public static void BorcAlindiSifirla() => BorcAlindi = false;
+        public static void BorcAlindiSifirla() { BorcAlindi = false; BorcOncesiBakiye = 0; }
 
         /// <summary>FAZ35.82.1 hotfix: Sahne geçişi defansif reset (yeni 03 admin sahnesi Start'ında).</summary>
         public static void ResetState() { IsAcik = false; }
@@ -121,10 +126,14 @@ namespace Senaryo.Scripted
                 var oy = UnityEngine.Object.FindObjectOfType<OyunYoneticisi>();
                 if (oy != null)
                 {
-                    int yeniBakiye = oy.BahisPanelMevcutBakiye() + BORC_MIKTARI;
+                    // FAZ35.134: Borç ekleneden ÖNCE mevcut bakiyeyi yakala (bonus tuzağı sonrası kalan ~4K).
+                    // A7 final ekranı "Geri aldığın" alanı bu değeri kullanır (borç parası "geri alınan" sayılmaz).
+                    int borcOncesi = oy.BahisPanelMevcutBakiye();
+                    BorcOncesiBakiye = borcOncesi;
+                    int yeniBakiye = borcOncesi + BORC_MIKTARI;
                     oy.AnlaticiBakiyeyiSifirla(yeniBakiye);
                     BorcAlindi = true;
-                    Debug.Log($"[ScriptedYuklemePaneli] Borç alındı: +{BORC_MIKTARI} TL → yeni bakiye {yeniBakiye} TL. BorcAlindi=true.");
+                    Debug.Log($"[ScriptedYuklemePaneli] Borç alındı: borc-oncesi={borcOncesi} TL + {BORC_MIKTARI} TL = {yeniBakiye} TL. BorcAlindi=true, BorcOncesiBakiye={borcOncesi}.");
                 }
                 else
                 {

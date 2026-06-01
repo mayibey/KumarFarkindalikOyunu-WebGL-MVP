@@ -1031,10 +1031,11 @@ public class AnlaticiSeritKopru : MonoBehaviour
             // FAZ35.130: Modal 2 (bahis 10K bilgisi) + BahisAnimasyonu(4000→10000) SİLİNDİ — 5 spin oynanmayacak,
             // bahis 10K'ya çıkarmak anlamsız. Doğrudan A7'ye zıplama.
 
-            // FAZ35.130 KARAR 1: Bakiye 0'a set (5 spin atılmış gibi tükeniş simülasyonu). ScriptedFinalEkrani
-            // doğal olarak sonBakiye=0 okur (cs:107 _oy.BahisPanelMevcutBakiye), toplamKayip=Yatırım-0=100K
-            // (BorcAlındı=true ise Yatırım=100K). Pedagojik tutarlılık: "borç+kendi paran HEPSİ bitti" mesajı.
-            if (_oy != null) _oy.AnlaticiBakiyeyiSifirla(0);
+            // FAZ35.134: AnlaticiBakiyeyiSifirla(0) KALDIRILDI (35.130 KARAR 1 geri alındı). Yerine
+            // ScriptedFinalEkrani "Geri aldığın" alanı ScriptedYuklemePaneli.BorcOncesiBakiye (bonus-sonu ~4K)
+            // okur — borç parası (+50K) "geri alınan" sayılmaz. Yatırım=100K (kendi 50K + borç 50K), Kayıp=
+            // 100K-4K=96K (otomatik formül cs:113). Pedagojik mesaj: "Bonus tuzağından sadece 4K kurtardın,
+            // borç parası gitti." 5 spin atlama (35.130) ve A7 zıplama KORUNUR — sadece bakiye sıfırlama satırı çıktı.
 
             // FAZ35.130: A7'ye zıpla. A5BonusBittiBorcPaneliAc:1197 pattern emsali (set + reset + uygula + guncelle).
             // _aktifAsama=6 → ScriptedFinalEkrani.Update (cs:88) polling AktifAsama==6 algılar → A7 cutscene açılır.
