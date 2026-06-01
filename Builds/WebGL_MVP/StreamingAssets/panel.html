@@ -1374,14 +1374,18 @@
       // 35.96 önceki davranış: dropdown=normal + senaryoUygula() roundtrip sonrası dropdown change event ile modKilitle(false) tetikleniyordu (gecikme/eksik).
       // Direkt çağrı: alt panel anında enabled, kullanıcı hemen ayar değiştirebilir.
       if (typeof modKilitle === 'function') modKilitle(false);
+      // FAZ35.98 İŞ1 B: Detaylı Ayarlar AÇIK → kullanıcı manuel motor kontrolü istiyor → delegate guard'lar BYPASS.
+      unityeGonder('detayliAyarlarAcik', true);
       body.classList.add('expanded');
-      console.log('[FAZ35.96 detayliAyarlar] AÇIK — dropdown Normal\'e kilitli, 3 accordion görünür, alt panel inputları ENABLED (35.97 hotfix)');
+      console.log('[FAZ35.96 detayliAyarlar] AÇIK — dropdown Normal\'e kilitli, 3 accordion görünür, alt panel inputları ENABLED (35.97 hotfix) — delegate bypass aktif (35.98)');
     } else {
       // B → A: detaylı ayarlar KAPALI
       dropdown.disabled = false;
       dropdown.style.opacity = '1';
       body.classList.remove('expanded');
-      console.log('[FAZ35.96 detayliAyarlar] KAPALI — 3 accordion gizli, dropdown serbest, alt panel değerleri DOM\'da korunur');
+      // FAZ35.98 İŞ1 B: Detaylı Ayarlar KAPALI → Normal mod baseline delegate guard'ları yeniden aktif.
+      unityeGonder('detayliAyarlarAcik', false);
+      console.log('[FAZ35.96 detayliAyarlar] KAPALI — 3 accordion gizli, dropdown serbest, alt panel değerleri DOM\'da korunur — delegate guard'lar yeniden aktif (35.98)');
     }
   }
 

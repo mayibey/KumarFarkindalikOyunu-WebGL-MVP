@@ -742,18 +742,23 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
         // FAZ35.95 İŞ1: Normal mod özel carpanUretimOlasiligi %5 → %10 (2x sıklık) → çarpan beklenme süresi yarıya iner.
         // Diğer modlar carpanUretimOlasiligi field değerini okur (varsayılan %5, kullanıcı paneli ayarı korunur).
         // buildIndex==2 + aktifSenaryo=="normal" guard ile Senaryolu modlar etkilenmez.
+        // FAZ35.98 İŞ1 B: Detaylı Ayarlar AÇIK → kullanıcı slider değeri motora geçer (delegate guard BYPASS).
         _carpanServisi.SetGetCarpanUretimOlasiligi(() => {
             bool normalModAktif95 = SceneManager.GetActiveScene().buildIndex == 2
-                                  && (PanelKopru.aktifSenaryo == null || PanelKopru.aktifSenaryo == "normal");
+                                  && (PanelKopru.aktifSenaryo == null || PanelKopru.aktifSenaryo == "normal")
+                                  && !PanelKopru.detayliAyarlarAcik;
             return normalModAktif95 ? 0.10f : carpanUretimOlasiligi;
         });
         // FAZ35.88 İŞ2: Normal mod baseline → tek çarpan max (havuz {2,3,5} ile birleşince max 5x, mega kazanç imkansız).
         // CarpanServisi.ResetForNewSpin(maxCarpanAdedi) bu delegate'i her spin başında çağırır (cache yok).
         // Normal mod: max 1 → Random.Range(1, 2)=1 → tek çarpan, kalan kota 0 → sonraki tumble'larda ek çarpan yok.
         // Guard: buildIndex==2 + aktifSenaryo == null/normal. Tutorial (idx 3), 02 anlatıcı (idx 1), mod aktif (Hook/vb) etkilenmez.
+        // FAZ35.98 İŞ1 B: Detaylı Ayarlar AÇIK → kullanıcı maxCarpanTekSpin değeri motora geçer (delegate guard BYPASS).
         _carpanServisi.SetGetMaxCarpanAdedi(() => {
             int sahneIdx88 = SceneManager.GetActiveScene().buildIndex;
-            bool normalSade88 = sahneIdx88 == 2 && (PanelKopru.aktifSenaryo == null || PanelKopru.aktifSenaryo == "normal");
+            bool normalSade88 = sahneIdx88 == 2
+                             && (PanelKopru.aktifSenaryo == null || PanelKopru.aktifSenaryo == "normal")
+                             && !PanelKopru.detayliAyarlarAcik;
             return normalSade88 ? 1 : maxCarpanAdedi;
         });
         _carpanServisi.SetRollCarpanDegeri(RastgeleCarpan);

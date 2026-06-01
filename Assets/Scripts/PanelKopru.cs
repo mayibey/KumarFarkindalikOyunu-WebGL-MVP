@@ -66,6 +66,11 @@ public class PanelKopru : MonoBehaviour
     public static int bonusOtomatikSpinPeriyodu = 200;
     public static string aktifSenaryo = "normal";
 
+    // FAZ35.98 İŞ1 B: Detaylı Ayarlar toggle state. AÇIK iken Normal mod delegate guard'ları (carpanUretimOlasiligi %10,
+    // maxCarpanAdedi 1) bypass edilir → kullanıcı slider değerleri motora geçer. Toggle kapalı iken (default) Faz 35.95
+    // baseline davranışı korunur (pedagojik RTP ~%55-65).
+    public static bool detayliAyarlarAcik = false;
+
     // FAZ35.81 Madde 2: Bonus modu manuel/otomatik geçişlerinde motor periyot cache.
     // Manuel'e geçerken motor periyodu (>0) cache'lenir + motor 0'lanır.
     // Otomatik'e dönerken cache restore edilir → kullanıcı slider değeri korunur.
@@ -192,11 +197,31 @@ public class PanelKopru : MonoBehaviour
                 break;
 
             case "yakinKacirma":
-                // UI-5LIK: panel 0-5 ölçek gönderir; backend YakinKacirmaDegeri10da 0-10 ölçek ister → *2 ile çevir.
+                // FAZ35.98 İŞ1 A: Toggle bool string ("True"/"False") veya sayısal değer gönderebilir.
+                // Eski kod sadece float.Parse yapıyordu → "True" gelince FormatException → motor TEPKI VERMEZ idi.
+                // Önce bool dene (toggle case), başarısızsa float dene (slider case).
                 // Tutorial tarafı bu değeri TutorialAdminEnjeksiyonu üzerinden ayrıca yakalar (kendi 0-5 mantığı);
                 // PanelKopru.yakinKacirma static field'i Tutorial T8 koşul kontrolünde (>0) yalnızca varlık testi yapar.
-                yakinKacirma = float.Parse(deger, System.Globalization.CultureInfo.InvariantCulture);
-                int yk10da = Mathf.Clamp(Mathf.RoundToInt(yakinKacirma * 2f), 0, 10);
+                bool ykAktif;
+                if (bool.TryParse(deger, out var bYk))
+                {
+                    ykAktif = bYk;
+                    yakinKacirma = ykAktif ? 5f : 0f;
+                }
+                else if (float.TryParse(deger, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var fYk))
+                {
+                    yakinKacirma = fYk;
+                    ykAktif = fYk > 0f;
+                }
+                else
+                {
+                    ykAktif = false;
+                    yakinKacirma = 0f;
+                }
+                int yk10da = ykAktif
+                    ? Mathf.Clamp(Mathf.RoundToInt(yakinKacirma * 2f), 1, 10)  // slider değeri varsa *2, toggle ise 5*2=10 clamp
+                    : 0;
+                if (ykAktif && yk10da == 0) yk10da = 5;  // toggle AÇIK + yakinKacirma=5f → yk10da=10 ama emniyet
                 _oy?.AdminSetYakinKacirma(yk10da);
                 break;
 
@@ -308,6 +333,14 @@ public class PanelKopru : MonoBehaviour
 
             case "tumAyarlar":
                 Debug.Log("[PanelKopru] Tüm ayarlar uygulandı: " + deger);
+                break;
+
+            case "detayliAyarlarAcik":
+                // FAZ35.98 İŞ1 B: panel.html detayliAyarlarToggleDegisti AÇIK/KAPALI bildirimini buradan alır.
+                // AÇIK iken OyunYoneticisi.cs:745+754 delegate guard'ları (Normal mod carpanUretimOlasiligi %10,
+                // maxCarpanAdedi 1) bypass edilir → kullanıcı slider değerleri motora geçer.
+                bool.TryParse(deger, out detayliAyarlarAcik);
+                Debug.Log($"[FAZ35.98 İŞ1] Detaylı Ayarlar toggle: {detayliAyarlarAcik} (delegate bypass {(detayliAyarlarAcik ? "AKTİF" : "PASİF")})");
                 break;
 
             case "bahisSec":
@@ -481,7 +514,8 @@ public class PanelKopru : MonoBehaviour
         // carpanUretimOlasiligi, maxCarpanAdedi, yakinKacirmaDegeri10da, _ardisikKayipLimiti, _carpanTumbleAktif,
         // bonusOtomatikSpinPeriyodu motor field'ları kullanıcının manuel değerinde kalıyordu → reset yanıltıcı.
         // Şimdi 6 motor field'ı Fields.cs default'larına çekilir.
-        _oy?.AdminSetCarpanOlasilik(15);          // carpanUretimOlasiligi default 0.15 (Fields.cs:475)
+        // FAZ35.98 İŞ1 D: Fields.cs:511 default 0.05f (=%5) ile hizalama. Önceden 15 set ediliyordu (eski default 0.15f).
+        _oy?.AdminSetCarpanOlasilik(5);           // carpanUretimOlasiligi default 0.05 (Fields.cs:511)
         _oy?.AdminSetMaxCarpanTekSpin(3);         // maxCarpanAdedi default 3 (Fields.cs:476)
         _oy?.AdminSetYakinKacirma(0);             // yakinKacirmaDegeri10da default 0 (Admin.cs:581)
         // FAZ35.82: ardisikKayip number→toggle dönüşümü; toggle kapalı default → 999 (etkisiz büyük değer).
