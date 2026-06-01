@@ -493,8 +493,18 @@ public class PanelKopru : MonoBehaviour
         }
         aktifSenaryo = senaryo;
 
-        // FAZ35.81 Madde 3: yakinKacirma motor yansıt (panel 0-100 → motor 0-10 ölçek).
-        _oy.AdminSetYakinKacirma(Mathf.RoundToInt(yakinKacirma / 10f));
+        // FAZ35.121: yakinKacirma artık SADECE case "yakinKacirma" toggle'ından kontrol edilir (line 199-226, *2f doğru ölçek).
+        // ESKİ FAZ35.81 satırı KALDIRILDI: `_oy.AdminSetYakinKacirma(Mathf.RoundToInt(yakinKacirma / 10f));`
+        // KÖK NEDEN (Faz 35.122 keşif + log kanıtı): yakinKacirma eskiden slider(0-100) idi, /10 ölçek dönüşümü o
+        // zaman doğruydu (50 → 5). Faz 35.69'da slider → TOGGLE (5f sabit açık, 0f kapalı) dönüştürüldü AMA bu satır
+        // KALINTI olarak kaldı. Toggle AÇIK iken yakinKacirma=5f → 5/10=0.5 → RoundToInt(0.5) Banker's rounding = 0
+        // → AdminSetYakinKacirma(0) → motor field SIFIRLANIYORDU. SenaryoUygula her tetiğinde (panel açılışı, dropdown,
+        // ayar değişimi) yakinKacirmaDegeri10da 10 → 0'a düşüyor → _yakinKacirmaBuSpinAktif flag FALSE → Faz 35.119
+        // near-miss enjeksiyonu atlanıyordu → [FAZ35.119] log hiç çıkmıyordu → spin normal kazanç veriyordu.
+        // Faz 35.120 cache invalidate fix doğruydu (log "cache temizlendi" görüldü) AMA bu bug field'ı eziyordu.
+        // Hiçbir senaryo case'i (normal/hook/yontma/tutma/koruma) yakinKacirma'yı explicit set etmiyor → satır
+        // kaldırılması GÜVENLİ. Doğru set tek noktada: case "yakinKacirma":222 `*2f` (toggle AÇIK 5f→10 ✓).
+        // 02 + Tutorial T8: SenaryoUygula buildIndex==1/3'te BYPASS (line 170-173, 439-446) → onlar etkilenmez.
 
         Debug.Log($"[PanelKopru] FAZ35.83 Senaryo uygulandı: {senaryo}, min={minCarpan}, maks={maksCarpan}, tutmaAktif={(senaryo == "tutma")}");
     }
