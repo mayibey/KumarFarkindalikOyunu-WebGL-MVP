@@ -71,17 +71,10 @@ public partial class OyunYoneticisi
         Debug.Log($"[ADMIN] Çarpan olasılığı set edildi: %{yuzde} (0-1={carpanUretimOlasiligi})");
     }
 
-    public void SetCarpanMaxAdet(float adet)
-    {
-        int v = Mathf.RoundToInt(adet);
-        v = Mathf.Clamp(v, 1, 10);
-        maxCarpanAdedi = v;
-
-        if (carpanMaxAdetValueText != null)
-            carpanMaxAdetValueText.text = v.ToString();
-
-        Debug.Log($"[ADMIN] Max çarpan adedi set edildi: {maxCarpanAdedi}");
-    }
+    // FAZ35.116: SetCarpanMaxAdet ÖLÜ KOD silindi. Hiçbir caller yoktu (Inspector handler OyunYoneticisi.cs:915-918
+    // doğrudan lambda kullanıyor, panel AdminSetMaxCarpanTekSpin'i çağırıyor). Tek kaynak prensibi: maxCarpanAdedi
+    // tavanı sadece AdminSetMaxCarpanTekSpin + Inspector handler üzerinden set ediliyor, ikisi de MAX_CARPAN_TAVAN
+    // (Fields.cs:514+) sabitine referans veriyor.
     public void AdminForceOncedenHesaplananSpinTemizle()
     {
         OncedenHesaplananSpinOnbelleginiTemizle();
@@ -654,10 +647,18 @@ public partial class OyunYoneticisi
     [HideInInspector] public int maxCarpanTekSpinSayisi = 3;
     public void AdminSetMaxCarpanTekSpin(int max)
     {
-        maxCarpanTekSpinSayisi = Mathf.Clamp(max, 1, 10);
+        // FAZ35.116: Strict-reject. MAX_CARPAN_TAVAN (Fields.cs:514+, =5) üstü değer reddedilir, eski değer korunur.
+        // Panel UX (panel.html tooltip "1-5" vaad ediyor) backend güvencesiyle hizalandı. Panel UX kontrolü sonraki işe
+        // bırakıldı — backend'den 6+ gelse bile motor reddeder, kullanıcı eski değerde kalır.
+        if (max > MAX_CARPAN_TAVAN)
+        {
+            Debug.LogWarning($"[FAZ35.116] AdminSetMaxCarpanTekSpin REDDEDİLDİ: istenen {max} > tavan {MAX_CARPAN_TAVAN}. Eski değer korundu: maxCarpanTekSpinSayisi={maxCarpanTekSpinSayisi}, maxCarpanAdedi={maxCarpanAdedi}.");
+            return;
+        }
+        maxCarpanTekSpinSayisi = Mathf.Clamp(max, 1, MAX_CARPAN_TAVAN);
         // CarpanServisi gerçek field 'maxCarpanAdedi' okuyor; değişikliği oraya da yansıt.
         maxCarpanAdedi = maxCarpanTekSpinSayisi;
-        Debug.Log($"[ADMIN][PANEL] Tek spinde max çarpan: {maxCarpanTekSpinSayisi} (maxCarpanAdedi={maxCarpanAdedi})");
+        Debug.Log($"[ADMIN][PANEL] Tek spinde max çarpan: {maxCarpanTekSpinSayisi} (maxCarpanAdedi={maxCarpanAdedi}, tavan={MAX_CARPAN_TAVAN})");
     }
 
     // ────────────────────────────────────────────────────────────

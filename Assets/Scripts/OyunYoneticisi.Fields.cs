@@ -511,7 +511,12 @@ public partial class OyunYoneticisi
     // Detaylı Ayarlar KAPALI iken %10 (eski Faz 35.95 hardcoded davranış), Detaylı Ayarlar AÇIK + slider %X → kullanıcı değeri.
     // Inspector'da serialize edilmiş sahnedeki referans değişmez; bu yeni instance/reset için default.
     [Range(0f, 1f)] public float carpanUretimOlasiligi = 0.10f;
-    [Range(1, 10)] public int maxCarpanAdedi = 3;
+    // FAZ35.116: Tek kaynak tavan — "Tek spinde maksimum kaç çarpan" pedagojik sınırı.
+    // Tüm clamp'ler bu sabite referans: Inspector Range, Admin.cs AdminSetMaxCarpanTekSpin clamp, OyunYoneticisi.cs:917
+    // Inspector handler clamp. Dağınık 1-10/0-5 magic number'lar tek noktada hizalandı.
+    // panel.html UX 5 vaad ediyor (tooltip), backend strict-reject ile garanti altına alındı.
+    public const int MAX_CARPAN_TAVAN = 5;
+    [Range(1, MAX_CARPAN_TAVAN)] public int maxCarpanAdedi = 3;
     public int zorlaSiradakiCarpan = 0;
 
 [Header("Çarpan Görseli (Sweet Bonanza tarzı)")]

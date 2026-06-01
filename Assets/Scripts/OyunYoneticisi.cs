@@ -914,7 +914,8 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
         });
         _adminAyarUIServisi.SetCarpanMaxAdetUI(carpanMaxAdetSlider, carpanMaxAdetText, null, adet =>
         {
-            maxCarpanAdedi = Mathf.Clamp(adet, 0, 5);
+            // FAZ35.116: Tek kaynak tavan — MAX_CARPAN_TAVAN (Fields.cs:514+ sabit, =5).
+            maxCarpanAdedi = Mathf.Clamp(adet, 1, MAX_CARPAN_TAVAN);
         });
         // Tek giriş: AdminPanel varsa slider'ları o bağlar; yoksa servis bağlar (çift bağlama yok).
         if (FindObjectOfType<AdminPanel>() == null)
