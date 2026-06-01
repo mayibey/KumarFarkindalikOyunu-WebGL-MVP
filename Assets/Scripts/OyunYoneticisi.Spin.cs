@@ -457,6 +457,11 @@ public partial class OyunYoneticisi
         // Detaylı debug log: F12'de hangi guard pas geçiriyor net teşhis.
         bool _dogalCarpanBuSpinAktif = false;
         int _dogalCarpanDeger = 0;
+        // FAZ35.115: Random 1..N adet çarpan (panel "Tek spinde max kaç çarpan" ayarı — maxCarpanAdedi field).
+        // Eski davranış: helper sabit TEK çarpan yerleştiriyordu, max ayarı kullanılmıyordu (kullanıcı şikayeti).
+        // Yeni: flag set sırasında 1..maxCarpanAdedi inclusive random adet seçilir, placement N kez helper çağırır.
+        // Çoklu çarpan ödemede toplanır (CarpanServisi.cs:163 _spinCarpanCarpim += c, Sweet Bonanza tarzı, Tutorial T5 ile tutarlı).
+        int _dogalCarpanAdet = 0;
         {
             float _dogalOlasilik = carpanUretimOlasiligi;
             float _dogalRng = UnityEngine.Random.value;
@@ -472,7 +477,11 @@ public partial class OyunYoneticisi
                 if (_dogalCarpanDeger > 0)
                 {
                     _dogalCarpanBuSpinAktif = true;
-                    Debug.Log($"[FAZ35.107 DOGAL] FLAG SET — carpanDeger=x{_dogalCarpanDeger}, reroll loop ilk denemede yerleştirilecek.");
+                    // FAZ35.115: 1..maxCarpanAdedi inclusive random (Random.Range int üst sınır exclusive → +1).
+                    // maxCarpanAdedi=1 ise her zaman 1; =5 ise 1-5 arası random adet.
+                    int _maxAdet = Mathf.Max(1, maxCarpanAdedi);
+                    _dogalCarpanAdet = UnityEngine.Random.Range(1, _maxAdet + 1);
+                    Debug.Log($"[FAZ35.107 DOGAL] FLAG SET — ilk değer örneği=x{_dogalCarpanDeger}, adet={_dogalCarpanAdet} (max={_maxAdet}), reroll loop her iter'da N kez yerleştirilecek.");
                 }
                 else
                 {
@@ -784,35 +793,28 @@ public partial class OyunYoneticisi
             // İlk attempt OdemeModelineUygunMu/limit ile reddedilince → deneme=1,2,...'de guard FAIL → çarpan asla yerleşmiyor.
             // FIX: Her iterasyonda re-place; UI_CarpanSifirla+FillRandomAll önceki iter çarpanını wipe ettiği için son
             // kabul edilen iter'ın grid'inde çarpan garanti. Flag tek RNG kararıyla deterministik kalır.
-            if (_dogalCarpanBuSpinAktif && _dogalCarpanDeger > 0)
+            // FAZ35.115 DEĞİŞİM 2: N adet yerleştirme (for loop, her iter farklı random değer + helper çağrısı).
+            // KÖK NEDEN: Eski blok tek helper çağrısı (TEK çarpan) yapıyordu, max ayarı kullanılmıyordu.
+            // FIX: _dogalCarpanAdet (flag set'te 1..maxCarpanAdedi random) kadar for loop; her iter RastgeleCarpan() yeni değer,
+            // helper yeni hücreye yerleştirir (Simulasyon.cs:929 "CARPAN_SEMBOL hücre atla" guard'ı sayesinde her çağrı farklı hücre).
+            // Her çağrı kendi görsel set'ini yapar (Faz 35.110 helper içinde sprite + 1.5x + text) → N hücre otomatik render.
+            // Eski Faz 35.109 ÇÖZÜM A sprite render bloğu KALDIRILDI — Faz 35.110 helper zaten visual sorumluluğu üstlendi,
+            // redundant + tek _dogalCarpanDeger varsayımı N adet ile çelişiyordu.
+            // CarpanServisi.cs:163 _spinCarpanCarpim += c (toplama, Sweet Bonanza tarzı) → N çarpan değerleri TOPLANIR.
+            // Faz 35.108 fix korunur: Spin.cs:861 RecordPlacedCarpanlar(kayit.IlkCarpanDegerleri) N değerin tamamını state'e yazar.
+            // Faz 35.113 korunur: helper RecordPlacedCarpanlar çağırmıyor → reroll kararı ham bazlı, çarpan toplamı reroll'a girmez.
+            if (_dogalCarpanBuSpinAktif && _dogalCarpanAdet > 0)
             {
-                ForceCarpaniIlkGriddeGuvenliYerlestir(_dogalCarpanDeger);
-                _tumbleServisi?.SetGrid(grid);
-
-                // FAZ35.109 ÇÖZÜM A: Sprite render çağrısı — yerleştirilen çarpan hücresi için sprite + scale 1.5x güncellensin.
-                // KÖK NEDEN: ForceCarpaniIlkGriddeGuvenliYerlestir SADECE logical state set ediyordu (grid[x,y]=CARPAN_SEMBOL + carpanDegerGrid[x,y]=deger)
-                // AMA render çağrısı eksikti → eski banana sprite + scale 1.0 kalıyordu + üstüne çarpan text overlay → "küçük + skateboard" izlenimi.
-                // FIX: RenderSpritesOnlyForCells ile o hücre için sprite çarpan'a switch + scale 1.5x.
-                if (_izgaraServisi != null && carpanDegerGrid != null)
+                int _yerlesen115 = 0;
+                for (int i115 = 0; i115 < _dogalCarpanAdet; i115++)
                 {
-                    int satir109 = grid.GetLength(1);
-                    int sutun109 = grid.GetLength(0);
-                    bool bulundu109 = false;
-                    for (int y109 = 0; y109 < satir109 && !bulundu109; y109++)
-                    {
-                        for (int x109 = 0; x109 < sutun109 && !bulundu109; x109++)
-                        {
-                            if (grid[x109, y109] == -2 && carpanDegerGrid[x109, y109] == _dogalCarpanDeger)
-                            {
-                                _izgaraServisi.RenderSpritesOnlyForCells(new[] { new Vector2Int(x109, y109) }, grid);
-                                Debug.Log($"[FAZ35.109 ÇÖZÜM A] Sprite render — hücre ({x109},{y109}) x{_dogalCarpanDeger} çarpan sprite + 1.5x scale.");
-                                bulundu109 = true;
-                            }
-                        }
-                    }
+                    int deger115 = RastgeleCarpan();
+                    if (deger115 <= 0) continue;
+                    ForceCarpaniIlkGriddeGuvenliYerlestir(deger115);
+                    _yerlesen115++;
                 }
-
-                Debug.Log($"[FAZ35.105 İŞ1] DOGAL çarpan ilk grid'e yerleştirildi: x{_dogalCarpanDeger} (FAZ35.107 reroll dışı taşındı).");
+                _tumbleServisi?.SetGrid(grid);
+                Debug.Log($"[FAZ35.115] DOGAL {_yerlesen115}/{_dogalCarpanAdet} adet çarpan yerleştirildi (max={maxCarpanAdedi}, her hücre random RastgeleCarpan değeri).");
             }
 
             var zorlaSonrasi = spinPolitikasi.SimulasyonZorlaCarpanSonrasiIlkGridIsiBelirle(
@@ -891,7 +893,9 @@ public partial class OyunYoneticisi
 
                 // S3/S4/S5 fallback reroll'da da çarpan üretme — konstrukte bandı dar, çarpan bant dışına iter.
                 // FAZ35.109 ÇÖZÜM B: Multi-tumble çarpan biriktirme — Faz 35.105 spin başı yerleşim aktifse BYPASS.
-                // Pedagojik karar: slider %100 → spin başı 1 çarpan garanti, ek birikme YOK (tek çarpan/spin tutarlı mental model).
+                // FAZ35.115 yorum güncelleme: Bypass tumble İÇİ ek birikmeyi engeller. Spin başı 1..N adet yerleşim (Faz 35.115)
+                // bypass'tan ETKİLENMEZ — bypass tumble loop İÇİNDE çalışır, spin başı placement loop DIŞINDA. Yani N adet
+                // yerleşim aktif + tumble içi accumulator iptal: pedagojik tutarlılık (spin başı miktarı bypass'tan bağımsız belirleniyor).
                 // Sweet Bonanza tarzı çoklu biriktirme bonus oyunda devam eder (bonusSpin durumunda Faz 35.105 flag false → bu blok normal çalışır).
                 // Senaryolu modlarda (aktifSenaryo != "normal") flag false → multi-tumble normal çalışır.
                 if (!IsAdminSenaryo3Aktif() && !IsAdminSenaryo4Aktif() && !IsAdminSenaryo5Aktif()
