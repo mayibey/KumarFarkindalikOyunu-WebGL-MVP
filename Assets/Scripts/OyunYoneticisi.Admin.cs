@@ -668,7 +668,13 @@ public partial class OyunYoneticisi
     public void AdminSetYakinKacirma(int deger10da)
     {
         yakinKacirmaDegeri10da = Mathf.Clamp(deger10da, 0, 10);
-        Debug.Log($"[ADMIN][PANEL] Yakın Kaçırma = 10'da {yakinKacirmaDegeri10da}");
+        // FAZ35.120: Precompute cache invalidate — toggle değişimi anında etkili olsun.
+        // Faz 35.106 carpanOlasilik + bonusGirmeOlasilik için bu pattern eklenmişti, yakinKacirma'da UNUTULMUŞ.
+        // Cache stale olunca near-miss flag (Spin.cs:516) precompute zamanında yakinKacirma=0 ile hesaplanıyor →
+        // flag FALSE → 35.119 enjeksiyon atlanıyor → [FAZ35.119] log hiç çıkmıyor → spin normal kazanç veriyor.
+        // Bu satırla toggle açılır açılmaz cache temizlenir → sonraki spin fresh hesap → flag TRUE → enjeksiyon fire.
+        AdminForceOncedenHesaplananSpinTemizle();
+        Debug.Log($"[ADMIN][PANEL] Yakın Kaçırma = 10'da {yakinKacirmaDegeri10da} (cache temizlendi)");
     }
 
     // ────────────────────────────────────────────────────────────
