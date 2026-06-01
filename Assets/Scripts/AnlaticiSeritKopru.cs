@@ -986,9 +986,18 @@ public class AnlaticiSeritKopru : MonoBehaviour
     }
 
     /// <summary>
-    /// Borç Al onayı sonrası iki aşamalı asistan modal + bahis animasyonu (A6 girişi):
-    ///   1) "Borç alındı, döngü başlıyor" pedagojik mesaj
-    ///   2) "Bahis 10K'ya çıkacak" bilgilendirmesi + bahis animasyonu (mevcut → 10000)
+    /// FAZ35.130: Borç Al onayı sonrası TEK pedagojik modal + doğrudan A7 finaline zıplama.
+    /// Eski davranış (Faz 35.108-35.129): Modal 1 (döngü) + Modal 2 (bahis 10K bilgisi) + bahis animasyonu (4000→10000)
+    /// + A6 5 spin × 10K (bakiye eritilir) → A7 cutscene. Pedagojik olarak "döngüyü göstermek" 5 spin alıyordu.
+    /// Yeni davranış: Modal 1'in son cümlesi ("Şimdi bu döngüyü hızlıca göreceğiz") silindi (kullanıcı kararı: artık
+    /// göstermeyeceğiz, "döngüye girer ... kaybeder" deyip bitsin), Modal 2 + bahis anim KALDIRILDI (5 spin
+    /// oynanmayacak, bahis 10K'ya çıkarmaya gerek yok). KARAR 1 (kullanıcı): bakiye 0'a set edilir (5 spin atılmış
+    /// gibi simülasyon) → ScriptedFinalEkrani doğal olarak Yatırım=100K (BorcAlındı=true), Bakiye=0, Kayıp=100K
+    /// hesaplar. _aktifAsama=6 set ile A7 indeksine zıplanır → ScriptedFinalEkrani.Update polling AktifAsama==6
+    /// algılar (cs:88) → A7 final cutscene otomatik açılır. A6 5 spin runtime üretimi HİÇ tetiklenmez
+    /// (ScriptedFinalEkrani.IsAcik=true sonrası OyunYoneticisi.Spin.cs:205 spin butonu engellenir, kullanıcı
+    /// SPIN atamaz). BorcAlindi flag KORUNUR (final Yatırım hesabı için kritik). A5BonusBittiBorcPaneliAc:1209
+    /// pattern emsali (_aktifAsama set + _aktifSpin=0 + _asamaSpinNet.Clear + AsamayiUygula + Guncelle).
     /// ScriptedYuklemePaneli.OnBorcAlTiklandi tarafından çağrılır.
     /// </summary>
     public System.Collections.IEnumerator BorcSonrasiModalAkisi()
@@ -999,6 +1008,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
             // PAKET 11-FIX: Borç +50K yapıldı → _sonBakiye snapshot güncelle ki A6 ilk spin net'i
             // yanlış pozitif (bakiye = eski + 50K − 10K bahis → +40K) çıkıp bar yeşillenmesin.
             // Borç parası "spin kazancı" değil — snapshot reset bunun A6 net hesabına sızmasını engeller.
+            // FAZ35.130 NOT: 5 spin atlandığı için artık A6 net hesabı yok, bu snapshot defansif kalır (zarar yok).
             if (_oy != null)
             {
                 _sonBakiye = _oy.BahisPanelMevcutBakiye();
@@ -1010,22 +1020,32 @@ public class AnlaticiSeritKopru : MonoBehaviour
             var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
             if (modal == null) yield break;
 
-            // 1) Döngü başlangıcı pedagojik mesaj
+            // FAZ35.130: TEK modal — "Şimdi bu döngüyü hızlıca göreceğiz." son cümlesi silindi, son cümle
+            // "...oyuncu kaybeder." ile bitiyor. Fazla \n\n son cümle kaldırıldığı için temizlendi.
             yield return modal.ModalGoster(
                 "İşte oyuncu <color=#EF4444>borç aldı</color>, <color=#4ADE80>bakiyesi yenilendi</color>. Şimdi tekrar oynamaya devam edecek.\n\n" +
                 "Kumar sitelerinde yeniden bakiye yükleyenlere <color=#EF4444>bilinçli olarak</color> ilk başlarda yine <color=#4ADE80>kazandırılır</color> — bu <i>'Isındırma ve Umut'</i> aşamasına benzer.\n\n" +
-                "Bu sayede oyuncu tekrar <color=#EF4444>döngüye girer</color>: <i>'şansım yine açıldı, kayıplarımı telafi ederim'</i> düşünür. Ama er ya da geç sistem kazanır, oyuncu <color=#EF4444>kaybeder</color>.\n\n" +
-                "Şimdi bu döngüyü hızlıca göreceğiz."
+                "Bu sayede oyuncu tekrar <color=#EF4444>döngüye girer</color>: <i>'şansım yine açıldı, kayıplarımı telafi ederim'</i> düşünür. Ama er ya da geç sistem kazanır, oyuncu <color=#EF4444>kaybeder</color>."
             );
 
-            // 2) A6 bahis bilgilendirme
-            yield return modal.ModalGoster(
-                "Bu kez oyuncu <color=#dc2626>kayıplarını hızlı telafi</color> etmek ister. <color=#ea580c>Bahsini</color> <color=#2563eb>10.000 TL</color>'ye kadar çıkardı. İlk gelen <color=#2563eb>spin</color> umut ve ısındırma aşamasını temsil edip daha sonraki gelen spinler tüm <color=#16a34a>bakiyeyi</color> <color=#dc2626>tüketecektir</color>. Bu hızlı bitiş, gerçek hayattaki <color=#ea580c>\"son kez deneme\"</color> bahanesinin sonucudur."
-            );
+            // FAZ35.130: Modal 2 (bahis 10K bilgisi) + BahisAnimasyonu(4000→10000) SİLİNDİ — 5 spin oynanmayacak,
+            // bahis 10K'ya çıkarmak anlamsız. Doğrudan A7'ye zıplama.
 
-            // 3) Bahis animasyonu: mevcut bahis → 10000 (kademeli artış, "+ tuşu" hissi)
-            // BahisAnimasyonu kendi try/finally'sine sahip — flag yönetimi nested ama state korunur (true→true→false→false).
-            yield return BahisAnimasyonu(_oy != null ? _oy.AnlaticiMevcutBahis() : 4000, 10000);
+            // FAZ35.130 KARAR 1: Bakiye 0'a set (5 spin atılmış gibi tükeniş simülasyonu). ScriptedFinalEkrani
+            // doğal olarak sonBakiye=0 okur (cs:107 _oy.BahisPanelMevcutBakiye), toplamKayip=Yatırım-0=100K
+            // (BorcAlındı=true ise Yatırım=100K). Pedagojik tutarlılık: "borç+kendi paran HEPSİ bitti" mesajı.
+            if (_oy != null) _oy.AnlaticiBakiyeyiSifirla(0);
+
+            // FAZ35.130: A7'ye zıpla. A5BonusBittiBorcPaneliAc:1197 pattern emsali (set + reset + uygula + guncelle).
+            // _aktifAsama=6 → ScriptedFinalEkrani.Update (cs:88) polling AktifAsama==6 algılar → A7 cutscene açılır.
+            // BorcAlindi flag DOKUNULMADI (final Yatırım 100K için kritik). A6 spin mantığı asla tetiklenmez:
+            // ScriptedFinalEkrani.IsAcik=true sonrası Spin.cs:205 spin butonu engellenir.
+            _aktifAsama = 6;  // A7 indeksi (0-tabanlı: 0=A1 ... 5=A6 ... 6=A7)
+            _aktifSpin = 0;
+            _asamaSpinNet.Clear();
+            AsamayiUygula(_aktifAsama);
+            Guncelle();
+            Debug.Log("[Anlatici] FAZ35.130: A6 5 spin döngüsü atlandı, doğrudan A7 finaline geçildi (bakiye=0, kayıp=100K hesaplanacak).");
         }
         finally
         {
