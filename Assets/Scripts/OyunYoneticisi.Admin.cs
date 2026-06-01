@@ -602,6 +602,18 @@ public partial class OyunYoneticisi
         Debug.Log($"[ADMIN][PANEL] Çarpan sahte gösterimi: {carpanSahteOraniYuzde}%");
     }
 
+    // FAZ35.103 İŞ2: Bonus oyuna girme olasılığı delegate.
+    // 0 → tamamen doğal scatter akışı (mevcut scatterChanceNormal=0.005f korunur, ~16+ spin gerek).
+    // 0-1 arası → her spin başında RNG check (Spin.cs SimuleEtVeKaydetImpl), eşiği geçerse 4 scatter zorla yerleştir → bonus tetik.
+    // 1 → her spin garanti 4 scatter → bonus garanti giriş.
+    [HideInInspector] public float _bonusGirmeOlasilik = 0f;
+    public void AdminSetBonusGirmeOlasilik(float yuzde01)
+    {
+        _bonusGirmeOlasilik = Mathf.Clamp01(yuzde01);
+        Debug.Log($"[ADMIN][PANEL] Bonus oyuna girme olasılığı = {(_bonusGirmeOlasilik * 100f):F0}% (0=doğal akış, 1=her spin garanti)");
+    }
+    public float GetBonusGirmeOlasilik() => _bonusGirmeOlasilik;
+
     [HideInInspector] public int carpanOlasilikYuzde = 2;
     public void AdminSetCarpanOlasilik(int yuzde)
     {

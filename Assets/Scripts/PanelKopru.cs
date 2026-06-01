@@ -284,6 +284,17 @@ public class PanelKopru : MonoBehaviour
                     _oy?.AdminSetCarpanSahteOrani(sahte);
                 break;
 
+            case "bonusGirmeOlasilik":
+                // FAZ35.103 İŞ2: Bonus oyuna girme olasılığı (0-1 float). Slider %X → her spin RNG check → 4 scatter zorla yerleştir → bonus tetik.
+                // Yeni mekanik eski periyot tabanlı bonusOtomatikSpinPeriyodu yerine. Motor field Tutorial T5 için korunur (geri uyumluluk).
+                if (float.TryParse(deger, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float bgOlasilik))
+                {
+                    bgOlasilik = Mathf.Clamp01(bgOlasilik);
+                    _oy?.AdminSetBonusGirmeOlasilik(bgOlasilik);
+                    Debug.Log($"[PanelKopru bonusGirmeOlasilik] olasilik={bgOlasilik:F2} ({(bgOlasilik * 100f):F0}%)");
+                }
+                break;
+
             case "carpanOlasilik":
                 if (int.TryParse(deger, out int olasilik))
                 {

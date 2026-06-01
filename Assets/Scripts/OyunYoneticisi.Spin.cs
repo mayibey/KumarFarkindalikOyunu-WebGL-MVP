@@ -438,6 +438,19 @@ public partial class OyunYoneticisi
         // ÇÖZÜM: Eğilim'e göre kazanç bekleniyorsa motor hedef TL seçer + paytable'dan sembol+küme bulur + grid'e enjekte eder.
         // 02 anlatıcı (ScriptedSpinYoneticisi.Aktif) ve eski 04 Tutorial (TutorialScriptedYoneticisi.Aktif) sat ~344-385'te ERKEN RETURN → bu branch'a girmez.
         // Senaryo 1-5 guard'ları bypass + Tutma kayıp fazı (_tutmaBuSpinKayipBekleniyor) bypass + zorlaCarpan bypass.
+        // FAZ35.103 İŞ2: Bonus oyuna girme olasılığı (Normal mod, !bonusSpin guard).
+        // Slider %X → her spin başında RNG check (Random.value <= _bonusGirmeOlasilik) → grid'e 4 scatter ZORLA yerleştir → bonus tetik.
+        // Senaryolu modlar (Hook/Yontma/Tutma/Koruma) ve bonus spin'ler etkilenmez (mevcut akış korunur).
+        // Mod konstrukte bloku ÖNCESİ — Normal mod'da mod konstrukte zaten Faz 35.101 ile devre dışı, çakışma yok.
+        if (!bonusSpin && zorlaCarpanDegeri <= 0
+            && PanelKopru.aktifSenaryo == "normal"
+            && _bonusGirmeOlasilik > 0f
+            && UnityEngine.Random.value <= _bonusGirmeOlasilik)
+        {
+            Force4ScatterEnjekte(grid);
+            Debug.Log($"[FAZ35.103 İŞ2] Bonus girme tetiklendi (olasilik={_bonusGirmeOlasilik:F2}) — 4 scatter zorla yerleştirildi.");
+        }
+
         _modKonstrukteBasarili = false;
         _modSpinBekleniyorKazanc = false;
         // FAZ35.101 İŞ1: Normal mod'da min/max çarpan kat slider'ları motor konstrukteyi tetiklememeli.
@@ -1088,6 +1101,43 @@ public partial class OyunYoneticisi
 
         Debug.Log($"[MOD_KONSTRUKTE+BONUS] bant={minTl}-{maxTl} sym={kSym} kümeBoy={kCnt} beklenenTL={beklenenTl} bonus={_modSonBonusCarpan}x (önceki sym={onceki})");
         return true;
+    }
+
+    // FAZ35.103 İŞ2: 4 rastgele non-scatter hücreye ScatterIndex yerleştir (bonus tetik için, Normal mod bonus girme olasılığı).
+    // Mevcut scatter sayısı 4+ varsa enjeksiyon pas (idempotent). Fisher-Yates karıştırma ile rastgele dağılım.
+    private void Force4ScatterEnjekte(int[,] g)
+    {
+        if (g == null) return;
+        int scatterIdx = _scatterIndexCache;
+        int sut = g.GetLength(0);
+        int sat = g.GetLength(1);
+
+        var adaylar = new System.Collections.Generic.List<(int x, int y)>();
+        int mevcutScatter = 0;
+        for (int x = 0; x < sut; x++)
+        {
+            for (int y = 0; y < sat; y++)
+            {
+                if (g[x, y] == scatterIdx) mevcutScatter++;
+                else adaylar.Add((x, y));
+            }
+        }
+
+        int gereken = Mathf.Max(0, 4 - mevcutScatter);
+        if (gereken <= 0) return;
+        if (adaylar.Count < gereken) gereken = adaylar.Count;
+
+        // Fisher-Yates karıştırma (UnityEngine.Random)
+        for (int i = adaylar.Count - 1; i > 0; i--)
+        {
+            int j = UnityEngine.Random.Range(0, i + 1);
+            var t = adaylar[i]; adaylar[i] = adaylar[j]; adaylar[j] = t;
+        }
+
+        for (int i = 0; i < gereken; i++)
+        {
+            g[adaylar[i].x, adaylar[i].y] = scatterIdx;
+        }
     }
 
     /// <summary>Bahis animasyon helper: eski → yeni değere kademeli artar (görsel feedback, "+ tuşu").</summary>

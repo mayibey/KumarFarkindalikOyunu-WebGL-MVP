@@ -996,9 +996,9 @@
 
       <hr style="border:0; border-top:1px solid rgba(244,214,120,0.1); margin:14px 0;">
 
-      <!-- FAZ35.103 İŞ1: UI label değişim — kullanıcı istek "Bonus sembolü düşme olasılığı". Gerçek mekanik (slider→scatterChanceNormal) İŞ 2'de. Şu an UI cosmetic + %0 sıfıra bölme bug fix. -->
+      <!-- FAZ35.103 İŞ2: UI label "Bonus oyuna girme olasılığı" — kullanıcı kararı, 4 scatter şartı semantik daha net. Mekanik: spin başında RNG check (Random.value <= yuzde/100) → 4 scatter zorla yerleştir → bonus tetik. -->
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
-        <span style="color:#f4d678; font-size:15px; flex:1;">Bonus sembolü düşme olasılığı</span>
+        <span style="color:#f4d678; font-size:15px; flex:1;">Bonus oyuna girme olasılığı</span>
         <span class="help-icon" data-tip="bonusSiklik">?</span>
         <span class="value-display" style="font-size:18px;">%<span id="bonusSembolDeger">2</span></span>
       </div>
@@ -1441,18 +1441,21 @@
     document.getElementById('bonusSembolDeger').textContent = yuzde.toFixed(0);
     // PAKET 14-FAZ5 (İş 1): Yüzdeyi DİREKT gönder. periyot=round(100/yuzde) %67-100 arası hep 1 dönüyordu
     // (yuvarlama) → Tutorial T5 ==1 sınırı %67'de bile geçiyordu. Yuzde direkt karşılaştırılır.
-    unityeGonder('bonusYuzde', yuzde);
-    // FAZ35.103 İŞ1: %0 sıfıra bölme bug fix — eski 9999 saçmalığı kaldırıldı. %0 = motor tarafı 0 = kapalı (DonusAkisServisi.cs:249 "if (BonusOtomatikSpinPeriyodu > 0)" zaten 0'ı kapalı kabul eder).
+    // FAZ35.103 İŞ2: Yeni mekanik — slider %X → her spin RNG (Random.value <= X/100) → 4 scatter ZORLA yerleştir → bonus tetik.
+    // Eski periyot tabanlı bonusOtomatikOran motor mesajı 0'a sabitlendi (UI'da devre dışı, motor field Tutorial T5 için korunur).
+    // Yeni key: bonusGirmeOlasilik (0-1 float). %0 = doğal scatter akışı, %100 = her spin garantili bonus giriş.
+    // İŞ 1 null bug fix: Önceki "document.getElementById('bonusSpinHesap').textContent = spin" satırı KALDIRILDI (innerHTML zaten span yaratıyordu, önce textContent ile silinen span'a erişim TypeError fırlatıyordu).
     var aciklama = document.getElementById('bonusAciklama');
     if (yuzde <= 0) {
-      if (aciklama) aciklama.textContent = "Kapalı (manuel bonus modu)";
-      unityeGonder('bonusOtomatikOran', 0);
+      if (aciklama) aciklama.textContent = "Doğal akış (her spin RNG ile, 4 yıldız şartı)";
+    } else if (yuzde >= 100) {
+      if (aciklama) aciklama.textContent = "Her spin'de bonus oyuna giriş garantili";
     } else {
-      var spin = Math.max(1, Math.round(100 / yuzde));
-      document.getElementById('bonusSpinHesap').textContent = spin;
-      if (aciklama) aciklama.innerHTML = "Her <span id=\"bonusSpinHesap\">" + spin + "</span> spin'de 1 otomatik bonus tetiklenir";
-      unityeGonder('bonusOtomatikOran', spin);
+      if (aciklama) aciklama.textContent = "Her spin'de %" + yuzde + " bonus oyuna giriş ihtimali";
     }
+    unityeGonder('bonusYuzde', yuzde);
+    unityeGonder('bonusGirmeOlasilik', yuzde / 100);  // FAZ35.103 İŞ2: yeni mekanik key
+    unityeGonder('bonusOtomatikOran', 0);             // FAZ35.103 İŞ2: eski periyot tabanlı mekanik UI'da devre dışı (motor field Tutorial için korunur)
   }
 
   // ===== TOGGLE =====
