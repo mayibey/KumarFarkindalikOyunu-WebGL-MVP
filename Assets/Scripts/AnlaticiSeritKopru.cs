@@ -48,6 +48,25 @@ public class AnlaticiSeritKopru : MonoBehaviour
             BonusBitisAcik = false;
             return;
         }
+
+        // FAZ35.100 İŞ1 KRİTİK: 03 admin (idx 2) sahnesinde "AnlaticiSeritKopru" GameObject MEVCUT DEĞİL
+        // (Faz 35.83+ izolasyon kuralı). JS popup'tan dönen SendMessage('AnlaticiSeritKopru','BonusBitisOnayla',...)
+        // no-op olur → BonusBitisAcik=true PERMANENT takılı kalır → SpinButonImpl tüm spin'leri reddeder.
+        // Bypass: idx==2 için BonusBitisAcik DIREKT false set, JS popup hâlâ açılır (görsel kayıp yok).
+        // Faz 35.89 İŞ1 (WaitUntil bypass) tamamlayıcı fix; ikisi birlikte 03 admin akışı tam kilit önler.
+        int faz100SahneIdx = UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex;
+        if (faz100SahneIdx == 2)
+        {
+            BonusBitisOnaylandi = true;
+            BonusBitisAcik = false;
+#if UNITY_WEBGL && !UNITY_EDITOR
+            try { HavaiFisekBaslat(); BonusBitisPopupAc(tutar); }
+            catch (System.Exception e) { Debug.LogError("[BonusBitis-Idx2] FAZ35.100 popup hatası: " + e); }
+#endif
+            Debug.Log($"[BonusBitis] FAZ35.100 İŞ1: idx==2 (03 admin) — BonusBitisAcik=false DIREKT set (AnlaticiSeritKopru GameObject yok, permanent kilit önlendi). tutar={tutar}");
+            return;
+        }
+
         BonusBitisOnaylandi = false;
         BonusBitisAcik = true; // Spin butonu bu süre boyunca engellensin
         Debug.Log($"[BonusBitis] BonusBitisGoster çağrıldı, tutar={tutar} TL");
