@@ -440,11 +440,16 @@ public partial class OyunYoneticisi
         // Senaryo 1-5 guard'ları bypass + Tutma kayıp fazı (_tutmaBuSpinKayipBekleniyor) bypass + zorlaCarpan bypass.
         _modKonstrukteBasarili = false;
         _modSpinBekleniyorKazanc = false;
+        // FAZ35.101 İŞ1: Normal mod'da min/max çarpan kat slider'ları motor konstrukteyi tetiklememeli.
+        // Mod konstrukte SADECE Senaryolu modlar için (Hook/Yontma/Tutma/Koruma). Normal mod = baseline (Faz 35.95 RTP korunur).
+        // Önceden kullanıcı Normal mod + min=1, max=2 set edince mod konstrukte aktif → _modKonstrukteBasarili=true →
+        // Faz 35.93 SetIsCarpanUretimiAktif guard çarpan üretimini KAPATIYORDU (slider %100 etkisiz, BUG A+B tek kök).
         if (!bonusSpin && zorlaCarpanDegeri <= 0
             && odemeMinKat > 0f && odemeMaksKat > 0f
             && !_tutmaBuSpinKayipBekleniyor
             && !IsAdminSenaryo1Aktif() && !IsAdminSenaryo2Aktif()
-            && !IsAdminSenaryo3Aktif() && !IsAdminSenaryo4Aktif() && !IsAdminSenaryo5Aktif())
+            && !IsAdminSenaryo3Aktif() && !IsAdminSenaryo4Aktif() && !IsAdminSenaryo5Aktif()
+            && PanelKopru.aktifSenaryo != "normal")
         {
             // K5: Spin başında 1 kez eğilim kararı (reroll'larda OdemeModelineUygunMu aynı field'ı kullanır → tutarlılık).
             _modSpinBekleniyorKazanc = UnityEngine.Random.value <= Mathf.Clamp01(_odemeEgilimiYuzde / 100f);

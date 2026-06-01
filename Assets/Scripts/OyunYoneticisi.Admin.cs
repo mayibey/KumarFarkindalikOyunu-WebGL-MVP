@@ -196,7 +196,9 @@ public partial class OyunYoneticisi
             beklenenKazanc = Senaryo4DonguSpinTipi() == SenaryoBombSpinTipi.Kazanc;
         else if (IsAdminSenaryo5Aktif())
             beklenenKazanc = Senaryo5DonguSpinTipi() == SenaryoBombSpinTipi.Kazanc;
-        else if (odemeMinKat > 0f && odemeMaksKat > 0f)
+        // FAZ35.101 İŞ1: Normal mod'da min/max çarpan kat slider'ları eğilim RNG akışını bozmamalı.
+        // Senaryolu modlar (_modSpinBekleniyorKazanc field'ı) için bu branch korunur; Normal mod else'e düşer.
+        else if (odemeMinKat > 0f && odemeMaksKat > 0f && PanelKopru.aktifSenaryo != "normal")
             // FAZ35.85 K5: Mod aktifken spin başında 1 kez set edilen _modSpinBekleniyorKazanc kullan (reroll tutarlılık).
             // Spin.cs SimuleEtVeKaydetImpl başında set edilir; ModKazancKonstrukte branch'ı + bu kontrol aynı field'ı paylaşır.
             beklenenKazanc = _modSpinBekleniyorKazanc;
@@ -216,11 +218,15 @@ public partial class OyunYoneticisi
         // ALT-PARÇA 7 (Çakışma 8): Çarpan Zorla aktifken (zorlaSiradakiCarpan > 0) bant atlanır — kullanıcı anlık karar verdi, motor itaat.
         // Senaryo 1-5 admin senaryoları aktifken bant atlanır — kendi hedef bantlarını yönetiyorlar.
         // Sadece kazanç spinlerinde uygulanır (kayıp spinler bant kontrolüne tabi değil — kayıp = 0 ödeme).
+        // FAZ35.101 İŞ1: Normal mod'da bant filtre kontrolü çalışmamalı (Senaryolu modlar için korunur).
+        // aktifSenaryo == "normal" iken kullanıcının slider değerleri (odemeMinKat/odemeMaksKat) sadece
+        // UI'da görünür — motor reroll bant'ı yok, Normal mod RNG akışı doğal kazançları ödüllendirir.
         if (beklenenKazanc && kazanc
             && odemeMinKat > 0f && odemeMaksKat > 0f
             && zorlaSiradakiCarpan <= 0
             && !IsAdminSenaryo1Aktif() && !IsAdminSenaryo2Aktif() && !IsAdminSenaryo3Aktif()
-            && !IsAdminSenaryo4Aktif() && !IsAdminSenaryo5Aktif())
+            && !IsAdminSenaryo4Aktif() && !IsAdminSenaryo5Aktif()
+            && PanelKopru.aktifSenaryo != "normal")
         {
             int minHedef = Mathf.RoundToInt(bahis * odemeMinKat);
             int maksHedef = Mathf.RoundToInt(bahis * odemeMaksKat);
