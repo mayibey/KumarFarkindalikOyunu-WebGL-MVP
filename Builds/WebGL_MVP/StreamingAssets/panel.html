@@ -960,14 +960,17 @@
     <div class="detayli-ayarlar-body" id="detayliAyarlarBody">
 
     <!-- ACCORDION: OLASILIK AYARLARI -->
+    <!-- FAZ35.122: Accordion yeniden gruplandı. Eski "Olasılık Ayarları" → "Çarpan" oldu (sadece çarpan ile ilgili).
+         bonusSembolOlasilik bloğu yeni "Bonus" accordion'una taşındı. maxCarpanTekSpin max=6→5 + revert handler eklendi
+         (35.116 backend tavanı 5 ile hizalandı). Tüm key isimleri AYNEN korundu — sadece UI gruplama değişti. -->
     <div class="accordion-section" data-open="false">
       <div class="accordion-header" onclick="toggleSection(this)">
-        <span class="accordion-title">Olasılık Ayarları</span>
+        <span class="accordion-title">Çarpan</span>
         <span class="accordion-chevron">▶</span>
       </div>
       <div class="accordion-content">
 
-      <!-- 1.1 Çarpan düşme olasılığı -->
+      <!-- Çarpan düşme olasılığı -->
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
         <span style="color:#f4d678; font-size:15px; flex:1;">Çarpan düşme olasılığı</span>
         <span class="help-icon" data-tip="carpanOlasilik">?</span>
@@ -984,43 +987,32 @@
 
       <hr style="border:0; border-top:1px solid rgba(244,214,120,0.1); margin:14px 0;">
 
-      <!-- 1.2 Tek spinde maksimum çarpan -->
+      <!-- Tek spinde maksimum çarpan (FAZ35.116 backend tavanı 5, FAZ35.122 UI max=5 + revert handler) -->
       <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
         <span style="color:#f4d678; font-size:15px; flex:1;">Tek spinde maksimum kaç çarpan gelsin</span>
         <span class="help-icon" data-tip="maxCarpanTekSpin">?</span>
-        <input type="number" id="maxCarpanTekSpin" min="1" max="6" step="1" value="3"
+        <input type="number" id="maxCarpanTekSpin" min="1" max="5" step="1" value="3"
                style="width:60px; padding:6px; font-size:14px; background:#1a1410; color:#f4d678; border:1px solid rgba(244,214,120,0.2); border-radius:6px;"
-               oninput="ayarDegisti('maxCarpanTekSpin', this.value)">
-        <span style="color:#b8a875; font-size:14px;">adet</span>
+               oninput="maxCarpanTekSpinDegisti(this)">
+        <span style="color:#b8a875; font-size:14px;">adet (1-5)</span>
       </div>
 
-      <hr style="border:0; border-top:1px solid rgba(244,214,120,0.1); margin:14px 0;">
-
-      <!-- FAZ35.103 İŞ2: UI label "Bonus oyuna girme olasılığı" — kullanıcı kararı, 4 scatter şartı semantik daha net. Mekanik: spin başında RNG check (Random.value <= yuzde/100) → 4 scatter zorla yerleştir → bonus tetik. -->
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
-        <span style="color:#f4d678; font-size:15px; flex:1;">Bonus oyuna girme olasılığı</span>
-        <span class="help-icon" data-tip="bonusSiklik">?</span>
-        <span class="value-display" style="font-size:18px;">%<span id="bonusSembolDeger">2</span></span>
-      </div>
-      <input type="range" id="bonusSembolOlasilik" min="0" max="100" step="1" value="2" style="width:100%;"
-             oninput="bonusSembolOlasilikDegisti(this.value)">
-      <div id="bonusAciklama" style="font-size:14px; color:#b8a875; font-style:italic; margin-top:8px;">
-        Her <span id="bonusSpinHesap">50</span> spin'de 1 otomatik bonus tetiklenir
-      </div>
       </div>
     </div>
 
-    <!-- ACCORDION: MANİPÜLASYON AYARLARI -->
+    <!-- FAZ35.122: Eski "Manipülasyon Ayarları" → "Ödeme Davranışı" oldu. Eski yakinKacirma + ardisikKayip toggle'ları
+         tekli RADIO grubu ile değiştirildi (mutual exclusion: tek seçim, diğerleri nötr default). Key isimleri AYNEN
+         korundu ("yakinKacirma", "ardisikKayip") — Tutorial T8 TutorialAdimYoneticisi:306-330 varlık testi bozulmaz.
+         odemeDavranisiSec(secim) JS fonksiyonu bonusModuDegistir pattern emsali (line 1763): class active toggle + key gönder.
+         Ödeme aralığı (minCarpan/maksCarpan) KORUNDU üstte. -->
     <div class="accordion-section" data-open="false">
       <div class="accordion-header" onclick="toggleSection(this)">
-        <span class="accordion-title">Manipülasyon Ayarları</span>
+        <span class="accordion-title">Ödeme Davranışı</span>
         <span class="accordion-chevron">▶</span>
       </div>
       <div class="accordion-content">
 
-        <!-- FAZ35.76: "Yeni oyuncu modu" + "Kazandırma sıklığı" kartları silindi (Tutorial 35.74'te T6YO+T6 modları kaldırılmıştı; bu kutular 03 senaryolarında da kullanılmıyordu — C# SenaryoUygula AdminSetOdemeEgilimi'ye doğrudan yüzde gönderiyor, slider/toggle bağımsız). -->
-
-        <!-- 1. ÖDEME ARALIĞI -->
+        <!-- 1. ÖDEME ARALIĞI (korundu) -->
         <div class="setting-card">
           <div class="setting-header">
             <div class="setting-header-left">
@@ -1048,40 +1040,51 @@
           <div class="ifsa-line">Burada yapılan ayarla oyuncuların kazandığında alacağı miktar bahisinin kaç katı olabileceği belirlenir. (en az – en çok)</div>
         </div>
 
-        <!-- 4. NEREDEYSE OLUYORDU MODU — FAZ35.69: slider → AÇ/KAPA toggle -->
+        <!-- FAZ35.122: ÖDEME DAVRANIŞI RADIO (Kapalı / Kaçış engelleme / Near-miss) — tek seçim, çakışma engellenir -->
         <div class="setting-card">
           <div class="setting-header">
             <div class="setting-header-left">
               <span class="badge-num">2</span>
-              <label>Neredeyse Oluyordu Hissi</label>
-              <span class="help-icon" data-tip="nearMiss">?</span>
-            </div>
-            <div id="yakinKacirma" style="display:flex;align-items:center;gap:8px;">
-              <span class="toggle-label" id="yakinKacirmaLabel">Kapalı</span>
-              <div class="toggle" id="yakinKacirmaToggle" onclick="toggleDegisti('yakinKacirma')">
-                <div class="toggle-dot"></div>
-              </div>
+              <label>Manipülasyon Türü</label>
+              <span class="help-icon" data-tip="odemeDavranisi">?</span>
             </div>
           </div>
-          <div class="ifsa-line">Açıkken oyunculara 7 aynı meyveye 1 kalmış gibi gösterilerek "neredeyse kazanıyordum" hissi yaşatılır.</div>
+          <div class="mode-switch" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+            <button class="active" id="odemeDavranisi_kapali"   onclick="odemeDavranisiSec('kapali')">Kapalı</button>
+            <button              id="odemeDavranisi_kacis"    onclick="odemeDavranisiSec('kacis')">Kaçış engelleme</button>
+            <button              id="odemeDavranisi_nearmiss" onclick="odemeDavranisiSec('nearmiss')">Near-miss</button>
+          </div>
+          <div class="ifsa-line" id="odemeDavranisiAciklama">Kapalı: doğal akış (manipülasyon yok). Kaçış engelleme: 3 üst üste kayıp sonrası zorunlu kazanç. Near-miss: her spinde 7 aynı meyve + 3 scatter düşer ama kazanç verilmez (neredeyse cluster + neredeyse bonus hissi). Tek anda yalnız biri aktif.</div>
         </div>
 
-        <!-- 5. KAÇIŞ FRENLEME — FAZ35.82: number input → AÇ/KAPA toggle. Sadece Normal modda görünür (uygulaUI tarafından gizlenir/gösterilir). -->
-        <div class="setting-card" id="ardisikKayipKart">
-          <div class="setting-header">
-            <div class="setting-header-left">
-              <span class="badge-num">3</span>
-              <label>Kaçış Frenleme</label>
-              <span class="help-icon" data-tip="kacisFreni">?</span>
-            </div>
-            <div id="ardisikKayip" style="display:flex;align-items:center;gap:8px;">
-              <span class="toggle-label" id="ardisikKayipLabel">Kapalı</span>
-              <div class="toggle" id="ardisikKayipToggle" onclick="toggleDegisti('ardisikKayip')">
-                <div class="toggle-dot"></div>
-              </div>
-            </div>
+      </div>
+    </div>
+
+    <!-- FAZ35.122: YENİ "Bonus" accordion — eski "Olasılık Ayarları"ndan bonusSembolOlasilik buraya taşındı.
+         Near-miss radio aktifken DISABLE + tooltip (modKilitle pattern emsali line 1485-1496). bonusModu switch +
+         bonusTetikle button + carpanZorla mevcut "Anlık Müdahale"de KALDI (admin debug butonları). -->
+    <div class="accordion-section" data-open="false">
+      <div class="accordion-header" onclick="toggleSection(this)">
+        <span class="accordion-title">Bonus</span>
+        <span class="accordion-chevron">▶</span>
+      </div>
+      <div class="accordion-content">
+
+        <!-- Bonus oyuna girme olasılığı (Faz 35.103 mekanik aynı, sadece UI taşındı) -->
+        <div id="bonusSembolOlasilikKart" class="setting-card">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
+            <span style="color:#f4d678; font-size:15px; flex:1;">Bonus oyuna girme olasılığı</span>
+            <span class="help-icon" data-tip="bonusSiklik">?</span>
+            <span class="value-display" style="font-size:18px;">%<span id="bonusSembolDeger">2</span></span>
           </div>
-          <div class="ifsa-line">Açıkken 3 üst üste kayıp sonrası bir sonraki spin'de oyuncuya küçük zorunlu kazanç verilir.</div>
+          <input type="range" id="bonusSembolOlasilik" min="0" max="100" step="1" value="2" style="width:100%;"
+                 oninput="bonusSembolOlasilikDegisti(this.value)">
+          <div id="bonusAciklama" style="font-size:14px; color:#b8a875; font-style:italic; margin-top:8px;">
+            Her <span id="bonusSpinHesap">50</span> spin'de 1 otomatik bonus tetiklenir
+          </div>
+          <div id="bonusNearMissUyari" style="font-size:13px; color:#dc2626; font-style:italic; margin-top:6px; display:none;">
+            ⚠️ Near-miss aktifken bonus çakışır — bu ayar devre dışı (motor bonus'u kilitler).
+          </div>
         </div>
 
       </div>
@@ -1407,6 +1410,56 @@
     unityeGonder(anahtar, Number(deger));
   }
 
+  // FAZ35.122: maxCarpanTekSpin input handler — backend tavanı 5 (35.116 const MAX_CARPAN_TAVAN), UI'da >5 girilince
+  // toast uyarı + input revert (eski geçerli değere döner). Backend strict-reject zaten 6+ kabul etmiyor ama UI feedback.
+  var maxCarpanTekSpinSonGecerli = 3;  // default value
+  function maxCarpanTekSpinDegisti(input) {
+    var n = parseInt(input.value, 10);
+    if (isNaN(n) || n < 1) n = 1;
+    if (n > 5) {
+      showToast('En fazla 5 çarpan olabilir (motor güvencesi).');
+      input.value = maxCarpanTekSpinSonGecerli;
+      return;
+    }
+    maxCarpanTekSpinSonGecerli = n;
+    input.value = n;
+    unityeGonder('maxCarpanTekSpin', n);
+  }
+
+  // FAZ35.122: Ödeme Davranışı RADIO (Kapalı / Kaçış engelleme / Near-miss) — mutual exclusion + key gönderim.
+  // bonusModuDegistir (line 1763) pattern emsali: class active toggle + tek seçim. Backend key isimleri AYNI
+  // ("yakinKacirma", "ardisikKayip") — Tutorial T8 varlık testi bozulmaz. Near-miss seçiminde bonus disable.
+  // Eski toggleDegisti('yakinKacirma') / toggleDegisti('ardisikKayip') yerine bu fonksiyon kullanılır.
+  function odemeDavranisiSec(secim) {
+    ['kapali', 'kacis', 'nearmiss'].forEach(function(s) {
+      var btn = document.getElementById('odemeDavranisi_' + s);
+      if (btn) btn.classList.toggle('active', secim === s);
+    });
+    // Backend key'leri (Tutorial T8 + 35.118/35.119/35.120/35.121 backend tarafı korunur):
+    // Kapalı: ikisi de false. Kaçış: ardisikKayip=true, yakinKacirma=false. Near-miss: yakinKacirma=true, ardisikKayip=false.
+    var yakinKacirmaAktif = (secim === 'nearmiss');
+    var ardisikKayipAktif = (secim === 'kacis');
+    unityeGonder('yakinKacirma', yakinKacirmaAktif);
+    unityeGonder('ardisikKayip', ardisikKayipAktif);
+    // Near-miss aktifken bonus slider disable (çakışma — backend zaten Faz 35.118'de kilitliyor, UI feedback).
+    bonusSliderDisableGuncelle(yakinKacirmaAktif);
+  }
+
+  // FAZ35.122: Bonus slider disable (Near-miss aktifken) — modKilitle pattern emsali line 1485-1496.
+  // disabled + opacity + pointerEvents + uyarı satırı toggle.
+  function bonusSliderDisableGuncelle(kilitli) {
+    var slider = document.getElementById('bonusSembolOlasilik');
+    var kart = document.getElementById('bonusSembolOlasilikKart');
+    var uyari = document.getElementById('bonusNearMissUyari');
+    if (slider) {
+      slider.disabled = kilitli;
+      slider.style.opacity = kilitli ? '0.4' : '1';
+      slider.style.pointerEvents = kilitli ? 'none' : 'auto';
+    }
+    if (kart) kart.style.opacity = kilitli ? '0.55' : '1';
+    if (uyari) uyari.style.display = kilitli ? 'block' : 'none';
+  }
+
   // FAZ35.69: yakinKacirmaInputDegisti KALDIRILDI — slider yerine AÇ/KAPA toggle.
   // Toggle handler: toggleDegisti('yakinKacirma') (sat 1414+) → unityeGonder('yakinKacirma', bool).
   // C# tarafı (TutorialAdminEnjeksiyonu) hem bool hem sayısal parse eder; senaryoUygula akışı sayısal
@@ -1472,12 +1525,16 @@
   // Mod ON iken DISABLED olacak TÜM input/toggle/button ID'leri (Karar #1 GENİŞ kapsam).
   // AKTİF kalan: oyunModu dropdown, modAktifToggle, senaryoUygulaBtn, .btn-secondary (Varsayılana dön),
   // help-icon, accordion-header (UI navigasyon).
+  // FAZ35.122: Eski 'yakinKacirmaToggle' + 'ardisikKayipToggle' kaldırıldı (radio'ya dönüştürüldü).
+  // Yeni: odemeDavranisi_kapali/kacis/nearmiss buton id'leri eklendi (radio mutex butonları).
   var MOD_KILITLI_IDS = [
-    // Olasılık Ayarları
-    'carpanOlasilik', 'carpanOlasilikInput', 'maxCarpanTekSpin', 'bonusSembolOlasilik',
-    // Manipülasyon Ayarları
-    'minCarpan', 'maksCarpan', 'yakinKacirmaToggle', 'ardisikKayipToggle',
-    // Anlık Müdahale
+    // Çarpan accordion (eski "Olasılık Ayarları")
+    'carpanOlasilik', 'carpanOlasilikInput', 'maxCarpanTekSpin',
+    // Ödeme Davranışı accordion (eski "Manipülasyon Ayarları") — Ödeme aralığı + Radio
+    'minCarpan', 'maksCarpan', 'odemeDavranisi_kapali', 'odemeDavranisi_kacis', 'odemeDavranisi_nearmiss',
+    // Bonus accordion (yeni, bonusSembolOlasilik buraya taşındı)
+    'bonusSembolOlasilik',
+    // Anlık Müdahale (korundu)
     'bonusManuel', 'bonusOtomatik', 'bonusTetikleBtn',
     'carpanInput', 'carpanZorla100', 'carpanZorla250', 'carpanZorla500', 'carpanOdemeToggle'
   ];
