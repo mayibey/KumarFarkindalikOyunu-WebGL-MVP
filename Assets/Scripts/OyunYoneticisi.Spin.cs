@@ -506,6 +506,18 @@ public partial class OyunYoneticisi
             && _bonusGirmeOlasilik > 0f
             && UnityEngine.Random.value <= _bonusGirmeOlasilik;
 
+        // FAZ35.119: Near-miss "her spin garantili kayıp" — simulation evresinde cluster engelle + 7 meyve+3 scatter enjekte.
+        // Eski davranış (DonusAkisServisi:365-369): RNG'li + sadece odenen==0 spinde dekoratif görsel ekliyordu, kazanç
+        // engellenmiyordu (spin normal akıp ödeme veriyordu). Yeni: RNG YOK (her spin), simulation içinde cluster
+        // GrideKazancsizYap + GrideNearMissEnjekteEt → ham=0 garanti → ödeme matematik imkansız (0×N=0). Faz 35.118 bonus
+        // backend kilidi (_bonusGirmeBuSpinAktif yakinKacirma>0 guard) korunur — near-miss + bonus çakışması zaten engelli.
+        // Çarpan path (Faz 35.115): DOGAL placement aynen çalışır — near-miss aktifken çarpan görsel düşer, ödeme 0×N=0
+        // (kullanıcı kararı: pedagojik "çarpan düştü ama yine kazanamadın" çift mesaj).
+        bool _yakinKacirmaBuSpinAktif = !bonusSpin
+            && zorlaCarpanDegeri <= 0
+            && PanelKopru.aktifSenaryo == "normal"
+            && yakinKacirmaDegeri10da > 0;
+
         _modKonstrukteBasarili = false;
         _modSpinBekleniyorKazanc = false;
         // FAZ35.101 İŞ1: Normal mod'da min/max çarpan kat slider'ları motor konstrukteyi tetiklememeli.
@@ -782,6 +794,21 @@ public partial class OyunYoneticisi
                 Debug.Log($"[FAZ35.103 İŞ2] Bonus girme tetiklendi (olasilik={_bonusGirmeOlasilik:F2}) — 4 scatter zorla yerleştirildi (FillRandomAll sonrası, FAZ35.104 İŞ1 BUG 2 fix).");
             }
 
+            // FAZ35.119: Near-miss simulation enjeksiyon — her reroll iter'da kazanç engelle + 7 meyve+3 scatter.
+            // SIRALAMA: (1) GrideNearMissEnjekteEt 7 meyve + 3 scatter yerleştirir (mevcut sembol varsa cluster patlatabilir geçici).
+            // (2) GrideKazancsizYap SON ÇAĞRI: enjeksiyon sonrası tüm cluster'ları min-1=7'ye düşürür → 7 meyve cluster
+            // eşiğin (8) ALTINDA kalır → CalculateWinWithOwnPayTable count<minPay=8 elenir → ham=0 garanti.
+            // ham=0 → nihaiOdeme = 0×toplamCarpan = 0 (Faz 35.113 ham bazlı reroll kararı + Faz 35.115 çarpan toplam aynen).
+            // Reroll guard'ları (line 960/969) `!_yakinKacirmaBuSpinAktif` ile bypass → sonsuz reroll yok, ilk deneme kabul.
+            // Faz 35.118 GrideNearMissEnjekteEt davranışı (7 meyve + tam 3 scatter, eski guard'lar) korundu.
+            if (_yakinKacirmaBuSpinAktif)
+            {
+                GrideNearMissEnjekteEt();
+                GrideKazancsizYap();  // SON cluster temizliği — 7+enjeksiyon sonrası 8+ varsa 7'ye düşür
+                _tumbleServisi?.SetGrid(grid);
+                Debug.Log($"[FAZ35.119 YAKIN_KACIRMA] Near-miss enjekte (7 meyve + 3 scatter) + GrideKazancsizYap → ham=0 garanti, ödeme imkansız.");
+            }
+
             // Kaçış Frenleme: ardışık kayıp eşiği aşıldı → bu spin'in grid'i cluster oluşacak şekilde zorlanır.
             // Sahte para yok; gerçek cluster patlar, gerçek tumble olur, gerçek ödeme akışı işler.
             if (kacisFrenlemeUygula)
@@ -974,7 +1001,10 @@ public partial class OyunYoneticisi
             // noktasında nihaiOdeme yerine spinKazancHam (HAM ödeme, çarpansız) kullanılır → karar ham bazlı.
             // kayit.NihaiCarpanToplam (line 937) toplamCarpan ile set sürer → playback'te DonusAkisServisi:181
             // toplamX = kayit.NihaiCarpanToplam ile initial çarpan ödemeyi çarpar (Faz 35.108 fix korunur).
-            if (!bonusSpin && !zorlaCarpanVardi && !OdemeModelineUygunMu(spinKazancHam, bahis, deneme, maxReroll))
+            // FAZ35.119: Near-miss aktif spin zaten ham=0 garanti (cluster engellendi) → eğilim/limit/kolay zorluk reroll
+            // kontrolleri bypass. Aksi halde OdemeModelineUygunMu beklenenKazanc=true ise reject + reroll → sonsuz döngü
+            // riski (her iter near-miss tekrar ham=0 yapar). İlk denemede kabul edilir, kayit'a 7+3+ham=0 yazılır.
+            if (!bonusSpin && !zorlaCarpanVardi && !_yakinKacirmaBuSpinAktif && !OdemeModelineUygunMu(spinKazancHam, bahis, deneme, maxReroll))
                 continue;
 
             if (adminVideoArdisikKazanc && nihaiOdeme <= bahis)
@@ -983,13 +1013,15 @@ public partial class OyunYoneticisi
             // FAZ35.113 DEĞİŞİM 2 (Yaklaşım b devam): limit check de ham bazlı — çarpan ödeme aralığı kararına girmesin.
             // 03 NORMAL Free spin: limit=int.MaxValue → check zaten fire etmiyor, no-op.
             // Bonus/Senaryo: limit < MaxValue. spinKazancHam bazlı check pedagojik tutarlı (çarpan vitrini bağımsız).
-            if (limit != int.MaxValue && spinKazancHam > limit)
+            // FAZ35.119: Near-miss aktif spin ham=0 → limit check zaten geçer (0 > limit false) — defansif bypass.
+            if (!_yakinKacirmaBuSpinAktif && limit != int.MaxValue && spinKazancHam > limit)
                 continue;
             // Senaryo 1: 4 üst üste ödeme sonrası 3 spin zorunlu boş (ödeme yok)
             if (!bonusSpin && !adminManuelMod && !adminVideoArdisikKazanc && SenaryoYoneticisi.I != null && SenaryoYoneticisi.I.ShouldForceNoPaySenaryo12() && nihaiOdeme > 0)
                 continue;
             // Zorla çarpan varken diğer "min tumble / min ödeme" kuralları uygulanmaz; sadece toggle kuralı geçerli.
-            if (!zorlaCarpanVardi)
+            // FAZ35.119: Near-miss aktif spin de KolayZorluk reroll'larından bypass (ham=0 zaten "min ödeme altı" + tumblesiz).
+            if (!zorlaCarpanVardi && !_yakinKacirmaBuSpinAktif)
             {
                 if (spinPolitikasi.KolayZorlukBonusSpindeMinOdemeAltindaReddet(
                         bonusSpin, zorlaCarpanVardi, limit, _easyBias01, nihaiOdeme))

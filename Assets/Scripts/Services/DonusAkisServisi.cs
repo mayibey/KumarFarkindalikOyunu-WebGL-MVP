@@ -362,12 +362,14 @@ public class DonusAkisServisi
             yield break;
         }
 
-        // Yakın Kaçırma: KAYIP spin'de (cluster yok) yakinKacirma oranıyla görsel near-miss enjekte et
-        if (odenen == 0 && _ctx.YakinKacirmaDegeri10da > 0 && !_ctx.BonusAktif
-            && UnityEngine.Random.Range(0, 10) < _ctx.YakinKacirmaDegeri10da)
-        {
-            _ctx.GrideNearMissEnjekteEt();
-        }
+        // FAZ35.119: Eski post-spin near-miss enjeksiyonu KALDIRILDI. Yeni davranış simulation evresinde
+        // (Spin.cs reroll loop _yakinKacirmaBuSpinAktif flag ile GrideKazancsizYap + GrideNearMissEnjekteEt çağrılır).
+        // ESKİ DAVRANIŞ: odenen==0 (zaten kayıp) + RNG'li (10/N olasılık) → sadece dekoratif görsel ekleme, kazanç
+        // engellenmiyordu (spin normal akıp ödeme veriyordu, kullanıcı raporu). YENİ: deterministik (RNG yok) + her
+        // spin garantili kayıp + 7 meyve+3 scatter kayit.IlkGrid'de hazır → playback'te otomatik görünür.
+        // Bu satırların kaldırılması ÇİFT ENJEKSİYON riskini de önler (simulation 7+3 + post-spin 7+3 → meyve sembol
+        // override + scatter sayısı aşımı bug'ı). 02 + Tutorial T8 path'leri Scripted early-return ile zaten ölü-path,
+        // etkilenmez (yakinKacirmaDegeri10da 02/T8'de set edilmiyor).
 
         // BRÜT 0 (hiç cluster düşmedi): The Price is Right Losing Horn — popup öncesi tetiklenir.
         // _senaryoPresetAktif filtresi BYPASS — senaryolu/admin/tutorial hepsinde çalsın.
