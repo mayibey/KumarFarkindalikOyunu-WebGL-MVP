@@ -1012,9 +1012,14 @@
         </div>
         <div class="description" style="font-size:14px;">Bir sonraki spinde görünecek çarpan</div>
         <div class="multiplier-grid">
+          <!-- FAZ35.124: onchange handler eklendi (Seçenek A). Eskiden sadece Enter'da fire ediyordu, kullanıcı
+               Enter basmadan başka yere geçince değer kayboluyordu. Artık blur/tab/Enter ile carpanZorla gönderilir.
+               Mevcut onkeydown Enter handler KORUNDU (geri uyumlu). Çift gönderim riski: aynı değer 2 kez (Enter+blur),
+               AdminZorlaCarpanSec idempotent (zorlaSiradakiCarpan=N iki kez = N) → zararsız. -->
           <input type="number" id="carpanInput" placeholder="Özel..." min="1"
                  style="background:rgba(245,196,179,0.1);color:#F5C4B3;border:1px solid rgba(245,196,179,0.4);padding:12px;border-radius:8px;font-size:21px;font-family:inherit;"
-                 onkeydown="if(event.key==='Enter'&&this.value){carpanZorla(parseInt(this.value))}">
+                 onkeydown="if(event.key==='Enter'&&this.value){carpanZorla(parseInt(this.value))}"
+                 onchange="if(this.value>0){carpanZorla(parseInt(this.value))}">
           <button id="carpanZorla100" class="multiplier-btn" onclick="carpanZorla(100)">×100</button>
           <button id="carpanZorla250" class="multiplier-btn" onclick="carpanZorla(250)">×250</button>
           <button id="carpanZorla500" class="multiplier-btn" onclick="carpanZorla(500)">×500</button>
