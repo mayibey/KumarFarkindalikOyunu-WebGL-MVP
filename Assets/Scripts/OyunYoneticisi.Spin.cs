@@ -725,6 +725,35 @@ public partial class OyunYoneticisi
                 _tumbleServisi?.SetGrid(grid);
             }
 
+            // FAZ35.105 İŞ1 BUG: DOGAL çarpan kayıp spin'de pas geçiyordu (Spin.cs:803 CarpanUretVeBirik
+            // tumble loop içinde, cluster yoksa break → çağrılmaz → kayıp spin çarpan görünmez).
+            // KÖK NEDEN: Force çarpan ilk grid'e DOĞRUDAN yerleştirilir (sat 730+), DOGAL çarpan SADECE
+            // tumble loop sonunda (cluster patladıktan sonra) üretilir → kayıp spin tumble çalışmaz → atlanır.
+            // ÇÖZÜM: Force pattern emsali — olasılık geçerse ilk grid'e direkt yerleştir → kayıp/kazanç fark etmez,
+            // görsel çarpan kalıcı. Kullanıcı mental model: "çarpan düşer, kazanç olsa katlanır, olmasa da düşer."
+            // İZOLE: zorlaCarpanDegeri <= 0 guard → Force çarpan path ile çakışma yok. Tumble loop içindeki
+            // Spin.cs:803 CarpanUretVeBirik KORUNUR (multi-tumble çarpan biriktirme kazançlı spin'lerde devam).
+            // GUARD'lar: Senaryolu modlar (aktifSenaryo != "normal") + bonus spin + Faz 35.93 _modKonstrukteBasarili → blok pas.
+            if (!bonusSpin
+                && zorlaCarpanDegeri <= 0
+                && PanelKopru.aktifSenaryo == "normal"
+                && carpanUretimiAktif
+                && !_modKonstrukteBasarili
+                && deneme == 0)
+            {
+                float olasilik105 = carpanUretimOlasiligi;
+                if (olasilik105 > 0f && UnityEngine.Random.value <= olasilik105)
+                {
+                    int rastgeleCarpan105 = RastgeleCarpan();
+                    if (rastgeleCarpan105 > 0)
+                    {
+                        ForceCarpaniIlkGriddeGuvenliYerlestir(rastgeleCarpan105);
+                        _tumbleServisi?.SetGrid(grid);
+                        Debug.Log($"[FAZ35.105 İŞ1] DOGAL çarpan ilk grid'e yerleştirildi: x{rastgeleCarpan105} (olasilik={olasilik105:F2}) — kayıp/kazanç fark etmez.");
+                    }
+                }
+            }
+
             var zorlaSonrasi = spinPolitikasi.SimulasyonZorlaCarpanSonrasiIlkGridIsiBelirle(
                 zorlaCarpanDegeri, carpanToggleSecili, carpanUretimiAktif);
             if (zorlaSonrasi != SimulasyonZorlaCarpanSonrasiIlkGridIsi.Yok)
@@ -1131,7 +1160,10 @@ public partial class OyunYoneticisi
             }
         }
 
-        int gereken = Mathf.Max(0, 4 - mevcutScatter);
+        // FAZ35.105 İŞ1 GARANTI: Bonus eşiği (scatterEsik) 4 — ama 4 koymak yetmiyor (RNG tumble içinde silinebilir, kayıp scatter olabilir).
+        // 5 scatter ZORLA → eşiği geçme garantili. BonusKontrol scIlk >= 4 ile bonus tetik.
+        int hedefScatter = 5;
+        int gereken = Mathf.Max(0, hedefScatter - mevcutScatter);
         if (gereken <= 0) return;
         if (adaylar.Count < gereken) gereken = adaylar.Count;
 

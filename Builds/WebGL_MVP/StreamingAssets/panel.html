@@ -1455,7 +1455,7 @@
     }
     unityeGonder('bonusYuzde', yuzde);
     unityeGonder('bonusGirmeOlasilik', yuzde / 100);  // FAZ35.103 İŞ2: yeni mekanik key
-    unityeGonder('bonusOtomatikOran', 0);             // FAZ35.103 İŞ2: eski periyot tabanlı mekanik UI'da devre dışı (motor field Tutorial için korunur)
+    // FAZ35.105 İŞ1: Eski "unityeGonder('bonusOtomatikOran', 0)" satırı SİLİNDİ — her slider değişiminde gereksiz toast tetikliyordu ("Bonus otomatik tetik oranı %0 olarak uygulandı"). Motor field zaten 0, panel her seferinde göndermek zorunda değil. Tutorial T5 vb. periyot set akışı ayrı (TutorialOyunYoneticisi.cs:573).
   }
 
   // ===== TOGGLE =====
