@@ -858,15 +858,15 @@ public class AnlaticiSeritKopru : MonoBehaviour
             // PreA1 ek anlatım — A1 aşamasının pedagojik özeti (Hoş geldin sonrası ikinci modal)
             const string A1_ANLATIM =
                 "İlk aşama: <color=#ea580c>Isındırma ve Umut</color>\n\n" +
-                "İlk <color=#16a34a>kazanç</color> oyuncu için en <color=#dc2626>tehlikeli başlangıçtır</color>. <color=#ea580c>Beyin</color> başlangıçta yaşanan bu olumlu deneyimi güçlü biçimde hatırlar ve kişinin oyun oynamaya isteğini arttırır.";
+                "İlk <color=#16a34a>kazanç</color> oyuncu için en <color=#dc2626>tehlikeli başlangıçtır</color>. <color=#ea580c>Beyin</color> başlangıçta yaşanan bu olumlu deneyimi güçlü biçimde hatırlar ve kişinin oyun oynama isteğini arttırır.";
             // PreA1 üçüncü modal — kullanıcıyı spin atmaya davet + sol panel takip yönlendirmesi.
             const string A1_DAVET =
                 "<b>Şimdi deneyelim</b>\n\n" +
                 "Tam <color=#FFD933>8 spin</color> at ve neler olduğunu görelim. " +
                 "Bakiyenin nasıl yükseldiğine, kazançların sıklığına dikkat edelim.\n\n" +
-                "Sol panelde <color=#5BA0FF>SAHNE ARKASI</color> ve " +
-                "<color=#5BA0FF>OYUNCU DÜŞÜNCESİ</color> bölümlerini takip edelim — " +
-                "<color=#4DCC59>sistemin gerçekte ne yaptığını</color> orada göreceğiz.";
+                "Sol panelde <color=#5BA0FF>SİSTEMİN ARKA YÜZÜ</color> ve " +
+                "<color=#5BA0FF>OYUNCU DÜŞÜNCESİ</color> bölümlerini takip edelim. " +
+                "<color=#4DCC59>Sistemin gerçekte ne yaptığını</color> orada göreceğiz.";
             string mesaj =
                 "Hoş geldiniz. Bu uygulama, kumar bağımlılarının en çok oynadığı slot oyununun bir benzeridir. Burada bu oyunların neden <color=#dc2626>kazandırmadığını</color> ve oyuncuların nasıl <color=#dc2626>manipüle edildiğini</color> birlikte göreceğiz.\n\n" +
                 "<b>Önce oyunu tanıyalım:</b>\n" +
@@ -877,7 +877,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
                 "• <color=#FFD700>4 Bonus Sembolü</color> (yıldız) gelirse <color=#FFD700><b>BONUS</b> oyun</color> açılır.\n\n" +
                 "<b>Ekrandaki diğer öğeler:</b>\n" +
                 "• <color=#60A5FA><b>Sol panel:</b></color> Oyuncunun hangi aşamada olduğunu, sahne arkasında ne yaşandığını gösterir; birlikte buradan takip edeceğiz.\n" +
-                "• <color=#4ADE80><b>Bakiye:</b></color> Oyuna ayrılan para (oyuncu <color=#4ADE80>50.000 TL</color> ile başlıyor).\n" +
+                "• <color=#4ADE80><b>Bakiye:</b></color> Oyuna ayrılan para (oyuncu <color=#4ADE80>50.000 TL</color> ile başlar).\n" +
                 "• <color=#FB923C><b>Bahis:</b></color> Her spinde harcanacak miktar, <color=#FB923C>+ ve − tuşlarıyla</color> değişir.\n" +
                 "• <b>KAZANÇ:</b> O spinde kazanılan miktar.\n\n" +
                 "Hadi başlayalım: ilk aşama <i>'Isındırma ve Umut'</i>.";

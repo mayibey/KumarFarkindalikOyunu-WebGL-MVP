@@ -61,6 +61,13 @@
   .rozet-good { background: rgba(60,140,60,0.2); border: 1px solid rgba(60,140,60,0.4); color: #80e080; }
   .kafa-text { color: #c8b8e0; font-size: 17px; line-height: 1.5; font-style: italic; margin-bottom: 6px; }
   .bilim-not { color: rgba(255,255,255,0.45); font-size: 16px; line-height: 1.45; }
+  /* FAZ35.129: ASAMALAR arka/kafa vurgu sınıfları — açık palet (modal emsali), koyu mor zemine kontrast, bold.
+     KURAL: bir blokta kırmızı+yeşil+turuncu üçlüsü YOK (mavi nötr/serbest). Tasarım: kırmızı=tehlike/kayıp/manipülasyon,
+     yeşil=kazanç/umut, mavi=teknik/sistem/sayı, turuncu=bilişsel çarpıtma/oyuncu düşüncesi. */
+  .vurgu-tehlike  { color:#ef4444; font-weight:600; }
+  .vurgu-kazanc   { color:#4ade80; font-weight:600; }
+  .vurgu-teknik   { color:#60a5fa; font-weight:600; }
+  .vurgu-carpitma { color:#fb923c; font-weight:600; }
   .spin-bolum { padding: 10px 22px 8px; background: rgba(0,0,0,0.2);
     border-top: 1px solid rgba(255,255,255,0.05); }
   .spin-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
@@ -131,13 +138,13 @@
       <div class="asama-baslik" id="asamaBaslik">Isındırma ve Umut</div>
     </div>
     <div class="section section-arka">
-      <div class="section-label label-arka">SAHNE ARKASI</div>
+      <div class="section-label label-arka">SİSTEMİN ARKA YÜZÜ</div>
       <div class="arka-text" id="arkaText">—</div>
     </div>
     <div class="section section-kafa">
       <div class="section-label label-kafa">OYUNCU DÜŞÜNCESİ</div>
       <div class="kafa-text" id="kafaText">—</div>
-      <div class="bilim-not" id="bilimNot">—</div>
+      <!-- FAZ35.128: bilim-not DOM element kaldırıldı (her aşamadan bilim alanı + render satırı da silindi). -->
     </div>
     <div class="spin-bolum">
       <div class="spin-row">
@@ -165,47 +172,42 @@
   </div>
 </div>
 <script>
+  // FAZ35.128: ASAMALAR metinleri yenilendi (düz metin — eski <span> renk tag'leri kaldırıldı; renklendirme sonra).
+  // bilim alanı + render bloğu SİLİNDİ — layout temizliği için (alttaki line render kısmında da bilimNot satırı kaldırıldı).
   var ASAMALAR = [
     { isim: "Isındırma ve Umut",
-      arka: "<span style=\"color:#2563eb\">Sistem</span> yeni gelen oyuncuya <span style=\"color:#2563eb\">bilinçli olarak</span> yüksek <span style=\"color:#16a34a\">kazanç</span> verir. Bunun amacı kazandırmak değil oyuncuyu <span style=\"color:#dc2626\">oyuna bağlamaktır</span>. Kurbanın aklına <span style=\"color:#ea580c\">'bu oyunda şanslıyım'</span> hissini yerleştirmek için tasarlanmış bir <span style=\"color:#dc2626\">tuzaktır</span>. Başlangıçtaki <span style=\"color:#16a34a\">kazanç</span>, oyuncuda bu oyunda <span style=\"color:#ea580c\">şanslı olduğu algısını</span> yaratır.",
-      kafa: "<span style=\"color:#16a34a\">İlk kazançlar</span> zihne <span style=\"color:#ea580c\">'ben bu işi yapabiliyorum'</span> düşüncesini yerleştirir. Böylece oyuncu <span style=\"color:#ea580c\">oyunu çözdüğünü</span> ve kazanmaya devam edebileceğini düşünür. Bu durum gerçek bir beceriden değil, oyuncuyu oyunda tutmak için oluşturulan bir <span style=\"color:#2563eb\">yönlendirme mekanizmasından</span> kaynaklanır.",
-      bilim: "",
+      arka: "Yeni gelen oyuncuya kasıtlı olarak <span class=\"vurgu-kazanc\">yüksek kazanç</span> verilir. Buradaki amaç para kazandırmak değil, <span class=\"vurgu-tehlike\">oyuncuyu oyuna bağlamak</span>tır. Yazılım, başlangıç kazancını oyuncuda \"şanslıyım\" algısı oluşturacak şekilde ayarlar; böylece olumlu ilk izlenimle oyuncuyu içeri çeker.",
+      kafa: "İlk kazançlar oyuncuya \"<span class=\"vurgu-carpitma\">Ben bu işi yapabiliyorum</span>, bu oyunu çözüyorum.\" hissini verir. Oyuncu, kazancını <span class=\"vurgu-carpitma\">kendi becerisine bağlar</span>; oysa bu tamamen bir yönlendirmedir. Zihninde \"Devam edersem kazanmaya devam ederim.\" beklentisi yerleşir.",
       rozetler: [{text:"Geri ödeme: %~250",tip:"good"},{text:"Tavan: bahsin 5×'i",tip:"good"},{text:"Şans: yapay yüksek",tip:"warn"}],
       bakiyeRengi: "kazanc", bakiyeBaglam: "Sahte kazanç ileride büyük kayıp için yem olacak." },
     { isim: "Kontrol Bende Hissi",
-      arka: "<span style=\"color:#2563eb\">Sistem</span> yavaş yavaş ufak tutarlarda <span style=\"color:#dc2626\">kaybettirmeye</span> başlar ancak ara sıra <span style=\"color:#16a34a\">kazandırmaya</span> devam etmektedir. Oyuncunun kafasında <span style=\"color:#ea580c\">\"oyunun mantığını çözdüğüne dair\"</span> düşünceler oluşmaya başlar. Oyuncu <span style=\"color:#ea580c\">bahis</span> miktarını değiştirmek gibi kendince totemler yaparak kazanacağına dair inançlar oluşturur. Oyuncunun bu <span style=\"color:#dc2626\">yanılgılarını</span> bilen sistem, kurbanın oyuna devam etmesini sağlamak için tasarlanmıştır.",
-      kafa: "\"Ne zaman basacağım artık biliyorum. Belli bir düzen var, <span style=\"color:#ea580c\">ben bu oyunu çözdüm</span>.\"",
-      bilim: "Aslında oyun tamamen oynatanın kurallarına göre ilerler. Ancak insan <span style=\"color:#ea580c\">beyni</span>, rastgele olaylarda bile bir düzen arama eğilimindedir. <span style=\"color:#ea580c\">Bahsi</span> yükseltmek, belirli bir tuşa basmak veya oturuşunu değiştirmek gibi davranışlar oyuncuya <span style=\"color:#2563eb\">\"kontrol bende\"</span> hissi verir; oysa bunların hiçbirinin sonuca gerçek bir etkisi yoktur.",
+      arka: "Sistem, küçük tutarlarda <span class=\"vurgu-tehlike\">kaybettirmeye</span> başlar; ancak ara ara kazanç vererek umudu canlı tutar. Oyuncunun düzen arama eğilimini bildiği için bahis değiştirme ve benzeri <span class=\"vurgu-tehlike\">totem davranışlar</span>ına izin verir. Bu davranışların sonuca <span class=\"vurgu-tehlike\">hiçbir etkisi yoktur</span>; tek işlevi oyuncuyu masada tutmaktır.",
+      kafa: "Oyuncu, \"Ne zaman basacağımı biliyorum, belli bir düzen var, <span class=\"vurgu-carpitma\">ben bu oyunu çözdüm</span>.\" diye düşünür. Rastgele olaylarda bir <span class=\"vurgu-carpitma\">düzen görme yanılgısı</span>na kapılır. Bahsi ayarlamak ve totemler ona <span class=\"vurgu-carpitma\">kontrol hissi</span> verir; gerçekte hiçbir etkisi olmasa da.",
       rozetler: [{text:"Geri ödeme: %~200",tip:"good"},{text:"Tavan: bahsin 3.5×'i",tip:"good"},{text:"Şans: yüksek",tip:"warn"}],
       bakiyeRengi: "kazanc", bakiyeBaglam: "Hâlâ kazançta gibi ama gerçekte kayıp başladı." },
     { isim: "Kaybettiklerimi Geri Kazanabilirim",
-      arka: "İlk ciddi <span style=\"color:#dc2626\">kayıp dalgası</span> başlamıştır. <span style=\"color:#2563eb\">Sistem</span> oyuncudan aldıklarını geri vermeyecektir. Oyuncu <span style=\"color:#ea580c\">\"bahis miktarını arttırırsam daha hızlı telafi edebilirim\"</span> yanılgısıyla <span style=\"color:#ea580c\">bahsi</span> arttırır; ancak bu sistemin tam olarak istediği davranıştır çünkü <span style=\"color:#ea580c\">bahis</span> miktarı arttıkça <span style=\"color:#dc2626\">kayıp</span> da artacaktır.",
-      kafa: "<span style=\"color:#ea580c\">\"Az önce kaybettiklerimi bir geri kazanayım, çıkayım. Sadece o kadar.\"</span>",
-      bilim: "<span style=\"color:#2563eb\">Kayıp Kovalama</span> — <span style=\"color:#dc2626\">kayıp</span> duygusu <span style=\"color:#16a34a\">kazanç</span> umudundan iki kat güçlüdür.",
+      arka: "İlk ciddi <span class=\"vurgu-tehlike\">kayıp dalgası</span> başlatılır ve sistem aldığını geri vermez. Sistem, oyuncunun \"<span class=\"vurgu-carpitma\">Bahsi artırırsam telafi ederim</span>.\" yanılgısını tetikler; çünkü bu, sistemin tam olarak istediği davranıştır. Bahis büyüdükçe <span class=\"vurgu-tehlike\">kayıp da büyür</span>.",
+      kafa: "Oyuncu, \"Sadece kaybettiğimi geri alayım, sonra çıkarım.\" der. Bu, <span class=\"vurgu-carpitma\">kayıp kovalama</span>dır: <span class=\"vurgu-tehlike\">kaybın acısı</span>, kazancın umudundan yaklaşık iki kat güçlü olduğu için oyuncu durmak yerine <span class=\"vurgu-tehlike\">riski büyütür</span>.",
       rozetler: [{text:"Geri ödeme: %~75",tip:"warn"},{text:"Tavan: bahsin 1×'i",tip:"warn"},{text:"Şans: dengeli",tip:"warn"}],
       bakiyeRengi: "kayip", bakiyeBaglam: "Telafi etmek için bahis 2 katına çıkacak — kayıp da öyle." },
     { isim: "Şansın Döndü",
-      arka: "<span style=\"color:#2563eb\">Sistem</span> art arda <span style=\"color:#2563eb\">neredeyse kazanıyorum</span> sahneleri yaşatır. Oyuncu <span style=\"color:#ea580c\">şansım dönmek üzere</span> diye düşünmeye başlar. Tam da ümitlendiği anda sistem <span style=\"color:#16a34a\">büyük bir kazanç</span> verir: <span style=\"color:#ea580c\">bahsin</span> <span style=\"color:#2563eb\">100 katı</span>. Ama bu tek atış <span style=\"color:#dc2626\">kasıtlı bir tuzaktır</span>. O kazancın hemen ardından sistem <span style=\"color:#16a34a\">bakiyeyi</span> hızla <span style=\"color:#dc2626\">eritir</span>.",
-      kafa: "<span style=\"color:#2563eb\">Neredeyse kazanıyordum</span> anları <span style=\"color:#ea580c\">beyni</span> kandırır, sanki gerçekten kazanmaya yakınmışsın gibi hissettirir. Üstüne o <span style=\"color:#16a34a\">büyük tek kazanç</span> gelince <span style=\"color:#ea580c\">beyin</span> \"bu iş yürüyor\" kararını verir. Sonrasında gelen <span style=\"color:#dc2626\">kayıpları</span> oyuncu, o tek kazanca sığınarak görmezden gelir.",
-      bilim: "<span style=\"color:#2563eb\">\"Neredeyse kazanıyordum\"</span> anları <span style=\"color:#ea580c\">beyni</span> kandırır — sanki gerçekten kazanmaya yakındın gibi gelir. Üstüne <span style=\"color:#16a34a\">büyük tek kazanç</span> gelince beyin \"bu iş yürüyor\" kararı verir. Sonraki <span style=\"color:#dc2626\">kayıpları</span> o tek kazanca sığınarak görmezden gelir oyuncu.",
+      arka: "Oyuncuya art arda \"<span class=\"vurgu-carpitma\">neredeyse kazanıyordum</span>\" sahneleri yaşatılır. Oyuncu tam ümitlendiği anda sistem büyük bir tek kazanç verir; bu kazanç, <span class=\"vurgu-teknik\">bahsin yüz katı</span>na ulaşabilir. Bu, kasıtlı bir <span class=\"vurgu-tehlike\">tuzak atışı</span>dır ve hemen ardından <span class=\"vurgu-tehlike\">bakiye hızla eritilir</span>.",
+      kafa: "\"Neredeyse kazanıyordum.\" anları <span class=\"vurgu-tehlike\">beyni kandırır</span> ve oyuncu kendini gerçekten <span class=\"vurgu-carpitma\">kazanmaya yakın</span> hisseder. Büyük tek kazanç gelince \"<span class=\"vurgu-carpitma\">Bu iş yürüyor</span>.\" kararı pekişir. Bunun ardından gelen kayıpları oyuncu, o tek kazanca sığınarak görmezden gelir.",
       rozetler: [{text:"Geri ödeme: %~40",tip:"kayip"},{text:"Tavan: bahsin 0.6×'i",tip:"kayip"},{text:"Şans: düşük",tip:"warn"}],
       bakiyeRengi: "kayip", bakiyeBaglam: "Kayıp dakikada hızlandı. Oyuncu fark etmiyor." },
     { isim: "Sonunu Düşünen Kahraman Olamaz",
-      arka: "Oyuncu mantığı bırakmıştır, <span style=\"color:#ea580c\">bahisleri</span> agresifçe yükseltmektedir. <span style=\"color:#ea580c\">\"Bu sefer büyük kazanırım\"</span> diye düşünmektedir; <span style=\"color:#2563eb\">sistem</span> bu davranışı beklemektedir. Yüksek bahisli <span style=\"color:#2563eb\">spinlerde</span> <span style=\"color:#dc2626\">kayıplar</span> katlanır. Bilinçli karar artık yoktur, sadece <span style=\"color:#ea580c\">dürtüler</span> devreye girer.",
-      kafa: "<span style=\"color:#ea580c\">\"Yarısı gitti zaten, gerisini de koyayım. Geri çıkmazsa bana ne kalır ki?\"</span>",
-      bilim: "<span style=\"color:#2563eb\">Batık Maliyet Yanılgısı</span> — geçmiş <span style=\"color:#dc2626\">kayıp</span> gelecek kararı bozar.",
+      arka: "Sistem, oyuncunun artık mantığını bir kenara bıraktığını ve bahisleri <span class=\"vurgu-tehlike\">agresif biçimde yükselttiğini</span> bilir; hatta bu davranışı bekler. Yüksek bahisli spinlerde <span class=\"vurgu-tehlike\">kayıplar katlanır</span>. Oyuncuda bilinçli karar kalmamıştır; artık yalnızca <span class=\"vurgu-tehlike\">dürtüleri</span> devreye girer.",
+      kafa: "Oyuncu, \"Yarısı gitti zaten, gerisini de koyayım. Geri çıkmazsa bana ne kalır ki?\" diye düşünür. Bu, <span class=\"vurgu-carpitma\">batık maliyet yanılgısı</span>dır: geçmişteki kayıp, geleceğe dair sağlıklı kararı bozar. Geri çekilmek, <span class=\"vurgu-tehlike\">kaybı kesinleştirmek</span> gibi hissettirdiği için oyuncu <span class=\"vurgu-tehlike\">duramaz</span>.",
       rozetler: [{text:"Geri ödeme: %~20",tip:"kayip"},{text:"Tavan: bahsin 0.4×'i",tip:"kayip"},{text:"Şans: minimal",tip:"kayip"}],
       bakiyeRengi: "kayip", bakiyeBaglam: "Toplam kayıp birikiyor. Oyuncu hâlâ duramıyor." },
     { isim: "Başka Bir Yerden Para Bulmalıyım",
-      arka: "<span style=\"color:#16a34a\">Bakiye</span> bitti. Oyuncu <span style=\"color:#dc2626\">kredi kartından</span> bakiye satın alıyor. <span style=\"color:#dc2626\">Borca girdi</span>, eve haber vermiyor, başkalarından para istiyor. Oyun dışı zarar başladı: <span style=\"color:#dc2626\">borç</span>, <span style=\"color:#dc2626\">gizlilik</span>, <span style=\"color:#dc2626\">yalan</span>, ilişkilerde <span style=\"color:#dc2626\">çatlak</span>…",
-      kafa: "<span style=\"color:#ea580c\">\"Bir kredi çekersem, son bir hamle yaparım, hem borç biter hem yeniden başlarım.\"</span>",
-      bilim: "<span style=\"color:#2563eb\">Çaresizlik Tepkisi</span> — <span style=\"color:#ea580c\">beyin</span> uzun vadeli sonucu hesaplayamaz hale gelir.",
+      arka: "Bakiye biter ve sistem, oyuncuyu <span class=\"vurgu-tehlike\">kredi kartıyla</span> bakiye satın almaya yönlendirir. Zarar artık oyunun dışına taşar: <span class=\"vurgu-tehlike\">borçlanma, gizlilik, yalan</span> ve <span class=\"vurgu-tehlike\">ilişkilerde çatlaklar</span> başlar. Manipülasyon, oyuncunun gerçek hayattaki kaynaklarını da sisteme aktarmasını sağlar.",
+      kafa: "Oyuncu, \"Bir kredi çekersem <span class=\"vurgu-carpitma\">son bir hamleyle</span> hem borcu kapatır hem de yeniden başlarım.\" diye düşünür. Bu, <span class=\"vurgu-carpitma\">çaresizlik tepkisi</span>dir: beyin, <span class=\"vurgu-tehlike\">uzun vadeli sonucu hesaplayamaz</span> hale gelir ve tek çıkış olarak yine oyunu görür.",
       rozetler: [{text:"Geri ödeme: %~15",tip:"kayip"},{text:"Tavan: bahsin 0.3×'i",tip:"kayip"},{text:"Şans: tükenmiş",tip:"kayip"}],
       bakiyeRengi: "kayip", bakiyeBaglam: "Kart limitine bonus eklendi. Borç başladı." },
     { isim: "Tükeniş",
-      arka: "Sistem son hamleyi yapıyor. Hiç kazanç vermez oldu, ne yaparsa yapsın oyuncu kaybeder. Para bitti, kredi tükendi, eve borç birikti. Oyuncu artık \"bağımlı\" — dur diyemez, oyun zaten kazanmış durumda.",
-      kafa: "\"Nasıl bu hale geldim? Eve ne diyeceğim? Ama dursam kayıplar kalır... bir spin daha.\"",
-      bilim: "Tükeniş Aşaması — bağımlılık literatüründe son dönemin klinik adı.",
+      arka: "Sistem son hamlesini yapar; artık oyuncu ne yaparsa yapsın <span class=\"vurgu-tehlike\">kazanç vermez</span>. Para, mevki ve ilişkiler <span class=\"vurgu-tehlike\">tükenmiştir</span>. Oyuncu bağımlı hale gelmiştir ve <span class=\"vurgu-tehlike\">sistem çoktan kazanmıştır</span>; oyuncu ise \"dur\" diyemez.",
+      kafa: "Oyuncu, \"Nasıl bu hale geldim? Eve ne diyeceğim? Ama şimdi dursam kayıplar olduğu gibi kalır... <span class=\"vurgu-tehlike\">Bir spin daha</span>.\" diye düşünür. Bu, <span class=\"vurgu-carpitma\">tükeniş aşaması</span>dır ve bağımlılık literatüründe son dönemin klinik tablosu olarak tanımlanır.",
       rozetler: [{text:"Geri ödeme: %~5",tip:"kayip"},{text:"Tavan: bahsin 0.1×'i",tip:"kayip"},{text:"Şans: yok",tip:"kayip"}],
       bakiyeRengi: "kayip", bakiyeBaglam: "Bu, ortalama bir maaşın katlarına ulaştı." }
   ];
@@ -235,7 +237,7 @@
     document.getElementById('asamaBaslik').textContent = a.isim.toLocaleUpperCase('tr-TR');
     document.getElementById('arkaText').innerHTML = a.arka;
     document.getElementById('kafaText').innerHTML = a.kafa;
-    document.getElementById('bilimNot').innerHTML = a.bilim;
+    // FAZ35.128: bilimNot render satırı kaldırıldı (alan + DOM element + render üçü beraber temizlendi).
     // Rozetler bölümü kaldırıldı (panel kompakt akışı için).
     // hedefSpin lokal aktif aşamadan array ile (manuel atla'da Unity onayını beklemez). Aşama 7 (999) → görsel max 10 çubuk.
     var asamaIdx = Math.max(0, Math.min(6, aktifAsama));
