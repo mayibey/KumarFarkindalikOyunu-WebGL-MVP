@@ -407,6 +407,17 @@ public partial class OyunYoneticisi
             _kilitCoroSpin = null;
         }
         _izgaraServisi?.ForceRefreshCarpanTextsFromGrid();
+        // FAZ35.111 ÇÖZÜM A — Kayıp spinde + initial DOGAL çarpan için koşulsuz re-pin.
+        // KÖK NEDEN: CacheCellPositionsThenDisableLayout (IzgaraServisi.cs:636) RenderAllSprites
+        // (Simulasyon.cs:380) sonrası tüm scale'i 1.0'a wipe ediyor. Kazanç spinde tumble
+        // RenderSpritesOnlyForCells (CokmeAkisServisi.cs:399) yalnızca YeniSpawnEdilen cell'leri
+        // re-pin'liyor → initial DOGAL çarpan (Spin.cs:760-789) ve kayıp spin (tumble adım=0)
+        // re-pin alamıyordu → "boş çarpan" (scale 1.0 + text bozuk).
+        // FIX: DropIn + ForceRefreshCarpanTextsFromGrid sonrası koşulsuz RenderAllSprites
+        // CARPAN cell'leri scale 1.5x'e ve text "Nx" SetActive(true)'a restore eder.
+        // 02 paylaşım: line 399-402 Scripted defansif blok DOKUNULMADI (yine ScriptedSpinYoneticisi.Aktif
+        // guard'lı çalışır; bu yeni satır onun sonrasında fazladan no-op render eder, davranış AYNI).
+        _izgaraServisi?.RenderAllSprites(setAlphaOne: true, resetScale: true);
         _uiServisi?.UI_Guncelle();
 
         if (kayit.ZorlaCarpanKullanildi && _bombaInisEfektServisi != null)
