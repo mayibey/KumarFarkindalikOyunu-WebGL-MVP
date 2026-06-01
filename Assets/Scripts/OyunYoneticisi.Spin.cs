@@ -771,7 +771,12 @@ public partial class OyunYoneticisi
             // FAZ35.107 SORUN A: DOGAL çarpan flag check + yerleştirme (RNG check spin BAŞINDA bir kez yapıldı, flag burada tüketilir).
             // ESKI Faz 35.105 burada RNG yapıyordu → reroll loop her iterasyonda yeni RNG → deneme==0 guard ile pas → çarpan kaybı.
             // YENI: Spin başında flag set (deneme bağımsız, tek RNG), burada flag check ile sadece ilk denemede ForceCarpaniIlkGriddeGuvenliYerlestir.
-            if (_dogalCarpanBuSpinAktif && deneme == 0 && _dogalCarpanDeger > 0)
+            // FAZ35.113 DEĞİŞİM 1: deneme==0 guard kaldırıldı (Faz 35.105 artığı — RNG o zaman loop içindeydi).
+            // KÖK NEDEN: Faz 35.107 RNG'yi loop dışına taşıdı (deterministik flag), AMA deneme==0 guard PLACEMENT'ta kaldı.
+            // İlk attempt OdemeModelineUygunMu/limit ile reddedilince → deneme=1,2,...'de guard FAIL → çarpan asla yerleşmiyor.
+            // FIX: Her iterasyonda re-place; UI_CarpanSifirla+FillRandomAll önceki iter çarpanını wipe ettiği için son
+            // kabul edilen iter'ın grid'inde çarpan garanti. Flag tek RNG kararıyla deterministik kalır.
+            if (_dogalCarpanBuSpinAktif && _dogalCarpanDeger > 0)
             {
                 ForceCarpaniIlkGriddeGuvenliYerlestir(_dogalCarpanDeger);
                 _tumbleServisi?.SetGrid(grid);
@@ -944,13 +949,24 @@ public partial class OyunYoneticisi
                 continue;
             }
             bool zorlaCarpanVardi = zorlaCarpanDegeri > 0;
-            if (!bonusSpin && !zorlaCarpanVardi && !OdemeModelineUygunMu(nihaiOdeme, bahis, deneme, maxReroll))
+            // FAZ35.113 DEĞİŞİM 2 (Yaklaşım b): Reroll/limit kararı initial DOGAL çarpandan bağımsızlaştırıldı.
+            // KÖK NEDEN: Spin.cs:861 RecordPlacedCarpanlar(kayit.IlkCarpanDegerleri) initial çarpanı _spinCarpanCarpim'a
+            // yazıyor (Faz 35.108 NihaiCarpanToplam=1 bug fix için zorunlu) → toplamCarpan (line 931) şişiyor →
+            // nihaiOdeme = ham × initial_multiplier → :947 OdemeModelineUygunMu eğilim kararı şişmiş değere göre
+            // veriliyor → kullanıcı hedefi "çarpan, ödeme aralığı/eğilim hesabına girmesin" ihlali. FIX: bu iki karar
+            // noktasında nihaiOdeme yerine spinKazancHam (HAM ödeme, çarpansız) kullanılır → karar ham bazlı.
+            // kayit.NihaiCarpanToplam (line 937) toplamCarpan ile set sürer → playback'te DonusAkisServisi:181
+            // toplamX = kayit.NihaiCarpanToplam ile initial çarpan ödemeyi çarpar (Faz 35.108 fix korunur).
+            if (!bonusSpin && !zorlaCarpanVardi && !OdemeModelineUygunMu(spinKazancHam, bahis, deneme, maxReroll))
                 continue;
 
             if (adminVideoArdisikKazanc && nihaiOdeme <= bahis)
                 continue;
 
-            if (limit != int.MaxValue && nihaiOdeme > limit)
+            // FAZ35.113 DEĞİŞİM 2 (Yaklaşım b devam): limit check de ham bazlı — çarpan ödeme aralığı kararına girmesin.
+            // 03 NORMAL Free spin: limit=int.MaxValue → check zaten fire etmiyor, no-op.
+            // Bonus/Senaryo: limit < MaxValue. spinKazancHam bazlı check pedagojik tutarlı (çarpan vitrini bağımsız).
+            if (limit != int.MaxValue && spinKazancHam > limit)
                 continue;
             // Senaryo 1: 4 üst üste ödeme sonrası 3 spin zorunlu boş (ödeme yok)
             if (!bonusSpin && !adminManuelMod && !adminVideoArdisikKazanc && SenaryoYoneticisi.I != null && SenaryoYoneticisi.I.ShouldForceNoPaySenaryo12() && nihaiOdeme > 0)
