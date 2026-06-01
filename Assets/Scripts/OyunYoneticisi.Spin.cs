@@ -24,6 +24,20 @@ public partial class OyunYoneticisi
         // Precompute simülasyonu ClearAllCarpanOverlays'i çalıştırır ve text'leri devre dışı bırakır;
         // grid restore edildikten sonra texleri yeniden etkinleştir.
         _izgaraServisi?.ForceRefreshCarpanTextsFromGrid();
+        // FAZ35.112 ÇÖZÜM — Precompute leak temizliği (boş çarpan kesin fix).
+        // KÖK NEDEN: SimuleEtVeKaydetImpl içinde Faz 35.110 helper (Simulasyon.cs:944-957)
+        // sonraki spinin DOGAL/force çarpanını rastgele bir hücreye direkt yerleştirirken
+        // img.sprite=carpan + scale=1.5x + text SetActive(true) GÖRSEL set yapıyor.
+        // ApplyNewGridAndSync(savedGrid, savedCarpan) LOJIKSEL state'i restore eder ama
+        // VISUAL state'e (img.sprite, rectTransform.localScale) dokunmaz; ForceRefreshCarpanTextsFromGrid
+        // sadece text'i grid'e göre senkronlar → leak hücresi: sprite=carpan + scale=1.5x + text yok
+        // = "boş çarpan" semptomu. Bu spin'in EN SON işi olduğu için Faz 35.110/35.111 re-pin'leri
+        // ezilir. FIX: koşulsuz tam-grid RenderAllSprites ile nihai temizlik — CARPAN cell'leri
+        // doğru görsel (sprite+1.5x+text "Nx"), NON-CARPAN cell'leri (leak dahil) temiz meyveye döner
+        // (sprite=fruit + scale=1.0 + text SetActive(false)). 02 paylaşım: 02 ScriptedSpinYoneticisi.Aktif
+        // playback'inde zaten Simulasyon.cs:399-402 + :542-545 defansif rerender alıyor; bu satır
+        // 02 için fazladan no-op koruma (her CARPAN cell aynı sonuca set, bit-for-bit aynı davranış).
+        _izgaraServisi?.RenderAllSprites(setAlphaOne: true, resetScale: true);
     }
 
 
