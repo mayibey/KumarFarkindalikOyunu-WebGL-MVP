@@ -997,6 +997,39 @@
         <span style="color:#b8a875; font-size:14px;">adet (1-5)</span>
       </div>
 
+      <hr style="border:0; border-top:1px solid rgba(244,214,120,0.1); margin:14px 0;">
+
+      <!-- FAZ35.123: Çarpan zorla + carpanOdeme toggle — eski "Anlık Müdahale"den BURAYA taşındı.
+           id'ler AYNEN korundu (#carpanInput, #carpanZorla100/250/500, #carpanOdemeToggle, #carpanOdemeLabel)
+           → Tutorial T10 vurguSelectorlari (#carpanOdemeToggle + #carpanZorla500) bozulmadan çalışır.
+           Backend key'leri AYNEN (carpanZorla, carpanOdeme) — PanelKopru:323/336 case handler'ları intact. -->
+      <div class="setting-card realtime">
+        <div class="setting-header">
+          <div class="setting-header-left">
+            <label>Çarpan zorla</label>
+            <span class="help-icon" data-tip="carpanZorla">?</span>
+          </div>
+        </div>
+        <div class="description" style="font-size:14px;">Bir sonraki spinde görünecek çarpan</div>
+        <div class="multiplier-grid">
+          <input type="number" id="carpanInput" placeholder="Özel..." min="1"
+                 style="background:rgba(245,196,179,0.1);color:#F5C4B3;border:1px solid rgba(245,196,179,0.4);padding:12px;border-radius:8px;font-size:21px;font-family:inherit;"
+                 onkeydown="if(event.key==='Enter'&&this.value){carpanZorla(parseInt(this.value))}">
+          <button id="carpanZorla100" class="multiplier-btn" onclick="carpanZorla(100)">×100</button>
+          <button id="carpanZorla250" class="multiplier-btn" onclick="carpanZorla(250)">×250</button>
+          <button id="carpanZorla500" class="multiplier-btn" onclick="carpanZorla(500)">×500</button>
+        </div>
+        <div class="ifsa-line">Bir sonraki spinde grid'e zorla düşürülecek çarpan değeri belirlenir.</div>
+
+        <div style="display:flex;align-items:center;gap:10px;margin-top:10px;">
+          <div class="toggle active" id="carpanOdemeToggle" onclick="toggleDegisti('carpanOdeme')">
+            <div class="toggle-dot"></div>
+          </div>
+          <span style="color:#ccc;font-size:15px;">Çarpan Düşünce Ödeme Versin</span>
+          <span class="toggle-label" id="carpanOdemeLabel">Aktif</span>
+        </div>
+      </div>
+
       </div>
     </div>
 
@@ -1091,60 +1124,19 @@
     </div>
 
     <!-- ACCORDION: ANLIK MÜDAHALE -->
-    <div class="accordion-section" data-open="false">
-      <div class="accordion-header" onclick="toggleSection(this)">
-        <span class="accordion-title">Anlık Müdahale</span>
-        <span class="accordion-chevron">▶</span>
-      </div>
-      <div class="accordion-content">
+    <!-- FAZ35.123: Anlık Müdahale accordion KALDIRILDI. carpanZorla + carpanOdeme → Çarpan accordion'a taşındı.
+         bonusModu Manuel/Otomatik switch SİLİNDİ — panel init (panelInitNormalApply line 1869+) zaten
+         SENARYOLAR.normal.bonusModu='otomatik' gönderiyor, bonus hep otomatik kalır.
+         bonusTetikleBtn TUTORIAL T11 İÇİN KORUNDU — hidden container'a alındı (display:none),
+         03 NORMAL kullanıcısı görmez, Tutorial sahnesinde tutorialKilit mesajı ile görünür yapılır.
+         #bonusManuel + #bonusOtomatik element id'leri DOM'dan kaldırıldı (Tutorial okumuyordu, MOD_KILITLI_IDS güncellendi). -->
 
-        <!-- 6. BONUS TETİKLEME -->
-        <div class="setting-card realtime">
-          <div class="setting-header">
-            <div class="setting-header-left">
-              <span class="badge-num">4</span>
-              <label>Bonus tetikleme</label>
-              <span class="help-icon" data-tip="bonusTetik">?</span>
-            </div>
-            <div class="mode-switch">
-              <button class="active" id="bonusManuel"   onclick="bonusModuDegistir('manuel')">Manuel</button>
-              <button              id="bonusOtomatik" onclick="bonusModuDegistir('otomatik')">Otomatik</button>
-            </div>
-          </div>
-          <button id="bonusTetikleBtn" class="trigger-btn" onclick="bonusTetikle()">⚡ Bonus oyununu şimdi tetikle</button>
-          <div class="ifsa-line">Bonus oyununun ne zaman tetikleneceği belirlenir. Manuel'de operatör elle açar, Otomatik'te sistem zamanı seçer.</div>
-        </div>
-
-        <!-- 8. ÇARPAN ZORLA -->
-        <div class="setting-card realtime">
-          <div class="setting-header">
-            <div class="setting-header-left">
-              <span class="badge-num">5</span>
-              <label>Çarpan zorla</label>
-              <span class="help-icon" data-tip="carpanZorla">?</span>
-            </div>
-          </div>
-          <div class="description" style="font-size:16px;">Bir sonraki spinde görünecek çarpan</div>
-          <div class="multiplier-grid">
-            <input type="number" id="carpanInput" placeholder="Özel..." min="1"
-                   style="background:rgba(245,196,179,0.1);color:#F5C4B3;border:1px solid rgba(245,196,179,0.4);padding:12px;border-radius:8px;font-size:21px;font-family:inherit;"
-                   onkeydown="if(event.key==='Enter'&&this.value){carpanZorla(parseInt(this.value))}">
-            <button id="carpanZorla100" class="multiplier-btn" onclick="carpanZorla(100)">×100</button>
-            <button id="carpanZorla250" class="multiplier-btn" onclick="carpanZorla(250)">×250</button>
-            <button id="carpanZorla500" class="multiplier-btn" onclick="carpanZorla(500)">×500</button>
-          </div>
-          <div class="ifsa-line">Bir sonraki spinde grid'e zorla düşürülecek çarpan değeri belirlenir. (×100, ×250, ×500 veya özel değer)</div>
-
-          <div style="display:flex;align-items:center;gap:10px;margin-top:10px;">
-            <div class="toggle active" id="carpanOdemeToggle" onclick="toggleDegisti('carpanOdeme')">
-              <div class="toggle-dot"></div>
-            </div>
-            <span style="color:#ccc;font-size:18px;">Çarpan Düşünce Ödeme Versin</span>
-            <span class="toggle-label" id="carpanOdemeLabel">Aktif</span>
-          </div>
-        </div>
-
-      </div>
+    <!-- FAZ35.123: Hidden container — bonusTetikleBtn DOM'da kalır (Tutorial T11 #bonusTetikleBtn vurgu selector için).
+         Default display:none → 03 NORMAL kullanıcı görmez. Tutorial sahnesi tutorialKilit mesajı (line 1987 civarı)
+         alınca bu container görünür yapılır (style.display=''). bonusTetikle() fonksiyonu DOM intact, Tutorial T11
+         butona basıp 'bonusTetikle' key'i gönderebilir → TutorialAdminEnjeksiyonu.cs:165 case "bonusTetikle" akışı çalışır. -->
+    <div id="tutorialBonusTetikContainer" style="display:none;">
+      <button id="bonusTetikleBtn" class="trigger-btn" onclick="bonusTetikle()">⚡ Bonus oyununu şimdi tetikle</button>
     </div>
 
     </div><!-- FAZ35.96 İŞ1: /detayli-ayarlar-body wrapper sonu -->
@@ -1526,17 +1518,21 @@
   // AKTİF kalan: oyunModu dropdown, modAktifToggle, senaryoUygulaBtn, .btn-secondary (Varsayılana dön),
   // help-icon, accordion-header (UI navigasyon).
   // FAZ35.122: Eski 'yakinKacirmaToggle' + 'ardisikKayipToggle' kaldırıldı (radio'ya dönüştürüldü).
-  // Yeni: odemeDavranisi_kapali/kacis/nearmiss buton id'leri eklendi (radio mutex butonları).
+  //            'odemeDavranisi_kapali/kacis/nearmiss' eklendi (radio mutex butonları).
+  // FAZ35.123: 'bonusManuel' + 'bonusOtomatik' DOM'dan kaldırıldı (Anlık Müdahale silindi, bonus init zaten otomatik
+  //            gönderiyor — SENARYOLAR.normal.bonusModu='otomatik'). 'bonusTetikleBtn' hidden container'da KORUNDU
+  //            (Tutorial T11 #bonusTetikleBtn selector için, ayarlariKilitle DOM querySelectorAll display:none bile
+  //            bulur). 'carpanInput', 'carpanZorla100/250/500', 'carpanOdemeToggle' Çarpan accordion'una taşındı (id aynı).
   var MOD_KILITLI_IDS = [
-    // Çarpan accordion (eski "Olasılık Ayarları")
+    // Çarpan accordion (carpanZorla + carpanOdeme buraya taşındı, id'ler aynı)
     'carpanOlasilik', 'carpanOlasilikInput', 'maxCarpanTekSpin',
-    // Ödeme Davranışı accordion (eski "Manipülasyon Ayarları") — Ödeme aralığı + Radio
+    'carpanInput', 'carpanZorla100', 'carpanZorla250', 'carpanZorla500', 'carpanOdemeToggle',
+    // Ödeme Davranışı accordion (Ödeme aralığı + Radio)
     'minCarpan', 'maksCarpan', 'odemeDavranisi_kapali', 'odemeDavranisi_kacis', 'odemeDavranisi_nearmiss',
-    // Bonus accordion (yeni, bonusSembolOlasilik buraya taşındı)
+    // Bonus accordion
     'bonusSembolOlasilik',
-    // Anlık Müdahale (korundu)
-    'bonusManuel', 'bonusOtomatik', 'bonusTetikleBtn',
-    'carpanInput', 'carpanZorla100', 'carpanZorla250', 'carpanZorla500', 'carpanOdemeToggle'
+    // Tutorial T11 hidden buton (03 NORMAL'da display:none, Tutorial sahnesinde gösterilir — DOM'da KALIR)
+    'bonusTetikleBtn'
   ];
 
   function modKilitle(modAktif) {
@@ -1878,8 +1874,13 @@
     setToggleClass('yakinKacirma', s.yakinKacirma > 0.5);
     document.getElementById('ardisikKayip').value            = s.ardisikKayip;
     setToggleClass('carpanOdeme', s.carpanOdeme);
-    document.getElementById('bonusManuel').classList.toggle('active',   s.bonusModu === 'manuel');
-    document.getElementById('bonusOtomatik').classList.toggle('active', s.bonusModu === 'otomatik');
+    // FAZ35.123: bonusManuel/bonusOtomatik switch DOM'dan kaldırıldı (Anlık Müdahale silindi).
+    // bonusModu motora yine gönderiliyor (panelInitNormalApply altta line ~1917 unityeGonder),
+    // sadece UI class toggle artık gereksiz. Null-safe kontrol (eski referans varsa atla).
+    var __bm = document.getElementById('bonusManuel');
+    if (__bm) __bm.classList.toggle('active',   s.bonusModu === 'manuel');
+    var __bo = document.getElementById('bonusOtomatik');
+    if (__bo) __bo.classList.toggle('active', s.bonusModu === 'otomatik');
 
     // Bonus sembolü düşme olasılığı (anlık)
     var bonusSembolInit = document.getElementById('bonusSembolOlasilik');
@@ -1986,6 +1987,13 @@
     if (!d || d.source !== 'unityToPanel') return;
     if (d.key === 'tutorialKilit') {
       tutorialAktif = true; // PAKET 14-FAZ35.2: Tutorial sahnesi tespit (confirm dialog atlanır)
+      // FAZ35.123: Tutorial sahnesinde bonusTetikleBtn container'ını görünür yap (03 NORMAL'da gizli kalır).
+      // Container display:none default (panel.html'de tutorialBonusTetikContainer) → tutorialKilit mesajı geldiğinde
+      // göster → T11 #bonusTetikleBtn vurgu selector'ı çalışır + kullanıcı tıklayabilir + degisimAnahtarlari "bonusTetikle"
+      // key'i panel'den motora gider (TutorialAdminEnjeksiyonu.cs:165 case "bonusTetikle"). 03 NORMAL'da tutorialKilit
+      // mesajı GELMEZ → container display:none kalır → kullanıcı görmez.
+      var tBonusBtn = document.getElementById('tutorialBonusTetikContainer');
+      if (tBonusBtn) tBonusBtn.style.display = '';
       try {
         var liste = JSON.parse(d.value);
         ayarlariKilitle(liste.aktifSelectorlar || []);
