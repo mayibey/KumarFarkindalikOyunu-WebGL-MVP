@@ -201,6 +201,44 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
                 return false;
             }
         }
+
+        // FAZ35.127: Ozel mod cache bant kontrolü (validation bypass'ı patch'ler).
+        // KÖK NEDEN (keşif 35.127): VarsayilanSpinPolitikasi.OncedenHesaplanmisSpinOdemeModeliyleDogrula()
+        // her zaman FALSE → yukarıdaki if (line ~191) hiç tetiklenmez → cache koşulsuz kabul ediliyordu.
+        // Spin 1 cache YOK → sync SimuleEtVeKaydet (DonusAkisServisi:168) → ozel mod aktif → reroll loop bant
+        // içi grid → ödüyor ✓. Spin 1 sonu PrecomputeNextSpinCoroutine arka plan → SimuleEtVeKaydetImpl(spin2)
+        // → reroll loop bant içi grid bulamazsa Spin.cs:1145 fallback bant DIŞI grid cache'e koyuyordu →
+        // Spin 2 cache HIT + validation bypass → bant dışı oynatılıyordu (KARAR 1 ihlali).
+        // ÇÖZÜM (Seçenek B): TryConsumeOncedenHesaplanan'a explicit ozel mod bant kontrolü. Cache nihaiOdeme
+        // (ham×çarpan) bant dışıysa cache REDDEDİLİR → DonusAkisServisi:152 if branch'a düşer → 5 frame bekle
+        // → cache yine yok → line 168 sync SimuleEtVeKaydet (Spin 1 yolu) → bant içi grid bulunabilir.
+        // SADECE aktifSenaryo=="ozel" + min/max>0 koşullu — Normal/senaryo/02/Tutorial cache davranışı DOKUNULMAZ.
+        // KARAR 1 kayıp spin meşru: nihaiOnbellekOzel > 0 koşulu — kayıp (ödeme 0) bant kontrolünden geçer.
+        // ZorlaCarpan istisnası: line ~182 zaten cache atlıyor, bu noktaya ulaşmıyor.
+        // Dar-bant-imkansızlığı (Faz 35.126) AYRI sorun — bu fix sadece cache stale bant-dışı oynatmayı çözer;
+        // dar bantta sync fallback de bant dışı üretebilir, ama en azından Spin 1 davranışıyla TUTARLI olur.
+        if (!forBonusSpin
+            && PanelKopru.aktifSenaryo == "ozel"
+            && odemeMinKat > 0f && odemeMaksKat > 0f
+            && adayKayit != null)
+        {
+            int bahisOzel = _ekonomiServisi != null ? _ekonomiServisi.Bahis : 0;
+            int nihaiOnbellekOzel = _carpanServisi != null
+                ? _carpanServisi.MulClampInt(adayKayit.ToplamHamKazanc, Mathf.Max(1, adayKayit.NihaiCarpanToplam))
+                : adayKayit.ToplamHamKazanc;
+            if (nihaiOnbellekOzel > 0 && bahisOzel > 0)
+            {
+                int minHedefOzel = Mathf.RoundToInt(bahisOzel * odemeMinKat);
+                int maksHedefOzel = Mathf.RoundToInt(bahisOzel * odemeMaksKat);
+                if (maksHedefOzel < minHedefOzel) { int t = minHedefOzel; minHedefOzel = maksHedefOzel; maksHedefOzel = t; }
+                if (nihaiOnbellekOzel < minHedefOzel || nihaiOnbellekOzel > maksHedefOzel)
+                {
+                    Debug.LogWarning($"[FAZ35.127][CACHE_REDDET] Ozel mod cache bant dışı: nihai={nihaiOnbellekOzel} bant=[{minHedefOzel}-{maksHedefOzel}] (min={odemeMinKat}x maks={odemeMaksKat}x bahis={bahisOzel}). Cache temizleniyor → canlı simülasyon (Spin 1 yolu) tetiklenecek.");
+                    OncedenHesaplananSpinOnbelleginiTemizle();
+                    return false;
+                }
+            }
+        }
         if (!forBonusSpin && AdminOyunSahnesiMi() && _adminVideoArdisikKazancSpinKalan > 0 && adayKayit != null)
         {
             int bahisVideo = _ekonomiServisi != null ? _ekonomiServisi.Bahis : 0;
