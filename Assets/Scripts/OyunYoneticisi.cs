@@ -164,6 +164,8 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
     }
     void IDonusAkisBaglami.CarpanUretVeBirik() => CarpanUretVeBirik();
     void IDonusAkisBaglami.CarpanlariDoluGriddeUygula() => _carpanYerlestirmeServisi?.CarpanlariDoluGriddeUygula();
+    // FAZ35.107 SORUN C: Interface üzerinden cache invalidate (DonusAkisServisi bonus bitiş sonrası çağırır).
+    void IDonusAkisBaglami.OncedenHesaplananSpinOnbelleginiTemizle() => OncedenHesaplananSpinOnbelleginiTemizle();
     void IDonusAkisBaglami.BaslatBonus() => BaslatBonus();
     IEnumerator IDonusAkisBaglami.ScatterBuyutEfekti() => ScatterBuyutEfekti();
     IEnumerator IDonusAkisBaglami.ShowBonusEndMessage(int bonusToplamKazanc) => ShowBonusEndMessage(bonusToplamKazanc);
@@ -427,6 +429,15 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
             yield break;
         if (hucreIndeksleri.Count == 0 || carpanDegerleri.Count == 0)
             yield break;
+        // FAZ35.108 SORUN B: Kayıp spin'de çarpan grid'de var ama kazanç 0 — uçuş animasyonu + zafer sesi (carpanKazancaVurusClip) çalmamalı.
+        // ÖNCESİ: hucreIndeksleri.Count > 0 yeterliydi → Faz 35.105 ile yerleştirilen çarpan grid'de duruyordu ama kayıp spin'de (cluster yok)
+        // hâlâ uçuş animasyonu ve ses çalıyordu — pedagojik tutarsız ("hiçbir şey kazanmadın ama zafer sesi").
+        // YENİ: spinKazancHam==0 ise (kayıp spin) → çarpan grid'de KALSIN, uçuş+ses YOK. Mental model: çarpan düşer, kazanç olsa katlanır, olmasa da durur.
+        if (spinKazancHam <= 0)
+        {
+            Debug.Log("[FAZ35.108 SORUN B] Kayıp spin — çarpan kazanç kutuya uçuş + zafer sesi ATLANDI (spinKazancHam=0, pedagojik tutarlılık).");
+            yield break;
+        }
         _carpanKutuUcusAktif = true;
         _carpanKutuUcusBirikim = 0;
         _carpanKutuUcusBirikimGosterMax = 0;

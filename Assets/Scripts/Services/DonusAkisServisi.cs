@@ -51,6 +51,8 @@ public interface IDonusAkisBaglami
     void CarpanFormulGosterAktivateEt(int birikimSonDeger);
     void CarpanUretVeBirik();
     void CarpanlariDoluGriddeUygula();
+    /// <summary>FAZ35.107 SORUN C: Bonus bitince precompute cache invalidate — ayarlar (bonus %, çarpan %) sonraki spin'de doğru okunsun.</summary>
+    void OncedenHesaplananSpinOnbelleginiTemizle();
     void BaslatBonus();
     IEnumerator ScatterBuyutEfekti();
     IEnumerator ShowBonusEndMessage(int bonusToplamKazanc);
@@ -617,5 +619,11 @@ public class DonusAkisServisi
         _ctx.SpinCalisiyor = false;
         _ctx.UIServisi?.ButonDurumu(true);
         _ctx.UIServisi?.UI_Guncelle();
+
+        // FAZ35.107 SORUN C: Bonus bittikten sonra precompute cache invalidate.
+        // ESKİ AKIŞ: PrecomputeNextSpinCoroutine eski state (BonusAktif=true) ile sonraki spin'i hesaplamış olabilir → bonus tekrar tetiklenmez.
+        // FIX: Bonus bitiş sonrası cache temizle, sonraki spin slider değerleriyle (_bonusGirmeOlasilik, carpanUretimOlasiligi) yeniden hesaplansın.
+        _ctx.OncedenHesaplananSpinOnbelleginiTemizle();
+        Debug.Log("[FAZ35.107 SORUN C] Bonus bitiş sonrası cache invalidate — sonraki spin slider değerleriyle hesaplanacak.");
     }
 }

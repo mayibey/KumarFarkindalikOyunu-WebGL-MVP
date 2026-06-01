@@ -438,6 +438,35 @@ public partial class OyunYoneticisi
         // ÇÖZÜM: Eğilim'e göre kazanç bekleniyorsa motor hedef TL seçer + paytable'dan sembol+küme bulur + grid'e enjekte eder.
         // 02 anlatıcı (ScriptedSpinYoneticisi.Aktif) ve eski 04 Tutorial (TutorialScriptedYoneticisi.Aktif) sat ~344-385'te ERKEN RETURN → bu branch'a girmez.
         // Senaryo 1-5 guard'ları bypass + Tutma kayıp fazı (_tutmaBuSpinKayipBekleniyor) bypass + zorlaCarpan bypass.
+        // FAZ35.107 SORUN A: DOGAL çarpan RNG check SPIN BAŞINDA bir kez (eski Faz 35.105 reroll loop içinde her iterasyonda RNG yapıyordu → deneme==0 guard ile pas geçer → çarpan kaybı).
+        // Yeni yapı: spin başında deterministik flag set, reroll loop İÇİNDE flag check + tek seferlik yerleştirme.
+        // Detaylı debug log: F12'de hangi guard pas geçiriyor net teşhis.
+        bool _dogalCarpanBuSpinAktif = false;
+        int _dogalCarpanDeger = 0;
+        {
+            float _dogalOlasilik = carpanUretimOlasiligi;
+            float _dogalRng = UnityEngine.Random.value;
+            bool _gA = (zorlaCarpanDegeri <= 0);
+            bool _gB = (PanelKopru.aktifSenaryo == "normal");
+            bool _gC = carpanUretimiAktif;
+            bool _gD = !_modKonstrukteBasarili;
+            bool _gE = (_dogalOlasilik > 0f && _dogalRng <= _dogalOlasilik);
+            Debug.Log($"[FAZ35.107 DOGAL] olasilik={_dogalOlasilik:F2} rng={_dogalRng:F2} | zorlaYok={_gA} senaryoNormal={_gB} carpanAktif={_gC} modKonstrukteOK={_gD} rngGecti={_gE}");
+            if (_gA && _gB && _gC && _gD && _gE)
+            {
+                _dogalCarpanDeger = RastgeleCarpan();
+                if (_dogalCarpanDeger > 0)
+                {
+                    _dogalCarpanBuSpinAktif = true;
+                    Debug.Log($"[FAZ35.107 DOGAL] FLAG SET — carpanDeger=x{_dogalCarpanDeger}, reroll loop ilk denemede yerleştirilecek.");
+                }
+                else
+                {
+                    Debug.Log($"[FAZ35.107 DOGAL] RastgeleCarpan 0 döndü, yerleşim YOK.");
+                }
+            }
+        }
+
         // FAZ35.104 İŞ1 BUG 2: Bonus girme olasılığı RNG check (sadece flag set — ASIL ENJEKSİYON reroll loop'a taşındı).
         // KÖK NEDEN: Önceki nokta (Faz 35.103 İŞ2) burada Force4ScatterEnjekte çağırıyordu AMA `grid` field bu noktada eski state.
         // Reroll loop sat ~697'de FillRandomAll RNG sembollerle grid'i dolduruyor → benim 4 scatter'ım SİLİNİYORDU.
@@ -725,34 +754,14 @@ public partial class OyunYoneticisi
                 _tumbleServisi?.SetGrid(grid);
             }
 
-            // FAZ35.105 İŞ1 BUG: DOGAL çarpan kayıp spin'de pas geçiyordu (Spin.cs:803 CarpanUretVeBirik
-            // tumble loop içinde, cluster yoksa break → çağrılmaz → kayıp spin çarpan görünmez).
-            // KÖK NEDEN: Force çarpan ilk grid'e DOĞRUDAN yerleştirilir (sat 730+), DOGAL çarpan SADECE
-            // tumble loop sonunda (cluster patladıktan sonra) üretilir → kayıp spin tumble çalışmaz → atlanır.
-            // ÇÖZÜM: Force pattern emsali — olasılık geçerse ilk grid'e direkt yerleştir → kayıp/kazanç fark etmez,
-            // görsel çarpan kalıcı. Kullanıcı mental model: "çarpan düşer, kazanç olsa katlanır, olmasa da düşer."
-            // İZOLE: zorlaCarpanDegeri <= 0 guard → Force çarpan path ile çakışma yok. Tumble loop içindeki
-            // Spin.cs:803 CarpanUretVeBirik KORUNUR (multi-tumble çarpan biriktirme kazançlı spin'lerde devam).
-            // GUARD'lar: Senaryolu modlar (aktifSenaryo != "normal") + Faz 35.93 _modKonstrukteBasarili → blok pas.
-            // FAZ35.106 SERTLEŞTİRME: bonusSpin guard KALDIRILDI — kullanıcı kararı: slider %100 → bonus spin'de bile çarpan düşmeli (Sweet Bonanza tarzı multi-tumble biriktirme).
-            // Faz 35.93 _modKonstrukteBasarili guard KORUNUR (TUTMA kazanç fazı vb. mod konstrukte koruması).
-            if (zorlaCarpanDegeri <= 0
-                && PanelKopru.aktifSenaryo == "normal"
-                && carpanUretimiAktif
-                && !_modKonstrukteBasarili
-                && deneme == 0)
+            // FAZ35.107 SORUN A: DOGAL çarpan flag check + yerleştirme (RNG check spin BAŞINDA bir kez yapıldı, flag burada tüketilir).
+            // ESKI Faz 35.105 burada RNG yapıyordu → reroll loop her iterasyonda yeni RNG → deneme==0 guard ile pas → çarpan kaybı.
+            // YENI: Spin başında flag set (deneme bağımsız, tek RNG), burada flag check ile sadece ilk denemede ForceCarpaniIlkGriddeGuvenliYerlestir.
+            if (_dogalCarpanBuSpinAktif && deneme == 0 && _dogalCarpanDeger > 0)
             {
-                float olasilik105 = carpanUretimOlasiligi;
-                if (olasilik105 > 0f && UnityEngine.Random.value <= olasilik105)
-                {
-                    int rastgeleCarpan105 = RastgeleCarpan();
-                    if (rastgeleCarpan105 > 0)
-                    {
-                        ForceCarpaniIlkGriddeGuvenliYerlestir(rastgeleCarpan105);
-                        _tumbleServisi?.SetGrid(grid);
-                        Debug.Log($"[FAZ35.105 İŞ1] DOGAL çarpan ilk grid'e yerleştirildi: x{rastgeleCarpan105} (olasilik={olasilik105:F2}) — kayıp/kazanç fark etmez.");
-                    }
-                }
+                ForceCarpaniIlkGriddeGuvenliYerlestir(_dogalCarpanDeger);
+                _tumbleServisi?.SetGrid(grid);
+                Debug.Log($"[FAZ35.105 İŞ1] DOGAL çarpan ilk grid'e yerleştirildi: x{_dogalCarpanDeger} (FAZ35.107 reroll dışı taşındı).");
             }
 
             var zorlaSonrasi = spinPolitikasi.SimulasyonZorlaCarpanSonrasiIlkGridIsiBelirle(
