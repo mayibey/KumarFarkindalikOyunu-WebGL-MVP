@@ -992,6 +992,27 @@ public partial class OyunYoneticisi
                 Debug.LogWarning("[SIM][PAYTABLE] Ham/adım tutarları patlayan kümelere göre paytable ile örtüşmüyor; deneme reddedildi.");
                 continue;
             }
+            // FAZ35.142: HOOK ham cap (Faz 35.141 lambda bypass kapatma).
+            // KÖK NEDEN: Faz 35.141 cap TumbleServisi.CalculateWithPayTable lambda'sındaydı, AMA SimuleEtVeKaydetImpl ham hesabını
+            // (line 939) doğrudan tumbleAyarlari.CalculateWinWithOwnPayTable çağırıyor → lambda BYPASS → cap atlanıyordu (CSV
+            // spin65=75K, spin100=30K taşmaları). Bu nokta hem gerçek gameplay hem simulasyon path'ini cap'ler — paytable uyum
+            // kontrolü zaten geçti, adim.TurKazanci'lara dokunmuyoruz, sadece toplam ham + local senkron.
+            // ÜÇLÜ GUARD: buildIndex==2 (03 admin) + aktifSenaryo=="hook" + !bonusSpin (bonus Faz 35.140 K4 bahis*15 cap'i ayrı).
+            int sahneIdx142 = UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex;
+            if (sahneIdx142 == 2 && PanelKopru.aktifSenaryo == "hook" && !bonusSpin)
+            {
+                int bahis142 = _ekonomiServisi != null ? _ekonomiServisi.Bahis : 0;
+                if (bahis142 > 0)
+                {
+                    int hookCap142 = Mathf.RoundToInt(bahis142 * 2.5f);
+                    if (spinKazancHam > hookCap142)
+                    {
+                        Debug.Log($"[FAZ35.142 HOOK_CAP] ham={spinKazancHam} > cap={hookCap142} → cap'lendi (bahis={bahis142})");
+                        spinKazancHam = hookCap142;
+                        kayit.ToplamHamKazanc = hookCap142;
+                    }
+                }
+            }
             bool zorlaCarpanVardi = zorlaCarpanDegeri > 0;
             // FAZ35.113 DEĞİŞİM 2 (Yaklaşım b): Reroll/limit kararı initial DOGAL çarpandan bağımsızlaştırıldı.
             // KÖK NEDEN: Spin.cs:861 RecordPlacedCarpanlar(kayit.IlkCarpanDegerleri) initial çarpanı _spinCarpanCarpim'a
