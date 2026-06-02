@@ -622,7 +622,9 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
                 // ÇÖZÜM: Bootstrap sonrası EkonomiServisi.SetBakiye(50000) fallback (ALT-PARÇA 2, _bakiye field direkt set).
                 bool gmNull92 = GameManager.I == null;
                 bool apNull92 = !gmNull92 && GameManager.I.ActivePlayer == null;
-                Debug.LogError($"[FAZ35.92 İŞ1] GameManager.I null mu={gmNull92} | ActivePlayer null mu={apNull92} — ActivePlayer.balance reset ATLANDI. Bootstrap sonrası EkonomiServisi.SetBakiye(50000) fallback devreye girecek.");
+                // FAZ35.135: LogError → Log (kırmızı WebGL Development Console pop-up kapandı, mesaj info olarak korunur).
+                // Fonksiyonel etki yok — bootstrap fallback (cs:642) zaten EkonomiServisi.SetBakiye(50000) ile 50K garanti set ediyor.
+                Debug.Log($"[FAZ35.92 İŞ1] GameManager.I null mu={gmNull92} | ActivePlayer null mu={apNull92} — ActivePlayer.balance reset ATLANDI. Bootstrap sonrası EkonomiServisi.SetBakiye(50000) fallback devreye girecek.");
             }
         }
 
@@ -641,7 +643,36 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
         {
             _ekonomiServisi.SetBakiye(50000);
             Debug.Log("[FAZ35.92 İŞ1] Bootstrap sonrası EkonomiServisi.SetBakiye(50000) — KESIN bakiye reset (ActivePlayer null bile olsa garanti).");
+
+            // FAZ35.135: 03 her açılışta karşılama asistan modalı (ScriptedModalKopru reuse — egitmenyuz.png
+            // görseli + "BİLGİLENDİRİCİ ASİSTAN" başlık 02 ile birebir). Resources global, sahne-bağımsız.
+            StartCoroutine(Goster03KarsilamaModali());
         }
+    }
+
+    /// <summary>FAZ35.135: 03 (buildIndex==2) açılışta karşılama asistan modalı.
+    /// ScriptedModalKopru singleton spawn için 1-2 frame bekler, sonra ModalGoster.
+    /// 02'deki BİLGİLENDİRİCİ ASİSTAN modalı (egitmenyuz.png + altın başlık + TMP rich-text) AYNEN reuse.
+    /// gizleAnlatici:false — 03'te anlatıcı paneli yok, parametrenin yan etkisi yok.
+    /// Renk planı: mavi (#60a5fa) teknik/sistem (test alanı, ayarlar), kırmızı (#ef4444) tehlike (kayıp/tuzak),
+    /// turuncu (#fb923c) bilişsel vurgu (amaç=matematik). Yeşil KULLANILMADI → üçlü kuralı imkansız ✓.</summary>
+    private System.Collections.IEnumerator Goster03KarsilamaModali()
+    {
+        // ScriptedModalKopru singleton spawn için 2 frame bekle (Awake/RuntimeInitializeOnLoadMethod hazır olsun).
+        yield return null;
+        yield return null;
+        var modal = Senaryo.Scripted.ScriptedModalKopru.Ornek;
+        if (modal == null)
+        {
+            Debug.LogWarning("[FAZ35.135] ScriptedModalKopru.Ornek null — karşılama modalı atlandı (defansif, akış kırılmaz).");
+            yield break;
+        }
+        const string KARSILAMA_METNI =
+            "Bu bölüm, kumar yazılımlarının perde arkasını kendi elinizle keşfedebileceğiniz bir <color=#60a5fa><b>test alanıdır</b></color>.\n\n" +
+            "Soldaki yönetici panelinden makinenin davranışını siz belirlersiniz: <color=#60a5fa><b>ödeme aralığını</b></color> (kazancın bahsin kaç katı olacağı), <color=#60a5fa><b>kazanç eğilimini</b></color> (sistemin ne sıklıkta kazandıracağını) ve <color=#60a5fa><b>bonus davranışını</b></color> ayarlayabilirsiniz.\n\n" +
+            "Farklı oyun modlarını deneyerek, gerçek kumar sitelerinin oyuncuyu nasıl yönlendirdiğini gözlemleyin. Düşük ödeme eğilimiyle nasıl <color=#ef4444><b>kayıp yaşatıldığını</b></color>, ya da <color=#ef4444><b>bonus tuzaklarının</b></color> nasıl kurulduğunu kendiniz görün.\n\n" +
+            "Unutmayın: buradaki <color=#fb923c><b>amaç kazanmak değil, sistemin matematiğini anlamaktır</b></color>. Kumarda uzun vadede <color=#ef4444><b>her zaman kazanan, oyunu kuran taraftır</b></color>.";
+        yield return modal.ModalGoster(KARSILAMA_METNI, gizleAnlatici: false);
     }
 
     void IOyunBootstrapBaglami.BootstrapMantiginiCalistir()
