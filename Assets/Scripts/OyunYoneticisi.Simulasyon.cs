@@ -1064,11 +1064,12 @@ private int RastgeleCarpan()
         // tek çarpan max 3x → mega taşma engellenir. Hook'un "sıklık %90 + tutar düşük" tuzak hissi korunur.
         bool hookModAktif140 = sahneIdx87 == 2 && PanelKopru.aktifSenaryo == "hook";
         // FAZ35.95 İŞ1: Normal mod havuz {2,3,5} → {3,5,8} → max çarpan 5x → 8x (+%60 çarpanlı kazanç).
+        // FAZ35.141: Normal mod havuz {3,5,8} → {2,5,8} — alt sınır 3→2 (küçük çarpan opsiyonu), max 8x korunur. Kullanıcı kararı.
         // maxCarpanAdedi=1 guard (Faz 35.87 İŞ2) korunur → tek çarpan birikmez.
         // Diğer modlar {2,3,5,8,10} havuzu korunur — Faz 35.93 _modKonstrukteBasarili guard ile DOGAL akış zaten kapalı.
         int[] havuz;
         if (hookModAktif140) havuz = new int[] { 2, 3 };
-        else if (normalModAktif87) havuz = new int[] { 3, 5, 8 };
+        else if (normalModAktif87) havuz = new int[] { 2, 5, 8 };
         else havuz = new int[] { 2, 3, 5, 8, 10 };
         secilen = havuz[UnityEngine.Random.Range(0, havuz.Length)];
         havuzAdi = hookModAktif140 ? "HOOK" : (normalModAktif87 ? "DOGAL_SADE" : "DOGAL");

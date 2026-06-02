@@ -775,8 +775,22 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
         _tumbleServisi.SetGetCurrentBet(() => _ekonomiServisi != null ? _ekonomiServisi.Bahis : 0);
         _tumbleServisi.SetCalculateWithPayTable(removed =>
         {
-            int ham = tumbleAyarlari != null ? tumbleAyarlari.CalculateWinWithOwnPayTable(removed, grid, satir, sutun, _ekonomiServisi != null ? _ekonomiServisi.Bahis : 0, minClusterSize) : -1;
-            return ham < 0 ? -1 : ZorlukKazancCarpaniUygula(ham);
+            int bahisLamb = _ekonomiServisi != null ? _ekonomiServisi.Bahis : 0;
+            int ham = tumbleAyarlari != null ? tumbleAyarlari.CalculateWinWithOwnPayTable(removed, grid, satir, sutun, bahisLamb, minClusterSize) : -1;
+            if (ham < 0) return -1;
+            int zorlanan = ZorlukKazancCarpaniUygula(ham);
+            // FAZ35.141: HOOK ham_kazanc cap — uzum idx7 (PayTable_12Plus[7]=25.0x) 17 sembol kümesi taşması (bahis 1500'de 37500 ham) kesildi.
+            // Cap = bahis × 2.5 = 3750 TL. Bant üst sınırı 2400 (Faz 35.140) AMA cap'i 3750'de tutarak meşru kazançlara tampon bırakıyoruz.
+            // ÇİFT GUARD: buildIndex==2 (03 admin) + aktifSenaryo=="hook" — 02 Scripted (idx 1) + 04 Tutorial (idx 3) DIŞARIDA, diğer modlar etkilenmez.
+            // Bonus tetik mekanizması (scatter Force4ScatterEnjekte → scatter cluster eşik 8 altında, PayTable[scatter]=0) etkilenmez — sadece meyve cluster ödemesi cap'lenir.
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex == 2
+                && PanelKopru.aktifSenaryo == "hook"
+                && bahisLamb > 0)
+            {
+                int hookCap = Mathf.RoundToInt(bahisLamb * 2.5f);
+                if (zorlanan > hookCap) zorlanan = hookCap;
+            }
+            return zorlanan;
         });
         _tumbleServisi.SetCollapseRefillAndAnimateImpl(CollapseRefillAndAnimate);
         _animasyonServisi = new AnimasyonServisi();
