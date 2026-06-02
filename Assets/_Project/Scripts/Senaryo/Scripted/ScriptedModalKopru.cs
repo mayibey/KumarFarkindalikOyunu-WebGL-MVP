@@ -68,14 +68,18 @@ namespace Senaryo.Scripted
             SceneManager.sceneLoaded -= OnSceneLoaded;
             SceneManager.sceneLoaded += OnSceneLoaded;
             var aktifSahne = SceneManager.GetActiveScene();
-            if (aktifSahne.buildIndex == ANLATICI_SAHNE_BUILD_INDEX)
+            // FAZ35.136: 03 admin sahnesi (idx 2) karşılama modalı için sahne kapsamı genişletildi.
+            // 02 (idx 1) anlatıcı davranışı AYNEN korunur, 04 Tutorial (idx 3) etkilenmez (3 != 1 && 3 != 2).
+            if (aktifSahne.buildIndex == ANLATICI_SAHNE_BUILD_INDEX || aktifSahne.buildIndex == 2)
                 OnSceneLoaded(aktifSahne, LoadSceneMode.Single);
         }
 
         [Preserve]
         private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            if (scene.buildIndex != ANLATICI_SAHNE_BUILD_INDEX) return;
+            // FAZ35.136: 03 (idx 2) admin sahnesi için sahne kapsamı genişletildi.
+            // 02 anlatıcı (idx 1) + 03 admin (idx 2) spawn olur; 04 Tutorial (idx 3) hariç (TutorialModalKopru ayrı sınıf).
+            if (scene.buildIndex != ANLATICI_SAHNE_BUILD_INDEX && scene.buildIndex != 2) return;
             if (Ornek != null) return;
             var go = new GameObject(nameof(ScriptedModalKopru));
             go.AddComponent<ScriptedModalKopru>();
@@ -83,7 +87,10 @@ namespace Senaryo.Scripted
 
         private void Awake()
         {
-            if (SceneManager.GetActiveScene().buildIndex != ANLATICI_SAHNE_BUILD_INDEX)
+            // FAZ35.136: 03 (idx 2) admin sahnesi için sahne kapsamı genişletildi.
+            // 02 anlatıcı (idx 1) AYNEN korunur, 03 (idx 2) artık aktif, 04 Tutorial (idx 3) SetActive(false) ile kapatılır.
+            int sahneIdx = SceneManager.GetActiveScene().buildIndex;
+            if (sahneIdx != ANLATICI_SAHNE_BUILD_INDEX && sahneIdx != 2)
             {
                 gameObject.SetActive(false);
                 return;

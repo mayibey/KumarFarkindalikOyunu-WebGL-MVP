@@ -658,13 +658,20 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
     /// turuncu (#fb923c) bilişsel vurgu (amaç=matematik). Yeşil KULLANILMADI → üçlü kuralı imkansız ✓.</summary>
     private System.Collections.IEnumerator Goster03KarsilamaModali()
     {
-        // ScriptedModalKopru singleton spawn için 2 frame bekle (Awake/RuntimeInitializeOnLoadMethod hazır olsun).
-        yield return null;
-        yield return null;
+        // FAZ35.136: Polling — ScriptedModalKopru.Ornek null OLMAYANA KADAR bekle, timeout 3sn.
+        // Eski 2 frame sabit bekleme 35.135'te yetersiz kaldı (sahne yarış: OnSceneLoaded → Awake → Ornek set sırası
+        // bazen 2 frame'i aşıyordu, Ornek null → modal atlanıyordu). Polling singleton dolana kadar bekler, güvenli.
+        // ScriptedModalKopru cs:71/78/86 guard'ları artık idx 2'yi de kapsıyor (Faz 35.136), spawn 03'te tetiklenir.
+        float bekleme = 0f;
+        while (Senaryo.Scripted.ScriptedModalKopru.Ornek == null && bekleme < 3f)
+        {
+            yield return null;
+            bekleme += Time.deltaTime;
+        }
         var modal = Senaryo.Scripted.ScriptedModalKopru.Ornek;
         if (modal == null)
         {
-            Debug.LogWarning("[FAZ35.135] ScriptedModalKopru.Ornek null — karşılama modalı atlandı (defansif, akış kırılmaz).");
+            Debug.LogWarning($"[FAZ35.136] ScriptedModalKopru.Ornek 3sn timeout sonrası hâlâ null — karşılama modalı atlandı (defansif, akış kırılmaz).");
             yield break;
         }
         const string KARSILAMA_METNI =
