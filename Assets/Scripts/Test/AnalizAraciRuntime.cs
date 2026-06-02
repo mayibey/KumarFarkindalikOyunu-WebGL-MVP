@@ -178,8 +178,11 @@ namespace KumarTest
             int scatterIdx = oy.TestScatterIndex;
             Debug.Log($"[FAZ35.137 Analiz] SNAPSHOT: aktifSenaryo={snapSenaryo}, min={snapMin}, maks={snapMax}, egilim={snapEgilim}, tutma={snapTutma}, bakiye={snapBakiye}, scatterIdx={scatterIdx}");
 
+            // FAZ35.138: CSV mod bazında ayrı Debug.Log bloklarına bölündü (WebGL console karakter limiti
+            // ~10-15K → 500 satır tek log kırpılıyordu, sadece normal + hook başı görünüyordu). Her mod ~100 satır
+            // × ~80 char = ~8K → limit altında, kesilmez. Header bir kez baştan, her mod sonu Debug.Log + Clear,
+            // sonda CSV BITIS. Format/içerik DEĞİŞMEDİ — sadece çıktı bölünmesi.
             var csv = new StringBuilder(8 * 1024);
-            csv.AppendLine("mod,spin_no,armut,cilek,erik,hindistan,karpuz,muz,elma,uzum,scatter,ham_kazanc,carpan,nihai_odeme,bonus_tetik,bonus_kazanc,toplam_odeme");
 
             int toplamSpinSayisi = 0;
             int toplamBonusTetik = 0;
@@ -189,6 +192,10 @@ namespace KumarTest
             {
                 // Analiz öncesi cache temizle (kullanıcı önceki state'i cachelemiş olabilir)
                 oy.AdminForceOncedenHesaplananSpinTemizle();
+
+                // FAZ35.138: Header bir kez baştan logla (her mod blokunda tekrar yok, ayrı log).
+                Debug.Log("[FAZ35.137 Analiz] CSV BASLANGIC ==============================");
+                Debug.Log("[FAZ35.137 Analiz] CSV BASLIK: mod,spin_no,armut,cilek,erik,hindistan,karpuz,muz,elma,uzum,scatter,ham_kazanc,carpan,nihai_odeme,bonus_tetik,bonus_kazanc,toplam_odeme");
 
                 for (int m = 0; m < MODLAR.Length; m++)
                 {
@@ -269,14 +276,15 @@ namespace KumarTest
                         if (spinNo % 25 == 0) yield return null; // frame donmasin
                     }
 
+                    // FAZ35.138: Mod sonunda CSV bloğu Debug.Log + Clear (WebGL console limit altında ~8K).
+                    Debug.Log($"[FAZ35.137 Analiz] CSV MOD: {mod.ad}\n{csv}");
+                    csv.Clear();
                     yield return null;
                 }
 
                 baslangic.Stop();
-                Debug.Log($"[FAZ35.137 Analiz] TAMAMLANDI: {toplamSpinSayisi} spin, {toplamBonusTetik} bonus tetik, sure={baslangic.ElapsedMilliseconds}ms. CSV asagida.");
-                Debug.Log("[FAZ35.137 Analiz] CSV BASLANGIC ==============================");
-                Debug.Log(csv.ToString());
-                Debug.Log("[FAZ35.137 Analiz] CSV BITIS ==================================");
+                Debug.Log($"[FAZ35.137 Analiz] TAMAMLANDI: {toplamSpinSayisi} spin, {toplamBonusTetik} bonus tetik, sure={baslangic.ElapsedMilliseconds}ms.");
+                Debug.Log("[FAZ35.137 Analiz] CSV BITIS — 5 mod x 100 spin (5 ayri blok yukarida)");
             }
             finally
             {
