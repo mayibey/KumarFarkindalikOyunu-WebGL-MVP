@@ -98,6 +98,7 @@ namespace KumarTest
         // === UI ===
 
         private GameObject _root;
+        private TMP_Dropdown _modDropdown;
         private Button _analizButon;
         private TextMeshProUGUI _butonText;
         private bool _calisiyor;
@@ -115,15 +116,62 @@ namespace KumarTest
             scaler.referenceResolution = new Vector2(1920, 1080);
             scaler.matchWidthOrHeight = 0.5f;
 
-            // Buton: sağ-alt köşe, ~200×50.
+            // FAZ35.139: TMP_Dropdown (5 mod seç) + "Analiz Et" butonu. Yan yana sağ-alt köşe.
+            // Dropdown butonun SOLUNDA. TMP_DefaultControls.CreateDropdown helper minimal hierarchy kurar
+            // (template + viewport + content + item prefab + scrollbar). Sprite null → procedural Image rengi
+            // ile arka plan (görsel basit AMA functional). Caption/item text rengi/fontu set edilir.
+
+            // Dropdown: sağ-alt köşede butonun SOLU, 160×40
+            var dropdownGo = TMPro.TMP_DefaultControls.CreateDropdown(new TMPro.TMP_DefaultControls.Resources());
+            dropdownGo.name = "AnalizModDropdown";
+            dropdownGo.transform.SetParent(_root.transform, false);
+            var ddRt = dropdownGo.GetComponent<RectTransform>();
+            ddRt.anchorMin = ddRt.anchorMax = new Vector2(1f, 0f);
+            ddRt.pivot = new Vector2(1f, 0f);
+            ddRt.sizeDelta = new Vector2(160f, 40f);
+            ddRt.anchoredPosition = new Vector2(-160f, 25f); // butonun sol yanı (buton -20'de, 130 genişlik → -150'de bitiyor, dropdown -160'ta başlar, ~10px boşluk)
+
+            // Sprite null fallback: arka plan Image rengi
+            var ddImg = dropdownGo.GetComponent<Image>();
+            if (ddImg != null) ddImg.color = new Color(0.15f, 0.18f, 0.25f, 0.95f);
+
+            _modDropdown = dropdownGo.GetComponent<TMP_Dropdown>();
+            _modDropdown.options.Clear();
+            for (int i = 0; i < MODLAR.Length; i++)
+            {
+                string adKucuk = MODLAR[i].ad;
+                // Baş harf büyük (Normal/Hook/Yontma/Tutma/Koruma). Türkçe-güvenli ToUpperInvariant.
+                string adGoster = adKucuk.Length > 0
+                    ? char.ToUpperInvariant(adKucuk[0]) + adKucuk.Substring(1)
+                    : adKucuk;
+                _modDropdown.options.Add(new TMP_Dropdown.OptionData(adGoster));
+            }
+            _modDropdown.value = 0; // default: Normal
+            _modDropdown.RefreshShownValue();
+
+            // Caption text (seçili göstergesi) — beyaz, 16pt
+            if (_modDropdown.captionText != null)
+            {
+                _modDropdown.captionText.color = Color.white;
+                _modDropdown.captionText.fontSize = 16f;
+                _modDropdown.captionText.alignment = TextAlignmentOptions.MidlineLeft;
+            }
+            // Item text (açılır listede her satır) — beyaz, 14pt
+            if (_modDropdown.itemText != null)
+            {
+                _modDropdown.itemText.color = Color.white;
+                _modDropdown.itemText.fontSize = 14f;
+            }
+
+            // Buton: sağ-alt köşe, küçültüldü (220×50 → 130×40 — dropdown'a yer açıldı)
             var btnGo = new GameObject("AnalizButon",
                 typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
             btnGo.transform.SetParent(_root.transform, false);
             var rt = btnGo.GetComponent<RectTransform>();
             rt.anchorMin = rt.anchorMax = new Vector2(1f, 0f);
             rt.pivot = new Vector2(1f, 0f);
-            rt.sizeDelta = new Vector2(220f, 50f);
-            rt.anchoredPosition = new Vector2(-20f, 20f);
+            rt.sizeDelta = new Vector2(130f, 40f);
+            rt.anchoredPosition = new Vector2(-20f, 25f);
 
             var img = btnGo.GetComponent<Image>();
             img.color = new Color(0.2f, 0.4f, 0.7f, 0.92f);
@@ -138,7 +186,7 @@ namespace KumarTest
             txtRt.offsetMin = txtRt.offsetMax = Vector2.zero;
 
             _butonText = txtGo.AddComponent<TextMeshProUGUI>();
-            _butonText.text = "Analiz Et (5 mod x 100)";
+            _butonText.text = "Analiz Et";
             _butonText.fontSize = 16f;
             _butonText.fontStyle = FontStyles.Bold;
             _butonText.alignment = TextAlignmentOptions.Center;
@@ -149,16 +197,23 @@ namespace KumarTest
         private void OnAnalizTiklandi()
         {
             if (_calisiyor) return;
-            StartCoroutine(AnalizCalistir());
+            // FAZ35.139: Dropdown seçimi modIndex olarak AnalizCalistir'a geçirilir.
+            int modIndex = _modDropdown != null ? _modDropdown.value : 0;
+            StartCoroutine(AnalizCalistir(modIndex));
         }
 
         // === Analiz ===
 
-        private IEnumerator AnalizCalistir()
+        private IEnumerator AnalizCalistir(int modIndex)
         {
+            // FAZ35.139: Tek mod (parametreli). 5 mod döngüsü kaldırıldı — sadece MODLAR[modIndex] çalıştırılır.
+            if (modIndex < 0 || modIndex >= MODLAR.Length) modIndex = 0;
+            var secilenMod = MODLAR[modIndex];
+
             _calisiyor = true;
             _butonText.text = "Analiz calisiyor...";
             _analizButon.interactable = false;
+            if (_modDropdown != null) _modDropdown.interactable = false;
 
             var oy = FindObjectOfType<OyunYoneticisi>();
             if (oy == null)
@@ -197,9 +252,9 @@ namespace KumarTest
                 Debug.Log("[FAZ35.137 Analiz] CSV BASLANGIC ==============================");
                 Debug.Log("[FAZ35.137 Analiz] CSV BASLIK: mod,spin_no,armut,cilek,erik,hindistan,karpuz,muz,elma,uzum,scatter,ham_kazanc,carpan,nihai_odeme,bonus_tetik,bonus_kazanc,toplam_odeme");
 
-                for (int m = 0; m < MODLAR.Length; m++)
+                // FAZ35.139: 5 mod döngüsü → tek mod (secilenMod, dropdown.value ile gelir).
                 {
-                    var mod = MODLAR[m];
+                    var mod = secilenMod;
 
                     // Mod set: aktifSenaryo + setter'lar (PanelKopru.SenaryoUygula switch'leri ile birebir).
                     // PanelKopru.aktifSenaryo public static (PanelKopru.cs:67), doğrudan set güvenli.
@@ -207,10 +262,10 @@ namespace KumarTest
                     oy.AdminSetOdemeEgilimi(mod.egilim);
                     oy.AdminSetMinCarpanDegeri(mod.minKat);
                     oy.AdminSetMaksCarpanDegeri(mod.maksKat);
-                    oy.AdminSetTutmaModAktif(mod.tutmaAktif); // sayacı 0'a sıfırlar (her mod taze sayaç)
+                    oy.AdminSetTutmaModAktif(mod.tutmaAktif); // sayacı 0'a sıfırlar (taze sayaç)
                     oy.AdminForceOncedenHesaplananSpinTemizle();
 
-                    Debug.Log($"[FAZ35.137 Analiz] Mod aktif: {mod.ad} (min={mod.minKat}x, maks={mod.maksKat}x, egilim={mod.egilim}%, tutma={mod.tutmaAktif})");
+                    Debug.Log($"[FAZ35.137 Analiz] Mod aktif (secili): {mod.ad} (min={mod.minKat}x, maks={mod.maksKat}x, egilim={mod.egilim}%, tutma={mod.tutmaAktif})");
 
                     for (int spinNo = 1; spinNo <= SPIN_PER_MOD; spinNo++)
                     {
@@ -283,8 +338,8 @@ namespace KumarTest
                 }
 
                 baslangic.Stop();
-                Debug.Log($"[FAZ35.137 Analiz] TAMAMLANDI: {toplamSpinSayisi} spin, {toplamBonusTetik} bonus tetik, sure={baslangic.ElapsedMilliseconds}ms.");
-                Debug.Log("[FAZ35.137 Analiz] CSV BITIS — 5 mod x 100 spin (5 ayri blok yukarida)");
+                Debug.Log($"[FAZ35.137 Analiz] TAMAMLANDI: {toplamSpinSayisi} spin (mod={secilenMod.ad}), {toplamBonusTetik} bonus tetik, sure={baslangic.ElapsedMilliseconds}ms.");
+                Debug.Log($"[FAZ35.137 Analiz] CSV BITIS — 1 mod ({secilenMod.ad}) x 100 spin (tek blok yukarida)");
             }
             finally
             {
@@ -304,8 +359,10 @@ namespace KumarTest
 
         private void ButonGeriYukle()
         {
-            if (_butonText != null) _butonText.text = "Analiz Et (5 mod x 100)";
+            // FAZ35.139: Buton text "Analiz Et (5 mod x 100)" → "Analiz Et" (dropdown ile mod seçimi).
+            if (_butonText != null) _butonText.text = "Analiz Et";
             if (_analizButon != null) _analizButon.interactable = true;
+            if (_modDropdown != null) _modDropdown.interactable = true;
             _calisiyor = false;
         }
     }
