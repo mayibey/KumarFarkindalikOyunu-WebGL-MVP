@@ -445,6 +445,11 @@ public partial class OyunYoneticisi
     /// Gerçek bonus akışını kısa devre eder; her tur için SimuleEtVeKaydetImpl(bonusSpin=true) çağırır.</summary>
     public int TestBonusOyunSimuleEt(int bonusHak = 10)
     {
+        // FAZ35.140 K4: Bonus toplam cap — bahis × 15. Mevcut int.MaxValue sınırı bonus'ta 28K tek-spin
+        // taşmalarına izin veriyordu (Hook 100 spin analizi). Gerçek bonus akışı (Bonus.cs:94) bahis×15
+        // sınırı uygular; test API'si bunu yansıtmıyordu — şimdi senkron. bahis 1500 → bonus max 22500.
+        int bahis = _ekonomiServisi != null ? _ekonomiServisi.Bahis : 0;
+        int bonusCap = Mathf.Max(1, bahis) * 15;
         int toplam = 0;
         for (int i = 0; i < bonusHak; i++)
         {
@@ -453,8 +458,9 @@ public partial class OyunYoneticisi
             int ham = kayit.ToplamHamKazanc;
             int carpan = Mathf.Max(1, kayit.NihaiCarpanToplam);
             toplam += ham * carpan;
+            if (toplam >= bonusCap) { toplam = bonusCap; break; } // cap'e ulaştı → kalan tur boşa harcanmasın
         }
-        return toplam;
+        return Mathf.Min(toplam, bonusCap);
     }
 
     private void AdminSenaryoPresetUygula(int index)

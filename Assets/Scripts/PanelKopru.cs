@@ -455,15 +455,22 @@ public class PanelKopru : MonoBehaviour
                 _oy.AdminSetOdemeEgilimi(65);
                 _oy.AdminSetMinCarpanDegeri(0f);
                 _oy.AdminSetMaksCarpanDegeri(0f);
+                // FAZ35.140 K2: maxCarpanAdedi=1 — Normal mod havuzu {3,5,8} AMA Faz 35.115 random 1..maxAdet
+                // çarpan birikiyor (5+8=13x taşması analiz aracında gözlemlendi). Tek çarpan ile tavan 8x.
+                _oy.AdminSetMaxCarpanTekSpin(1);
                 minCarpan = 0f; maksCarpan = 0f;
                 break;
 
             case "hook":
                 // FAZ35.83: Taze Kan — %85→%90 eğilim, 2/3→1.5/2.5 bant (dar, saf karakter)
+                // FAZ35.140 K1: Bant 1.5/2.5 → 0.9/1.6 düşürüldü (Hook 100 spin +140K kazanç → +30K hedef).
+                // Hook'un "sıklık %90 + tutar düşük" tuzak hissi korunur — bant 1350-2400 TL bahis 1500'de.
                 _oy.AdminSetOdemeEgilimi(90);
-                _oy.AdminSetMinCarpanDegeri(1.5f);
-                _oy.AdminSetMaksCarpanDegeri(2.5f);
-                minCarpan = 1.5f; maksCarpan = 2.5f;
+                _oy.AdminSetMinCarpanDegeri(0.9f);
+                _oy.AdminSetMaksCarpanDegeri(1.6f);
+                // FAZ35.140 K2: maxCarpanAdedi=1 — Hook çarpan birikme engellendi (5+8=13x taşması bitti).
+                _oy.AdminSetMaxCarpanTekSpin(1);
+                minCarpan = 0.9f; maksCarpan = 1.6f;
                 break;
 
             case "yontma":

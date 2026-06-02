@@ -1059,14 +1059,19 @@ private int RastgeleCarpan()
         int sahneIdx87 = UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex;
         bool normalModAktif87 = sahneIdx87 == 2 &&
             (PanelKopru.aktifSenaryo == null || PanelKopru.aktifSenaryo == "normal");
+        // FAZ35.140 K3: Hook modu için ayrı küçük havuz {2,3} — Hook 100 spin RTP %193 → ~%50 hedef.
+        // Hook bant kısaltma (Faz 35.140 K1: 0.9/1.6) + maxCarpanAdedi=1 (Faz 35.140 K2) ile birlikte
+        // tek çarpan max 3x → mega taşma engellenir. Hook'un "sıklık %90 + tutar düşük" tuzak hissi korunur.
+        bool hookModAktif140 = sahneIdx87 == 2 && PanelKopru.aktifSenaryo == "hook";
         // FAZ35.95 İŞ1: Normal mod havuz {2,3,5} → {3,5,8} → max çarpan 5x → 8x (+%60 çarpanlı kazanç).
         // maxCarpanAdedi=1 guard (Faz 35.87 İŞ2) korunur → tek çarpan birikmez.
         // Diğer modlar {2,3,5,8,10} havuzu korunur — Faz 35.93 _modKonstrukteBasarili guard ile DOGAL akış zaten kapalı.
-        int[] havuz = normalModAktif87
-            ? new int[] { 3, 5, 8 }
-            : new int[] { 2, 3, 5, 8, 10 };
+        int[] havuz;
+        if (hookModAktif140) havuz = new int[] { 2, 3 };
+        else if (normalModAktif87) havuz = new int[] { 3, 5, 8 };
+        else havuz = new int[] { 2, 3, 5, 8, 10 };
         secilen = havuz[UnityEngine.Random.Range(0, havuz.Length)];
-        havuzAdi = normalModAktif87 ? "DOGAL_SADE" : "DOGAL";
+        havuzAdi = hookModAktif140 ? "HOOK" : (normalModAktif87 ? "DOGAL_SADE" : "DOGAL");
     }
     Debug.Log($"[CARPAN] kaynak=DOGAL havuz={havuzAdi} secilen={secilen}x");
     return secilen;

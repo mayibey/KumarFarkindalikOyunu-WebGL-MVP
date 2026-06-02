@@ -46,16 +46,19 @@ namespace KumarTest
             public float maksKat;
             public int egilim;
             public bool tutmaAktif;
+            // FAZ35.140 K2: Hook ve Normal'de tek çarpan (birikme engellendi). Diğer modlar default 3.
+            public int maxCarpanAdedi;
         }
 
-        // PanelKopru.SenaryoUygula switch case'leriyle BİREBİR aynı değerler (Faz 35.83 preset'leri).
+        // PanelKopru.SenaryoUygula switch case'leriyle BİREBİR aynı değerler (Faz 35.83 + 35.140 preset'leri).
+        // FAZ35.140: Hook bantı 1.5/2.5 → 0.9/1.6 (PanelKopru.cs:461-467 ile senkron). Normal+Hook maxCarpanAdedi=1.
         private static readonly ModAyari[] MODLAR =
         {
-            new ModAyari { ad = "normal", minKat = 0f,    maksKat = 0f,    egilim = 65, tutmaAktif = false },
-            new ModAyari { ad = "hook",   minKat = 1.5f,  maksKat = 2.5f,  egilim = 90, tutmaAktif = false },
-            new ModAyari { ad = "yontma", minKat = 0.3f,  maksKat = 0.7f,  egilim = 70, tutmaAktif = false },
-            new ModAyari { ad = "tutma",  minKat = 1.2f,  maksKat = 1.8f,  egilim = 15, tutmaAktif = true  },
-            new ModAyari { ad = "koruma", minKat = 0.1f,  maksKat = 0.3f,  egilim = 8,  tutmaAktif = false }
+            new ModAyari { ad = "normal", minKat = 0f,    maksKat = 0f,    egilim = 65, tutmaAktif = false, maxCarpanAdedi = 1 },
+            new ModAyari { ad = "hook",   minKat = 0.9f,  maksKat = 1.6f,  egilim = 90, tutmaAktif = false, maxCarpanAdedi = 1 },
+            new ModAyari { ad = "yontma", minKat = 0.3f,  maksKat = 0.7f,  egilim = 70, tutmaAktif = false, maxCarpanAdedi = 3 },
+            new ModAyari { ad = "tutma",  minKat = 1.2f,  maksKat = 1.8f,  egilim = 15, tutmaAktif = true,  maxCarpanAdedi = 3 },
+            new ModAyari { ad = "koruma", minKat = 0.1f,  maksKat = 0.3f,  egilim = 8,  tutmaAktif = false, maxCarpanAdedi = 3 }
         };
 
         // === Spawn ===
@@ -231,7 +234,9 @@ namespace KumarTest
             bool snapTutma = oy.IsTutmaModAktif();
             int snapBakiye = oy.BahisPanelMevcutBakiye();
             int scatterIdx = oy.TestScatterIndex;
-            Debug.Log($"[FAZ35.137 Analiz] SNAPSHOT: aktifSenaryo={snapSenaryo}, min={snapMin}, maks={snapMax}, egilim={snapEgilim}, tutma={snapTutma}, bakiye={snapBakiye}, scatterIdx={scatterIdx}");
+            // FAZ35.140: maxCarpanTekSpin snapshot (Hook+Normal'de 1'e zorla, analiz sonra restore).
+            int snapMaxCarpan = oy.maxCarpanTekSpinSayisi;
+            Debug.Log($"[FAZ35.137 Analiz] SNAPSHOT: aktifSenaryo={snapSenaryo}, min={snapMin}, maks={snapMax}, egilim={snapEgilim}, tutma={snapTutma}, bakiye={snapBakiye}, scatterIdx={scatterIdx}, maxCarpan={snapMaxCarpan}");
 
             // FAZ35.138: CSV mod bazında ayrı Debug.Log bloklarına bölündü (WebGL console karakter limiti
             // ~10-15K → 500 satır tek log kırpılıyordu, sadece normal + hook başı görünüyordu). Her mod ~100 satır
@@ -263,9 +268,11 @@ namespace KumarTest
                     oy.AdminSetMinCarpanDegeri(mod.minKat);
                     oy.AdminSetMaksCarpanDegeri(mod.maksKat);
                     oy.AdminSetTutmaModAktif(mod.tutmaAktif); // sayacı 0'a sıfırlar (taze sayaç)
+                    // FAZ35.140 K2: PanelKopru.SenaryoUygula ile birebir (Hook+Normal=1, diğer=3).
+                    oy.AdminSetMaxCarpanTekSpin(mod.maxCarpanAdedi);
                     oy.AdminForceOncedenHesaplananSpinTemizle();
 
-                    Debug.Log($"[FAZ35.137 Analiz] Mod aktif (secili): {mod.ad} (min={mod.minKat}x, maks={mod.maksKat}x, egilim={mod.egilim}%, tutma={mod.tutmaAktif})");
+                    Debug.Log($"[FAZ35.137 Analiz] Mod aktif (secili): {mod.ad} (min={mod.minKat}x, maks={mod.maksKat}x, egilim={mod.egilim}%, tutma={mod.tutmaAktif}, maxCarpan={mod.maxCarpanAdedi})");
 
                     for (int spinNo = 1; spinNo <= SPIN_PER_MOD; spinNo++)
                     {
@@ -349,9 +356,11 @@ namespace KumarTest
                 oy.AdminSetMinCarpanDegeri(snapMin);
                 oy.AdminSetMaksCarpanDegeri(snapMax);
                 oy.AdminSetTutmaModAktif(snapTutma);
+                // FAZ35.140: maxCarpanTekSpin restore (snapMaxCarpan).
+                oy.AdminSetMaxCarpanTekSpin(snapMaxCarpan);
                 oy.AnlaticiBakiyeyiSifirla(snapBakiye); // bakiye restore (TestSpinSimuleEt dokunmaz ama defansif)
                 oy.AdminForceOncedenHesaplananSpinTemizle();
-                Debug.Log($"[FAZ35.137 Analiz] RESTORE TAMAM: aktifSenaryo={PanelKopru.aktifSenaryo}, min={oy.odemeMinKat}, maks={oy.odemeMaksKat}, egilim={oy.GetAdminOdemeEgilimi()}, tutma={oy.IsTutmaModAktif()}, bakiye={oy.BahisPanelMevcutBakiye()}");
+                Debug.Log($"[FAZ35.137 Analiz] RESTORE TAMAM: aktifSenaryo={PanelKopru.aktifSenaryo}, min={oy.odemeMinKat}, maks={oy.odemeMaksKat}, egilim={oy.GetAdminOdemeEgilimi()}, tutma={oy.IsTutmaModAktif()}, bakiye={oy.BahisPanelMevcutBakiye()}, maxCarpan={oy.maxCarpanTekSpinSayisi}");
 
                 ButonGeriYukle();
             }
