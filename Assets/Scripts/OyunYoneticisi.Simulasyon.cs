@@ -144,88 +144,99 @@ public partial class OyunYoneticisi
         _tumbleServisi?.SetGrid(grid);
     }
 
-    /// <summary>Yakın Kaçırma görsel enjeksiyonu: ÇİFT NEAR-MISS — 7 adet aynı MEYVE (cluster eşik 8 → ödeme yok)
-    /// + TAM 3 SCATTER (bonus eşik 4 → tetik yok). Pedagojik mesaj çift: "neredeyse cluster" + "neredeyse bonus".
-    /// FAZ35.118: Önceki davranış sadece 7 meyve idi; scatter near-miss bonus manipülasyon mesajı için eklendi.</summary>
+    /// <summary>FAZ35.146: Near-miss DETERMİNİSTİK grid kurulumu (canlı SPIN + analiz ortak SimuleEtVeKaydetImpl'den çağrılır).
+    /// Her near-miss spin KESİN: 3 scatter + 7 meyve A + 4 grup × 5 farklı meyve = 30 hücre (6×5), Fisher-Yates dağınık.
+    /// Max grup = 7 < cluster eşik 8 → FindClustersToRemove toplam-sayı bazlı (komşuluk DEĞİL) → hiçbir sembol 8'e ulaşmaz
+    /// → ödeme matematiksel imkansız (ham=0). 3 scatter < ScatterEsik(4) → bonus tetik yok. Pedagojik: "neredeyse cluster + neredeyse bonus".
+    /// DEFANSIF: grid ≠ 30 ise kalan hücreler ≤7'lik gruplara bölünür (genel durum garantisi).</summary>
     private void GrideNearMissEnjekteEt()
     {
         if (grid == null || sutun <= 0 || satir <= 0) return;
-        const int NEAR_MISS_ADET = 7;
-        const int SCATTER_HEDEF = 3;  // FAZ35.118: bonus eşik 4'ün 1 altı, tetiklemeden "az kaldı" mesajı.
+        const int SCATTER_HEDEF = 3;   // bonus eşik 4'ün 1 altı → tetiklemeden "az kaldı"
+        const int MEYVE_A_ADET = 7;    // cluster eşik 8'in 1 altı → ödeme yok "neredeyse cluster"
+        const int GRUP_BOYU = 5;       // her ek grup 5 adet (< 8) → ödeme yok
+        const int MAKS_GRUP = 7;       // defansif: hiçbir sembol bu sayıyı geçmesin (8 = cluster)
         int n = (tumbleAyarlari != null && tumbleAyarlari.PayTable_8_9 != null) ? tumbleAyarlari.PayTable_8_9.Length : 9;
         if (n <= 0) return;
         int scatterIdx = _scatterIndexCache;
 
-        // Mevcut scatter pozisyonlarını ve scatter+CARPAN olmayan (meyve veya boş) hücreleri ayrı listele.
-        var mevcutScatterler = new List<Vector2Int>();
-        var bosVeyaMeyve = new List<Vector2Int>();
+        // 1) Tüm grid hücrelerini topla (CARPAN dahil değil — near-miss'te çarpan hücresi olmamalı).
+        var hucreler = new List<Vector2Int>();
         for (int x = 0; x < sutun; x++)
-        {
             for (int y = 0; y < satir; y++)
-            {
-                if (grid[x, y] == scatterIdx) mevcutScatterler.Add(new Vector2Int(x, y));
-                else if (grid[x, y] != CARPAN_SEMBOL && grid[x, y] >= 0) bosVeyaMeyve.Add(new Vector2Int(x, y));
-            }
-        }
-        if (bosVeyaMeyve.Count < NEAR_MISS_ADET) return;
+                hucreler.Add(new Vector2Int(x, y));
+        if (hucreler.Count < SCATTER_HEDEF + MEYVE_A_ADET) return;
 
-        // 7 meyve sembol seç (low-pay 0-3 arası, scatter HARİÇ).
-        int sembol = UnityEngine.Random.Range(0, Mathf.Min(4, n));
-        if (sembol == scatterIdx) sembol = (sembol + 1) % n;
-
-        // FAZ35.118 — Fazla scatter varsa 3'e indir: scatter olan hücreleri farklı low-pay meyveye dönüştür.
-        // sembol'den FARKLI bir low-pay seç (7'lik cluster'ı 8'e çıkarmasın → ödeme bug'ı önle).
-        int silSembol = (sembol + 1) % n;
-        if (silSembol == scatterIdx) silSembol = (silSembol + 1) % n;
-        if (silSembol == sembol) silSembol = (silSembol + 1) % n;  // 3 fruit havuzu varsa fallback
-        if (mevcutScatterler.Count > SCATTER_HEDEF)
-        {
-            int silSayi = mevcutScatterler.Count - SCATTER_HEDEF;
-            for (int i = 0; i < silSayi && i < mevcutScatterler.Count; i++)
-            {
-                var p = mevcutScatterler[i];
-                grid[p.x, p.y] = silSembol;
-                bosVeyaMeyve.Add(p);  // artık meyve hücresi, 7 meyve seçim havuzuna katılabilir
-            }
-            mevcutScatterler.RemoveRange(0, Mathf.Min(silSayi, mevcutScatterler.Count));
-        }
-
-        // bosVeyaMeyve listesini shuffle (Fisher-Yates) — her spinde farklı 7 meyve + farklı scatter hücreleri.
-        for (int i = bosVeyaMeyve.Count - 1; i > 0; i--)
+        // 2) Fisher-Yates shuffle (her spin farklı dağınık yerleşim).
+        for (int i = hucreler.Count - 1; i > 0; i--)
         {
             int j = UnityEngine.Random.Range(0, i + 1);
-            var t = bosVeyaMeyve[i]; bosVeyaMeyve[i] = bosVeyaMeyve[j]; bosVeyaMeyve[j] = t;
+            var t = hucreler[i]; hucreler[i] = hucreler[j]; hucreler[j] = t;
         }
 
-        // 7 meyve yerleştir (scatter olmayan hücrelerin ilk 7'sine).
+        // 3) Scatter HARİÇ meyve indekslerini listele → shuffle → farklı meyveler seç.
+        var meyveler = new List<int>();
+        for (int s = 0; s < n; s++)
+            if (s != scatterIdx) meyveler.Add(s);
+        for (int i = meyveler.Count - 1; i > 0; i--)
+        {
+            int j = UnityEngine.Random.Range(0, i + 1);
+            int t = meyveler[i]; meyveler[i] = meyveler[j]; meyveler[j] = t;
+        }
+        if (meyveler.Count == 0) return;
+
+        // 4) Yerleştir: ilk 3 → scatter, sonraki 7 → meyve A, kalanlar → ardışık farklı meyve grupları (her grup ≤ GRUP_BOYU, defansif ≤ MAKS_GRUP).
         int adayIdx = 0;
-        for (int i = 0; i < NEAR_MISS_ADET && adayIdx < bosVeyaMeyve.Count; i++)
+        int yerlesenScatter = 0;
+        for (int i = 0; i < SCATTER_HEDEF && adayIdx < hucreler.Count; i++)
         {
-            var p = bosVeyaMeyve[adayIdx];
-            grid[p.x, p.y] = sembol;
-            adayIdx++;
+            var p = hucreler[adayIdx++];
+            grid[p.x, p.y] = scatterIdx;
+            yerlesenScatter++;
         }
 
-        // FAZ35.118 — Eksik scatter ekle: kalan boş hücrelerden (meyve yerleştirilenler HARİÇ) tam 3'e tamamla.
-        int eklenecek = SCATTER_HEDEF - mevcutScatterler.Count;
-        while (eklenecek > 0 && adayIdx < bosVeyaMeyve.Count)
+        int meyveA = meyveler[0];
+        for (int i = 0; i < MEYVE_A_ADET && adayIdx < hucreler.Count; i++)
         {
-            var p = bosVeyaMeyve[adayIdx];
-            grid[p.x, p.y] = scatterIdx;
-            eklenecek--;
-            adayIdx++;
+            var p = hucreler[adayIdx++];
+            grid[p.x, p.y] = meyveA;
+        }
+
+        // Kalan hücreler: sıradaki farklı meyveye GRUP_BOYU kadar yerleştir, dolunca sonraki farklı meyveye geç.
+        // Defansif clamp: aynı meyveye en fazla MAKS_GRUP (7) — meyve havuzu biterse başa sar ama 8'e çıkmasın.
+        int meyveSira = 1;                         // meyveler[0] = A zaten kullanıldı
+        int buGrupAdet = 0;
+        int aktifMeyve = meyveler[meyveSira % meyveler.Count];
+        var grupSayac = new System.Collections.Generic.Dictionary<int, int>();
+        grupSayac[meyveA] = MEYVE_A_ADET;
+        while (adayIdx < hucreler.Count)
+        {
+            // Grup doldu → sonraki farklı meyveye geç.
+            if (buGrupAdet >= GRUP_BOYU)
+            {
+                meyveSira++;
+                aktifMeyve = meyveler[meyveSira % meyveler.Count];
+                buGrupAdet = 0;
+            }
+            // Defansif: bu meyve toplam MAKS_GRUP'a ulaştıysa farklı meyve ara (8-cluster önle).
+            int guard = 0;
+            while (grupSayac.TryGetValue(aktifMeyve, out int mevcutAdet) && mevcutAdet >= MAKS_GRUP && guard < meyveler.Count)
+            {
+                meyveSira++;
+                aktifMeyve = meyveler[meyveSira % meyveler.Count];
+                buGrupAdet = 0;
+                guard++;
+            }
+            var p = hucreler[adayIdx++];
+            grid[p.x, p.y] = aktifMeyve;
+            buGrupAdet++;
+            grupSayac[aktifMeyve] = (grupSayac.TryGetValue(aktifMeyve, out int c) ? c : 0) + 1;
         }
 
         _tumbleServisi?.SetGrid(grid);
 
-        // Final teyit — log için scatter say.
-        int finalSc = 0;
-        for (int x = 0; x < sutun; x++)
-            for (int y = 0; y < satir; y++)
-                if (grid[x, y] == scatterIdx) finalSc++;
-
-        OturumKayitcisi.EkleEvent("yakin_kacirma", $"7 sembol={sembol} + {finalSc} scatter yerleştirildi (cluster=8 eşik ödeme yok, bonus=4 eşik tetik yok)", _spinNo);
-        Debug.Log($"[FAZ35.118 YAKIN_KACIRMA] 7 meyve sembol={sembol} + {finalSc}/{SCATTER_HEDEF} scatter (cluster eşik=8 → ödeme yok, bonus eşik=4 → tetik yok).");
+        OturumKayitcisi.EkleEvent("yakin_kacirma", $"DETERMİNİSTİK: {yerlesenScatter} scatter + 7 meyve A({meyveA}) + 4×5 farklı meyve (max grup 7 < eşik 8 → ödeme yok, bonus eşik 4 → tetik yok)", _spinNo);
+        Debug.Log($"[FAZ35.146 YAKIN_KACIRMA] Deterministik grid: {yerlesenScatter} scatter + 7 meyve A={meyveA} + 4 grup×5 farklı meyve = {hucreler.Count} hücre (max grup 7 → ödeme imkansız, 3 scatter < eşik 4 → bonus yok).");
     }
 
     /// <summary>Zorla çarpan + toggle açıkken tumble garantisi: gridde en az 8 aynı sembol (bir cluster) oluşturur.</summary>
