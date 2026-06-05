@@ -1013,6 +1013,31 @@ public partial class OyunYoneticisi
                     }
                 }
             }
+            // FAZ35.143: YONTMA nihai-cap. Hook (yukarı) ham×2.5 ham-cap'ti; Yontma'da çarpan havuzu {2,3,5,8,10}
+            // + maxCarpanAdedi=3 olduğu için ham-cap nihai'yi bağlamıyordu (capHam × carpan yine bahisi aşardı).
+            // KÖK NEDEN: Yontma bandı 450-1050 ham (Admin.cs:217 reroll, eğilim %70). uzum idx7 25x + elma büyük küme
+            // sık sık band üstü ham üretiyor; 28 reroll tükenince Spin.cs:1098+ fallback son denemeyi (band dışı) döndürüyor
+            // → spin3/13/68 ham 8400/5550/8400 × carpan 2-3 = ~16800 taşması. ÇÖZÜM: nihai_odeme = ham × carpan ≤ bahis (1500)
+            // garantisi için capHam = FloorToInt(bahis / carpan). Gerçek ödeme DonusAkisServisi:180-182 kayit.ToplamHamKazanc ×
+            // kayit.NihaiCarpanToplam'dan geliyor (nihaiOdeme local DEĞİL) → kayit.ToplamHamKazanc'ı cap'lemek ödemeyi cap'ler,
+            // nihaiOdeme recompute gerekmez. adim.TurKazanci'ya DOKUNULMUYOR (paytable check line 990'da geçti). Çarpan vitrini
+            // tavanda tıkanır (×10 görünür, ham 150'ye iner, ödeme 1500) — Yontma "büyük çarpan göründü, para gelmedi" eğitim mesajı.
+            // ÜÇLÜ GUARD: buildIndex==2 (03 admin) + aktifSenaryo=="yontma" + !bonusSpin. Hook dalı (yukarı) DOKUNULMADI.
+            if (sahneIdx142 == 2 && PanelKopru.aktifSenaryo == "yontma" && !bonusSpin)
+            {
+                int bahis143 = _ekonomiServisi != null ? _ekonomiServisi.Bahis : 0;
+                if (bahis143 > 0)
+                {
+                    int toplamCarpan143 = toplamCarpan;
+                    int capHam143 = Mathf.FloorToInt((float)bahis143 / Mathf.Max(1, toplamCarpan143));
+                    if (spinKazancHam > capHam143)
+                    {
+                        Debug.Log($"[FAZ35.143 YONTMA_CAP] ham={spinKazancHam} carpan={toplamCarpan143} > capHam={capHam143} (nihai≤{bahis143}) → cap'lendi");
+                        spinKazancHam = capHam143;
+                        kayit.ToplamHamKazanc = capHam143;
+                    }
+                }
+            }
             bool zorlaCarpanVardi = zorlaCarpanDegeri > 0;
             // FAZ35.113 DEĞİŞİM 2 (Yaklaşım b): Reroll/limit kararı initial DOGAL çarpandan bağımsızlaştırıldı.
             // KÖK NEDEN: Spin.cs:861 RecordPlacedCarpanlar(kayit.IlkCarpanDegerleri) initial çarpanı _spinCarpanCarpim'a
