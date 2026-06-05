@@ -1756,7 +1756,12 @@
     // FAZ35.76: kazanmaOrani + yeniOyuncu unityeGonder SİLİNDİ — kartlar kaldırıldı.
     // PAKET 14-FAZ18: Uygula onayı sinyali — Tutorial slider değişimi tek başına spin açmasın.
     unityeGonder('uygulamaOnayi',     true);
-    unityeGonder('oyunModu',          secim);
+    // FAZ35.148 K3: Detaylı Ayarlar AÇIK iken dropdown 'Normal'e kilitli (FAZ35.96:1373) → secim='normal' → Uygula
+    // oyunModu='normal' gönderip Faz 35.148 A guard'ını (aktifSenaryo=="ozel") ÖLDÜRÜYORDU (bant uygulanmıyordu).
+    // FIX: Detaylı açıksa 'ozel' gönder (A guard canlanır), kapalıysa secim (normal/mod → FAZ35.101 korunur).
+    var detayliAcik = !!(document.getElementById('detayliAyarlarToggle') &&
+                         document.getElementById('detayliAyarlarToggle').classList.contains('active'));
+    unityeGonder('oyunModu',          detayliAcik ? 'ozel' : secim);
     unityeGonder('minCarpan',         minDom);    // DOM state
     unityeGonder('maksCarpan',        maksDom);   // DOM state
     unityeGonder('yakinKacirma',      ykDom);     // DOM state
