@@ -1738,15 +1738,19 @@
     // FAZ35.69: yakinKacirma slider→toggle. Slider DOM artık yok; preset sayısal değer doğrudan
     // gönderilir (03 backend DonusAkisServisi Random near-miss zinciri preset değerine bağımlı).
     // Tutorial T8 manuel toggle değişimi ayrı kanal: toggleDegisti('yakinKacirma') bool postMessage gönderir.
-    var ykDom = s.yakinKacirma;
+    // FAZ35.147: yakinKacirma/ardisikKayip KAYNAĞI mod preset'inden değil RADIO aktif buton state'inden.
+    // KÖK NEDEN: Eski `s.yakinKacirma` (SENARYOLAR[mod].yakinKacirma, normal=0) Uygula'da near-miss radio'sunu
+    // eziyordu (odemeDavranisiSec'in gönderdiği yakinKacirma=true → 0'a düşüyordu). Radio tek otorite (FAZ35.122).
+    var nmAktif = !!(document.getElementById('odemeDavranisi_nearmiss') &&
+                     document.getElementById('odemeDavranisi_nearmiss').classList.contains('active'));
+    var kcAktif = !!(document.getElementById('odemeDavranisi_kacis') &&
+                     document.getElementById('odemeDavranisi_kacis').classList.contains('active'));
+    var ykDom = nmAktif;
     var minSlider = document.getElementById('minCarpan');
     var minDom = minSlider ? parseFloat(minSlider.value) : s.minCarpan;
     var maksSlider = document.getElementById('maksCarpan');
     var maksDom = maksSlider ? parseFloat(maksSlider.value) : s.maksCarpan;
-    // FAZ35.82: ardisikKayip slider→toggle. DOM state'ten oku (Yakın Kaçırma toggle emsali).
-    // unityeGonder bool gönderir (PanelKopru.cs case "ardisikKayip" → true=3, false=999).
-    var akToggle = document.getElementById('ardisikKayipToggle');
-    var akDom = akToggle ? akToggle.classList.contains('active') : (s.ardisikKayip > 0);
+    var akDom = kcAktif;
 
     // postMessage'lar fire et — yakinKacirma artık 0-5 ölçek (scale yok)
     // FAZ35.76: kazanmaOrani + yeniOyuncu unityeGonder SİLİNDİ — kartlar kaldırıldı.
