@@ -513,9 +513,13 @@ public partial class OyunYoneticisi
         // backend kilidi (_bonusGirmeBuSpinAktif yakinKacirma>0 guard) korunur — near-miss + bonus çakışması zaten engelli.
         // Çarpan path (Faz 35.115): DOGAL placement aynen çalışır — near-miss aktifken çarpan görsel düşer, ödeme 0×N=0
         // (kullanıcı kararı: pedagojik "çarpan düştü ama yine kazanamadın" çift mesaj).
+        // FAZ35.145: Near-miss artik MOD BAGIMSIZ — eski `aktifSenaryo == "normal"` kapisi kaldirildi.
+        // KOK NEDEN: "Manipulasyon Turu = Near-miss" radio'su Mod dropdown'undan AYRI kontrol; mod secili
+        // (hook/yontma/tutma/koruma) iken flag FALSE olup near-miss oluyordu ("tetiklenmiyor" + mod odeme grid'i geliyordu).
+        // FIX: buildIndex==2 (03 admin/analiz) scope ile degistirildi → 02 (idx 1) + 04 (idx 3) DISARIDA (02 kendi nearMiss preset'i).
         bool _yakinKacirmaBuSpinAktif = !bonusSpin
             && zorlaCarpanDegeri <= 0
-            && PanelKopru.aktifSenaryo == "normal"
+            && UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex == 2
             && yakinKacirmaDegeri10da > 0;
 
         _modKonstrukteBasarili = false;
@@ -525,6 +529,7 @@ public partial class OyunYoneticisi
         // Önceden kullanıcı Normal mod + min=1, max=2 set edince mod konstrukte aktif → _modKonstrukteBasarili=true →
         // Faz 35.93 SetIsCarpanUretimiAktif guard çarpan üretimini KAPATIYORDU (slider %100 etkisiz, BUG A+B tek kök).
         if (!bonusSpin && zorlaCarpanDegeri <= 0
+            && !_yakinKacirmaBuSpinAktif        // FAZ35.145: near-miss aktifken mod odeme grid'i KURULMAZ (her spin ham=0)
             && odemeMinKat > 0f && odemeMaksKat > 0f
             && !_tutmaBuSpinKayipBekleniyor
             && !IsAdminSenaryo1Aktif() && !IsAdminSenaryo2Aktif()
@@ -564,7 +569,7 @@ public partial class OyunYoneticisi
         // Kaçış Frenleme: ardışık kayıp eşiği aşıldığında bir önceki spin sonu flag set etmiştir.
         // Bu spinde grid cluster oluşacak şekilde zorlanır; flag tek atımlık (spin başında tüketilir).
         // Bonus / zorla çarpan path'lerinde çakışma olmasın diye sadece normal spinde uygulanır.
-        bool kacisFrenlemeUygula = _kacisFrenlemeBuSpinAktif && !bonusSpin && zorlaCarpanDegeri <= 0;
+        bool kacisFrenlemeUygula = _kacisFrenlemeBuSpinAktif && !bonusSpin && zorlaCarpanDegeri <= 0 && !_yakinKacirmaBuSpinAktif;  // FAZ35.145: near-miss aktifken kacis frenleme bastirilir (defansif cift guvence)
         if (_kacisFrenlemeBuSpinAktif)
             _kacisFrenlemeBuSpinAktif = false;
         // Force carpan aktifse toggle durumundan bağımsız çarpan üretimi açık sayılır.
