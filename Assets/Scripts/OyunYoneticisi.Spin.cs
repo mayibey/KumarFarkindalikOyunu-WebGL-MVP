@@ -546,6 +546,12 @@ public partial class OyunYoneticisi
                 _modSpinBekleniyorKazanc = true;
             }
 
+            // FAZ35.148 A2: Ozel band modu → HER spin kazanç (eğilim RNG bypass, kayıp/0 yok).
+            // Admin MIN=2 dediyse "en az 2 kat öde" → kayıp ettirmek istemiyor. Konstrükte bandı kurar;
+            // fail'de (paytable boşluğu) min'e en yakın ≥minTl (TryModKazancKonstrukteGridKur A2 relaxed dalı).
+            // SADECE ozel: hook/yontma/tutma/koruma aktifSenaryo!="ozel" → eğilim RNG'si aynen korunur.
+            if (PanelKopru.aktifSenaryo == "ozel") _modSpinBekleniyorKazanc = true;
+
             if (_modSpinBekleniyorKazanc)
             {
                 int bahisIcinKonstrukte = _ekonomiServisi != null ? _ekonomiServisi.Bahis : 0;
@@ -1286,8 +1292,35 @@ public partial class OyunYoneticisi
                 _modSonSecilenSembol,
                 out int kSym, out int kCnt, out int beklenenTl))
         {
-            Debug.LogWarning($"[MOD_KONSTRUKTE] Paytable uyumlu küme YOK: bant={minTl}-{maxTl} bahis={bahis}");
-            return false;
+            // FAZ35.148 A2: Primary bant araması başarısız (paytable boşluğu / ulaşılamaz dar band).
+            // SADECE ozel band'da: min'e en yakın ≥minTl tek-küme kur (kayıp=0 YANLIŞ; "en az min kadar öde").
+            // Diğer modlar (hook/yontma/tutma/koruma) → eski davranış (return false → FillRandomAll+reroll).
+            if (PanelKopru.aktifSenaryo != "ozel")
+            {
+                Debug.LogWarning($"[MOD_KONSTRUKTE] Paytable uyumlu küme YOK: bant={minTl}-{maxTl} bahis={bahis}");
+                return false;
+            }
+            int minCluster148 = Mathf.Max(2, tumbleAyarlari.MinClusterSize);
+            int maxHucre148 = Mathf.Min(12, Mathf.Max(minCluster148, sutun * satir));
+            int enYakinSym = -1, enYakinCnt = 0, enYakinTl = -1;   // ≥minTl en küçük (tercih)
+            int enBuyukSym = -1, enBuyukCnt = 0, enBuyukTl = -1;   // genel en büyük (hiç ≥minTl yoksa, min'e alttan en yakın)
+            for (int sym148 = 0; sym148 < sembolSayisi; sym148++)
+            {
+                if (sym148 == _scatterIndexCache) continue;
+                for (int cnt148 = minCluster148; cnt148 <= maxHucre148; cnt148++)
+                {
+                    float pay148 = tumbleAyarlari.GetPayForCount(sym148, cnt148);
+                    if (pay148 <= 0f) continue;
+                    int tl148 = Mathf.RoundToInt(pay148 * bahis);
+                    if (tl148 <= 0) continue;
+                    if (tl148 >= minTl && (enYakinTl < 0 || tl148 < enYakinTl)) { enYakinTl = tl148; enYakinSym = sym148; enYakinCnt = cnt148; }
+                    if (tl148 > enBuyukTl) { enBuyukTl = tl148; enBuyukSym = sym148; enBuyukCnt = cnt148; }
+                }
+            }
+            if (enYakinSym >= 0) { kSym = enYakinSym; kCnt = enYakinCnt; beklenenTl = enYakinTl; }
+            else if (enBuyukSym >= 0) { kSym = enBuyukSym; kCnt = enBuyukCnt; beklenenTl = enBuyukTl; }
+            else { Debug.LogWarning($"[MOD_KONSTRUKTE A2] Hiç paytable kümesi yok (imkansız) bant={minTl}-{maxTl}"); return false; }
+            Debug.Log($"[FAZ35.148 A2 MIN_USTU] Bant ({minTl}-{maxTl}) ulaşılamaz → en yakın küme sym={kSym} cnt={kCnt} tl={beklenenTl} (≥minTl mi={enYakinSym >= 0}).");
         }
 
         if (!Senaryo1HedefOdemeMotoru.TryTekKumeliIlkGridOlustur(
