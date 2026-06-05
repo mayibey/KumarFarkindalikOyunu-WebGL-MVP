@@ -566,10 +566,22 @@ public partial class OyunYoneticisi
             }
         }
 
+        // FAZ35.148 (SORUN A): Ozel band modu — kazanan spin HER ZAMAN bant içi, kaybeden KESİN 0.
+        // GUARD: buildIndex==2 + aktifSenaryo=="ozel" (Detaylı Ayarlar manuel band; tutma/hook/yontma/koruma/normal HEPSİ dışarıda)
+        //        + odemeMin/Maks>0 + near-miss değil + normal spin (bonus/force değil).
+        // Kayıp zorla = eğilim RNG kayıp dedi (_modSpinBekleniyorKazanc=false) VEYA kazanç bekleniyordu ama konstrükte BAŞARISIZ
+        //        (_modKonstrukteBasarili=false → bant dışı fallback dönmesin → kayıp 0'a düşür). Konstrükte BAŞARILI win → flag FALSE (bant grid'i korunur).
+        bool _ozelBandKayipZorla = UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex == 2
+            && PanelKopru.aktifSenaryo == "ozel"
+            && odemeMinKat > 0f && odemeMaksKat > 0f
+            && !_yakinKacirmaBuSpinAktif
+            && !bonusSpin && zorlaCarpanDegeri <= 0
+            && (!_modSpinBekleniyorKazanc || !_modKonstrukteBasarili);
+
         // Kaçış Frenleme: ardışık kayıp eşiği aşıldığında bir önceki spin sonu flag set etmiştir.
         // Bu spinde grid cluster oluşacak şekilde zorlanır; flag tek atımlık (spin başında tüketilir).
         // Bonus / zorla çarpan path'lerinde çakışma olmasın diye sadece normal spinde uygulanır.
-        bool kacisFrenlemeUygula = _kacisFrenlemeBuSpinAktif && !bonusSpin && zorlaCarpanDegeri <= 0 && !_yakinKacirmaBuSpinAktif;  // FAZ35.145: near-miss aktifken kacis frenleme bastirilir (defansif cift guvence)
+        bool kacisFrenlemeUygula = _kacisFrenlemeBuSpinAktif && !bonusSpin && zorlaCarpanDegeri <= 0 && !_yakinKacirmaBuSpinAktif && !_ozelBandKayipZorla;  // FAZ35.145: near-miss bastirir + FAZ35.148: ozel band kayip zorla, paying cluster olusmasin
         if (_kacisFrenlemeBuSpinAktif)
             _kacisFrenlemeBuSpinAktif = false;
         // Force carpan aktifse toggle durumundan bağımsız çarpan üretimi açık sayılır.
@@ -814,6 +826,15 @@ public partial class OyunYoneticisi
                 Debug.Log($"[FAZ35.119 YAKIN_KACIRMA] Near-miss enjekte (7 meyve + 3 scatter) + GrideKazancsizYap → ham=0 garanti, ödeme imkansız.");
             }
 
+            // FAZ35.148 (SORUN A): Ozel band KAYIP spini → grid kazançsız (ham=0 kesin), FillRandomAll SONRASI.
+            // Kazanan spin (konstrükte başarılı) flag FALSE → bu blok atlanır, bant grid'i korunur. Eskiden kayıp spin ≤bahis (armut×8=300) öderdi → KÖK.
+            if (_ozelBandKayipZorla)
+            {
+                GrideKazancsizYap();
+                _tumbleServisi?.SetGrid(grid);
+                Debug.Log($"[FAZ35.148 OZEL_BAND] Kayıp spini (eğilim kayıp VEYA konstrükte başarısız) → GrideKazancsizYap, ödeme=0 (bant dışı ödeme engellendi).");
+            }
+
             // Kaçış Frenleme: ardışık kayıp eşiği aşıldı → bu spin'in grid'i cluster oluşacak şekilde zorlanır.
             // Sahte para yok; gerçek cluster patlar, gerçek tumble olur, gerçek ödeme akışı işler.
             if (kacisFrenlemeUygula)
@@ -1055,7 +1076,7 @@ public partial class OyunYoneticisi
             // FAZ35.119: Near-miss aktif spin zaten ham=0 garanti (cluster engellendi) → eğilim/limit/kolay zorluk reroll
             // kontrolleri bypass. Aksi halde OdemeModelineUygunMu beklenenKazanc=true ise reject + reroll → sonsuz döngü
             // riski (her iter near-miss tekrar ham=0 yapar). İlk denemede kabul edilir, kayit'a 7+3+ham=0 yazılır.
-            if (!bonusSpin && !zorlaCarpanVardi && !_yakinKacirmaBuSpinAktif && !OdemeModelineUygunMu(spinKazancHam, bahis, deneme, maxReroll))
+            if (!bonusSpin && !zorlaCarpanVardi && !_yakinKacirmaBuSpinAktif && !_ozelBandKayipZorla && !OdemeModelineUygunMu(spinKazancHam, bahis, deneme, maxReroll))
                 continue;
 
             if (adminVideoArdisikKazanc && nihaiOdeme <= bahis)
@@ -1065,14 +1086,14 @@ public partial class OyunYoneticisi
             // 03 NORMAL Free spin: limit=int.MaxValue → check zaten fire etmiyor, no-op.
             // Bonus/Senaryo: limit < MaxValue. spinKazancHam bazlı check pedagojik tutarlı (çarpan vitrini bağımsız).
             // FAZ35.119: Near-miss aktif spin ham=0 → limit check zaten geçer (0 > limit false) — defansif bypass.
-            if (!_yakinKacirmaBuSpinAktif && limit != int.MaxValue && spinKazancHam > limit)
+            if (!_yakinKacirmaBuSpinAktif && !_ozelBandKayipZorla && limit != int.MaxValue && spinKazancHam > limit)
                 continue;
             // Senaryo 1: 4 üst üste ödeme sonrası 3 spin zorunlu boş (ödeme yok)
             if (!bonusSpin && !adminManuelMod && !adminVideoArdisikKazanc && SenaryoYoneticisi.I != null && SenaryoYoneticisi.I.ShouldForceNoPaySenaryo12() && nihaiOdeme > 0)
                 continue;
             // Zorla çarpan varken diğer "min tumble / min ödeme" kuralları uygulanmaz; sadece toggle kuralı geçerli.
             // FAZ35.119: Near-miss aktif spin de KolayZorluk reroll'larından bypass (ham=0 zaten "min ödeme altı" + tumblesiz).
-            if (!zorlaCarpanVardi && !_yakinKacirmaBuSpinAktif)
+            if (!zorlaCarpanVardi && !_yakinKacirmaBuSpinAktif && !_ozelBandKayipZorla)
             {
                 if (spinPolitikasi.KolayZorlukBonusSpindeMinOdemeAltindaReddet(
                         bonusSpin, zorlaCarpanVardi, limit, _easyBias01, nihaiOdeme))
