@@ -819,6 +819,11 @@ public partial class OyunYoneticisi
     private float GetScatterChanceFor(bool bonusAktif)
     {
         if (bonusAktif) return scatterChanceBonus;
+        // FAZ35.144: Yontma'da bonus kapali — scatter dogal RNG 0 (4-scatter imkansiz -> bonus tetiklenmez).
+        // CIFT GUARD: buildIndex==2 (03 admin/analiz) + aktifSenaryo=="yontma". Hook/Normal/Senaryo/02/04 disarida.
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex == 2
+            && PanelKopru.aktifSenaryo == "yontma")
+            return 0f;
         if (_adminManuelScatterKilidi) return scatterChanceNormal;
         if (SenaryoYoneticisi.I == null) return scatterChanceNormal;
         var asama = SenaryoYoneticisi.I.mevcutAsama;
