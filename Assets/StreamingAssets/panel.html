@@ -1090,9 +1090,9 @@
           <div class="mode-switch" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
             <button class="active" id="odemeDavranisi_kapali"   onclick="odemeDavranisiSec('kapali')">Kapalı</button>
             <button              id="odemeDavranisi_kacis"    onclick="odemeDavranisiSec('kacis')">Kaçış engelleme</button>
-            <button              id="odemeDavranisi_nearmiss" onclick="odemeDavranisiSec('nearmiss')">Near-miss</button>
+            <button              id="odemeDavranisi_nearmiss" onclick="odemeDavranisiSec('nearmiss')">Neredeyse Oluyordu</button>
           </div>
-          <div class="ifsa-line" id="odemeDavranisiAciklama">Kapalı: doğal akış (manipülasyon yok). Kaçış engelleme: 3 üst üste kayıp sonrası zorunlu kazanç. Near-miss: her spinde 7 aynı meyve + 3 scatter düşer ama kazanç verilmez (neredeyse cluster + neredeyse bonus hissi). Tek anda yalnız biri aktif.</div>
+          <div class="ifsa-line" id="odemeDavranisiAciklama">Kapalı: doğal akış (manipülasyon yok). Kaçış engelleme: 3 üst üste kayıp sonrası zorunlu kazanç. Neredeyse Oluyordu: her spinde 7 aynı meyve + 3 scatter düşer ama kazanç verilmez (neredeyse cluster + neredeyse bonus hissi). Tek anda yalnız biri aktif.</div>
         </div>
 
       </div>
@@ -1121,7 +1121,7 @@
             Her <span id="bonusSpinHesap">50</span> spin'de 1 otomatik bonus tetiklenir
           </div>
           <div id="bonusNearMissUyari" style="font-size:13px; color:#dc2626; font-style:italic; margin-top:6px; display:none;">
-            ⚠️ Near-miss aktifken bonus çakışır — bu ayar devre dışı (motor bonus'u kilitler).
+            ⚠️ Neredeyse Oluyordu aktifken bonus çakışır — bu ayar devre dışı (motor bonus'u kilitler).
           </div>
         </div>
 
@@ -1839,9 +1839,9 @@
 
     // PAKET 14-FAZ34.3 BUG F: Spesifik toast metni — son kullanıcı değişiminden üret.
     // Yoksa fallback dropdown senaryosu adı.
-    var toastMsg = ozelToastMetni(lastChangedKey, lastChangedValue);
-    if (!toastMsg) toastMsg = secimAd + ' uygulandı';
-    showToast(toastMsg);
+    // FAZ35.149 İŞ1: Toast sadeleştirildi — eski ozelToastMetni son değişen TEK ayara göre teknik/parça mesaj
+    // veriyordu ("Maks ödeme çarpanı 5x..."). Artık tek sade contextual mesaj (secimAd: "Detaylı ayarlar"/"Yontma modu"/...).
+    showToast(secimAd + ' uygulandı');
   }
 
   // PAKET 14-FAZ34.3 BUG F: Ayar key + değerine göre Türkçe spesifik toast metni.
