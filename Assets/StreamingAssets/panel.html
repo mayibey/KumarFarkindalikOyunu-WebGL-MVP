@@ -1417,12 +1417,40 @@
     var lo = Math.min(min, max), hi = Math.max(min, max);
     return ULASILABILIR_CARPANLAR.some(function(v) { return v >= lo && v <= hi; });
   }
-  // FAZ35.151 A3: Ulaşılamaz bant uyarısını min/max DOM değerine göre göster/gizle (sadece tam band: ikisi de >0).
+  // FAZ35.152: Ozel band giriş modu = Detaylı Ayarlar AÇIK + Manipülasyon Türü KAPALI (radio Kapalı).
+  // near-miss/kaçış aktifken (B → min/max=0) ozel band girişi DEĞİL → validation tetiklenmez (near-miss bozulmaz).
+  // Mod/normal'de detaylı kapalı → false → 0/0 serbest (doğal default).
+  function ozelBandGirisModuMu() {
+    var d = document.getElementById('detayliAyarlarToggle');
+    if (!d || !d.classList.contains('active')) return false;
+    var nm = document.getElementById('odemeDavranisi_nearmiss');
+    var kc = document.getElementById('odemeDavranisi_kacis');
+    var manip = (nm && nm.classList.contains('active')) || (kc && kc.classList.contains('active'));
+    return !manip;
+  }
+  // FAZ35.152: Ozel band validation — '' (geçerli) | 'eksik' (biri ≤0) | 'sira' (MIN>MAX) | 'ulasilamaz' (paytable boşluğu).
+  // NOT: lo/hi swap (odemeAraligiUlasilabilirMi) sadece min≤max doğrulandıktan SONRA çağrılır → no-op; MIN>MAX 'sira' ile ÖNCE yakalanır.
+  var ODEME_ARALIGI_MESAJLARI = {
+    eksik:      '⚠️ Geçerli bir ödeme aralığı girin (örn 2–5).',
+    sira:       '⚠️ En az değer, en çok değerden büyük olamaz (örn 2–5 girin).',
+    ulasilamaz: '⚠️ Bu aralıkta ödeme yapılabilecek kombinasyon yok — geçerli bir aralık girin (örn 2–5).'
+  };
+  function odemeAraligiSorunu(min, max) {
+    if (min <= 0 || max <= 0) return 'eksik';
+    if (min > max) return 'sira';
+    if (!odemeAraligiUlasilabilirMi(min, max)) return 'ulasilamaz';
+    return '';
+  }
+  // FAZ35.151/152: Ulaşılamaz/geçersiz bant uyarısını göster/gizle. SADECE ozel band giriş modunda (detaylı açık + manip kapalı).
   function odemeAraligiUyariGuncelle() {
+    var uyariEl = document.getElementById('odemeAraligiUlasilamazUyari');
+    if (!uyariEl) return;
+    if (!ozelBandGirisModuMu()) { uyariEl.style.display = 'none'; return; }
     var minV = parseFloat(document.getElementById('minCarpan').value) || 0;
     var maxV = parseFloat(document.getElementById('maksCarpan').value) || 0;
-    var uyariEl = document.getElementById('odemeAraligiUlasilamazUyari');
-    if (uyariEl) uyariEl.style.display = (minV > 0 && maxV > 0 && !odemeAraligiUlasilabilirMi(minV, maxV)) ? 'block' : 'none';
+    var sorun = odemeAraligiSorunu(minV, maxV);
+    if (sorun) { uyariEl.innerHTML = ODEME_ARALIGI_MESAJLARI[sorun]; uyariEl.style.display = 'block'; }
+    else uyariEl.style.display = 'none';
   }
 
   function ayarDegisti(anahtar, deger, ekranElementId, ekranSonek) {
@@ -1498,6 +1526,9 @@
       unityeGonder('maksCarpan', 0);
     }
     odemeAraligiDisableGuncelle(manipAktif);
+    // FAZ35.152: Manipülasyon değişince ozel band uyarısını yenile — near-miss/kaçış'a geçince gizlenir (ozel band girişi değil),
+    // Kapalı'ya dönünce min/max=0 ise 'eksik' gösterilir (admin band girmeli).
+    odemeAraligiUyariGuncelle();
   }
 
   // FAZ35.148 SORUN B: Ödeme Aralığı MIN/MAX disable (Manipülasyon near-miss/kaçış aktifken) — bonusSliderDisableGuncelle emsali.
@@ -1782,17 +1813,18 @@
     var s = SENARYOLAR[secim];
     if (!s) return;
 
-    // FAZ35.151 A3: Ulaşılamaz ozel band → REDDET (hiçbir unityeGonder yapılmaz). Detaylı Ayarlar açık + tam band (min/max>0)
-    // + paytable'da o aralığa düşen kombinasyon yoksa → toast + kalıcı uyarı + early return. Admin geçerli bant girmek zorunda.
+    // FAZ35.151/152: Ozel band → geçersiz aralık REDDET (hiçbir unityeGonder yapılmaz). SADECE ozel band giriş modunda
+    // (detaylı açık + manipülasyon kapalı; near-miss/kaçış/mod/normal etkilenmez). 'eksik' (elle 0/0/biri≤0) + 'sira' (MIN>MAX)
+    // + 'ulasilamaz' (paytable boşluğu) → toast + kalıcı uyarı + early return. Admin geçerli bant girmek zorunda.
     // A2 min-üstü fallback (Simulasyon.cs) son-çare olarak arkada kalır (iki katman); buraya normalde hiç düşülmez.
-    var detayliAcikA3 = !!(document.getElementById('detayliAyarlarToggle') && document.getElementById('detayliAyarlarToggle').classList.contains('active'));
-    if (detayliAcikA3) {
+    if (ozelBandGirisModuMu()) {
       var minA3 = parseFloat(document.getElementById('minCarpan').value) || 0;
       var maxA3 = parseFloat(document.getElementById('maksCarpan').value) || 0;
-      if (minA3 > 0 && maxA3 > 0 && !odemeAraligiUlasilabilirMi(minA3, maxA3)) {
-        showToast('Geçersiz ödeme aralığı — bu aralıkta kombinasyon yok. Örn 2–5 girin.');
+      var sorunA3 = odemeAraligiSorunu(minA3, maxA3);
+      if (sorunA3) {
+        showToast(ODEME_ARALIGI_MESAJLARI[sorunA3]);
         var uEl = document.getElementById('odemeAraligiUlasilamazUyari');
-        if (uEl) uEl.style.display = 'block';
+        if (uEl) { uEl.innerHTML = ODEME_ARALIGI_MESAJLARI[sorunA3]; uEl.style.display = 'block'; }
         return;
       }
     }
