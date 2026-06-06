@@ -511,6 +511,11 @@ public partial class OyunYoneticisi
                 {
                     int cv = kayit.IlkCarpanGrid[xx, yy];
                     if (cv <= 0) continue;
+                    // FAZ35.148 A2-görsel: Hücre GERÇEKTEN çarpan sembolü değilse (stale carpanDegerGrid → fruit hücre) uçma.
+                    // Satır 16 IlkCarpanDegerleri'ndeki CARPAN_SEMBOL gate'inin uçuş tarafı karşılığı. ozel konstrükte FillRandomAll
+                    // atlayıp carpanDegerGrid'i temizlemediği için fruit hücrede stale cv kalıyordu → meyve çarpan gibi kutuya uçuyordu.
+                    // Gerçek çarpan (IlkGrid==CARPAN_SEMBOL) etkilenmez → universal correctness, regresyon yok.
+                    if (kayit.IlkGrid == null || kayit.IlkGrid[xx, yy] != CARPAN_SEMBOL) continue;
                     int ix = _izgaraServisi.XYToIndex(xx, yy);
                     if (ix >= 0 && ix < hucreSayisiIlk)
                     {
