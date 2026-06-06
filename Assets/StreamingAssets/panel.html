@@ -1092,7 +1092,7 @@
             <button              id="odemeDavranisi_kacis"    onclick="odemeDavranisiSec('kacis')">Kaçış engelleme</button>
             <button              id="odemeDavranisi_nearmiss" onclick="odemeDavranisiSec('nearmiss')">Neredeyse Oluyordu</button>
           </div>
-          <div class="ifsa-line" id="odemeDavranisiAciklama">Kapalı: doğal akış (manipülasyon yok). Kaçış engelleme: 3 üst üste kayıp sonrası zorunlu kazanç. Neredeyse Oluyordu: her spinde 7 aynı meyve + 3 scatter düşer ama kazanç verilmez (neredeyse cluster + neredeyse bonus hissi). Tek anda yalnız biri aktif.</div>
+          <div class="ifsa-line" id="odemeDavranisiAciklama">Kapalı: doğal akış, manipülasyon yok.</div>
         </div>
 
       </div>
@@ -1440,11 +1440,21 @@
   // bonusModuDegistir (line 1763) pattern emsali: class active toggle + tek seçim. Backend key isimleri AYNI
   // ("yakinKacirma", "ardisikKayip") — Tutorial T8 varlık testi bozulmaz. Near-miss seçiminde bonus disable.
   // Eski toggleDegisti('yakinKacirma') / toggleDegisti('ardisikKayip') yerine bu fonksiyon kullanılır.
+  // FAZ35.150 İŞ1: Manipülasyon Türü açıklaması dinamik — seçilen radio'nun SADECE kendi metni gösterilir.
+  var odemeDavranisiAciklamalari = {
+    kapali:   'Kapalı: doğal akış, manipülasyon yok.',
+    kacis:    'Kaçış engelleme: 3 üst üste kayıp sonrası zorunlu kazanç verilir.',
+    nearmiss: 'Neredeyse Oluyordu: her spinde 7 aynı meyve + 3 scatter düşer ama kazanç verilmez (neredeyse cluster + neredeyse bonus hissi).'
+  };
+
   function odemeDavranisiSec(secim) {
     ['kapali', 'kacis', 'nearmiss'].forEach(function(s) {
       var btn = document.getElementById('odemeDavranisi_' + s);
       if (btn) btn.classList.toggle('active', secim === s);
     });
+    // FAZ35.150 İŞ1: Açıklamayı seçilen davranışa göre güncelle (init @1419 + mutual exclusion B2 buradan geçer → otomatik senkron).
+    var aciklamaEl = document.getElementById('odemeDavranisiAciklama');
+    if (aciklamaEl) aciklamaEl.innerHTML = odemeDavranisiAciklamalari[secim] || '';
     // Backend key'leri (Tutorial T8 + 35.118/35.119/35.120/35.121 backend tarafı korunur):
     // Kapalı: ikisi de false. Kaçış: ardisikKayip=true, yakinKacirma=false. Near-miss: yakinKacirma=true, ardisikKayip=false.
     var yakinKacirmaAktif = (secim === 'nearmiss');
