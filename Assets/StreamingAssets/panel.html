@@ -1409,6 +1409,15 @@
     if (ekranElementId)
       document.getElementById(ekranElementId).textContent = deger + (ekranSonek || '');
     unityeGonder(anahtar, Number(deger));
+    // FAZ35.148 SORUN B: Ödeme Aralığı ↔ Manipülasyon Türü mutual exclusion. MIN/MAX'a manuel dokununca
+    // (kullanıcı oninput) Manipülasyon Türü'nü Kapalı'ya çevir. SADECE radio aktifken çağrılır (gereksiz çağrı/döngü yok).
+    // 'kapali' → manipAktif=false → B3'te MIN/MAX SIFIRLANMAZ (admin'in az önce yazdığı değer korunur).
+    if (anahtar === 'minCarpan' || anahtar === 'maksCarpan') {
+      var nmEl = document.getElementById('odemeDavranisi_nearmiss');
+      var kcEl = document.getElementById('odemeDavranisi_kacis');
+      if ((nmEl && nmEl.classList.contains('active')) || (kcEl && kcEl.classList.contains('active')))
+        odemeDavranisiSec('kapali');
+    }
   }
 
   // FAZ35.122: maxCarpanTekSpin input handler — backend tavanı 5 (35.116 const MAX_CARPAN_TAVAN), UI'da >5 girilince
@@ -1444,6 +1453,31 @@
     unityeGonder('ardisikKayip', ardisikKayipAktif);
     // Near-miss aktifken bonus slider disable (çakışma — backend zaten Faz 35.118'de kilitliyor, UI feedback).
     bonusSliderDisableGuncelle(yakinKacirmaAktif);
+    // FAZ35.148 SORUN B: Manipülasyon (near-miss/kaçış) ↔ Ödeme Aralığı mutual exclusion.
+    // Manipülasyon aktif → MIN/MAX'ı 0'la + gönder + disable (panelden ayarlanamaz). Kapalı → enable (değer korunur, sıfırlanmaz).
+    // NOT: minEl.value=0 PROGRAMATİK atama → oninput TETİKLEMEZ → ayarDegisti çağrılmaz → DÖNGÜ YOK.
+    var manipAktif = yakinKacirmaAktif || ardisikKayipAktif;
+    if (manipAktif) {
+      var minEl = document.getElementById('minCarpan');
+      var maksEl = document.getElementById('maksCarpan');
+      if (minEl) minEl.value = 0;
+      if (maksEl) maksEl.value = 0;
+      unityeGonder('minCarpan', 0);
+      unityeGonder('maksCarpan', 0);
+    }
+    odemeAraligiDisableGuncelle(manipAktif);
+  }
+
+  // FAZ35.148 SORUN B: Ödeme Aralığı MIN/MAX disable (Manipülasyon near-miss/kaçış aktifken) — bonusSliderDisableGuncelle emsali.
+  function odemeAraligiDisableGuncelle(kilitli) {
+    ['minCarpan', 'maksCarpan'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) {
+        el.disabled = kilitli;
+        el.style.opacity = kilitli ? '0.4' : '1';
+        el.style.pointerEvents = kilitli ? 'none' : 'auto';
+      }
+    });
   }
 
   // FAZ35.122: Bonus slider disable (Near-miss aktifken) — modKilitle pattern emsali line 1485-1496.
