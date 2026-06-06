@@ -1076,6 +1076,10 @@
             <span style="font-size:14px; color:#8a7c5c; align-self:center; padding-bottom:8px;">× bahis</span>
           </div>
           <div class="ifsa-line">Burada yapılan ayarla oyuncuların kazandığında alacağı miktar bahisinin kaç katı olabileceği belirlenir. (en az – en çok)</div>
+          <!-- FAZ35.151 A3: Ulaşılamaz bant uyarısı (paytable boşluğu, örn 6-7). Gizli; ayarDegisti/senaryoUygula toggle eder. -->
+          <div id="odemeAraligiUlasilamazUyari" style="font-size:13px;color:#dc2626;font-style:italic;margin-top:6px;display:none;">
+            ⚠️ Bu aralıkta ödeme yapılabilecek kombinasyon yok — geçerli bir aralık girin (örn 2–5).
+          </div>
         </div>
 
         <!-- FAZ35.122: ÖDEME DAVRANIŞI RADIO (Kapalı / Kaçış engelleme / Near-miss) — tek seçim, çakışma engellenir -->
@@ -1405,6 +1409,22 @@
   }
 
   // ===== AYAR DEĞİŞİKLİĞİ =====
+  // FAZ35.151 A3: Ulaşılabilir ödeme çarpanları (TumbleAyarlari PayTable_8_9/10_11/12Plus, sym 0-7, scatter hariç, cnt 8-12).
+  // Cluster TL = paytable×bahis; band=[min,max]×bahis → bahis sadeleşir → reachability salt çarpan uzayında.
+  // SENKRON: TumbleAyarlari.cs paytable değişirse bu dizi güncellenmeli (admin panelinde paytable editörü YOK → sabit).
+  var ULASILABILIR_CARPANLAR = [0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0, 1.5, 2.0, 2.5, 3.0, 5.0, 10.0, 25.0];
+  function odemeAraligiUlasilabilirMi(min, max) {
+    var lo = Math.min(min, max), hi = Math.max(min, max);
+    return ULASILABILIR_CARPANLAR.some(function(v) { return v >= lo && v <= hi; });
+  }
+  // FAZ35.151 A3: Ulaşılamaz bant uyarısını min/max DOM değerine göre göster/gizle (sadece tam band: ikisi de >0).
+  function odemeAraligiUyariGuncelle() {
+    var minV = parseFloat(document.getElementById('minCarpan').value) || 0;
+    var maxV = parseFloat(document.getElementById('maksCarpan').value) || 0;
+    var uyariEl = document.getElementById('odemeAraligiUlasilamazUyari');
+    if (uyariEl) uyariEl.style.display = (minV > 0 && maxV > 0 && !odemeAraligiUlasilabilirMi(minV, maxV)) ? 'block' : 'none';
+  }
+
   function ayarDegisti(anahtar, deger, ekranElementId, ekranSonek) {
     if (ekranElementId)
       document.getElementById(ekranElementId).textContent = deger + (ekranSonek || '');
@@ -1417,6 +1437,8 @@
       var kcEl = document.getElementById('odemeDavranisi_kacis');
       if ((nmEl && nmEl.classList.contains('active')) || (kcEl && kcEl.classList.contains('active')))
         odemeDavranisiSec('kapali');
+      // FAZ35.151 A3: yazarken anlık ulaşılamaz bant uyarısı.
+      odemeAraligiUyariGuncelle();
     }
   }
 
@@ -1759,6 +1781,21 @@
     var secim = document.getElementById('oyunModu').value;
     var s = SENARYOLAR[secim];
     if (!s) return;
+
+    // FAZ35.151 A3: Ulaşılamaz ozel band → REDDET (hiçbir unityeGonder yapılmaz). Detaylı Ayarlar açık + tam band (min/max>0)
+    // + paytable'da o aralığa düşen kombinasyon yoksa → toast + kalıcı uyarı + early return. Admin geçerli bant girmek zorunda.
+    // A2 min-üstü fallback (Simulasyon.cs) son-çare olarak arkada kalır (iki katman); buraya normalde hiç düşülmez.
+    var detayliAcikA3 = !!(document.getElementById('detayliAyarlarToggle') && document.getElementById('detayliAyarlarToggle').classList.contains('active'));
+    if (detayliAcikA3) {
+      var minA3 = parseFloat(document.getElementById('minCarpan').value) || 0;
+      var maxA3 = parseFloat(document.getElementById('maksCarpan').value) || 0;
+      if (minA3 > 0 && maxA3 > 0 && !odemeAraligiUlasilabilirMi(minA3, maxA3)) {
+        showToast('Geçersiz ödeme aralığı — bu aralıkta kombinasyon yok. Örn 2–5 girin.');
+        var uEl = document.getElementById('odemeAraligiUlasilamazUyari');
+        if (uEl) uEl.style.display = 'block';
+        return;
+      }
+    }
 
     // FAZ35.86 İŞ1: Confirm pop-up regression fix (35.83 senaryoOtomatikUygula sonrası gereksiz pop-up).
     // Yönetici aracı: dropdown her seçimde direkt uygula. revertToSavedState (sat ~1538) defansif, korunur.
