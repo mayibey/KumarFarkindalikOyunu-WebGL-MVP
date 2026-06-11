@@ -8,10 +8,13 @@
 public static class YeniMotorKatmani
 {
     // İŞ D2: ZorlaCarpanMotoru EN ÖNDE (öncelik — force her modu ezer, tek atımlık). Sonra mod motorları.
-    // ADIM 1: Yontma. ADIM 2: Hook. İŞ B: Koruma. İŞ C: Tutma. Sonraki: Ozel / NearMiss / Kacis.
+    // ADIM 1: Yontma. ADIM 2: Hook. İŞ B: Koruma. İŞ C: Tutma. FAZ36.2: Ozel (admin MIN/MAX band). Sonraki: NearMiss / Kacis.
+    // Ozel, Zorla'dan SONRA / mod motorlarından ÖNCE: tetiği aktifSenaryo=="ozel" (diğer modlarla çakışmaz —
+    // TEK MOTOR kuralı). Reçete dönünce legacy mod-konstrukte yolu (Spin.cs:586) 03'te HİÇ çalışmaz (null → legacy aynen).
     private static readonly ISpinMotoru[] _motorlar = new ISpinMotoru[]
     {
         new ZorlaCarpanMotoru(),
+        new OzelMotoru(),
         new YontmaMotoru(),
         new HookMotoru(),
         new KorumaMotoru(),

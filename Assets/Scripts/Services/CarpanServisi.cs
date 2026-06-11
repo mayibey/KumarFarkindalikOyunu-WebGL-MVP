@@ -115,7 +115,7 @@ public class CarpanServisi
         // FAZ35.102 İŞ1: SORUN 1 teşhis — çarpan %100 olsa bile her spinde düşmüyor; hangi guard BLOK ediyor net teşhis için 4 erken return'e Debug.Log eklendi.
         if (!carpanUretimiAktif)
         {
-            Debug.Log("[CARPAN BLOK] FAZ35.102: carpanUretimiAktif=false (Faz 35.93 _modKonstrukteBasarili guard?)");
+            Debug.Log("[CARPAN BLOK] FAZ35.102: dogal carpan kapali (per-spin mod-konstrukte guard FAZ35.93; field carpanUretimiAktif degil)");
             return false;
         }
         if (sadeceBonus && !bonusAktif)
