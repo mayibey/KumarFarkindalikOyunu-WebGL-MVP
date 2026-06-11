@@ -109,6 +109,10 @@ public sealed class OzelMotoru : ISpinMotoru
         kayit.NihaiCarpanToplam = Mathf.Max(1, finalCarpan);   // nihai ödeme = beklenenTl × Σçarpan ∈ [minTl, maxTl]
         kayit.ZorlaCarpanKullanildi = finalCarpan > 1;
         kayit.SenaryoOdemeBandinaUygun = true;
+        // FAZ36.2 KALICI ÖZET (motorun tek gözü): kirp=true → çarpan istendi (ck.dussun) ama band-fit dışladı
+        // (dar bantta küme×toplam ∈ band tutmadı → çarpansıza düşüldü). nihai = ham × uygulanan çarpan.
+        bool kirp = ck.dussun && ck.toplam > 1 && finalCarpan <= 1;
+        Debug.Log($"[OzelMotoru] band=[{minTl}-{maxTl}]TL ham={beklenenTl} carpan={finalCarpan} kirp={kirp} nihai={beklenenTl * Mathf.Max(1, finalCarpan)}");
         return kayit;
     }
 
