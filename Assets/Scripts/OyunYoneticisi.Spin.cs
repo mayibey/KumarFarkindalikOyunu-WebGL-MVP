@@ -406,6 +406,26 @@ public partial class OyunYoneticisi
             }
         }
 
+        // FAZ36: Yeni motor katmanı dispatch — scripted erken-return (yukarı) ile AYNI desen (additive, alt akış DEĞİŞMEZ).
+        // SADECE 03 (buildIndex==2) + normal spin. Dispatch ADIM 1'de yalnız "yontma"yı yakalar; null → legacy AYNEN devam.
+        // ANAYASA rule 0: aşağıdaki mevcut motor mantığı bit-for-bit korunur; yeni motor reçete dönerse legacy HİÇ çalışmaz.
+        if (SceneManager.GetActiveScene().buildIndex == 2 && !bonusSpin)
+        {
+            var _motorGirdi = new MotorGirdi
+            {
+                aktifSenaryo = PanelKopru.aktifSenaryo,
+                bahis = _ekonomiServisi != null ? _ekonomiServisi.Bahis : 0,
+                paytable = tumbleAyarlari,
+                sutun = sutun,
+                satir = satir,
+                scatterIdx = _scatterIndexCache,
+                minKat = odemeMinKat,
+                maksKat = odemeMaksKat,
+            };
+            var _recete = YeniMotorKatmani.Dispatch(_motorGirdi);
+            if (_recete != null) return _recete;   // yeni motor reçetesi → legacy alt akış çalışmaz
+        }
+
         _bombaPatlamaSonrasiIlkRefillCarpanEngeli = false;
         // FAZ35.84: Reroll sayacı reset (her spin başı). Scripted/konstrukte erken return path'leri -1 kalır,
         // ana reroll loop return öncesi deneme sayısı set edilir (debug analiz için).
