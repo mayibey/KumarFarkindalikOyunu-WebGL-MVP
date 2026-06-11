@@ -421,6 +421,9 @@ public partial class OyunYoneticisi
                 scatterIdx = _scatterIndexCache,
                 minKat = odemeMinKat,
                 maksKat = odemeMaksKat,
+                carpanAktif = carpanUretimiAktif,        // FAZ36 İŞ A: CarpanServisi için read-only çarpan ayarları
+                carpanOlasilik = carpanUretimOlasiligi,
+                maxCarpanAdedi = maxCarpanAdedi,
             };
             var _recete = YeniMotorKatmani.Dispatch(_motorGirdi);
             if (_recete != null) return _recete;   // yeni motor reçetesi → legacy alt akış çalışmaz

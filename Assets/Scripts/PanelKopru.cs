@@ -464,13 +464,15 @@ public class PanelKopru : MonoBehaviour
             case "hook":
                 // FAZ35.83: Taze Kan — %85→%90 eğilim, 2/3→1.5/2.5 bant (dar, saf karakter)
                 // FAZ35.140 K1: Bant 1.5/2.5 → 0.9/1.6 düşürüldü (RTP). Ama panel.html 1.5/2.5'te kalmıştı (gotcha → efektif 1.5/2.5).
-                // FAZ36 ADIM 2: HookMotoru sözleşmesi "bahisin BİRAZ üstü" → band 1.1/1.7 (1650-2550 @1500). PanelKopru + 2 panel.html senkronlandı.
+                // FAZ36 ADIM 2: HookMotoru sözleşmesi "bahisin BİRAZ üstü" → band 1.1/1.7. PanelKopru + 2 panel.html senkron.
+                // FAZ36 ADIM 2b: tavan 1.7→2.2 ESNETME (1650-3300 @1500). Sebep: [1650,2550]'de paytable'dan TEK aday (2250) →
+                //   yığılma. Tavan 3300 → çarpansız {2250,3000}, çarpanlı küme [825,1650]→×2 {1800,2400,3000}. Taban 1.1 aynı (biraz üstü korunur).
                 _oy.AdminSetOdemeEgilimi(90);
                 _oy.AdminSetMinCarpanDegeri(1.1f);
-                _oy.AdminSetMaksCarpanDegeri(1.7f);
+                _oy.AdminSetMaksCarpanDegeri(2.2f);
                 // FAZ35.140 K2: maxCarpanAdedi=1 — Hook çarpan birikme engellendi (5+8=13x taşması bitti).
                 _oy.AdminSetMaxCarpanTekSpin(1);
-                minCarpan = 1.1f; maksCarpan = 1.7f;
+                minCarpan = 1.1f; maksCarpan = 2.2f;
                 break;
 
             case "yontma":

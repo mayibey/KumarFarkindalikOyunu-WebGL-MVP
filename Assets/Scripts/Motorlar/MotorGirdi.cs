@@ -21,4 +21,12 @@ public sealed class MotorGirdi
     public float minKat;
     /// <summary>Ödeme bandı maks katı (odemeMaksKat). band max TL = bahis × maksKat.</summary>
     public float maksKat;
+
+    // FAZ36 İŞ A: Çarpan ayarları (CarpanServisi read-only okur). Panel slider'ları → OyunYoneticisi instance field'ları.
+    /// <summary>carpanUretimiAktif — çarpan açık/kapalı (carpanOdeme toggle).</summary>
+    public bool carpanAktif;
+    /// <summary>carpanUretimOlasiligi (0-1) — spin başına çarpan düşme olasılığı (slider).</summary>
+    public float carpanOlasilik;
+    /// <summary>maxCarpanAdedi — tek spinde max çarpan adedi.</summary>
+    public int maxCarpanAdedi;
 }

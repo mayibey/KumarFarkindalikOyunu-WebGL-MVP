@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// SÖZLEŞME: her spin KAZANÇ (sıfır yasak), ödeme bahisin BİRAZ üstü (band 1.1-1.7).
+// SÖZLEŞME: her spin KAZANÇ (sıfır yasak), ödeme bahisin BİRAZ üstü (band 1.1-2.2 = 1650-3300 @1500).
 // SCATTER/BONUS VAR (kasıtlı): taze kan = oyuncuyu bağlama — bonus heyecanı/dopamin
 // bağlamanın aracı. Yontma'nın TERSİ (orada bonus pedagojiyi bozardı, burada besler).
 // ÇARPAN ŞOVU: ~%30 spin bilinçli küçük küme + 2x çarpan → küme×çarpan band içi (vitrin=ödeme korunur).
@@ -9,7 +9,7 @@ using UnityEngine;
 /// <summary>
 /// FAZ36 ADIM 2: Hook (Taze Kan) motoru, izole. 03-only. HER spin kazanç, ödeme bahisin biraz üstü.
 /// YontmaMotoru kalıbının band'i yukarı kaydırılmış + çarpan tavanı maxTl + scatter/bonus AÇIK versiyonu.
-/// - Band [minKat,maksKat]×bahis (panel preset 1.1-1.7) → force-win, asla 0.
+/// - Band [minKat,maksKat]×bahis (panel preset 1.1-2.2) → force-win, asla 0. Tavan 2.2: paytable [1650,2550]'de tek aday (2250) yığılmasını açar.
 /// - Çarpan: küme×çarpan ≤ maxTl HER ZAMAN. ~%30 spin 2x çarpan (küçük küme×2 = band içi), gerisi çarpansız.
 /// - Scatter: olasılıksal enjeksiyon → ara sıra eşik aşılır → legacy bonus oyunu tetiklenir.
 /// Hiçbir instance state'e/flag'e dokunmaz; yalnız MotorGirdi okur, SpinSimulasyonKaydi üretir.
@@ -18,9 +18,8 @@ public sealed class HookMotoru : ISpinMotoru
 {
     private const int CARPAN_SEMBOL = -2;
 
-    // Çarpan şovu olasılığı: bu oranda spin küçük küme + 2x (vitrin'de çarpan görünür, ödeme band içi).
-    private const float CARPAN_OLASILIK = 0.30f;
-    private const int CARPAN_DEGERI = 2;
+    // FAZ36 İŞ A: Çarpan kararı (olasılık + adet + değer) artık CarpanServisi'nde — panel slider'ına bağlı.
+    // Hardcode %30/2x KALDIRILDI. Admin çarpan slider %100 → her hook spin çarpan; %0 → hiç. "Panel ne vaat ederse o."
 
     // KALİBRASYON NOKTASI: bonus eşiği aşma olasılığı. 0.03 ≈ 1 bonus / 33 spin (hedef 30-40).
     // Build sonrası 03'te gözle ayarla — büyütürsen daha sık bonus, küçültürsen seyrek.
@@ -42,25 +41,25 @@ public sealed class HookMotoru : ISpinMotoru
         if (sembolSayisi <= 0 || g.bahis <= 0 || g.sutun <= 0 || g.satir <= 0) return null;
 
         int minTl = Mathf.RoundToInt(g.bahis * g.minKat);   // 1.1×bahis = 1650 @1500
-        int maxTl = Mathf.RoundToInt(g.bahis * g.maksKat);  // 1.7×bahis = 2550 @1500
+        int maxTl = Mathf.RoundToInt(g.bahis * g.maksKat);  // 2.2×bahis = 3300 @1500 (FAZ36 ADIM 2b esnetme)
         if (maxTl < minTl) { int t = minTl; minTl = maxTl; maxTl = t; }
         if (minTl <= 0) minTl = 1;
 
-        // ÇARPAN KARARI: ~%30 spin 2x çarpan → küme [minTl/2, maxTl/2] seç, ×2 = band içi.
-        //                ~%70 spin çarpansız → küme [minTl, maxTl] (final = küme, band içi).
-        // Kısıt küme×çarpan ≤ maxTl HER İKİ yolda da inşaen sağlanır.
-        bool carpanli = Random.value < CARPAN_OLASILIK;
-        int carpan = carpanli ? CARPAN_DEGERI : 1;
-        int secMinTl = carpanli ? Mathf.CeilToInt(minTl / (float)carpan) : minTl;
-        int secMaxTl = carpanli ? maxTl / carpan : maxTl;
+        // ÇARPAN KARARI (FAZ36 İŞ A): CarpanServisi panel slider'ına göre karar verir. Düşerse küçük küme
+        // [minTl/toplam, maxTl/toplam] → küme×toplam ∈ band; düşmezse çarpansız band kümesi. Kısıt küme×toplam ≤ maxTl inşaen.
+        var ck = MotorCarpanServisi.Hesapla(g);
+        bool carpanli = ck.dussun && ck.toplam > 1;
+        int secMinTl = carpanli ? Mathf.CeilToInt(minTl / (float)ck.toplam) : minTl;
+        int secMaxTl = carpanli ? maxTl / ck.toplam : maxTl;
+        if (carpanli && secMaxTl < secMinTl) { carpanli = false; secMinTl = minTl; secMaxTl = maxTl; }  // toplam çok büyük → çarpansıza düş
 
         int kSym, kCnt, beklenenTl;
         if (!HedefOdemeMotorBase.TryPaytableUyumluTekKumeRastgeleSec(
                 g.paytable, g.bahis, secMinTl, secMaxTl, g.scatterIdx, g.sutun, g.satir,
                 _sonSecilenSembol, out kSym, out kCnt, out beklenenTl))
         {
-            // Çarpan yolu başarısız → çarpansız tam band'a düş; o da yoksa A2 en yakın (full band, carpan=1).
-            carpan = 1;
+            // Sub-band başarısız → çarpansız tam band; o da yoksa A2 en yakın (full band).
+            carpanli = false;
             if (!HedefOdemeMotorBase.TryPaytableUyumluTekKumeRastgeleSec(
                     g.paytable, g.bahis, minTl, maxTl, g.scatterIdx, g.sutun, g.satir,
                     _sonSecilenSembol, out kSym, out kCnt, out beklenenTl))
@@ -76,18 +75,24 @@ public sealed class HookMotoru : ISpinMotoru
 
         _sonSecilenSembol = kSym;
 
-        // Çarpan bombası (küme DIŞI hücreye → küme TL'si sabit, küme×çarpan ≤ maxTl korunur).
+        // Çarpan bombaları (CarpanServisi değerleri; küme DIŞI hücrelere → küme TL'si sabit, küme×Σçarpan ≤ maxTl).
         int[,] ilkCarpanGrid = new int[g.sutun, g.satir];
         var ilkCarpanDegerleri = new List<int>();
-        if (carpan > 1)
+        int finalCarpan = 1;
+        if (carpanli && ck.degerler != null)
         {
-            if (BombaHucresiBul(ilkGrid, kSym, g.scatterIdx, g.sutun, g.satir, out Vector2Int bomba))
+            int yerlesen = 0;
+            foreach (int deger in ck.degerler)
             {
-                ilkGrid[bomba.x, bomba.y] = CARPAN_SEMBOL;
-                ilkCarpanGrid[bomba.x, bomba.y] = carpan;
-                ilkCarpanDegerleri.Add(carpan);
+                if (BombaHucresiBul(ilkGrid, kSym, g.scatterIdx, g.sutun, g.satir, out Vector2Int bomba))
+                {
+                    ilkGrid[bomba.x, bomba.y] = CARPAN_SEMBOL;
+                    ilkCarpanGrid[bomba.x, bomba.y] = deger;
+                    ilkCarpanDegerleri.Add(deger);
+                    yerlesen += deger;
+                }
             }
-            else carpan = 1;   // yer yoksa çarpansız (savunmacı)
+            if (yerlesen > 0) finalCarpan = yerlesen;
         }
 
         // SCATTER (h2): olasılıksal enjeksiyon. Bonus olasılığı tutarsa eşik kadar (bonus tetikler),
@@ -109,8 +114,8 @@ public sealed class HookMotoru : ISpinMotoru
         kayit.IlkCarpanDegerleri = ilkCarpanDegerleri;
         kayit.Adimlar.Add(adim);
         kayit.ToplamHamKazanc = beklenenTl;
-        kayit.NihaiCarpanToplam = Mathf.Max(1, carpan);   // final ödeme = beklenenTl × carpan ∈ [minTl, maxTl]
-        kayit.ZorlaCarpanKullanildi = carpan > 1;
+        kayit.NihaiCarpanToplam = Mathf.Max(1, finalCarpan);   // final ödeme = beklenenTl × Σçarpan ∈ [minTl, maxTl]
+        kayit.ZorlaCarpanKullanildi = finalCarpan > 1;
         kayit.SenaryoOdemeBandinaUygun = true;
         return kayit;
     }

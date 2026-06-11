@@ -51,20 +51,27 @@ public sealed class YontmaMotoru : ISpinMotoru
 
         _sonSecilenSembol = kSym;
 
-        // 3. Bonus çarpan: beklenenTl × carpan < bahis garantisi (çarpan ödemeye biniyor → ödeme < bahis).
-        int carpan = CarpanSec(beklenenTl, g.bahis);
+        // 3. Çarpan (FAZ36 İŞ A): CarpanServisi panel slider'ına göre. SADECE küme×Σçarpan < bahis ise uygula
+        //    (yontma sözleşmesi: ödeme < bahis korunur). beklenenTl ∈ band zaten < bahis; çarpan ancak fit ederse biner.
+        var ck = MotorCarpanServisi.Hesapla(g);
         int[,] ilkCarpanGrid = new int[g.sutun, g.satir];
         var ilkCarpanDegerleri = new List<int>();
-        if (carpan > 1)
+        int finalCarpan = 1;
+        if (ck.dussun && ck.degerler != null && (long)beklenenTl * ck.toplam < g.bahis)
         {
-            // Küme DIŞI bir hücreye CARPAN_SEMBOL bomba (cluster hücresini bozma → küme TL'si sabit kalır).
-            if (BombaHucresiBul(ilkGrid, kSym, g.scatterIdx, g.sutun, g.satir, out Vector2Int bomba))
+            int yerlesen = 0;
+            foreach (int deger in ck.degerler)
             {
-                ilkGrid[bomba.x, bomba.y] = CARPAN_SEMBOL;
-                ilkCarpanGrid[bomba.x, bomba.y] = carpan;
-                ilkCarpanDegerleri.Add(carpan);
+                // Küme DIŞI hücreye CARPAN_SEMBOL bomba (cluster bozulmaz → küme TL'si sabit).
+                if (BombaHucresiBul(ilkGrid, kSym, g.scatterIdx, g.sutun, g.satir, out Vector2Int bomba))
+                {
+                    ilkGrid[bomba.x, bomba.y] = CARPAN_SEMBOL;
+                    ilkCarpanGrid[bomba.x, bomba.y] = deger;
+                    ilkCarpanDegerleri.Add(deger);
+                    yerlesen += deger;
+                }
             }
-            else carpan = 1;   // boş hücre yoksa çarpansız (savunmacı, pratikte olmaz)
+            if (yerlesen > 0) finalCarpan = yerlesen;   // yerlesen ≤ toplam → küme×yerlesen < bahis korunur
         }
 
         // 4. Reçete kur. Cascade KAPALI → tek adım. patlayan = griddeki TÜM kSym hücreleri.
@@ -79,26 +86,10 @@ public sealed class YontmaMotoru : ISpinMotoru
         kayit.IlkCarpanDegerleri = ilkCarpanDegerleri;
         kayit.Adimlar.Add(adim);
         kayit.ToplamHamKazanc = beklenenTl;
-        kayit.NihaiCarpanToplam = Mathf.Max(1, carpan);
-        kayit.ZorlaCarpanKullanildi = carpan > 1;   // bomba iniş efekti + çarpan text kilidi tetikler
+        kayit.NihaiCarpanToplam = Mathf.Max(1, finalCarpan);
+        kayit.ZorlaCarpanKullanildi = finalCarpan > 1;   // bomba iniş efekti + çarpan text kilidi tetikler
         kayit.SenaryoOdemeBandinaUygun = true;
         return kayit;
-    }
-
-    /// <summary>beklenenTl × carpan &lt; bahis olacak en büyük carpan (1x%70/2x%20/3x%10 havuzundan in).</summary>
-    private static int CarpanSec(int beklenenTl, int bahis)
-    {
-        int secilen = AgirlikliCarpan();   // 1 / 2 / 3
-        while (secilen > 1 && (long)beklenenTl * secilen >= bahis) secilen--;
-        return secilen;
-    }
-
-    private static int AgirlikliCarpan()
-    {
-        float r = Random.value;
-        if (r < 0.70f) return 1;
-        if (r < 0.90f) return 2;
-        return 3;
     }
 
     private static bool BombaHucresiBul(int[,] grid, int kazanSembol, int scatterIdx, int sutun, int satir, out Vector2Int hucre)
