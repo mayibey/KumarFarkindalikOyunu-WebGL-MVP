@@ -7,11 +7,12 @@
 /// </summary>
 public static class YeniMotorKatmani
 {
-    // ADIM 1: YontmaMotoru. ADIM 2: HookMotoru. Sonraki fazlar: Tutma / Koruma / Ozel / NearMiss / Kacis eklenir.
+    // ADIM 1: YontmaMotoru. ADIM 2: HookMotoru. İŞ B: KorumaMotoru. Sonraki: Tutma / Ozel / NearMiss / Kacis.
     private static readonly ISpinMotoru[] _motorlar = new ISpinMotoru[]
     {
         new YontmaMotoru(),
         new HookMotoru(),
+        new KorumaMotoru(),
     };
 
     /// <summary>Uygun motoru bul, reçete üret. Hiçbiri uymazsa null (legacy çalışır → güvenli varsayılan).</summary>

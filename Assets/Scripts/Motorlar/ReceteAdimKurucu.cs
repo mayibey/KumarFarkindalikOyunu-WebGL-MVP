@@ -99,4 +99,34 @@ public static class ReceteAdimKurucu
                 if (grid[x, y] == sembol) list.Add(new Vector2Int(x, y));
         return list;
     }
+
+    /// <summary>
+    /// FAZ36 İŞ B: KAZANÇSIZ random grid (kayıp spini). Hiçbir sembol CLUSTER_ESIK'e (8) ulaşmaz → pay-anywhere kazanç YOK.
+    /// Scatter HARİÇ (zero-scatter → bonus tetiklenmez). Reçete bunu IlkGrid yapar, Adimlar=[] boş, ham=0 → legacy kayıp görseli.
+    /// Her sembol sayımı &lt; CLUSTER_ESIK-1 kalan adaylardan rastgele seçilir → 30 hücre &lt; 8sembol×7=56 kapasite ile garanti.
+    /// </summary>
+    public static int[,] KazancsizGridKur(int sutun, int satir, int sembolSayisi, int scatterIdx)
+    {
+        var grid = new int[sutun, satir];
+        var adaylar = new List<int>();
+        for (int s = 0; s < sembolSayisi; s++) if (s != scatterIdx) adaylar.Add(s);
+        if (adaylar.Count == 0) return grid;
+
+        var adet = new int[sembolSayisi];
+        for (int x = 0; x < sutun; x++)
+            for (int y = 0; y < satir; y++)
+            {
+                var uygun = new List<int>(adaylar.Count);
+                for (int i = 0; i < adaylar.Count; i++)
+                {
+                    int s = adaylar[i];
+                    if (s >= 0 && s < adet.Length && adet[s] < CLUSTER_ESIK - 1) uygun.Add(s);
+                }
+                var havuz = uygun.Count > 0 ? uygun : adaylar;   // 30<56 kapasite → uygun asla boşalmaz; defansif fallback
+                int secilen = havuz[Random.Range(0, havuz.Count)];
+                grid[x, y] = secilen;
+                if (secilen >= 0 && secilen < adet.Length) adet[secilen]++;
+            }
+        return grid;
+    }
 }
