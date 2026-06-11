@@ -970,12 +970,6 @@
       </div>
       <div class="accordion-content">
 
-      <!-- FAZ36.3: Çarpan fizibilite uyarısı — ödeme aralığı Max (kat) < 0.4 iken çarpan matematiksel imkansız
-           (en küçük küme 0.2×bahis × min toplam çarpan 2 = 0.4). carpanFizibiliteGuncelle() göster/gizle eder. -->
-      <div id="carpanFizibiliteUyari" style="font-size:13px; color:#f59e0b; font-style:italic; margin-bottom:10px; display:none;">
-        ⚠ Bu ödeme aralığında çarpan düşemez (Maks en az 0.4× olmalı)
-      </div>
-
       <!-- Çarpan düşme olasılığı -->
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
         <span style="color:#f4d678; font-size:15px; flex:1;">Çarpan düşme olasılığı</span>
@@ -1476,8 +1470,6 @@
         odemeDavranisiSec('kapali');
       // FAZ35.151 A3: yazarken anlık ulaşılamaz bant uyarısı.
       odemeAraligiUyariGuncelle();
-      // FAZ36.3: Maks değişince çarpan fizibilitesini yenile (maksKat<0.4 → çarpan bölümü disable + uyarı).
-      carpanFizibiliteGuncelle();
     }
   }
 
@@ -1575,32 +1567,6 @@
   // preset değer gönderir (03 backend Random near-miss zinciri korunur).
 
   // FAZ35.76: kazanmaOraniInputDegisti SİLİNDİ — "Kazandırma sıklığı" kartı kaldırıldı.
-
-  // FAZ36.3: Çarpan fizibilite — ödeme aralığı Max (kat) < 0.4 iken çarpan matematiksel imkansız.
-  // Eşik = enKüçükKüme(0.2× — PayTable_8_9[0]) × minToplamÇarpan(2) = 0.4. Paytable değişirse bu sabiti güncelle.
-  var CARPAN_MIN_MAKSKAT = 0.4;
-  function carpanFizibiliteGuncelle() {
-    var maksEl = document.getElementById('maksCarpan');
-    var maksKat = maksEl ? (parseFloat(maksEl.value) || 0) : 0;
-    // maksKat 0 = ödeme aralığı kullanılmıyor (çarpan/eğilim-only) → band kısıtı YOK → fizibilite uyarısı yok.
-    var imkansiz = maksKat > 0 && maksKat < CARPAN_MIN_MAKSKAT;
-    // Mod aktifken (dropdown != normal) çarpan kontrolleri zaten modKilitle ile disabled — onun disabled state'ine
-    // KARIŞMA (yarış olmasın); sadece uyarıyı yönet. Ozel/Normal/Detaylı'da (dropdown=normal) disabled'ı uygula.
-    var dropdown = document.getElementById('oyunModu');
-    var modAktif = !!(dropdown && dropdown.value !== 'normal');
-    if (!modAktif) {
-      ['carpanOlasilik', 'carpanOlasilikInput', 'maxCarpanTekSpin'].forEach(function(id) {
-        var el = document.getElementById(id);
-        if (!el) return;
-        // SADECE görsel/etkileşim — değer gönderimi/state'e dokunulmaz (Maks ≥0.4 yapınca eski değer aynen geçerli).
-        el.disabled = imkansiz;
-        el.style.opacity = imkansiz ? '0.5' : '1';
-        el.style.pointerEvents = imkansiz ? 'none' : 'auto';
-      });
-    }
-    var uyari = document.getElementById('carpanFizibiliteUyari');
-    if (uyari) uyari.style.display = imkansiz ? 'block' : 'none';
-  }
 
   // Çarpan düşme olasılığı: slider (0-50) + number input (0-100) senkron
   function carpanOlasilikSliderDegisti(deger) {
@@ -1812,9 +1778,6 @@
         document.getElementById('bonusSpinHesap').textContent = spinH;
       });
     }
-    // FAZ36.3 İŞ2: Mod preset min/max set ettikten sonra çarpan fizibilitesini yenile
-    // (koruma 0.1-0.3 → uyarı görünür; hook 1.1-2.2 → uyarı yok). Mod aktifken yalnız uyarı yönetilir.
-    carpanFizibiliteGuncelle();
   }
 
   // Dropdown change → preview (postMessage YOK, vurgu açık)
@@ -2027,8 +1990,6 @@
     document.getElementById('oyunModu').value                = 'normal';
     modAciklamasiniGuncelle('normal');
     unityeGonder('varsayilanaDon', true);
-    // FAZ36.3: Reset sonrası fizibilite yenile (maks=0 → uyarı gizlenir, çarpan kontrolleri solda kalmasın).
-    carpanFizibiliteGuncelle();
     bildirimGoster('Varsayılana dönüldü');
   }
 
@@ -2119,8 +2080,6 @@
     unityeGonder('carpanOlasilik', carpanOlasilikInit);
     var maxCarpanInit = parseInt(document.getElementById('maxCarpanTekSpin').value, 10) || 1;
     unityeGonder('maxCarpanTekSpin', maxCarpanInit);
-    // FAZ36.3: Açılışta da fizibilite kontrolü (varsayılan bant maks=0 → band kapalı → uyarı yok, doğru durum).
-    carpanFizibiliteGuncelle();
   }
 
   window.addEventListener('load', function () {

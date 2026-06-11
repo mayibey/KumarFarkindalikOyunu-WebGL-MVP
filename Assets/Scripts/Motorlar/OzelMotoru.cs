@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// SÖZLEŞME: admin MIN/MAX band modu ("ozel"). HER spin KAZANÇ, nihai ödeme ∈ [minKat,maksKat]×bahis
-// (örn 0.1-0.3 × 1500 = 150-450 TL). Band HER KOŞULDA kazanır — çarpan bandı taşıramaz (taşma yasak).
-// ÇARPAN: panel slider'ına göre (MotorCarpanServisi). Düşerse band-fit: küme öyle seçilir ki küme×Σçarpan ∈ bant;
-//   bant matematiksel tutturulamazsa çarpan KIRPILIR (çarpansız band kümesine düşülür) — Hook deseni.
+// SÖZLEŞME (FAZ36.4): admin MIN/MAX band modu ("ozel"). HER spin KAZANÇ. Band SADECE HAM küme ödemesini sınırlar:
+// ham ∈ [minKat,maksKat]×bahis (örn 0.1-0.3 × 1500 = 150-450 TL). ÇARPAN tamamen BAĞIMSIZ — slider düştü dediyse
+// aynen uygulanır, nihai = ham × Σçarpan BANT DIŞINA çıkabilir (artık hata değil, tasarım; "bant nihaiyi sınırlar" İPTAL).
 // SCATTER/BONUS: panel bonus periyoduna göre (MotorBonusServisi); eşik altı → görsel, eşik kadar → legacy bonus tetik.
 
 /// <summary>
@@ -16,7 +15,7 @@ using UnityEngine;
 ///
 /// KÖK NEDEN (carpanUretimiAktif raporu): Ozel mod eskiden legacy mod-konstrukte yolunu kullanıyordu; o yolun
 /// FAZ35.93 _modKonstrukteBasarili guard'ı doğal çarpanı her base spinde kapatıyordu (slider %100 etkisiz).
-/// Bu motor ozel'i kendi katmanına alır → guard baypas, çarpan band-fit ile slider'a tabi çalışır.
+/// Bu motor ozel'i kendi katmanına alır → guard baypas, çarpan BAĞIMSIZ slider'a tabi çalışır (band-fit yok).
 /// </summary>
 public sealed class OzelMotoru : ISpinMotoru
 {
@@ -38,28 +37,17 @@ public sealed class OzelMotoru : ISpinMotoru
         if (maxTl < minTl) { int t = minTl; minTl = maxTl; maxTl = t; }
         if (minTl <= 0) minTl = 1;   // ozel: her spin kazanç → taban asla 0
 
-        // ÇARPAN KARARI (band-fit): CarpanServisi panel slider'ına göre. Düşerse küme [minTl/toplam, maxTl/toplam]
-        // → küme×toplam ∈ band. Düşmezse çarpansız band kümesi. Kısıt küme×toplam ≤ maxTl inşaen garanti.
-        var ck = MotorCarpanServisi.Hesapla(g);
-        bool carpanli = ck.dussun && ck.toplam > 1;
-        int secMinTl = carpanli ? Mathf.CeilToInt(minTl / (float)ck.toplam) : minTl;
-        int secMaxTl = carpanli ? maxTl / ck.toplam : maxTl;
-        if (carpanli && secMaxTl < secMinTl) { carpanli = false; secMinTl = minTl; secMaxTl = maxTl; }  // toplam çok büyük → çarpan KIRP (çarpansıza düş)
-
+        // KÜME SEÇİMİ (FAZ36.4): ham küme ödemesi ∈ [minTl, maxTl]. TEK yol — alt-band/band-fit YOK.
+        // Yeni sözleşme: bant SADECE ham kümeyi sınırlar; çarpan AYRI/BAĞIMSIZ (aşağıda), nihai = ham × çarpan
+        // bant dışına çıkabilir (artık hata değil, tasarım kararı). "Bant nihaiyi sınırlar" kuralı İPTAL.
         int kSym, kCnt, beklenenTl;
         if (!HedefOdemeMotorBase.TryPaytableUyumluTekKumeRastgeleSec(
-                g.paytable, g.bahis, secMinTl, secMaxTl, g.scatterIdx, g.sutun, g.satir,
+                g.paytable, g.bahis, minTl, maxTl, g.scatterIdx, g.sutun, g.satir,
                 _sonSecilenSembol, out kSym, out kCnt, out beklenenTl))
         {
-            // Sub-band başarısız → çarpansız tam band; o da yoksa A2 en yakın (band garantisi her koşulda kazanır).
-            carpanli = false;
-            if (!HedefOdemeMotorBase.TryPaytableUyumluTekKumeRastgeleSec(
-                    g.paytable, g.bahis, minTl, maxTl, g.scatterIdx, g.sutun, g.satir,
-                    _sonSecilenSembol, out kSym, out kCnt, out beklenenTl))
-            {
-                if (!EnYakinKumeSec(g, sembolSayisi, minTl, out kSym, out kCnt, out beklenenTl))
-                    return null;   // imkansız (paytable tamamen boş) → legacy çalışsın (güvenli varsayılan)
-            }
+            // Bantta küme yoksa → A2 en yakın (ozel her koşulda kazanır); o da yoksa null → legacy.
+            if (!EnYakinKumeSec(g, sembolSayisi, minTl, out kSym, out kCnt, out beklenenTl))
+                return null;   // imkansız (paytable tamamen boş) → legacy çalışsın (güvenli varsayılan)
         }
 
         if (!HedefOdemeMotorBase.TryTekKumeliIlkGridOlustur(
@@ -68,12 +56,14 @@ public sealed class OzelMotoru : ISpinMotoru
 
         _sonSecilenSembol = kSym;
 
-        // Çarpan bombaları (CarpanServisi değerleri; küme DIŞI hücrelere → küme TL'si sabit, küme×Σçarpan ≤ maxTl).
-        // Yerleşemeyen bomba (boş hücre yok) sayılmaz → finalCarpan yalnız yerleşeni yansıtır (implicit KIRP).
+        // ÇARPAN (FAZ36.4 BAĞIMSIZ): MotorCarpanServisi düştü dediyse AYNEN uygula — nihai = ham × Σçarpan.
+        // Band-fit/kırpma YOK; çarpan slider'ı tek başına yönetir, bant ham kümeyi zaten sınırladı, çarpan üstüne biner.
+        // Küme DIŞI hücrelere bomba (küme TL'si sabit). Yerleşemeyen bomba sayılmaz → finalCarpan yalnız yerleşeni yansıtır.
+        var ck = MotorCarpanServisi.Hesapla(g);
         int[,] ilkCarpanGrid = new int[g.sutun, g.satir];
         var ilkCarpanDegerleri = new List<int>();
         int finalCarpan = 1;
-        if (carpanli && ck.degerler != null)
+        if (ck.dussun && ck.degerler != null)
         {
             int yerlesen = 0;
             foreach (int deger in ck.degerler)
@@ -86,7 +76,7 @@ public sealed class OzelMotoru : ISpinMotoru
                     yerlesen += deger;
                 }
             }
-            if (yerlesen > 0) finalCarpan = yerlesen;   // yerlesen ≤ toplam → küme×yerlesen ≤ maxTl korunur
+            if (yerlesen > 0) finalCarpan = yerlesen;   // yerlesen = uygulanan toplam çarpan (bant dışı olabilir, bağımsız)
         }
 
         // SCATTER/BONUS: karar MotorBonusServisi'nde (çarpandan AYRI, panel bonus periyoduna bağlı — Faz 36.1 slider
@@ -106,13 +96,11 @@ public sealed class OzelMotoru : ISpinMotoru
         kayit.IlkCarpanDegerleri = ilkCarpanDegerleri;
         kayit.Adimlar.Add(adim);
         kayit.ToplamHamKazanc = beklenenTl;
-        kayit.NihaiCarpanToplam = Mathf.Max(1, finalCarpan);   // nihai ödeme = beklenenTl × Σçarpan ∈ [minTl, maxTl]
+        kayit.NihaiCarpanToplam = Mathf.Max(1, finalCarpan);   // nihai ödeme = beklenenTl × Σçarpan (bant dışı olabilir — bağımsız)
         kayit.ZorlaCarpanKullanildi = finalCarpan > 1;
         kayit.SenaryoOdemeBandinaUygun = true;
-        // FAZ36.2 KALICI ÖZET (motorun tek gözü): kirp=true → çarpan istendi (ck.dussun) ama band-fit dışladı
-        // (dar bantta küme×toplam ∈ band tutmadı → çarpansıza düşüldü). nihai = ham × uygulanan çarpan.
-        bool kirp = ck.dussun && ck.toplam > 1 && finalCarpan <= 1;
-        Debug.Log($"[OzelMotoru] band=[{minTl}-{maxTl}]TL ham={beklenenTl} carpan={finalCarpan} kirp={kirp} nihai={beklenenTl * Mathf.Max(1, finalCarpan)}");
+        // FAZ36.2/36.4 KALICI ÖZET (motorun tek gözü): band ham kümeyi sınırlar; nihai = ham × çarpan bant dışı olabilir (tasarım).
+        Debug.Log($"[OzelMotoru] band=[{minTl}-{maxTl}]TL ham={beklenenTl} carpan={finalCarpan} nihai={beklenenTl * Mathf.Max(1, finalCarpan)}");
         return kayit;
     }
 
