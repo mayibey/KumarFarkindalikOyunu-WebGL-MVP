@@ -510,7 +510,9 @@ public partial class OyunYoneticisi
     // FAZ35.104 İŞ1: Default 0.05f → 0.10f. Faz 35.95 delegate sadeleştirildi (state mismatch BUG 1 fix), Normal mod baseline RTP korunur.
     // Detaylı Ayarlar KAPALI iken %10 (eski Faz 35.95 hardcoded davranış), Detaylı Ayarlar AÇIK + slider %X → kullanıcı değeri.
     // Inspector'da serialize edilmiş sahnedeki referans değişmez; bu yeni instance/reset için default.
-    [Range(0f, 1f)] public float carpanUretimOlasiligi = 0.10f;
+    // FAZ36.1 FIX3: default 0.10f → 0.02f — DOM slider default=2 + VarsayilanaDon=2 ile %2'de buluşur (UI↔motor hizalama).
+    // Panel açılışta init carpanOlasilik=2 gönderir (canlı set) → serialize edilmiş sahne değeri ne olursa olsun %2 kazanır.
+    [Range(0f, 1f)] public float carpanUretimOlasiligi = 0.02f;
     // FAZ35.116: Tek kaynak tavan — "Tek spinde maksimum kaç çarpan" pedagojik sınırı.
     // Tüm clamp'ler bu sabite referans: Inspector Range, Admin.cs AdminSetMaxCarpanTekSpin clamp, OyunYoneticisi.cs:917
     // Inspector handler clamp. Dağınık 1-10/0-5 magic number'lar tek noktada hizalandı.

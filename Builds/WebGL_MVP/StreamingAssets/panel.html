@@ -1587,6 +1587,12 @@
     unityeGonder('carpanOlasilik', n);
   }
 
+  // FAZ36.1 FIX1: Bonus yüzdesi → otomatik periyot. TEK formül (slider + init aynı fonksiyonu kullanır, kopya yok).
+  // %X ≤ 0 → periyot 0 (bonus kapalı → MotorBonusServisi olasılık 0). >0 → round(100/X): %50→2, %5→20, %2→50.
+  function bonusPeriyotHesapla(yuzde) {
+    return (yuzde <= 0) ? 0 : Math.round(100 / yuzde);
+  }
+
   // Bonus sembolü düşme olasılığı: yüzde slider 0-5 step 0.1, postMessage int spin = round(100/yüzde)
   function bonusSembolOlasilikDegisti(deger) {
     var yuzde = parseFloat(deger);
@@ -1608,7 +1614,10 @@
       if (aciklama) aciklama.textContent = "Her spin'de %" + yuzde + " bonus oyuna giriş ihtimali";
     }
     unityeGonder('bonusYuzde', yuzde);
-    unityeGonder('bonusGirmeOlasilik', yuzde / 100);  // FAZ35.103 İŞ2: yeni mekanik key
+    unityeGonder('bonusGirmeOlasilik', yuzde / 100);  // FAZ35.103 İŞ2: yeni mekanik key (legacy normal/ozel yol — _bonusGirmeOlasilik)
+    // FAZ36.1 FIX1: Mod motoru (HookMotoru → MotorBonusServisi) bonusOtomatikSpinPeriyodu okur; slider artık bu alanı
+    // da besler. Eskiden sadece init set ediyordu → mod modunda slider ÖLÜYDÜ (İHLAL 1 kök bug). Tek slider → iki kapı.
+    unityeGonder('bonusOtomatikOran', bonusPeriyotHesapla(yuzde));
     // FAZ35.105 İŞ1: Eski "unityeGonder('bonusOtomatikOran', 0)" satırı SİLİNDİ — her slider değişiminde gereksiz toast tetikliyordu ("Bonus otomatik tetik oranı %0 olarak uygulandı"). Motor field zaten 0, panel her seferinde göndermek zorunda değil. Tutorial T5 vb. periyot set akışı ayrı (TutorialOyunYoneticisi.cs:573).
   }
 
@@ -2061,9 +2070,16 @@
     unityeGonder('yakinKacirma',      s.yakinKacirma);
     unityeGonder('ardisikKayip',      s.ardisikKayip);
     unityeGonder('bonusModu',         'otomatik');   // FAZ36 FIX: preset-ezme — mod preset'i (yontma/koruma/tutma 'manuel') admin bonusunu eziyordu. Bonus hep otomatik (35.123 tasarimi); frekans #bonusSembolOlasilik slider'inda, Uygula'da ezilmez. Ilk acilis=otomatik (normal preset, degismez).
-    if (s.bonusSembolOlasilik > 0)
-      unityeGonder('bonusOtomatikOran', Math.round(100 / s.bonusSembolOlasilik));
+    // FAZ36.1 FIX1: init DOM slider'ın güncel değerinden hesaplar — canlı slider ile AYNI formül (bonusPeriyotHesapla).
+    var bonusYuzdeInit = parseFloat(document.getElementById('bonusSembolOlasilik').value) || 0;
+    unityeGonder('bonusOtomatikOran', bonusPeriyotHesapla(bonusYuzdeInit));
     unityeGonder('carpanOdeme',       s.carpanOdeme);
+    // FAZ36.1 FIX3: init eksik gönderim — çarpan slider + max çarpan DOM güncel değerleri (UI↔motor %2 hizalama,
+    // açılışta gizli kapı kalmasın). carpanOlasilik → PanelKopru carpanUretimOlasiligi + carpanUretimiAktif (FIX2).
+    var carpanOlasilikInit = parseInt(document.getElementById('carpanOlasilik').value, 10) || 0;
+    unityeGonder('carpanOlasilik', carpanOlasilikInit);
+    var maxCarpanInit = parseInt(document.getElementById('maxCarpanTekSpin').value, 10) || 1;
+    unityeGonder('maxCarpanTekSpin', maxCarpanInit);
   }
 
   window.addEventListener('load', function () {

@@ -305,10 +305,16 @@ public class PanelKopru : MonoBehaviour
                 if (int.TryParse(deger, out int olasilik))
                 {
                     _oy?.AdminSetCarpanOlasilik(olasilik);
-                    // PAKET 14-FAZ21: AdminSetCarpanOlasilik sadece carpanOlasilikYuzde (UI int field) set
-                    // ediyor; DesenToKayit'ın okuduğu float carpanUretimOlasiligi default 0.15f kalıyor.
-                    // Slider %100 yapsa bile çarpan düşmüyordu — gerçek mekanik field'ı da set et.
-                    if (_oy != null) _oy.carpanUretimOlasiligi = Mathf.Clamp01(olasilik / 100f);
+                    // DesenToKayit'ın + MotorCarpanServisi'nin okuduğu gerçek float field'ı set et (AdminSetCarpanOlasilik
+                    // sadece log atar; FAZ36.1'de ölü carpanOlasilikYuzde alanı kaldırıldı).
+                    // FAZ36.1 FIX2: carpanUretimiAktif gizli kapısını slider'a bağla — TEK KAPI. Panelde ayrı toggle yok;
+                    // slider %0 → çarpan üretimi KAPALI, >0 → AÇIK. Inspector/Fields default ne olursa olsun panel slider kazanır.
+                    // (_carpanTumbleAktif "Çarpan Düşünce Ödeme Versin" force toggle'ı AYRI kalır — ona dokunulmaz.)
+                    if (_oy != null)
+                    {
+                        _oy.carpanUretimOlasiligi = Mathf.Clamp01(olasilik / 100f);
+                        _oy.carpanUretimiAktif = olasilik > 0;
+                    }
                     // FAZ35.106 İŞ1 KESIN FIX: Precompute cache invalidate — slider değişimi anında etkili olsun.
                     // ÖNCESI: PrecomputeNextSpinCoroutine arka planda eski carpanUretimOlasiligi ile spin hesaplıyordu;
                     // kullanıcı slider %100'e çekse bile bir sonraki spin eski state ile koşuyordu (görsel çarpan eksik).
@@ -575,7 +581,10 @@ public class PanelKopru : MonoBehaviour
         // bonusOtomatikSpinPeriyodu motor field'ları kullanıcının manuel değerinde kalıyordu → reset yanıltıcı.
         // Şimdi 6 motor field'ı Fields.cs default'larına çekilir.
         // FAZ35.98 İŞ1 D: Fields.cs:511 default 0.05f (=%5) ile hizalama. Önceden 15 set ediliyordu (eski default 0.15f).
-        _oy?.AdminSetCarpanOlasilik(5);           // carpanUretimOlasiligi default 0.05 (Fields.cs:511)
+        // FAZ36.1 FIX3: %2 hizalama (DOM slider default=2 + Fields default=0.02 ile buluşur). AdminSetCarpanOlasilik
+        // yalnız log atar; gerçek float + aktif kapısı burada set edilir (slider yolu ile aynı kapı — reset de %2).
+        _oy?.AdminSetCarpanOlasilik(2);
+        if (_oy != null) { _oy.carpanUretimOlasiligi = 0.02f; _oy.carpanUretimiAktif = true; }
         _oy?.AdminSetMaxCarpanTekSpin(3);         // maxCarpanAdedi default 3 (Fields.cs:476)
         _oy?.AdminSetYakinKacirma(0);             // yakinKacirmaDegeri10da default 0 (Admin.cs:581)
         // FAZ35.82: ardisikKayip number→toggle dönüşümü; toggle kapalı default → 999 (etkisiz büyük değer).

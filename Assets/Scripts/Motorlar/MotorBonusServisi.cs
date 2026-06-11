@@ -12,10 +12,6 @@ using UnityEngine;
 /// </summary>
 public static class MotorBonusServisi
 {
-    // Manuel / periyotsuz fallback olasılığı (hook'un eski BONUS_OLASILIK'ı). KALİBRASYON NOKTASI.
-    // Otomatik periyot P>0 ise 1/P kullanılır; manuel'de bonus yine görünür kalsın (taze kan = bağlama).
-    private const float VARSAYILAN_OLASILIK = 0.03f;
-
     public struct Karar
     {
         public int scatterSayisi;   // gride yerleştirilecek scatter adedi
@@ -32,7 +28,8 @@ public static class MotorBonusServisi
         return new Karar { scatterSayisi = Random.Range(0, esik - 1), bonusTetikler = false };  // 0..esik-2 görsel, eşik altı
     }
 
-    // Otomatik periyot P>0 → ~1/P sıklık; manuel/periyotsuz (0) → VARSAYILAN (bonus görünür kalsın).
+    // FAZ36.1 FIX1: Periyot P>0 → ~1/P sıklık; P=0 → 0 (bonus KAPALI — panel slider %0 = bonus yok, tek kapı).
+    // Sıfıra bölme koruması: bölme yalnız P>0 dalında; P=0 dalı doğrudan 0 döner.
     private static float BonusOlasiligi(MotorGirdi g)
-        => g.bonusPeriyot > 0 ? 1f / g.bonusPeriyot : VARSAYILAN_OLASILIK;
+        => g.bonusPeriyot > 0 ? 1f / g.bonusPeriyot : 0f;
 }

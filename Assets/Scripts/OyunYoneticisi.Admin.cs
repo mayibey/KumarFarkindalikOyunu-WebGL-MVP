@@ -613,11 +613,13 @@ public partial class OyunYoneticisi
     }
     public float GetBonusGirmeOlasilik() => _bonusGirmeOlasilik;
 
-    [HideInInspector] public int carpanOlasilikYuzde = 2;
+    // FAZ36.1 FIX3: carpanOlasilikYuzde ölü alanı KALDIRILDI — oyun mantığı hiçbir yerde okumuyordu (yalnız bu log
+    // self-referans). Gerçek olasılık carpanUretimOlasiligi (float); PanelKopru "carpanOlasilik" case'i + VarsayilanaDon
+    // set eder. Bu metod public API olarak korunur (PanelKopru/SpinTestRunner/VarsayilanaDon çağırır) — sadece loglar.
     public void AdminSetCarpanOlasilik(int yuzde)
     {
-        carpanOlasilikYuzde = Mathf.Clamp(yuzde, 0, 100);
-        Debug.Log($"[ADMIN][PANEL] Çarpan düşme olasılığı: {carpanOlasilikYuzde}%");
+        int clamped = Mathf.Clamp(yuzde, 0, 100);
+        Debug.Log($"[ADMIN][PANEL] Çarpan düşme olasılığı: {clamped}%");
     }
 
     // FAZ35.81 Madde 1: Serbest oyun Min/Maks Çarpan setter'ları.
