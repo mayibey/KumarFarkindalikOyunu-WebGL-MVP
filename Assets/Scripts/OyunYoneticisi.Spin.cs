@@ -424,6 +424,9 @@ public partial class OyunYoneticisi
                 carpanAktif = carpanUretimiAktif,        // FAZ36 İŞ A: CarpanServisi için read-only çarpan ayarları
                 carpanOlasilik = carpanUretimOlasiligi,
                 maxCarpanAdedi = maxCarpanAdedi,
+                uygulamaEpoch = PanelKopru.uygulamaEpoch, // FAZ36 İŞ C: RitimMotoru sayaç reset sinyali (read-only)
+                scatterEsik = scatterEsik,                // FAZ36 İŞ E: MotorBonusServisi için (çarpandan AYRI)
+                bonusPeriyot = (PanelKopru.bonusModu == "otomatik") ? PanelKopru.bonusOtomatikSpinPeriyodu : 0,
             };
             var _recete = YeniMotorKatmani.Dispatch(_motorGirdi);
             if (_recete != null) return _recete;   // yeni motor reçetesi → legacy alt akış çalışmaz

@@ -29,4 +29,13 @@ public sealed class MotorGirdi
     public float carpanOlasilik;
     /// <summary>maxCarpanAdedi — tek spinde max çarpan adedi.</summary>
     public int maxCarpanAdedi;
+
+    // FAZ36 İŞ C: Uygula epoch (PanelKopru.uygulamaEpoch). RitimMotoru (Tutma) değişince içsel sayacı sıfırlar.
+    public int uygulamaEpoch;
+
+    // FAZ36 İŞ E: Bonus/scatter ayarları (MotorBonusServisi read-only okur — çarpandan AYRI).
+    /// <summary>scatterEsik (OyunYoneticisi.scatterEsik) — bonus tetik için gereken scatter sayısı.</summary>
+    public int scatterEsik;
+    /// <summary>Bonus otomatik spin periyodu (otomatik modda P>0 → ~1/P sıklık; manuel/0 → varsayılan).</summary>
+    public int bonusPeriyot;
 }

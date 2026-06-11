@@ -66,6 +66,10 @@ public class PanelKopru : MonoBehaviour
     public static int bonusOtomatikSpinPeriyodu = 200;
     public static string aktifSenaryo = "normal";
 
+    // FAZ36 İŞ C: Uygula epoch — her Uygula'da (uygulamaOnayi mesajı) artar. RitimMotoru (Tutma) bunu READ-ONLY
+    // okur, değişince içsel ritim sayacını sıfırlar (izole: PanelKopru sahibi, motor sadece okur). Spin motoruna dokunmaz.
+    public static int uygulamaEpoch = 0;
+
     // FAZ35.98 İŞ1 B: Detaylı Ayarlar toggle state. AÇIK iken Normal mod delegate guard'ları (carpanUretimOlasiligi %10,
     // maxCarpanAdedi 1) bypass edilir → kullanıcı slider değerleri motora geçer. Toggle kapalı iken (default) Faz 35.95
     // baseline davranışı korunur (pedagojik RTP ~%55-65).
@@ -419,6 +423,7 @@ public class PanelKopru : MonoBehaviour
             case "uygulamaOnayi":
                 // FAZ35.86 İŞ1: Tutorial-only field (TutorialAdminEnjeksiyonu.cs case işliyor idx 3'te).
                 // idx 2 (yeni 03 admin) + idx 1 (02 anlatıcı)'de no-op (warning susturma). Akış kesilmez.
+                uygulamaEpoch++;   // FAZ36 İŞ C: her Uygula → RitimMotoru ritim sayacını sıfırlar (epoch değişimi)
                 break;
 
             default:
@@ -485,11 +490,12 @@ public class PanelKopru : MonoBehaviour
 
             case "tutma":
                 // FAZ35.83: bant 1/2→1.2/1.8 (dar bant, hep umut). Deterministik 2-kayıp-1-kazanç korunur.
+                // FAZ36 İŞ C: band 1.2/1.8→1.1/1.5 (1650-2250) "birazcık üstü" + çarpan yoluyla {1800,2250} çeşitlilik. 3 yer senkron.
                 _oy.AdminSetOdemeEgilimi(15);
-                _oy.AdminSetMinCarpanDegeri(1.2f);
-                _oy.AdminSetMaksCarpanDegeri(1.8f);
-                minCarpan = 1.2f; maksCarpan = 1.8f;
-                _oy.AdminSetTutmaModAktif(true);
+                _oy.AdminSetMinCarpanDegeri(1.1f);
+                _oy.AdminSetMaksCarpanDegeri(1.5f);
+                minCarpan = 1.1f; maksCarpan = 1.5f;
+                _oy.AdminSetTutmaModAktif(true);   // legacy tutma fallback (yeni motor reçete dönünce ulaşılmaz; defansif kalır)
                 break;
 
             case "koruma":

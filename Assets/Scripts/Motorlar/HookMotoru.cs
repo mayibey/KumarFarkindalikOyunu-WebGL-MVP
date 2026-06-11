@@ -18,16 +18,9 @@ public sealed class HookMotoru : ISpinMotoru
 {
     private const int CARPAN_SEMBOL = -2;
 
-    // FAZ36 İŞ A: Çarpan kararı (olasılık + adet + değer) artık CarpanServisi'nde — panel slider'ına bağlı.
-    // Hardcode %30/2x KALDIRILDI. Admin çarpan slider %100 → her hook spin çarpan; %0 → hiç. "Panel ne vaat ederse o."
-
-    // KALİBRASYON NOKTASI: bonus eşiği aşma olasılığı. 0.03 ≈ 1 bonus / 33 spin (hedef 30-40).
-    // Build sonrası 03'te gözle ayarla — büyütürsen daha sık bonus, küçültürsen seyrek.
-    private const float BONUS_OLASILIK = 0.03f;
-
-    // = OyunYoneticisi.scatterEsik (Fields.cs:397 default 4 / BonusAyarlari.cs:31 ScatterEsik=4).
-    // BonusAyarlari.ScatterEsik Inspector'dan değiştirilirse BU SABİTİ senkronla (Spin.cs hook'a dokunmamak için sabit).
-    private const int SCATTER_ESIK = 4;
+    // FAZ36 İŞ A: Çarpan kararı CarpanServisi'nde (panel slider'ına bağlı). Hardcode %30/2x KALDIRILDI.
+    // FAZ36 İŞ E: Scatter/bonus kararı MotorBonusServisi'nde (BONUS_OLASILIK/SCATTER_ESIK hardcode KALDIRILDI,
+    //   panel bonus periyoduna bağlı). Çarpan ↔ bonus AYRI servisler, karışmaz.
 
     // Anti-streak: motorun KENDİ iç durumu (başka motor/legacy göremez — ANAYASA rule 2).
     private static int _sonSecilenSembol = -1;
@@ -95,11 +88,10 @@ public sealed class HookMotoru : ISpinMotoru
             if (yerlesen > 0) finalCarpan = yerlesen;
         }
 
-        // SCATTER (h2): olasılıksal enjeksiyon. Bonus olasılığı tutarsa eşik kadar (bonus tetikler),
-        // değilse eşik-altı görsel heyecan. Scatter küme dışı → tumble'da silinmez (ReceteAdimKurucu dokunmaz).
-        int scatterSayisi = Random.value < BONUS_OLASILIK
-            ? SCATTER_ESIK                         // sc >= esik → DonusAkisServisi bonus tetikler (bonus oyunu LEGACY'de)
-            : Random.Range(0, SCATTER_ESIK - 1);   // 0..esik-2 görsel heyecan, eşik altı garanti
+        // SCATTER/BONUS (FAZ36 İŞ E): karar MotorBonusServisi'nde (çarpandan AYRI, panel bonus periyoduna bağlı).
+        // Eşik kadar → DonusAkisServisi bonus tetikler (bonus oyunu LEGACY'de); eşik altı → görsel heyecan.
+        // Scatter küme dışı → tumble'da silinmez (ReceteAdimKurucu dokunmaz).
+        int scatterSayisi = MotorBonusServisi.Hesapla(g).scatterSayisi;
         ScatterEnjekte(ilkGrid, scatterSayisi, kSym, g.scatterIdx, g.sutun, g.satir);
 
         // Reçete (cascade kapalı tek adım).
