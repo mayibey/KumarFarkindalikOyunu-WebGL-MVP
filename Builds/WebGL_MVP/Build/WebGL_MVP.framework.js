@@ -9664,6 +9664,16 @@ function dbg(text) {
           } catch (e) {}
       }
 
+  function _ZorlaTuketildiBildir() {
+          var iframe = document.getElementById('panelIframe');
+          if (iframe && iframe.contentWindow) {
+              iframe.contentWindow.postMessage({
+                  source: 'unityToPanel',
+                  key:    'zorlaTuketildi'
+              }, '*');
+          }
+      }
+
   function ___assert_fail(condition, filename, line, func) {
       abort(`Assertion failed: ${UTF8ToString(condition)}, at: ` + [filename ? UTF8ToString(filename) : 'unknown filename', line, func ? UTF8ToString(func) : 'unknown function']);
     }
@@ -18544,6 +18554,7 @@ var wasmImports = {
   "TutorialPaneliKapat": _TutorialPaneliKapat,
   "VurguAc": _VurguAc,
   "VurguKapat": _VurguKapat,
+  "ZorlaTuketildiBildir": _ZorlaTuketildiBildir,
   "__assert_fail": ___assert_fail,
   "__cxa_begin_catch": ___cxa_begin_catch,
   "__cxa_end_catch": ___cxa_end_catch,
