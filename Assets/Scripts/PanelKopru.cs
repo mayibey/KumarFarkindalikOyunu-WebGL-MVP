@@ -463,14 +463,14 @@ public class PanelKopru : MonoBehaviour
 
             case "hook":
                 // FAZ35.83: Taze Kan — %85→%90 eğilim, 2/3→1.5/2.5 bant (dar, saf karakter)
-                // FAZ35.140 K1: Bant 1.5/2.5 → 0.9/1.6 düşürüldü (Hook 100 spin +140K kazanç → +30K hedef).
-                // Hook'un "sıklık %90 + tutar düşük" tuzak hissi korunur — bant 1350-2400 TL bahis 1500'de.
+                // FAZ35.140 K1: Bant 1.5/2.5 → 0.9/1.6 düşürüldü (RTP). Ama panel.html 1.5/2.5'te kalmıştı (gotcha → efektif 1.5/2.5).
+                // FAZ36 ADIM 2: HookMotoru sözleşmesi "bahisin BİRAZ üstü" → band 1.1/1.7 (1650-2550 @1500). PanelKopru + 2 panel.html senkronlandı.
                 _oy.AdminSetOdemeEgilimi(90);
-                _oy.AdminSetMinCarpanDegeri(0.9f);
-                _oy.AdminSetMaksCarpanDegeri(1.6f);
+                _oy.AdminSetMinCarpanDegeri(1.1f);
+                _oy.AdminSetMaksCarpanDegeri(1.7f);
                 // FAZ35.140 K2: maxCarpanAdedi=1 — Hook çarpan birikme engellendi (5+8=13x taşması bitti).
                 _oy.AdminSetMaxCarpanTekSpin(1);
-                minCarpan = 0.9f; maksCarpan = 1.6f;
+                minCarpan = 1.1f; maksCarpan = 1.7f;
                 break;
 
             case "yontma":
