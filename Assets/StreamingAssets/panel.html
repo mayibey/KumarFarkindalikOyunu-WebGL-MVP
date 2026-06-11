@@ -1436,6 +1436,9 @@
     ulasilamaz: '⚠️ Bu aralıkta ödeme yapılabilecek kombinasyon yok — geçerli bir aralık girin (örn 2–5).'
   };
   function odemeAraligiSorunu(min, max) {
+    // FAZ36 ACİL FIX: ikisi de ≤0 → ödeme aralığı KULLANILMIYOR (çarpan/bonus/eğilim-only Uygula) → serbest geç (red yok).
+    // Biri 0 biri dolu = yarım giriş → 'eksik'. Band niyeti SADECE biri >0 iken vardır → o zaman tam validasyon.
+    if (min <= 0 && max <= 0) return '';
     if (min <= 0 || max <= 0) return 'eksik';
     if (min > max) return 'sira';
     if (!odemeAraligiUlasilabilirMi(min, max)) return 'ulasilamaz';
@@ -1874,7 +1877,10 @@
     // FIX: Detaylı açıksa 'ozel' gönder (A guard canlanır), kapalıysa secim (normal/mod → FAZ35.101 korunur).
     var detayliAcik = !!(document.getElementById('detayliAyarlarToggle') &&
                          document.getElementById('detayliAyarlarToggle').classList.contains('active'));
-    unityeGonder('oyunModu',          detayliAcik ? 'ozel' : secim);
+    // FAZ36 ACİL FIX: 'ozel' SADECE detaylı + (manip VEYA band girilmiş). Çarpan/bonus-only (0/0, manip yok) → secim
+    // (dropdown modu = normal+çarpan) → 'ozel' band guard'ı boş yere açılmaz; "geçerli ödeme aralığı girin" reddi bitti.
+    var ozelGonder = detayliAcik && (nmAktif || kcAktif || minDom > 0 || maksDom > 0);
+    unityeGonder('oyunModu',          ozelGonder ? 'ozel' : secim);
     unityeGonder('minCarpan',         minDom);    // DOM state
     unityeGonder('maksCarpan',        maksDom);   // DOM state
     unityeGonder('yakinKacirma',      ykDom);     // DOM state
