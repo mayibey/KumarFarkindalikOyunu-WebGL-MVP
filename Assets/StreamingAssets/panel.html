@@ -797,6 +797,19 @@
     font-weight: 600;
   }
 
+  /* FAZ36.6.1: Zorla çarpan seçim ışığı — seçili kutu çevresinde kayan altın efekt (#d4a857→#f4d678). */
+  @keyframes zorlaKayanIsik {
+    0%   { box-shadow: 0 0 4px 1px #d4a857; }
+    50%  { box-shadow: 0 0 13px 4px #f4d678; }
+    100% { box-shadow: 0 0 4px 1px #d4a857; }
+  }
+  .zorla-secili {
+    animation: zorlaKayanIsik 1.2s ease-in-out infinite;
+    border-color: #f4d678 !important;
+    outline: 2px solid #f4d678;
+    outline-offset: 1px;
+  }
+
   /* Accordion */
   .accordion-section {
     margin-bottom: 12px;
@@ -996,6 +1009,8 @@
                oninput="maxCarpanTekSpinDegisti(this)">
         <span style="color:#b8a875; font-size:14px;">adet (1-5)</span>
       </div>
+      <!-- FAZ36.6.1 İŞ3: kısa açıklama — 5 garanti değil, rastgele adet. -->
+      <div style="font-size:13px; color:#b8a875; font-style:italic; margin-top:4px;">5 = her spinde 1-5 arası rastgele adet</div>
 
       <hr style="border:0; border-top:1px solid rgba(244,214,120,0.1); margin:14px 0;">
 
@@ -1016,10 +1031,10 @@
                Enter basmadan başka yere geçince değer kayboluyordu. Artık blur/tab/Enter ile carpanZorla gönderilir.
                Mevcut onkeydown Enter handler KORUNDU (geri uyumlu). Çift gönderim riski: aynı değer 2 kez (Enter+blur),
                AdminZorlaCarpanSec idempotent (zorlaSiradakiCarpan=N iki kez = N) → zararsız. -->
-          <input type="number" id="carpanInput" placeholder="Özel..." min="1"
+          <input type="number" id="carpanInput" placeholder="Özel..." min="1" max="500"
                  style="background:rgba(245,196,179,0.1);color:#F5C4B3;border:1px solid rgba(245,196,179,0.4);padding:12px;border-radius:8px;font-size:21px;font-family:inherit;"
-                 onkeydown="if(event.key==='Enter'&&this.value){carpanZorla(parseInt(this.value))}"
-                 onchange="if(this.value>0){carpanZorla(parseInt(this.value))}">
+                 onkeydown="if(event.key==='Enter'){carpanInputGonder(this)}"
+                 onchange="carpanInputGonder(this)">
           <button id="carpanZorla100" class="multiplier-btn" onclick="carpanZorla(100)">×100</button>
           <button id="carpanZorla250" class="multiplier-btn" onclick="carpanZorla(250)">×250</button>
           <button id="carpanZorla500" class="multiplier-btn" onclick="carpanZorla(500)">×500</button>
@@ -1229,14 +1244,15 @@
       + '<p>Oyuncu büyük çarpanları (×100, ×500) gördüğünde inanılmaz heyecan yaşar. <strong>"Bugün şansımın günü"</strong> hissi tepe yapar.</p>'
       + '<p>Hâlbuki o çarpan <strong>operatörün düğmeye basmasıyla</strong> ekrana getirilmiştir. Şans değil, müdahale.</p>'
       + '<p>Daha sinsi olan: Tumble toggle\'ı <strong>kapalı</strong> iken zorla çarpan düşürülürse, çarpan görünür ama <strong>sembol patlamaz</strong> — sistem grid\'i kasıtlı olarak cluster oluşmayacak şekilde dağıtır. Oyuncu ×500\'ü görür, "yazık ki sembol tutmadı" der. Oysa tutmaması da <strong>operatörün kararıdır.</strong></p>'
-      + '<p>Bu, kumar sitelerinin <strong>en kurnaz numarasıdır</strong> — oyuncuya "ne büyük şanssızlık" hissi yaşatıp aslında onu manipüle etmek.</p>',
+      + '<p>Bu, kumar sitelerinin <strong>en kurnaz numarasıdır</strong> — oyuncuya "ne büyük şanssızlık" hissi yaşatıp aslında onu manipüle etmek.</p>'
+      + '<p><strong>Özel değer en fazla 500x.</strong></p>',
 
     carpanOlasilik: '<h4>Çarpan Düşme Olasılığı</h4>'
       + '<p>Doğal akışta çarpanın grid\'e düşme oranı. %2 = her 50 spinde bir çarpan görünür.</p>'
       + '<p>Yüksek değerlerde oyuncu sürekli çarpan görür, kazanç beklentisi tepe yapar — ama <strong>Ödeme Aralığı tavanı</strong> kazancı baskılar. Slider 0-50 arası, gerçek değer için sağdaki kutuya elle 0-100 yazılabilir.</p>',
 
     maxCarpanTekSpin: '<h4>Tek Spinde Maksimum Çarpan</h4>'
-      + '<p>Bir spinde aynı anda kaç çarpan düşebileceğini sınırlar. <strong>1</strong> ise tek çarpan, <strong>5</strong> ise aynı spinde 5 çarpan birden görünebilir.</p>'
+      + '<p>Bir spinde kaç çarpan düşebileceğini sınırlar (<strong>1-5</strong>). <strong>5</strong> seçilirse her spinde <strong>1 ile 5 arasında RASTGELE</strong> sayıda çarpan gelir; 5 garanti değildir.</p>'
       + '<p>Yüksek değer "büyük gün" hissi yaratır ama gerçek kazanç matematik tavanla sabittir.</p>'
   };
 
@@ -1421,6 +1437,9 @@
     } else {
       console.log('[blokYonetici] Tüm bloklar kapalı (aktif blok yok)');
     }
+    // FAZ36.6.1 İŞ1: Çarpan Ayarları bloğu aktifse scatter baskıla (bonus + 4+ yıldız görseli yok), değilse aç.
+    // TEK gönderim noktası — açılış/kapanış/blok-geçişi her yol buradan geçer. C# çift-true/false dayanıklı.
+    unityeGonder('scatterBaskila', aktifBlok === 'blokCarpan');
   }
 
   // ===== FAZ35.96 İŞ1: DETAYLI AYARLAR TOGGLE =====
@@ -2044,7 +2063,38 @@
 
   function carpanZorla(deger) {
     unityeGonder('carpanZorla', deger);
-    bildirimGoster('Çarpan zorlandı: ×' + deger);
+    zorlaIsikGuncelle(deger);
+    bildirimGoster('Bir sonraki turda ' + deger + 'x çarpan görünecek');
+  }
+
+  // FAZ36.6.1 İŞ2: Özel zorla değer doğrulama (maxCarpanTekSpin deseni) — >500 reddet + revert, ≤500 gönder.
+  var carpanZorlaSonGecerli = 0;
+  function carpanInputGonder(input) {
+    var n = parseInt(input.value, 10);
+    if (isNaN(n) || n < 1) return;
+    if (n > 500) {
+      showToast('En fazla 500x zorlanabilir.');
+      input.value = carpanZorlaSonGecerli > 0 ? carpanZorlaSonGecerli : '';
+      return;
+    }
+    carpanZorlaSonGecerli = n;
+    carpanZorla(n);
+  }
+
+  // FAZ36.6.1 İŞ2: Zorla seçim ışığı — seçilen kutuya .zorla-secili, diğerlerinden kaldır (yeni seçim eskisini söndürür).
+  var ZORLA_KUTULARI = ['carpanInput', 'carpanZorla100', 'carpanZorla250', 'carpanZorla500'];
+  function zorlaIsikGuncelle(deger) {
+    var hedef = deger === 100 ? 'carpanZorla100' : deger === 250 ? 'carpanZorla250' : deger === 500 ? 'carpanZorla500' : 'carpanInput';
+    ZORLA_KUTULARI.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.toggle('zorla-secili', id === hedef);
+    });
+  }
+  function zorlaIsiklariSondur() {
+    ZORLA_KUTULARI.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.remove('zorla-secili');
+    });
   }
 
   function varsayilanaDon() {
@@ -2227,6 +2277,14 @@
         var liste = JSON.parse(d.value);
         ayarlariKilitle(liste.aktifSelectorlar || []);
       } catch (err) { console.error('[Panel] tutorialKilit parse hatası:', err); }
+      return;
+    }
+    // FAZ36.6.1 İŞ2: Zorla çarpan tüketildi (Spin.cs:437 → jslib) → input temizle + ışıkları söndür + bildir.
+    if (d.key === 'zorlaTuketildi') {
+      var ciTuket = document.getElementById('carpanInput');
+      if (ciTuket) ciTuket.value = '';
+      zorlaIsiklariSondur();
+      showToast('Zorla çarpan kullanıldı');
       return;
     }
     if (d.key !== 'mevcutAyarlar') return;
