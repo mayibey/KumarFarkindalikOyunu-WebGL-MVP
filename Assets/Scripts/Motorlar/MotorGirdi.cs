@@ -23,7 +23,7 @@ public sealed class MotorGirdi
     public float maksKat;
 
     // FAZ36 İŞ A: Çarpan ayarları (CarpanServisi read-only okur). Panel slider'ları → OyunYoneticisi instance field'ları.
-    /// <summary>carpanUretimiAktif — çarpan açık/kapalı (carpanOdeme toggle).</summary>
+    /// <summary>carpanUretimiAktif — doğal çarpan üretimi açık/kapalı (slider %>0 ile set, FAZ36.1). carpanOdemeAcik AYRI alandır.</summary>
     public bool carpanAktif;
     /// <summary>carpanUretimOlasiligi (0-1) — spin başına çarpan düşme olasılığı (slider).</summary>
     public float carpanOlasilik;
@@ -44,4 +44,16 @@ public sealed class MotorGirdi
     public int zorlaCarpan;
     /// <summary>carpanTumbleAktif — "Çarpan Düşünce Ödeme Versin" toggle (AÇIK → küme×force; KAPALI → kazançsız+bomba).</summary>
     public bool carpanOdemeAcik;
+
+    // FAZ36.5: Altyapı — read-only snapshot. Bu fazda HİÇBİR motor bu 4 alanı okumaz (davranış bit-for-bit aynı);
+    // ileride NearMiss / KaçışEngelleme / eğilim-tabanlı / Bonus-birleştirme motorları için girdi hazır.
+    // Legacy okuma noktaları (Spin.cs:538/556/573/620/539) AYNEN yerinde — bu alanlar onları DUBLE ETMEZ, sadece taşır.
+    /// <summary>yakinKacirmaDegeri10da — 10'da N near-miss yoğunluğu (0=kapalı). NearMissMotoru için.</summary>
+    public int yakinKacirma;
+    /// <summary>_ardisikKayipLimiti — N ardışık kayıp sonrası zorla kazanç eşiği. KaçışEngellemeMotoru için.</summary>
+    public int ardisikKayipLimiti;
+    /// <summary>_odemeEgilimiYuzde (0-100) — kazanç eğilimi yüzdesi. Eğilim tabanlı motor kararı için.</summary>
+    public int egilimYuzde;
+    /// <summary>_bonusGirmeOlasilik (0-1) — bonus oyuna girme olasılığı (legacy yol). BonusMotoru birleştirmesi için.</summary>
+    public float bonusGirmeOlasilik;
 }
