@@ -1885,7 +1885,7 @@
     unityeGonder('maksCarpan',        maksDom);   // DOM state
     unityeGonder('yakinKacirma',      ykDom);     // DOM state
     unityeGonder('ardisikKayip',      akDom);     // DOM state
-    unityeGonder('bonusModu',         s.bonusModu);
+    unityeGonder('bonusModu',         'otomatik');   // FAZ36 FIX: preset-ezme — mod preset'i (yontma/koruma/tutma 'manuel') admin bonusunu eziyordu. Bonus hep otomatik (35.123 tasarimi); frekans #bonusSembolOlasilik slider'inda, Uygula'da ezilmez. Ilk acilis=otomatik (normal preset, degismez).
     // PAKET 14-FAZ24: bonusOtomatikOran preset gönderimi KALDIRILDI. Slider değişiminde kullanıcı değeri
     // (bonusYuzde + bonusOtomatikOran) zaten ANINDA Unity'e gönderiliyor. senaryoUygula preset 200 değerini
     // ezdiriyordu → T5 kullanıcı %100 (spin=1) ayarı 200'e dönüyordu, bonus tetiklenmiyordu.
@@ -2060,7 +2060,7 @@
     unityeGonder('maksCarpan',        s.maksCarpan);
     unityeGonder('yakinKacirma',      s.yakinKacirma);
     unityeGonder('ardisikKayip',      s.ardisikKayip);
-    unityeGonder('bonusModu',         s.bonusModu);
+    unityeGonder('bonusModu',         'otomatik');   // FAZ36 FIX: preset-ezme — mod preset'i (yontma/koruma/tutma 'manuel') admin bonusunu eziyordu. Bonus hep otomatik (35.123 tasarimi); frekans #bonusSembolOlasilik slider'inda, Uygula'da ezilmez. Ilk acilis=otomatik (normal preset, degismez).
     if (s.bonusSembolOlasilik > 0)
       unityeGonder('bonusOtomatikOran', Math.round(100 / s.bonusSembolOlasilik));
     unityeGonder('carpanOdeme',       s.carpanOdeme);

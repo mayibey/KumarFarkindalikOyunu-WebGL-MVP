@@ -23,16 +23,21 @@ public static class MotorCarpanServisi
 
     public static Karar Hesapla(MotorGirdi g)
     {
+        // FAZ36 GEÇİCİ TEŞHİS (kök bulununca SİL): çarpan ayarları motora doğru geliyor mu?
+        Debug.Log($"[CarpanServis] aktif={(g != null && g.carpanAktif)} olasilik={(g != null ? g.carpanOlasilik : 0f):F2} maxAdet={(g != null ? g.maxCarpanAdedi : 0)}");
+
         var yok = new Karar { dussun = false, degerler = null, toplam = 1 };
-        if (g == null || !g.carpanAktif || g.carpanOlasilik <= 0f) return yok;
-        if (Random.value > Mathf.Clamp01(g.carpanOlasilik)) return yok;   // slider %: düşmedi
+        if (g == null || !g.carpanAktif || g.carpanOlasilik <= 0f) { Debug.Log("[CarpanServis] dussun=False (aktif kapali / olasilik 0)"); return yok; }
+        if (Random.value > Mathf.Clamp01(g.carpanOlasilik)) { Debug.Log("[CarpanServis] dussun=False (RNG gecmedi)"); return yok; }
 
         int tavan = Mathf.Clamp(g.maxCarpanAdedi, 1, 8);
         int adet = Random.Range(1, tavan + 1);                            // 1..maxCarpanAdedi
         var d = new int[adet];
         int t = 0;
         for (int i = 0; i < adet; i++) { d[i] = AgirlikliDeger(); t += d[i]; }
-        return new Karar { dussun = true, degerler = d, toplam = Mathf.Max(2, t) };
+        var karar = new Karar { dussun = true, degerler = d, toplam = Mathf.Max(2, t) };
+        Debug.Log($"[CarpanServis] dussun={karar.dussun} toplam={karar.toplam}");   // FAZ36 GEÇİCİ TEŞHİS
+        return karar;
     }
 
     // Düştüyse değer ≥2 (gerçek çarpan). 2x %70, 3x %30. Olasılık ayrı slider'da yönetildiği için 1x üretilmez.
