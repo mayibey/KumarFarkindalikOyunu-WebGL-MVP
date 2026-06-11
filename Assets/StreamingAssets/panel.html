@@ -965,7 +965,7 @@
          (35.116 backend tavanı 5 ile hizalandı). Tüm key isimleri AYNEN korundu — sadece UI gruplama değişti. -->
     <div class="accordion-section" data-open="false" id="blokCarpan">
       <div class="accordion-header" onclick="blokAc(this)">
-        <span class="accordion-title">Çarpan</span>
+        <span class="accordion-title">Çarpan Ayarları</span>
         <span class="accordion-chevron">▶</span>
       </div>
       <div class="accordion-content">
@@ -1045,7 +1045,7 @@
          Ödeme aralığı (minCarpan/maksCarpan) KORUNDU üstte. -->
     <div class="accordion-section" data-open="false" id="blokOdeme">
       <div class="accordion-header" onclick="blokAc(this)">
-        <span class="accordion-title">Ödeme Davranışı</span>
+        <span class="accordion-title">Ödeme Davranışı Ayarları</span>
         <span class="accordion-chevron">▶</span>
       </div>
       <div class="accordion-content">
@@ -1107,7 +1107,7 @@
          bonusTetikle button + carpanZorla mevcut "Anlık Müdahale"de KALDI (admin debug butonları). -->
     <div class="accordion-section" data-open="false" id="blokBonus">
       <div class="accordion-header" onclick="blokAc(this)">
-        <span class="accordion-title">Bonus</span>
+        <span class="accordion-title">Bonus Ayarları</span>
         <span class="accordion-chevron">▶</span>
       </div>
       <div class="accordion-content">
@@ -1166,16 +1166,22 @@
   // ayarlar etkili kalır). Dürüst mesaj: kullanıcı tüm sıfırlama için Varsayılana Dön'ü kullansın.
   var MOD_ACIKLAMALARI = {
     normal:  { vurgu: 'Ödeme eğilimi varsayılan (%65)',         aciklama: 'Manuel ayarlarınız korunuyor. Tüm ayarları sıfırlamak için "Varsayılana Dön" butonunu kullanın.' },
-    hook:    { vurgu: 'Isındırma ve umut',                      aciklama: 'Yeni gelene bol kazanç verilir, oyuna bağlanır' },
-    yontma:  { vurgu: 'Kaybettiklerimi geri kazanabilirim',     aciklama: 'Bakiye sessizce erimeye başlar' },
-    tutma:   { vurgu: 'Şansın döndü',                           aciklama: 'Çıkmaya niyetli oyuncuya küçük kazanç hediyesi' },
-    koruma:  { vurgu: 'Gerçeklerle yüzleşme ve tükeniş',       aciklama: 'Ödeme neredeyse durur' }
+    hook:    { vurgu: 'Isındırma ve umut', aciklama: 'Yeni gelene bol kazanç verilir, oyuna bağlanır',
+               html: 'Sistem yeni gelen oyuncuya bilerek <span style="color:#16a34a;font-weight:600;">yüksek kazançlar</span> vererek oyuna bağlar.' },
+    yontma:  { vurgu: 'Kaybettiklerimi geri kazanabilirim', aciklama: 'Bakiye sessizce erimeye başlar',
+               html: 'Sistem oyuncuya her tur ödeme yapar ancak bu ödemeler bahis miktarını geçmez — oyuncu <span style="color:#ea580c;font-weight:600;">kazandığını zannederken</span> <span style="color:#dc2626;font-weight:600;">kaybeder</span>.' },
+    tutma:   { vurgu: 'Şansın döndü', aciklama: 'Çıkmaya niyetli oyuncuya küçük kazanç hediyesi',
+               html: 'Sistem <span style="color:#2563eb;font-weight:600;">2 tur</span> üst üste oyuncuya <span style="color:#dc2626;font-weight:600;">kayıp yaşatır</span>, <span style="color:#2563eb;font-weight:600;">3. turda</span> cüzi miktarda ödeme yaparak oyundan çıkmasını engeller.' },
+    koruma:  { vurgu: 'Gerçeklerle yüzleşme ve tükeniş', aciklama: 'Ödeme neredeyse durur',
+               html: 'Sistem <span style="color:#dc2626;font-weight:600;">neredeyse hiç ödeme yapmaz</span>, çok nadir öder.' }
   };
 
   function modAciklamasiniGuncelle(deger) {
     var el = document.getElementById('modAciklama');
     var m = MOD_ACIKLAMALARI[deger];
     if (el && m) {
+      // FAZ36.5.2: renkli html alanı varsa onu kullan (mod açıklamaları), yoksa eski vurgu·açıklama (normal).
+      if (m.html) { el.innerHTML = m.html; return; }
       el.innerHTML = '<span style="color:#F7C1C1;font-weight:500;">' + m.vurgu + '</span> · ' + m.aciklama;
     }
   }
@@ -1404,7 +1410,10 @@
   function blokAc(headerEl) {
     var section = headerEl.parentElement;
     var oncedenAcik = section.getAttribute('data-open') === 'true';
+    var oncekiAktif = aktifBlok;
     tumBloklariKapatVeDefault();
+    // FAZ36.5.2 İŞ1: Gerçek blok geçişinde (önceden açık bir blok kapandı) kullanıcıya bildir — eski ayarlar default'a döndü.
+    if (oncekiAktif) showToast('Eski ayarlar sıfırlandı');
     if (!oncedenAcik) {
       toggleSection(headerEl);        // data-open false→true (mevcut mekanizma — paralel yok)
       aktifBlok = section.id;
