@@ -178,6 +178,17 @@ mergeInto(LibraryManager.library, {
         }
     },
 
+    // FAZ36.6 İŞ2: Zorla çarpan tüketildi → panel'e sinyal. panel.html:2214 listener 'zorlaTuketildi' key'i 36.6.1'de işler.
+    ZorlaTuketildiBildir: function() {
+        var iframe = document.getElementById('panelIframe');
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage({
+                source: 'unityToPanel',
+                key:    'zorlaTuketildi'
+            }, '*');
+        }
+    },
+
     // PAKET 14-FAZ34 İş 6: Tutorial adım bazlı disabled — aktif kalacak selector listesini gönder.
     // panel.html message listener 'tutorialKilit' key'i için ayarlariKilitle() çağırır.
     TutorialPanelKilitGonderJslib: function(jsonPtr) {

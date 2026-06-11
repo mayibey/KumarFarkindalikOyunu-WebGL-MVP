@@ -66,6 +66,8 @@ namespace KumarTest
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void OtomatikInit()
         {
+            // FAZ36.6 İŞ4: Release build'de analiz aracı HİÇ spawn olmaz (geliştirici/dev build + editor only). Dosya silinmez.
+            if (!Debug.isDebugBuild) return;
             SceneManager.sceneLoaded -= OnSceneLoaded;
             SceneManager.sceneLoaded += OnSceneLoaded;
             var aktifSahne = SceneManager.GetActiveScene();

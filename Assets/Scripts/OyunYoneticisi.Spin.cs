@@ -439,7 +439,11 @@ public partial class OyunYoneticisi
             if (_recete != null)
             {
                 // FAZ36 İŞ D2: Zorla çarpan tüketildi → tek-atımlık temizle (Spin.cs:448 erken-return'de çalışmaz).
-                if (_motorGirdi.zorlaCarpan > 0) zorlaSiradakiCarpan = 0;
+                if (_motorGirdi.zorlaCarpan > 0)
+                {
+                    zorlaSiradakiCarpan = 0;
+                    PanelKopru.ZorlaTuketildiHaberVer();   // FAZ36.6 İŞ2: panel'e "zorla tüketildi" sinyali (input/ışık reset)
+                }
                 return _recete;   // yeni motor reçetesi → legacy alt akış çalışmaz
             }
         }

@@ -46,6 +46,10 @@ public class PanelKopru : MonoBehaviour
     [DllImport("__Internal")]
     private static extern void AyarlariPanelleGonder(string json);
 
+    // FAZ36.6 İŞ2: Zorla çarpan tüketildi sinyali (Unity→panel). jslib ZorlaTuketildiBildir → postMessage.
+    [DllImport("__Internal")]
+    private static extern void ZorlaTuketildiBildir();
+
     [DllImport("__Internal")]
     private static extern void BahisPaneliAc(string url);
 
@@ -74,6 +78,13 @@ public class PanelKopru : MonoBehaviour
     // maxCarpanAdedi 1) bypass edilir → kullanıcı slider değerleri motora geçer. Toggle kapalı iken (default) Faz 35.95
     // baseline davranışı korunur (pedagojik RTP ~%55-65).
     public static bool detayliAyarlarAcik = false;
+
+    // FAZ36.6 İŞ1: Scatter baskılama (Çarpan testi — bonus/4+scatter istenmez). true iken scatterChanceNormal=0
+    // + GetScatterChanceFor reader guard (PanelKopru.ScatterBaskilaAktif) → hiç scatter düşmez (senaryo floor'u da
+    // deler, bulletproof). Çift-true/çift-false dayanıklı: zaten baskılıysa cache ezilmez, restore eski değeri döndürür.
+    private static bool _scatterBaskilaAktif = false;
+    private static float _oncekiScatterChance = 0f;
+    public static bool ScatterBaskilaAktif => _scatterBaskilaAktif;
 
     // FAZ35.81 Madde 2: Bonus modu manuel/otomatik geçişlerinde motor periyot cache.
     // Manuel'e geçerken motor periyodu (>0) cache'lenir + motor 0'lanır.
@@ -370,6 +381,29 @@ public class PanelKopru : MonoBehaviour
                 Debug.Log($"[FAZ35.98 İŞ1] Detaylı Ayarlar toggle: {detayliAyarlarAcik} (delegate bypass {(detayliAyarlarAcik ? "AKTİF" : "PASİF")})");
                 break;
 
+            case "scatterBaskila":
+                // FAZ36.6 İŞ1: Çarpan testi bağlamı — scatter tamamen baskılanır (bonus + 4+ yıldız görseli yok).
+                bool baskila = deger == "True" || deger == "true";
+                if (baskila)
+                {
+                    if (!_scatterBaskilaAktif && _oy != null)
+                    {
+                        _oncekiScatterChance = _oy.scatterChanceNormal;   // ezme yok: zaten baskılıysa tekrar cache'leme
+                        _scatterBaskilaAktif = true;
+                        _oy.scatterChanceNormal = 0f;
+                    }
+                }
+                else
+                {
+                    if (_scatterBaskilaAktif && _oy != null)
+                    {
+                        _oy.scatterChanceNormal = _oncekiScatterChance;   // restore
+                        _scatterBaskilaAktif = false;
+                    }
+                }
+                Debug.Log($"[ScatterBaskila] aktif={_scatterBaskilaAktif} cache={_oncekiScatterChance:F3}");
+                break;
+
             case "bahisSec":
                 Debug.Log($"[PanelKopru] BAHIS HTML panelden geldi: ham_deger='{deger}'");
                 if (int.TryParse(deger, out int bahisMiktari) && bahisMiktari > 0)
@@ -554,6 +588,16 @@ public class PanelKopru : MonoBehaviour
         Debug.Log("[PanelKopru] Bonus oyunu manuel tetiklendi!");
         _oy?.AdminManuelBonusBaslat();
         OturumKayitcisi.EkleEvent(OturumKayitcisi.OlayTipi_BonusManuel, "panel üzerinden manuel tetikleme");
+    }
+
+    // ===== ZORLA ÇARPAN TÜKETİLDİ SİNYALİ (FAZ36.6 İŞ2) =====
+    // Spin.cs:437 force tek-atımlık temizlendiğinde çağrılır → panel input/ışık reset (panel 36.6.1 listener'ı işler).
+    // WebGL-only; Editor'de no-op. Sinyal simülasyon anında (görsel bitiş değil) — erken gelmesi kabul (amaç reset).
+    public static void ZorlaTuketildiHaberVer()
+    {
+        #if UNITY_WEBGL && !UNITY_EDITOR
+            ZorlaTuketildiBildir();
+        #endif
     }
 
     // ===== ÇARPAN ZORLAMA =====

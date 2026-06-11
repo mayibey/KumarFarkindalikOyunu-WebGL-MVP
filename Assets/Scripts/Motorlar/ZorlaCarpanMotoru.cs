@@ -20,6 +20,7 @@ public sealed class ZorlaCarpanMotoru : ISpinMotoru
         if (g == null || g.paytable == null || g.paytable.PayTable_8_9 == null) return null;
         int sembolSayisi = g.paytable.PayTable_8_9.Length;
         if (sembolSayisi <= 0 || g.bahis <= 0 || g.sutun <= 0 || g.satir <= 0 || g.zorlaCarpan <= 0) return null;
+        Debug.Log($"[ZorlaCarpan-TESHIS] force={g.zorlaCarpan} odemeAcik={g.carpanOdemeAcik}");   // FAZ36.6 İŞ5 GEÇİCİ (105/7575 avı — sonuç alınınca SİL)
         int force = g.zorlaCarpan;
 
         // Toggle KAPALI → kazançsız dizilim + bomba (ham=0). "Çarpan düştü, para gelmedi" pedagojisi.

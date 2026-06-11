@@ -88,7 +88,10 @@ public partial class OyunYoneticisi
             Debug.LogWarning("[ADMIN] Senaryo 1 aktifken zorla çarpan engellendi (AdminZorlaCarpanSec).");
             return;
         }
-        zorlaSiradakiCarpan = Mathf.Max(0, deger);
+        // FAZ36.6 İŞ3: Üst tavan 500 (C# backstop; JS doğrulama 36.6.1'de). Preset ×100/250/500 ≤500 → etkilenmez.
+        if (deger > 500)
+            Debug.LogWarning($"[ADMIN] Zorla çarpan {deger} > tavan 500 → 500'e çekildi.");
+        zorlaSiradakiCarpan = Mathf.Clamp(deger, 0, 500);
         if (carpanAyarlari != null)
             carpanAyarlari.ZorlaSiradakiCarpan = zorlaSiradakiCarpan;
         // UI'daki CarpanAktifToggle'ı ZORLA değiştirmiyoruz.

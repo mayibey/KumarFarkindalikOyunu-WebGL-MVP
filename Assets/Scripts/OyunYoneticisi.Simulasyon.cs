@@ -834,6 +834,9 @@ public partial class OyunYoneticisi
     /// <summary>SenaryoServisi delegasyonu: Senaryo 1'de 50, Senaryo 2'de 75 spin sonrası scatter garantisi. Garanti spininde dolumda 0 döner (sonra GrideEnAzDortScatterKoy tam 4 koyar).</summary>
     private float GetScatterChanceFor(bool bonusAktif)
     {
+        // FAZ36.6 İŞ1: Scatter baskılama aktifse (Çarpan testi) HER yol 0 döner — senaryo floor (854-864) + manuel
+        // scatterChanceNormal override'ını DELER (bulletproof reader guard). Alan da PanelKopru'da 0'a set edilir.
+        if (PanelKopru.ScatterBaskilaAktif) return 0f;
         if (bonusAktif) return scatterChanceBonus;
         // FAZ35.144: Yontma'da bonus kapali — scatter dogal RNG 0 (4-scatter imkansiz -> bonus tetiklenmez).
         // CIFT GUARD: buildIndex==2 (03 admin/analiz) + aktifSenaryo=="yontma". Hook/Normal/Senaryo/02/04 disarida.
