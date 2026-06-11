@@ -61,7 +61,7 @@ public class PanelKopru : MonoBehaviour
     public static float maksCarpan = 0f;        // maks ödeme bahis katı (0=devre dışı)
     public static float yakinKacirma = 40f;     // bu projede karşılığı YOK
     public static int ardisikKayipLimiti = 8;
-    public static bool carpanTumbleAktif = true;
+    public static bool carpanTumbleAktif = false;   // FAZ36 İŞ D2: "Çarpan Düşünce Ödeme Versin" DEFAULT KAPALI
     public static string bonusModu = "manuel";
     public static int bonusOtomatikSpinPeriyodu = 200;
     public static string aktifSenaryo = "normal";
@@ -580,7 +580,7 @@ public class PanelKopru : MonoBehaviour
         _oy?.AdminSetYakinKacirma(0);             // yakinKacirmaDegeri10da default 0 (Admin.cs:581)
         // FAZ35.82: ardisikKayip number→toggle dönüşümü; toggle kapalı default → 999 (etkisiz büyük değer).
         _oy?.AdminSetArdisikKayipLimiti(999);
-        _oy?.AdminSetCarpanTumbleAktif(true);     // _carpanTumbleAktif default true (Fields.cs:51)
+        _oy?.AdminSetCarpanTumbleAktif(false);    // FAZ36 İŞ D2: "Çarpan Düşünce Ödeme Versin" DEFAULT KAPALI (Fields.cs:51)
         _oy?.AdminSetBonusOtomatikSpinPeriyodu(0); // bonusOtomatikSpinPeriyodu default 0 = devre dışı (Admin.cs:542)
         // FAZ35.81 Madde 1: Min/Maks Çarpan reset (0 = devre dışı, mevcut RNG akışı).
         _oy?.AdminSetMinCarpanDegeri(0f);

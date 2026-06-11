@@ -427,9 +427,16 @@ public partial class OyunYoneticisi
                 uygulamaEpoch = PanelKopru.uygulamaEpoch, // FAZ36 İŞ C: RitimMotoru sayaç reset sinyali (read-only)
                 scatterEsik = scatterEsik,                // FAZ36 İŞ E: MotorBonusServisi için (çarpandan AYRI)
                 bonusPeriyot = (PanelKopru.bonusModu == "otomatik") ? PanelKopru.bonusOtomatikSpinPeriyodu : 0,
+                zorlaCarpan = zorlaSiradakiCarpan,        // FAZ36 İŞ D2: ZorlaCarpanMotoru (öncelikli, tek atımlık)
+                carpanOdemeAcik = _carpanTumbleAktif,     // "Çarpan Düşünce Ödeme Versin" toggle
             };
             var _recete = YeniMotorKatmani.Dispatch(_motorGirdi);
-            if (_recete != null) return _recete;   // yeni motor reçetesi → legacy alt akış çalışmaz
+            if (_recete != null)
+            {
+                // FAZ36 İŞ D2: Zorla çarpan tüketildi → tek-atımlık temizle (Spin.cs:448 erken-return'de çalışmaz).
+                if (_motorGirdi.zorlaCarpan > 0) zorlaSiradakiCarpan = 0;
+                return _recete;   // yeni motor reçetesi → legacy alt akış çalışmaz
+            }
         }
 
         _bombaPatlamaSonrasiIlkRefillCarpanEngeli = false;

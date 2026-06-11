@@ -48,7 +48,7 @@ public partial class OyunYoneticisi
     private bool _normalSpinSonucSesiBuSpinCaldi = false;
     private RectTransform _bahisGorselRtKilidi;
     private bool _bahisGorselKilidiHazir = false;
-    private bool _carpanTumbleAktif = true;
+    private bool _carpanTumbleAktif = false;   // FAZ36 İŞ D2: "Çarpan Düşünce Ödeme Versin" DEFAULT KAPALI
     private int _aktifAdminSenaryoIndex = 0;
     private int _senaryo1SonZorunluNihaiOdeme = -1;
     private int _senaryo2DonguIndex = 0;

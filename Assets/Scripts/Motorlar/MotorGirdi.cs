@@ -38,4 +38,10 @@ public sealed class MotorGirdi
     public int scatterEsik;
     /// <summary>Bonus otomatik spin periyodu (otomatik modda P>0 → ~1/P sıklık; manuel/0 → varsayılan).</summary>
     public int bonusPeriyot;
+
+    // FAZ36 İŞ D2: Zorla çarpan + ödeme toggle (ZorlaCarpanMotoru read-only okur).
+    /// <summary>zorlaSiradakiCarpan — bu spin için zorlanan çarpan (>0 ise ZorlaCarpanMotoru devreye girer, tek atımlık).</summary>
+    public int zorlaCarpan;
+    /// <summary>carpanTumbleAktif — "Çarpan Düşünce Ödeme Versin" toggle (AÇIK → küme×force; KAPALI → kazançsız+bomba).</summary>
+    public bool carpanOdemeAcik;
 }

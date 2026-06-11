@@ -7,9 +7,11 @@
 /// </summary>
 public static class YeniMotorKatmani
 {
-    // ADIM 1: YontmaMotoru. ADIM 2: HookMotoru. İŞ B: KorumaMotoru. İŞ C: TutmaMotoru. Sonraki: Ozel / NearMiss / Kacis.
+    // İŞ D2: ZorlaCarpanMotoru EN ÖNDE (öncelik — force her modu ezer, tek atımlık). Sonra mod motorları.
+    // ADIM 1: Yontma. ADIM 2: Hook. İŞ B: Koruma. İŞ C: Tutma. Sonraki: Ozel / NearMiss / Kacis.
     private static readonly ISpinMotoru[] _motorlar = new ISpinMotoru[]
     {
+        new ZorlaCarpanMotoru(),
         new YontmaMotoru(),
         new HookMotoru(),
         new KorumaMotoru(),

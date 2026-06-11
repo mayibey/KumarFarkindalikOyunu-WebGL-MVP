@@ -1027,11 +1027,11 @@
         <div class="ifsa-line">Bir sonraki spinde grid'e zorla düşürülecek çarpan değeri belirlenir.</div>
 
         <div style="display:flex;align-items:center;gap:10px;margin-top:10px;">
-          <div class="toggle active" id="carpanOdemeToggle" onclick="toggleDegisti('carpanOdeme')">
+          <div class="toggle" id="carpanOdemeToggle" onclick="toggleDegisti('carpanOdeme')">
             <div class="toggle-dot"></div>
           </div>
           <span style="color:#ccc;font-size:15px;">Çarpan Düşünce Ödeme Versin</span>
-          <span class="toggle-label" id="carpanOdemeLabel">Aktif</span>
+          <span class="toggle-label" id="carpanOdemeLabel">Kapalı</span>
         </div>
       </div>
 
@@ -1694,10 +1694,10 @@
   // Hook (Taze Kan) 1.5x-2.5x + %90 eğilim, Yontma 0.3x-0.7x + %70, Tutma 1.2x-1.8x dar + 2-1 deterministik,
   // Koruma 0.1x-0.3x + %8, Normal 0/0 (kullanıcı manuel). Eğilim yüzdeleri PanelKopru.SenaryoUygula'da motor'a yazılır.
   var SENARYOLAR = {
-    normal:  { minCarpan: 0,   maksCarpan: 0,   yakinKacirma: 0, ardisikKayip: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 2,   carpanOdeme: true  },
-    hook:    { minCarpan: 1.1, maksCarpan: 2.2, yakinKacirma: 2, ardisikKayip: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 3,   carpanOdeme: true  },
-    yontma:  { minCarpan: 0.3, maksCarpan: 0.7, yakinKacirma: 3, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 1,   carpanOdeme: true  },
-    tutma:   { minCarpan: 1.1, maksCarpan: 1.5, yakinKacirma: 2, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 1,   carpanOdeme: true  },
+    normal:  { minCarpan: 0,   maksCarpan: 0,   yakinKacirma: 0, ardisikKayip: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 2,   carpanOdeme: false },
+    hook:    { minCarpan: 1.1, maksCarpan: 2.2, yakinKacirma: 2, ardisikKayip: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 3,   carpanOdeme: false },
+    yontma:  { minCarpan: 0.3, maksCarpan: 0.7, yakinKacirma: 3, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 1,   carpanOdeme: false },
+    tutma:   { minCarpan: 1.1, maksCarpan: 1.5, yakinKacirma: 2, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 1,   carpanOdeme: false },
     koruma:  { minCarpan: 0.1, maksCarpan: 0.3, yakinKacirma: 5, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: false }
   };
 
