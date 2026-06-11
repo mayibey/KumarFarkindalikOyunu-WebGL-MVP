@@ -963,8 +963,8 @@
     <!-- FAZ35.122: Accordion yeniden gruplandı. Eski "Olasılık Ayarları" → "Çarpan" oldu (sadece çarpan ile ilgili).
          bonusSembolOlasilik bloğu yeni "Bonus" accordion'una taşındı. maxCarpanTekSpin max=6→5 + revert handler eklendi
          (35.116 backend tavanı 5 ile hizalandı). Tüm key isimleri AYNEN korundu — sadece UI gruplama değişti. -->
-    <div class="accordion-section" data-open="false">
-      <div class="accordion-header" onclick="toggleSection(this)">
+    <div class="accordion-section" data-open="false" id="blokCarpan">
+      <div class="accordion-header" onclick="blokAc(this)">
         <span class="accordion-title">Çarpan</span>
         <span class="accordion-chevron">▶</span>
       </div>
@@ -1043,8 +1043,8 @@
          korundu ("yakinKacirma", "ardisikKayip") — Tutorial T8 TutorialAdimYoneticisi:306-330 varlık testi bozulmaz.
          odemeDavranisiSec(secim) JS fonksiyonu bonusModuDegistir pattern emsali (line 1763): class active toggle + key gönder.
          Ödeme aralığı (minCarpan/maksCarpan) KORUNDU üstte. -->
-    <div class="accordion-section" data-open="false">
-      <div class="accordion-header" onclick="toggleSection(this)">
+    <div class="accordion-section" data-open="false" id="blokOdeme">
+      <div class="accordion-header" onclick="blokAc(this)">
         <span class="accordion-title">Ödeme Davranışı</span>
         <span class="accordion-chevron">▶</span>
       </div>
@@ -1105,8 +1105,8 @@
     <!-- FAZ35.122: YENİ "Bonus" accordion — eski "Olasılık Ayarları"ndan bonusSembolOlasilik buraya taşındı.
          Near-miss radio aktifken DISABLE + tooltip (modKilitle pattern emsali line 1485-1496). bonusModu switch +
          bonusTetikle button + carpanZorla mevcut "Anlık Müdahale"de KALDI (admin debug butonları). -->
-    <div class="accordion-section" data-open="false">
-      <div class="accordion-header" onclick="toggleSection(this)">
+    <div class="accordion-section" data-open="false" id="blokBonus">
+      <div class="accordion-header" onclick="blokAc(this)">
         <span class="accordion-title">Bonus</span>
         <span class="accordion-chevron">▶</span>
       </div>
@@ -1353,6 +1353,65 @@
     var section = headerEl.parentElement;
     var isOpen = section.getAttribute('data-open') === 'true';
     section.setAttribute('data-open', isOpen ? 'false' : 'true');
+  }
+
+  // ===== FAZ36.5.1 İŞ F: TEK-AKTİF-BLOK REJİMİ =====
+  // PATRON KURALI: Detaylı Ayarlar accordion blokları (Çarpan / Ödeme Davranışı / Bonus) birbirini ETKİLEMEZ ve
+  // aynı anda SADECE BİRİ açık olabilir. Bir blok açılınca diğerleri KAPANIR + ayarları DEFAULT'a döner (DOM + Unity).
+  // Mevcut toggleSection (data-open) mekanizmasının ÜZERİNE kurulu — paralel ikinci açma/kapama mekanizması YOK.
+  // Default kaynak = panelInitNormalApply değerleri (çelişki yok: VarsayilanaDon ile aynı). "Görünen ayar = gerçek ayar":
+  // her reset DOM'u set eder VE mevcut gönderim fonksiyonuyla Unity'ye gönderir (kopya SendMessage zinciri yazılmaz).
+  var aktifBlok = null;
+  var BLOK_LISTESI = [
+    { id: 'blokCarpan', ad: 'Çarpan', reset: function() {
+        carpanOlasilikInputDegisti(2);                         // carpanOlasilik=2 (slider+input+display+Unity)
+        var mc = document.getElementById('maxCarpanTekSpin');
+        if (mc) { mc.value = 3; maxCarpanTekSpinDegisti(mc); }  // maxCarpanTekSpin=3 + Unity
+        var ci = document.getElementById('carpanInput');
+        if (ci) ci.value = '';                                 // zorla çarpan: seçim yok (DOM temizle)
+        unityeGonder('carpanZorla', 0);                        // pending force temizle (tek-atımlık güvence, görünen=gerçek)
+        var co = document.getElementById('carpanOdemeToggle');
+        if (co && co.classList.contains('active')) toggleDegisti('carpanOdeme'); // "Çarpan Düşünce Ödeme Versin" → Kapalı + Unity
+        console.log('[blokYonetici] Çarpan → default (olasilik=2, maxAdet=3, zorla=yok, carpanOdeme=kapali)');
+    }},
+    { id: 'blokOdeme', ad: 'Ödeme Davranışı', reset: function() {
+        var minEl = document.getElementById('minCarpan');
+        if (minEl) { minEl.value = 0; ayarDegisti('minCarpan', 0); }    // min=0 + Unity
+        var maksEl = document.getElementById('maksCarpan');
+        if (maksEl) { maksEl.value = 0; ayarDegisti('maksCarpan', 0); } // maks=0 + Unity
+        odemeDavranisiSec('kapali');   // Manipülasyon Türü = Kapalı (yakinKacirma=false + ardisikKayip=false → Unity)
+        console.log('[blokYonetici] Ödeme Davranışı → default (min=0, maks=0, manipulasyon=kapali)');
+    }},
+    { id: 'blokBonus', ad: 'Bonus', reset: function() {
+        var bs = document.getElementById('bonusSembolOlasilik');
+        if (bs) { bs.value = 2; bonusSembolOlasilikDegisti(2); }   // bonus %2 + Unity (bonusGirme + bonusOtomatikOran)
+        console.log('[blokYonetici] Bonus → default (olasilik=2)');
+    }}
+  ];
+
+  // Tüm blokları kapat + her birini default'a döndür (DOM + Unity gönderimi mevcut fonksiyonlarla).
+  function tumBloklariKapatVeDefault() {
+    BLOK_LISTESI.forEach(function(b) {
+      var s = document.getElementById(b.id);
+      if (s) s.setAttribute('data-open', 'false');
+      b.reset();
+    });
+    aktifBlok = null;
+  }
+
+  // Blok header'ına tıklanınca: önce TÜM bloklar kapanır + default olur, sonra hedef (kapalıydıysa) açılır.
+  // → her an en fazla 1 blok açık; kapalı blok = default. Açma yine toggleSection (mevcut data-open) ile yapılır.
+  function blokAc(headerEl) {
+    var section = headerEl.parentElement;
+    var oncedenAcik = section.getAttribute('data-open') === 'true';
+    tumBloklariKapatVeDefault();
+    if (!oncedenAcik) {
+      toggleSection(headerEl);        // data-open false→true (mevcut mekanizma — paralel yok)
+      aktifBlok = section.id;
+      console.log('[blokYonetici] AÇIK blok: ' + section.id);
+    } else {
+      console.log('[blokYonetici] Tüm bloklar kapalı (aktif blok yok)');
+    }
   }
 
   // ===== FAZ35.96 İŞ1: DETAYLI AYARLAR TOGGLE =====
