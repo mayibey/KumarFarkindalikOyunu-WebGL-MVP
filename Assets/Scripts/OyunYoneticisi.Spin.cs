@@ -541,12 +541,17 @@ public partial class OyunYoneticisi
         // Sebep: Near-miss 3 scatter yerleştiriyor (bonus eşik 4 - 1), eğer Force4ScatterEnjekte de 5 scatter koyarsa
         // bonus tetiklenir → "neredeyse bonus" mesajı bozulur. Spin başı flag set'te dinamik guard → kullanıcı near-miss
         // kapatınca _bonusGirmeOlasilik field'ı SET zamanına bağımlı kalmaz (her spin runtime re-evaluate).
+        // FAZ36.7 İŞ1: Otomatik periyot bonusu da GÖRSEL gerekçeli (4+ yıldız) gelsin. Bu spin periyot tetikleyecekse
+        // (_bonusOtomatikTetikSonrakiSpin — önceki spin sonu DonusAkisServisi:256'da set) scatter'ı bu flag ile
+        // SİMÜLASYON fazında enjekte et (Force4ScatterEnjekte → kayit.IlkGrid → render). Eskiden periyot bonusu
+        // DonusAkisServisi:318'de scatter'sız (render sonrası) tetikleniyordu → "1 yıldız, bonus girdi" patolojisi.
+        // Normal-mod kapısı KORUNUR: Force4Scatter yalnız legacy reroll'da çalışır (motor modlarında dispatch erken-return).
         bool _bonusGirmeBuSpinAktif = !bonusSpin
             && zorlaCarpanDegeri <= 0
             && PanelKopru.aktifSenaryo == "normal"
             && yakinKacirmaDegeri10da <= 0
-            && _bonusGirmeOlasilik > 0f
-            && UnityEngine.Random.value <= _bonusGirmeOlasilik;
+            && ( (_bonusGirmeOlasilik > 0f && UnityEngine.Random.value <= _bonusGirmeOlasilik)
+                 || _bonusOtomatikTetikSonrakiSpin );
 
         // FAZ35.119: Near-miss "her spin garantili kayıp" — simulation evresinde cluster engelle + 7 meyve+3 scatter enjekte.
         // Eski davranış (DonusAkisServisi:365-369): RNG'li + sadece odenen==0 spinde dekoratif görsel ekliyordu, kazanç

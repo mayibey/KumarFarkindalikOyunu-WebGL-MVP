@@ -1677,7 +1677,8 @@
   // FAZ36.1 FIX1: Bonus yüzdesi → otomatik periyot. TEK formül (slider + init aynı fonksiyonu kullanır, kopya yok).
   // %X ≤ 0 → periyot 0 (bonus kapalı → MotorBonusServisi olasılık 0). >0 → round(100/X): %50→2, %5→20, %2→50.
   function bonusPeriyotHesapla(yuzde) {
-    return (yuzde <= 0) ? 0 : Math.round(100 / yuzde);
+    // FAZ36.7 İŞ2: alt eşik 2 — periyot=1 ("her spin bonus") patolojisini engeller. %X≤0 → 0 (kapalı) aynen.
+    return (yuzde <= 0) ? 0 : Math.max(2, Math.round(100 / yuzde));
   }
 
   // Bonus sembolü düşme olasılığı: yüzde slider 0-5 step 0.1, postMessage int spin = round(100/yüzde)

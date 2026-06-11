@@ -500,9 +500,9 @@ public class PanelKopru : MonoBehaviour
                 _oy.AdminSetOdemeEgilimi(65);
                 _oy.AdminSetMinCarpanDegeri(0f);
                 _oy.AdminSetMaksCarpanDegeri(0f);
-                // FAZ35.140 K2: maxCarpanAdedi=1 — Normal mod havuzu {3,5,8} AMA Faz 35.115 random 1..maxAdet
-                // çarpan birikiyor (5+8=13x taşması analiz aracında gözlemlendi). Tek çarpan ile tavan 8x.
-                _oy.AdminSetMaxCarpanTekSpin(1);
+                // FAZ36.7 İŞ3: AdminSetMaxCarpanTekSpin(1) ZORLAMASI KALDIRILDI — kullanıcı slider değeri (maxCarpanAdedi)
+                // korunur (sürekli 1 çarpan patolojisi biter). FAZ35.140 K2 (havuz {3,5,8} 5+8=13x taşması → tek çarpan)
+                // artık geçersiz: 36.4 kararıyla çarpan BAĞIMSIZ, nihai bant dışı = tasarım. Hook/diğer mod preset adet'i AYNEN.
                 minCarpan = 0f; maksCarpan = 0f;
                 break;
 
