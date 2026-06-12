@@ -129,4 +129,93 @@ public static class ReceteAdimKurucu
             }
         return grid;
     }
+
+    /// <summary>
+    /// FAZ36.8: Near-miss ("az kaldı") KAZANÇSIZ grid — GrideNearMissEnjekteEt'in (Simulasyon.cs:152) STATELESS ikizi.
+    /// 3 scatter (bonus eşik 4'ün 1 altı) + 7 aynı meyve A (cluster eşik 8'in 1 altı) + kalan hücreler &lt;8'lik gruplar
+    /// (GRUP_BOYU 5, MAKS_GRUP 7). Hiçbir cluster CLUSTER_ESIK'e (8) ulaşmaz, scatter 4'e ulaşmaz → ödeme + bonus
+    /// matematiksel imkansız. Reçete bunu IlkGrid yapar, Adimlar=[] boş, ham=0 → "az kaldı ama kazanamadın" görseli.
+    /// Legacy GrideNearMissEnjekteEt DEĞİŞMEDEN durur (normal mod onu kullanır); bu saf/parametre+return ikizdir.
+    /// </summary>
+    public static int[,] NearMissGridKur(int sutun, int satir, int sembolSayisi, int scatterIdx,
+        out int yerlesenScatter, out int meyveA, out int meyveAYerlesen)
+    {
+        yerlesenScatter = 0; meyveA = -1; meyveAYerlesen = 0;
+        var grid = new int[sutun, satir];
+        const int SCATTER_HEDEF = 3;   // bonus eşik 4'ün 1 altı
+        const int MEYVE_A_ADET = 7;    // cluster eşik 8'in 1 altı
+        const int GRUP_BOYU = 5;
+        const int MAKS_GRUP = 7;       // defansif: hiçbir sembol 8'e (cluster) ulaşmasın
+        if (sembolSayisi <= 0 || sutun <= 0 || satir <= 0) return grid;
+
+        // 1) Tüm grid hücreleri.
+        var hucreler = new List<Vector2Int>();
+        for (int x = 0; x < sutun; x++)
+            for (int y = 0; y < satir; y++)
+                hucreler.Add(new Vector2Int(x, y));
+        if (hucreler.Count < SCATTER_HEDEF + MEYVE_A_ADET) return grid;
+
+        // 2) Fisher-Yates shuffle hücreler (her spin farklı dağınık yerleşim).
+        for (int i = hucreler.Count - 1; i > 0; i--)
+        {
+            int j = Random.Range(0, i + 1);
+            var t = hucreler[i]; hucreler[i] = hucreler[j]; hucreler[j] = t;
+        }
+
+        // 3) Scatter HARİÇ meyveler → shuffle.
+        var meyveler = new List<int>();
+        for (int s = 0; s < sembolSayisi; s++)
+            if (s != scatterIdx) meyveler.Add(s);
+        for (int i = meyveler.Count - 1; i > 0; i--)
+        {
+            int j = Random.Range(0, i + 1);
+            int t = meyveler[i]; meyveler[i] = meyveler[j]; meyveler[j] = t;
+        }
+        if (meyveler.Count == 0) return grid;
+
+        // 4) İlk 3 → scatter, sonraki 7 → meyve A, kalanlar → ardışık farklı meyve grupları (≤ GRUP_BOYU, defansif ≤ MAKS_GRUP).
+        int adayIdx = 0;
+        for (int i = 0; i < SCATTER_HEDEF && adayIdx < hucreler.Count; i++)
+        {
+            var p = hucreler[adayIdx++];
+            grid[p.x, p.y] = scatterIdx;
+            yerlesenScatter++;
+        }
+
+        meyveA = meyveler[0];
+        for (int i = 0; i < MEYVE_A_ADET && adayIdx < hucreler.Count; i++)
+        {
+            var p = hucreler[adayIdx++];
+            grid[p.x, p.y] = meyveA;
+            meyveAYerlesen++;
+        }
+
+        int meyveSira = 1;
+        int buGrupAdet = 0;
+        int aktifMeyve = meyveler[meyveSira % meyveler.Count];
+        var grupSayac = new Dictionary<int, int> { [meyveA] = MEYVE_A_ADET };
+        while (adayIdx < hucreler.Count)
+        {
+            if (buGrupAdet >= GRUP_BOYU)
+            {
+                meyveSira++;
+                aktifMeyve = meyveler[meyveSira % meyveler.Count];
+                buGrupAdet = 0;
+            }
+            // Defansif: bu meyve MAKS_GRUP'a ulaştıysa farklı meyve ara (8-cluster önle).
+            int guard = 0;
+            while (grupSayac.TryGetValue(aktifMeyve, out int mevcutAdet) && mevcutAdet >= MAKS_GRUP && guard < meyveler.Count)
+            {
+                meyveSira++;
+                aktifMeyve = meyveler[meyveSira % meyveler.Count];
+                buGrupAdet = 0;
+                guard++;
+            }
+            var pp = hucreler[adayIdx++];
+            grid[pp.x, pp.y] = aktifMeyve;
+            buGrupAdet++;
+            grupSayac[aktifMeyve] = (grupSayac.TryGetValue(aktifMeyve, out int c) ? c : 0) + 1;
+        }
+        return grid;
+    }
 }

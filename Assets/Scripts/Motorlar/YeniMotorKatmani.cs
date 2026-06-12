@@ -14,6 +14,7 @@ public static class YeniMotorKatmani
     private static readonly ISpinMotoru[] _motorlar = new ISpinMotoru[]
     {
         new ZorlaCarpanMotoru(),
+        new NearMissMotoru(),   // FAZ36.8: yakinKacirma>0 → "az kaldı" (3 scatter + 7 meyve, ödeme 0). Force SONRASI / mod ÖNCESI (mod-bağımsız, modu ezer).
         new OzelMotoru(),
         new YontmaMotoru(),
         new HookMotoru(),
