@@ -26,9 +26,11 @@ public static class WebGLBuildMvp
                 throw new Exception("Build için aktif sahne bulunamadı.");
 
             Directory.CreateDirectory(CiktiKlasoru);
-            BuildOptions ops = BuildOptions.Development;
+            // FAZ36.7.2: Development kaldirildi — release build (AnalizAraci gizli + Profile/Unload sablondan kalkti
+            // + kucuk/hizli wasm). Dev gerekirse buraya gecici Development ekle.
+            BuildOptions ops = BuildOptions.None;
 #if UNITY_2021_2_OR_NEWER
-            ops |= BuildOptions.CleanBuildCache;
+            ops |= BuildOptions.CleanBuildCache;   // KORUNDU — IL2CPP cache temizligi (Development'tan bagimsiz)
 #endif
 
             // KRİTİK: IL2CPP transpile cache'ini de manuel sil. CleanBuildCache yetmiyor;
