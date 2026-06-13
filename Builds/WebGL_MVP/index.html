@@ -71,7 +71,6 @@
         z-index: 100;
       }
     </style>
-  <script src="TemplateData/profiler.js"></script>
   </head>
   <body>
     <div id="unity-container" class="unity-desktop">
@@ -129,9 +128,9 @@
       var loaderUrl = buildUrl + "/WebGL_MVP.loader.js";
       var config = {
         arguments: [],
-        dataUrl: buildUrl + "/WebGL_MVP.data",
-        frameworkUrl: buildUrl + "/WebGL_MVP.framework.js",
-        codeUrl: buildUrl + "/WebGL_MVP.wasm",
+        dataUrl: buildUrl + "/WebGL_MVP.data.br",
+        frameworkUrl: buildUrl + "/WebGL_MVP.framework.js.br",
+        codeUrl: buildUrl + "/WebGL_MVP.wasm.br",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "DefaultCompany",
         productName: "KumarFarkindalikOyunu",
@@ -166,8 +165,7 @@
                 document.querySelector("#unity-fullscreen-button").onclick = () => {
                   unityInstance.SetFullscreen(1);
                 };
-                // FAZ36.7 İŞ4: DEVELOPMENT_PLAYER overlay (Profile + Unload butonları) KALDIRILDI (release temizliği).
-                // Şablon (Assets/WebGLTemplates/PanelTemplate/index.html) + TemplateData/profiler.js dokunulmadı.
+                // FAZ36.7.1: dev overlay blogu sablondan tamamen cikarildi (release temiz, hicbir build tipinde uretilmez).
               }).catch((message) => {
                 alert(message);
               });
