@@ -101,14 +101,19 @@ public partial class OyunYoneticisi
             string mesaj = string.IsNullOrWhiteSpace(ozelMesaj)
                 ? (zorlaSiradakiCarpan > 0 ? $"FORCE x{zorlaSiradakiCarpan} ETKİN" : "FORCE SIFIRLANDI")
                 : ozelMesaj;
-            AdminForceMesajKutusuGoster(mesaj, 3f);
+            // GRUP B/MADDE4: sol panel toast kaldırıldı; bilgi üst banner'a alt-tip olarak taşındı.
+            // Alt-tip YALNIZCA force x{N} mesajında (zorlaSiradakiCarpan>0); sıfırlandı/özel mesajda gösterilmez.
+            string altTip = (string.IsNullOrWhiteSpace(ozelMesaj) && zorlaSiradakiCarpan > 0)
+                ? "Bir sonraki turda görünecek"
+                : null;
+            AdminForceMesajKutusuGoster(mesaj, 3f, altTip);
         }
         Debug.Log($"[ADMIN] Zorla çarpan seçildi: x{zorlaSiradakiCarpan}");
         // Force değişince bir önceki spinde arka planda hesaplanmış (Force'sız) sonuç geçersizdir.
         OncedenHesaplananSpinOnbelleginiTemizle();
     }
 
-    void AdminForceMesajKutusuGoster(string mesaj, float sure)
+    void AdminForceMesajKutusuGoster(string mesaj, float sure, string altTip = null)
     {
         const string popupAd = "AdminForceKisaMesajPopup";
         var mevcut = GameObject.Find(popupAd);
@@ -125,6 +130,9 @@ public partial class OyunYoneticisi
         scaler.matchWidthOrHeight = 0.5f;
         canvasGo.AddComponent<GraphicRaycaster>();
 
+        // GRUP B/MADDE4: alt-tip varsa banner iki satır (ana mesaj üst, tip alt) → yükseklik 80→110.
+        bool tipVar = !string.IsNullOrWhiteSpace(altTip);
+
         var panel = new GameObject("Panel");
         panel.transform.SetParent(canvasGo.transform, false);
         var panelRt = panel.AddComponent<RectTransform>();
@@ -132,7 +140,7 @@ public partial class OyunYoneticisi
         panelRt.anchorMax = new Vector2(0.5f, 1f);
         panelRt.pivot = new Vector2(0.5f, 1f);
         panelRt.anchoredPosition = new Vector2(0f, -28f);
-        panelRt.sizeDelta = new Vector2(520f, 80f);
+        panelRt.sizeDelta = new Vector2(520f, tipVar ? 110f : 80f);
         var panelImg = panel.AddComponent<Image>();
         panelImg.color = new Color(0.07f, 0.12f, 0.18f, 0.94f);
         panelImg.raycastTarget = false;
@@ -140,9 +148,10 @@ public partial class OyunYoneticisi
         var yaziGo = new GameObject("Mesaj");
         yaziGo.transform.SetParent(panel.transform, false);
         var yaziRt = yaziGo.AddComponent<RectTransform>();
-        yaziRt.anchorMin = Vector2.zero;
+        // Tip varsa ana mesaj üst ~%62'ye yerleşir; yoksa tüm paneli kaplar (eski davranış).
+        yaziRt.anchorMin = tipVar ? new Vector2(0f, 0.38f) : Vector2.zero;
         yaziRt.anchorMax = Vector2.one;
-        yaziRt.offsetMin = new Vector2(12f, 8f);
+        yaziRt.offsetMin = new Vector2(12f, tipVar ? 0f : 8f);
         yaziRt.offsetMax = new Vector2(-12f, -8f);
         var yazi = yaziGo.AddComponent<TextMeshProUGUI>();
         yazi.text = mesaj;
@@ -150,6 +159,24 @@ public partial class OyunYoneticisi
         yazi.alignment = TMPro.TextAlignmentOptions.Center;
         yazi.color = new Color(0.58f, 0.96f, 0.62f, 1f);
         yazi.raycastTarget = false;
+
+        // GRUP B/MADDE4: alt-tip (küçük font, soluk) — yalnız force x{N} mesajında.
+        if (tipVar)
+        {
+            var tipGo = new GameObject("AltTip");
+            tipGo.transform.SetParent(panel.transform, false);
+            var tipRt = tipGo.AddComponent<RectTransform>();
+            tipRt.anchorMin = Vector2.zero;
+            tipRt.anchorMax = new Vector2(1f, 0.38f);
+            tipRt.offsetMin = new Vector2(12f, 8f);
+            tipRt.offsetMax = new Vector2(-12f, 0f);
+            var tipYazi = tipGo.AddComponent<TextMeshProUGUI>();
+            tipYazi.text = altTip;
+            tipYazi.fontSize = 18;
+            tipYazi.alignment = TMPro.TextAlignmentOptions.Center;
+            tipYazi.color = new Color(0.78f, 0.85f, 0.80f, 0.9f);
+            tipYazi.raycastTarget = false;
+        }
 
         if (sure > 0f)
             Destroy(canvasGo, sure);

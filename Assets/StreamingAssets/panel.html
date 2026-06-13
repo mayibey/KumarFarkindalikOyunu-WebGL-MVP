@@ -1080,7 +1080,7 @@
             <div style="display:flex; flex-direction:column; gap:4px;">
               <span style="font-size:12px; color:#8a7c5c; letter-spacing:1px; text-transform:uppercase;">Min</span>
               <input type="number" id="minCarpan" value="3" placeholder="Min" step="0.1" min="0" style="max-width:90px;"
-                     oninput="ayarDegisti('minCarpan', this.value)">
+                     oninput="ayarDegisti('minCarpan', this.value)" onchange="minCarpanSnap(this)">
             </div>
             <span style="color:#8a7c5c; font-size:14px; align-self:center; padding-bottom:8px;">—</span>
             <div style="display:flex; flex-direction:column; gap:4px;">
@@ -1097,21 +1097,25 @@
           </div>
         </div>
 
-        <!-- FAZ35.122: ÖDEME DAVRANIŞI RADIO (Kapalı / Kaçış engelleme / Near-miss) — tek seçim, çakışma engellenir -->
+        <!-- GRUP B/MADDE5: Manipülasyon Türü radio (Kapalı/Kaçış/Near-miss) → tek "Neredeyse Oluyordu" TOGGLE.
+             Kaçış engelleme UI'dan kaldırıldı (motor _ardisikKayipLimiti Fields.cs default 999=kapalı). Toggle id
+             'yakinKacirmaToggle' — setToggleClass/MOD_KILITLI altyapısı + odemeDavranisiSec tek otorite korunur. -->
         <div class="setting-card">
           <div class="setting-header">
             <div class="setting-header-left">
               <span class="badge-num">2</span>
-              <label>Manipülasyon Türü</label>
+              <label>Neredeyse Oluyordu</label>
               <span class="help-icon" data-tip="odemeDavranisi">?</span>
             </div>
           </div>
-          <div class="mode-switch" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
-            <button class="active" id="odemeDavranisi_kapali"   onclick="odemeDavranisiSec('kapali')">Kapalı</button>
-            <button              id="odemeDavranisi_kacis"    onclick="odemeDavranisiSec('kacis')">Kaçış engelleme</button>
-            <button              id="odemeDavranisi_nearmiss" onclick="odemeDavranisiSec('nearmiss')">Neredeyse Oluyordu</button>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
+            <div class="toggle" id="yakinKacirmaToggle" onclick="neredeyseOluyorduToggle()">
+              <div class="toggle-dot"></div>
+            </div>
+            <span style="color:#ccc;font-size:15px;">Neredeyse kazanıyordu hissi ver</span>
+            <span class="toggle-label" id="yakinKacirmaLabel">Kapalı</span>
           </div>
-          <div class="ifsa-line" id="odemeDavranisiAciklama">Kapalı: doğal akış, manipülasyon yok.</div>
+          <div class="ifsa-line" id="odemeDavranisiAciklama"></div>
         </div>
 
       </div>
@@ -1386,6 +1390,7 @@
   var aktifBlok = null;
   var BLOK_LISTESI = [
     { id: 'blokCarpan', ad: 'Çarpan', reset: function() {
+        _carpanMutexSuppress = true;                           // GRUP B/MADDE3: reset sırasında mutex tetiklenmesin
         carpanOlasilikInputDegisti(2);                         // carpanOlasilik=2 (slider+input+display+Unity)
         var mc = document.getElementById('maxCarpanTekSpin');
         if (mc) { mc.value = 3; maxCarpanTekSpinDegisti(mc); }  // maxCarpanTekSpin=3 + Unity
@@ -1394,6 +1399,8 @@
         unityeGonder('carpanZorla', 0);                        // pending force temizle (tek-atımlık güvence, görünen=gerçek)
         var co = document.getElementById('carpanOdemeToggle');
         if (co && co.classList.contains('active')) toggleDegisti('carpanOdeme'); // "Çarpan Düşünce Ödeme Versin" → Kapalı + Unity
+        _carpanMutexSuppress = false;                          // GRUP B/MADDE3: nötr duruma dön (ikisi de enable)
+        carpanBlokMutexUygula('temiz');
         console.log('[blokYonetici] Çarpan → default (olasilik=2, maxAdet=3, zorla=yok, carpanOdeme=kapali)');
     }},
     { id: 'blokOdeme', ad: 'Ödeme Davranışı', reset: function() {
@@ -1510,9 +1517,9 @@
   function ozelBandGirisModuMu() {
     var d = document.getElementById('detayliAyarlarToggle');
     if (!d || !d.classList.contains('active')) return false;
-    var nm = document.getElementById('odemeDavranisi_nearmiss');
-    var kc = document.getElementById('odemeDavranisi_kacis');
-    var manip = (nm && nm.classList.contains('active')) || (kc && kc.classList.contains('active'));
+    // GRUP B/MADDE5: kacis radio kaldırıldı → manipülasyon = yakinKacirma toggle aktif mi.
+    var nm = document.getElementById('yakinKacirmaToggle');
+    var manip = !!(nm && nm.classList.contains('active'));
     return !manip;
   }
   // FAZ35.152: Ozel band validation — '' (geçerli) | 'eksik' (biri ≤0) | 'sira' (MIN>MAX) | 'ulasilamaz' (paytable boşluğu).
@@ -1551,9 +1558,9 @@
     // (kullanıcı oninput) Manipülasyon Türü'nü Kapalı'ya çevir. SADECE radio aktifken çağrılır (gereksiz çağrı/döngü yok).
     // 'kapali' → manipAktif=false → B3'te MIN/MAX SIFIRLANMAZ (admin'in az önce yazdığı değer korunur).
     if (anahtar === 'minCarpan' || anahtar === 'maksCarpan') {
-      var nmEl = document.getElementById('odemeDavranisi_nearmiss');
-      var kcEl = document.getElementById('odemeDavranisi_kacis');
-      if ((nmEl && nmEl.classList.contains('active')) || (kcEl && kcEl.classList.contains('active')))
+      // GRUP B/MADDE5: kacis kaldırıldı → sadece yakinKacirma toggle aktifse Kapalı'ya çevir.
+      var nmEl = document.getElementById('yakinKacirmaToggle');
+      if (nmEl && nmEl.classList.contains('active'))
         odemeDavranisiSec('kapali');
       // FAZ35.151 A3: yazarken anlık ulaşılamaz bant uyarısı.
       odemeAraligiUyariGuncelle();
@@ -1574,6 +1581,8 @@
     maxCarpanTekSpinSonGecerli = n;
     input.value = n;
     unityeGonder('maxCarpanTekSpin', n);
+    // GRUP B/MADDE3: maxCarpan olasılık grubuna dahil → değişince zorla'yı temizle+kilitle.
+    if (!_carpanMutexSuppress) carpanBlokMutexUygula('olasilik');
   }
 
   // FAZ35.122: Ödeme Davranışı RADIO (Kapalı / Kaçış engelleme / Near-miss) — mutual exclusion + key gönderim.
@@ -1582,31 +1591,34 @@
   // Eski toggleDegisti('yakinKacirma') / toggleDegisti('ardisikKayip') yerine bu fonksiyon kullanılır.
   // FAZ35.150 İŞ1: Manipülasyon Türü açıklaması dinamik — seçilen radio'nun SADECE kendi metni gösterilir.
   var odemeDavranisiAciklamalari = {
-    kapali:   'Kapalı: doğal akış, manipülasyon yok.',
-    kacis:    'Kaçış engelleme: 3 üst üste kayıp sonrası zorunlu kazanç verilir.',
+    kapali:   '',
     nearmiss: 'Neredeyse Oluyordu: her spinde 7 aynı meyve + 3 scatter düşer ama kazanç verilmez (neredeyse cluster + neredeyse bonus hissi).'
   };
 
+  // GRUP B/MADDE5: "Neredeyse Oluyordu" toggle — açık→nearmiss, kapalı→kapali. odemeDavranisiSec tek otorite.
+  function neredeyseOluyorduToggle() {
+    var t = document.getElementById('yakinKacirmaToggle');
+    var acik = !(t && t.classList.contains('active'));
+    odemeDavranisiSec(acik ? 'nearmiss' : 'kapali');
+  }
+
   function odemeDavranisiSec(secim) {
-    ['kapali', 'kacis', 'nearmiss'].forEach(function(s) {
-      var btn = document.getElementById('odemeDavranisi_' + s);
-      if (btn) btn.classList.toggle('active', secim === s);
-    });
-    // FAZ35.150 İŞ1: Açıklamayı seçilen davranışa göre güncelle (init @1419 + mutual exclusion B2 buradan geçer → otomatik senkron).
+    // GRUP B/MADDE5: 3 radio → tek toggle. secim ∈ {'kapali','nearmiss'}. 'kacis' (kaçış engelleme) kaldırıldı.
+    var nearmissAktif = (secim === 'nearmiss');
+    var tgl = document.getElementById('yakinKacirmaToggle');
+    var lbl = document.getElementById('yakinKacirmaLabel');
+    if (tgl) tgl.classList.toggle('active', nearmissAktif);
+    if (lbl) lbl.textContent = nearmissAktif ? 'Aktif' : 'Kapalı';
     var aciklamaEl = document.getElementById('odemeDavranisiAciklama');
     if (aciklamaEl) aciklamaEl.innerHTML = odemeDavranisiAciklamalari[secim] || '';
-    // Backend key'leri (Tutorial T8 + 35.118/35.119/35.120/35.121 backend tarafı korunur):
-    // Kapalı: ikisi de false. Kaçış: ardisikKayip=true, yakinKacirma=false. Near-miss: yakinKacirma=true, ardisikKayip=false.
-    var yakinKacirmaAktif = (secim === 'nearmiss');
-    var ardisikKayipAktif = (secim === 'kacis');
-    unityeGonder('yakinKacirma', yakinKacirmaAktif);
-    unityeGonder('ardisikKayip', ardisikKayipAktif);
+    // yakinKacirma backend (NearMiss Faz36.8). ardisikKayip (kaçış) ARTIK GÖNDERİLMEZ — motor 999=kapalı (Fields default).
+    unityeGonder('yakinKacirma', nearmissAktif);
     // Near-miss aktifken bonus slider disable (çakışma — backend zaten Faz 35.118'de kilitliyor, UI feedback).
-    bonusSliderDisableGuncelle(yakinKacirmaAktif);
-    // FAZ35.148 SORUN B: Manipülasyon (near-miss/kaçış) ↔ Ödeme Aralığı mutual exclusion.
-    // Manipülasyon aktif → MIN/MAX'ı 0'la + gönder + disable (panelden ayarlanamaz). Kapalı → enable (değer korunur, sıfırlanmaz).
+    bonusSliderDisableGuncelle(nearmissAktif);
+    // FAZ35.148 SORUN B: Manipülasyon (near-miss) ↔ Ödeme Aralığı mutual exclusion.
+    // Aktif → MIN/MAX'ı 0'la + gönder + disable. Kapalı → enable (değer korunur, sıfırlanmaz).
     // NOT: minEl.value=0 PROGRAMATİK atama → oninput TETİKLEMEZ → ayarDegisti çağrılmaz → DÖNGÜ YOK.
-    var manipAktif = yakinKacirmaAktif || ardisikKayipAktif;
+    var manipAktif = nearmissAktif;
     if (manipAktif) {
       var minEl = document.getElementById('minCarpan');
       var maksEl = document.getElementById('maksCarpan');
@@ -1662,6 +1674,8 @@
     document.getElementById('carpanOlasilikInput').value = n;
     document.getElementById('carpanOlasilikDeger').textContent = n + '%';
     unityeGonder('carpanOlasilik', n);
+    // GRUP B/MADDE3: olasılık>0 → zorla'yı temizle+kilitle; =0 → serbest.
+    if (!_carpanMutexSuppress) carpanBlokMutexUygula(n > 0 ? 'olasilik' : 'temiz');
   }
   function carpanOlasilikInputDegisti(deger) {
     var n = parseInt(deger, 10);
@@ -1672,6 +1686,8 @@
     document.getElementById('carpanOlasilikInput').value = n;
     document.getElementById('carpanOlasilikDeger').textContent = n + '%';
     unityeGonder('carpanOlasilik', n);
+    // GRUP B/MADDE3: olasılık>0 → zorla'yı temizle+kilitle; =0 → serbest.
+    if (!_carpanMutexSuppress) carpanBlokMutexUygula(n > 0 ? 'olasilik' : 'temiz');
   }
 
   // FAZ36.1 FIX1: Bonus yüzdesi → otomatik periyot. TEK formül (slider + init aynı fonksiyonu kullanır, kopya yok).
@@ -1734,7 +1750,7 @@
     'carpanOlasilik', 'carpanOlasilikInput', 'maxCarpanTekSpin',
     'carpanInput', 'carpanZorla100', 'carpanZorla250', 'carpanZorla500', 'carpanOdemeToggle',
     // Ödeme Davranışı accordion (Ödeme aralığı + Radio)
-    'minCarpan', 'maksCarpan', 'odemeDavranisi_kapali', 'odemeDavranisi_kacis', 'odemeDavranisi_nearmiss',
+    'minCarpan', 'maksCarpan', 'yakinKacirmaToggle',
     // Bonus accordion
     'bonusSembolOlasilik',
     // Tutorial T11 hidden buton (03 NORMAL'da display:none, Tutorial sahnesinde gösterilir — DOM'da KALIR)
@@ -1954,10 +1970,9 @@
     // FAZ35.147: yakinKacirma/ardisikKayip KAYNAĞI mod preset'inden değil RADIO aktif buton state'inden.
     // KÖK NEDEN: Eski `s.yakinKacirma` (SENARYOLAR[mod].yakinKacirma, normal=0) Uygula'da near-miss radio'sunu
     // eziyordu (odemeDavranisiSec'in gönderdiği yakinKacirma=true → 0'a düşüyordu). Radio tek otorite (FAZ35.122).
-    var nmAktif = !!(document.getElementById('odemeDavranisi_nearmiss') &&
-                     document.getElementById('odemeDavranisi_nearmiss').classList.contains('active'));
-    var kcAktif = !!(document.getElementById('odemeDavranisi_kacis') &&
-                     document.getElementById('odemeDavranisi_kacis').classList.contains('active'));
+    var nmAktif = !!(document.getElementById('yakinKacirmaToggle') &&
+                     document.getElementById('yakinKacirmaToggle').classList.contains('active'));
+    var kcAktif = false;   // GRUP B/MADDE5: kaçış engelleme UI kaldırıldı (motor 999=kapalı).
     var ykDom = nmAktif;
     var minSlider = document.getElementById('minCarpan');
     var minDom = minSlider ? parseFloat(minSlider.value) : s.minCarpan;
@@ -2065,7 +2080,9 @@
   function carpanZorla(deger) {
     unityeGonder('carpanZorla', deger);
     zorlaIsikGuncelle(deger);
-    bildirimGoster('Bir sonraki turda ' + deger + 'x çarpan görünecek');
+    // GRUP B/MADDE4: sol toast kaldırıldı — bilgi üst banner'a taşındı (Admin.cs AdminForceMesajKutusuGoster alt-tip).
+    // GRUP B/MADDE3: zorla↔olasılık mutual exclusion (deger>0 → zorla kilitle, deger=0 → serbest).
+    if (!_carpanMutexSuppress) carpanBlokMutexUygula(deger > 0 ? 'zorla' : 'temiz');
   }
 
   // FAZ36.6.1 İŞ2: Özel zorla değer doğrulama (maxCarpanTekSpin deseni) — >500 reddet + revert, ≤500 gönder.
@@ -2096,6 +2113,64 @@
       var el = document.getElementById(id);
       if (el) el.classList.remove('zorla-secili');
     });
+  }
+
+  // ===== GRUP B/MADDE3: Çarpan blok mutual exclusion (olasılık ↔ zorla) =====
+  // Aynı blokCarpan içinde "Çarpan düşme olasılığı (+maxCarpan)" ve "Zorla çarpan" AYNI ANDA aktif OLAMAZ.
+  // Tek-aktif-blok rejimi (blokAc) blok SEVİYESİNDE; bu mutex blok İÇİ alt-kontrol seviyesinde çalışır.
+  // Kaynak 'zorla' → olasılık grubunu sıfırla+disable. 'olasilik' → zorla'yı temizle+disable. 'temiz' → ikisi de enable.
+  // Suppress flag: init/reset sırasında *Degisti çağrıları mutex'i tetiklemesin (nötr 'temiz' elle çağrılır).
+  var _carpanMutexSuppress = false;
+  function carpanBlokMutexUygula(kaynak) {
+    var olasilikSlider = document.getElementById('carpanOlasilik');
+    var olasilikInput  = document.getElementById('carpanOlasilikInput');
+    var maxC           = document.getElementById('maxCarpanTekSpin');
+    var carpanInput    = document.getElementById('carpanInput');
+    var zorlaGrubu     = [carpanInput,
+      document.getElementById('carpanZorla100'),
+      document.getElementById('carpanZorla250'),
+      document.getElementById('carpanZorla500')];
+    var olasilikGrubu  = [olasilikSlider, olasilikInput, maxC];
+    function setDisabled(els, dis) {
+      els.forEach(function(el) {
+        if (!el) return;
+        el.disabled = dis;
+        el.style.opacity = dis ? '0.4' : '';
+        el.style.pointerEvents = dis ? 'none' : '';
+      });
+    }
+    if (kaynak === 'zorla') {
+      // Olasılık grubunu sıfırla (direkt DOM+unity — *Degisti çağırma, rekürsiyon yok) + disable.
+      if (olasilikSlider) olasilikSlider.value = 0;
+      if (olasilikInput)  olasilikInput.value = 0;
+      var degEl = document.getElementById('carpanOlasilikDeger');
+      if (degEl) degEl.textContent = '0%';
+      unityeGonder('carpanOlasilik', 0);
+      setDisabled(olasilikGrubu, true);
+      setDisabled(zorlaGrubu, false);
+    } else if (kaynak === 'olasilik') {
+      // Zorla'yı temizle (DOM+unity) + ışıkları söndür + disable.
+      if (carpanInput) carpanInput.value = '';
+      unityeGonder('carpanZorla', 0);
+      zorlaIsiklariSondur();
+      setDisabled(zorlaGrubu, true);
+      setDisabled(olasilikGrubu, false);
+    } else {
+      // 'temiz' — ikisi de serbest (nötr).
+      setDisabled(olasilikGrubu, false);
+      setDisabled(zorlaGrubu, false);
+    }
+  }
+
+  // ===== GRUP B/MADDE6: minCarpan 0/negatif → görünür 0.01 snap =====
+  // Kullanıcı min'e 0 veya negatif girip alandan çıkınca (onchange/blur) EKRANDA 0.01 görünür + Unity'e gider.
+  // Böylece odemeAraligiSorunu min<=0 'eksik' dönmez, Apply gate (senaryoUygula) takılmaz. C# Mathf.Max(0f) 0.01 kabul eder.
+  function minCarpanSnap(input) {
+    var v = parseFloat(input.value);
+    if (isNaN(v) || v <= 0) {
+      input.value = '0.01';
+      ayarDegisti('minCarpan', 0.01);
+    }
   }
 
   function varsayilanaDon() {
