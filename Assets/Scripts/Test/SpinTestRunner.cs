@@ -196,8 +196,7 @@ namespace KumarTest
                     _oy.AdminSetBonusOtomatikSpinPeriyodu(_params.bonusOtomatikSpinPeriyodu);
                     _oy.AdminSetYakinKacirma(_params.yakinKacirmaDegeri);
                     _oy.AdminSetOdemeEgilimi(_params.odemeEgilimiYuzde);
-                    _oy.AdminSetArdisikKayipLimiti(Mathf.Max(1, _params.ardisikKayipLimiti));
-                    Debug.Log($"[TEST] Normal Mod ön ayarları uygulandı: carpan={_params.carpanOlasilikYuzde}% maxCarpan={_params.maxCarpanTekSpinSayisi} bonusPeriyot={_params.bonusOtomatikSpinPeriyodu} yakinKacirma={_params.yakinKacirmaDegeri}/10 egilim={_params.odemeEgilimiYuzde}% kayipLimit={_params.ardisikKayipLimiti}");
+                    Debug.Log($"[TEST] Normal Mod ön ayarları uygulandı: carpan={_params.carpanOlasilikYuzde}% maxCarpan={_params.maxCarpanTekSpinSayisi} bonusPeriyot={_params.bonusOtomatikSpinPeriyodu} yakinKacirma={_params.yakinKacirmaDegeri}/10 egilim={_params.odemeEgilimiYuzde}%");
                 }
                 catch (Exception e) { Debug.LogError($"[TEST] Ön ayar uygulama hatası: {e.Message}"); }
             }
@@ -226,8 +225,6 @@ namespace KumarTest
                     bakiyeOnce = _ekonomi.Bakiye;
                 }
 
-                bool kacisFrenlemeTetik = _oy.TestKacisFrenlemeAktif;
-                int ardisikKayipSayacOnce = _oy.TestArdisikKayipSayac;
 
                 Stopwatch sw = Stopwatch.StartNew();
 
@@ -318,8 +315,6 @@ namespace KumarTest
                     bonusTetiklendi = bonusTetiklendi,
                     bonusOdenen = bonusOdenen,
                     bonusSpinSayisi = bonusSpinSayisi,
-                    ardisikKayipSayacOnce = ardisikKayipSayacOnce,
-                    kacisFrenlemeTetik = kacisFrenlemeTetik,
                     enYuksekClusterSembol = enYuksekSembol,
                     baslangicGridDurumu = GridKodla(simKaydi?.IlkGrid),
                     sonGridDurumu = GridKodla(simKaydi?.Adimlar != null && simKaydi.Adimlar.Count > 0
@@ -331,7 +326,7 @@ namespace KumarTest
                     kazancKategorisi = SpinTestSabitler.KazancKategorisi(odenen, bahis),
                     forceCarpanIstendi = zorlaKullandi,
                     bonusSatinAlindi = false,
-                    spinTipi = bonusTetiklendi ? "Bonus" : (zorlaKullandi ? "Force" : (kacisFrenlemeTetik ? "Kacis" : "Normal"))
+                    spinTipi = bonusTetiklendi ? "Bonus" : (zorlaKullandi ? "Force" : "Normal")
                 };
 
                 ozet.spinler.Add(kayit);
@@ -414,7 +409,7 @@ namespace KumarTest
         {
             ozet.toplamSpin = ozet.spinler.Count;
             long toplamBahis = 0, toplamKazanc = 0, toplamSure = 0, bonusOdeme = 0;
-            int carpanDusen = 0, clusterPatlayan = 0, bonusTetik = 0, kacisTetik = 0;
+            int carpanDusen = 0, clusterPatlayan = 0, bonusTetik = 0;
             int maxKazanc = 0, toplamTumble = 0;
 
             foreach (var s in ozet.spinler)
@@ -430,7 +425,6 @@ namespace KumarTest
                 }
                 if (s.clusterSayisi > 0) clusterPatlayan++;
                 if (s.bonusTetiklendi) { bonusTetik++; bonusOdeme += s.bonusOdenen; }
-                if (s.kacisFrenlemeTetik) kacisTetik++;
                 if (s.odenen > maxKazanc) maxKazanc = s.odenen;
                 toplamTumble += s.tumbleSayisi;
                 ozet.KategoriEkle(s.kazancKategorisi ?? "Normal");
@@ -449,7 +443,6 @@ namespace KumarTest
             ozet.bonusToplamOdeme = bonusOdeme;
             ozet.bonusOrtalamaOdeme = bonusTetik > 0 ? (bonusOdeme * 1f / bonusTetik) : 0f;
             ozet.maxTekSpinKazanc = maxKazanc;
-            ozet.kacisFrenlemeTetikSayisi = kacisTetik;
             ozet.ortalamaSpinSureMs = ozet.toplamSpin > 0 ? (toplamSure * 1f / ozet.toplamSpin) : 0f;
 
             if (ozet.toplamSpin > 0)

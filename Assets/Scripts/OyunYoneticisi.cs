@@ -283,14 +283,6 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
 
     IEnumerator IDonusAkisBaglami.SimulasyonKaydiniOynat(SpinSimulasyonKaydi kayit) => SimulasyonKaydiniOynatImpl(kayit);
     bool IDonusAkisBaglami.CarpanTumbleAktif => _carpanTumbleAktif;
-    int IDonusAkisBaglami.ArdisikKayipLimiti => _ardisikKayipLimiti;
-    int IDonusAkisBaglami.ArdisikKayipSayac { get => _ardisikKayipSayac; set => _ardisikKayipSayac = value; }
-    void IDonusAkisBaglami.SonrakiSpinKacisFrenlemeAktifEt()
-    {
-        _kacisFrenlemeBuSpinAktif = true;
-        // Önbellekteki spin cluster zorlamasını içermez; geçersizleştir ki yeni spin garanti cluster ile üretilsin.
-        OncedenHesaplananSpinOnbelleginiTemizle();
-    }
     int IDonusAkisBaglami.BonusOtomatikSpinPeriyodu => bonusOtomatikSpinPeriyodu;
     int IDonusAkisBaglami.BonusOtomatikSpinSayaci { get => _bonusOtomatikSpinSayaci; set => _bonusOtomatikSpinSayaci = value; }
     bool IDonusAkisBaglami.BonusOtomatikTetikSonrakiSpin { get => _bonusOtomatikTetikSonrakiSpin; set => _bonusOtomatikTetikSonrakiSpin = value; }

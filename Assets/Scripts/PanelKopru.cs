@@ -64,7 +64,6 @@ public class PanelKopru : MonoBehaviour
     public static float minCarpan = 0f;         // min ödeme bahis katı (0=devre dışı)
     public static float maksCarpan = 0f;        // maks ödeme bahis katı (0=devre dışı)
     public static float yakinKacirma = 40f;     // bu projede karşılığı YOK
-    public static int ardisikKayipLimiti = 8;
     public static bool carpanTumbleAktif = false;   // FAZ36 İŞ D2: "Çarpan Düşünce Ödeme Versin" DEFAULT KAPALI
     public static string bonusModu = "manuel";
     public static int bonusOtomatikSpinPeriyodu = 200;
@@ -240,13 +239,7 @@ public class PanelKopru : MonoBehaviour
                 _oy?.AdminSetYakinKacirma(yk10da);
                 break;
 
-            case "ardisikKayip":
-                // FAZ35.82: number input → toggle dönüşümü. JS toggleDegisti("ardisikKayip") true/false bool gönderir.
-                // true → 3 (3 üst üste kayıp sonrası kazanç zorla), false → 999 (etkisiz büyük değer = pratikte kapalı).
-                bool ardisikAktif = bool.TryParse(deger, out var bAk) ? bAk : (int.TryParse(deger, out var nAk) && nAk > 0);
-                ardisikKayipLimiti = ardisikAktif ? 3 : 999;
-                _oy?.AdminSetArdisikKayipLimiti(ardisikKayipLimiti);
-                break;
+            // Runtime ardışık-kayıp/Kaçış Frenleme KÖKTEN KALDIRILDI (Yol 1): case "ardisikKayip" silindi.
 
             // FAZ35.76: case "yeniOyuncu" SİLİNDİ — panel toggle kaldırıldı + AdminSetYeniOyuncuModu metodu silindi.
 
@@ -615,7 +608,6 @@ public class PanelKopru : MonoBehaviour
         minCarpan = 0f;
         maksCarpan = 0f;
         yakinKacirma = 40f;
-        ardisikKayipLimiti = 8;
         bonusModu = "manuel";
         aktifSenaryo = "normal";
         _oy?.AdminNormalOyunUygula();
@@ -631,8 +623,7 @@ public class PanelKopru : MonoBehaviour
         if (_oy != null) { _oy.carpanUretimOlasiligi = 0.02f; _oy.carpanUretimiAktif = true; }
         _oy?.AdminSetMaxCarpanTekSpin(3);         // maxCarpanAdedi default 3 (Fields.cs:476)
         _oy?.AdminSetYakinKacirma(0);             // yakinKacirmaDegeri10da default 0 (Admin.cs:581)
-        // FAZ35.82: ardisikKayip number→toggle dönüşümü; toggle kapalı default → 999 (etkisiz büyük değer).
-        _oy?.AdminSetArdisikKayipLimiti(999);
+        // Runtime ardışık-kayıp/Kaçış Frenleme KÖKTEN KALDIRILDI (Yol 1): AdminSetArdisikKayipLimiti reset çağrısı silindi.
         _oy?.AdminSetCarpanTumbleAktif(false);    // FAZ36 İŞ D2: "Çarpan Düşünce Ödeme Versin" DEFAULT KAPALI (Fields.cs:51)
         _oy?.AdminSetBonusOtomatikSpinPeriyodu(0); // bonusOtomatikSpinPeriyodu default 0 = devre dışı (Admin.cs:542)
         // FAZ35.81 Madde 1: Min/Maks Çarpan reset (0 = devre dışı, mevcut RNG akışı).
@@ -646,7 +637,7 @@ public class PanelKopru : MonoBehaviour
         // + AdminSetTutmaModAktif(false) zaten mod akışını sıfırlıyor. UI senkron için panel tarafı
         // varsayilanaDon JS handler'ında dropdown 'normal'e döner + modAktifToggle ON kalır (default).
 
-        Debug.Log("[PanelKopru] Varsayılan ayarlara dönüldü (FULL RESET: motor field default'a + odemeEgilimi=65 + Min/Maks devre dışı + Tutma off + ardisikKayip kapalı + FAZ35.83 mod akışı sıfırlandı)");
+        Debug.Log("[PanelKopru] Varsayılan ayarlara dönüldü (FULL RESET: motor field default'a + odemeEgilimi=65 + Min/Maks devre dışı + Tutma off + FAZ35.83 mod akışı sıfırlandı)");
     }
 
     // ===== MEVCUT AYARLARI PANELE GÖNDER =====
@@ -659,7 +650,6 @@ public class PanelKopru : MonoBehaviour
             maksCarpan         = maksCarpan,
             bahis              = _oy != null ? _oy.GetMevcutBahis() : 0,
             yakinKacirma       = yakinKacirma,
-            ardisikKayipLimiti = ardisikKayipLimiti,
             carpanTumbleAktif  = PanelKopru.carpanTumbleAktif,
             bonusModu          = bonusModu,
             aktifSenaryo       = aktifSenaryo
@@ -687,7 +677,6 @@ public class PanelKopru : MonoBehaviour
         public float  maksCarpan;
         public int    bahis;
         public float  yakinKacirma;
-        public int    ardisikKayipLimiti;
         public bool   carpanTumbleAktif;
         public string bonusModu;
         public string aktifSenaryo;

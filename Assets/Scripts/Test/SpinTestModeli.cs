@@ -23,8 +23,6 @@ namespace KumarTest
         public bool bonusTetiklendi;
         public int bonusOdenen;
         public int bonusSpinSayisi;
-        public int ardisikKayipSayacOnce;
-        public bool kacisFrenlemeTetik;
         public int enYuksekClusterSembol;
         public string baslangicGridDurumu;
         public string sonGridDurumu;
@@ -67,7 +65,6 @@ namespace KumarTest
         public int enUzunArdisikKayipSerisi;
         public int enUzunArdisikKazancSerisi;
         public List<StringIntCifti> kazancKategoriDagilimi = new List<StringIntCifti>();
-        public int kacisFrenlemeTetikSayisi;
         public float standartSapmaKazanc;
         public float ortalamaSpinSureMs;
         public List<SpinKaydi> spinler = new List<SpinKaydi>();
@@ -124,7 +121,6 @@ namespace KumarTest
         public int bonusOtomatikSpinPeriyodu = 0; // 0=devre dışı, 1-500
         public int yakinKacirmaDegeri = 0;        // 0-10 (10'da N)
         public int odemeEgilimiYuzde = 65;        // 0-100
-        public int ardisikKayipLimiti = 8;        // 0-20
     }
 
     [Serializable]

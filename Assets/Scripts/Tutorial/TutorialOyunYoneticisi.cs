@@ -534,16 +534,8 @@ namespace KumarFarkindalik.Tutorial
                 // kalan tüketilmiş havuz state'i sıfırlanır, ilk T3 spininden itibaren tam havuzdan çekim.
                 TutorialAsamaListesiUreteci.PatternHavuzuSifirla();
 
-                // PAKET 14-FAZ35.3 BUG Q FIX: KAÇIŞ_FRENLEME Tutorial sahnesinde devre dışı.
-                // T3.3 Tutma preset ardisikKayip=5 set ediyor, sonraki adımlarda korunup
-                // KAÇIŞ_FRENLEME tetikliyor → precompute cache temizleme yan etkisi.
-                // AdminSetArdisikKayipLimiti(0) çağrısı Mathf.Max(1, 0)=1 nedeniyle yetersiz;
-                // reflection ile _ardisikKayipLimiti field'ı doğrudan 0'a zorlanır (T11BonusYarimKes emsali).
-                var ardisikKayipLimitiField = typeof(OyunYoneticisi).GetField("_ardisikKayipLimiti",
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                ardisikKayipLimitiField?.SetValue(oy, 0);
-                PanelKopru.ardisikKayipLimiti = 0;
-                Debug.Log("[Tutorial] BUG Q FIX: _ardisikKayipLimiti=0 (reflection) — KAÇIŞ_FRENLEME devre dışı.");
+                // YOL 1: Runtime KAÇIŞ_FRENLEME mekanizması KÖKTEN silindi → Tutorial'da devre dışı bırakma
+                // reflection bloğu (eski BUG Q FIX) gereksiz + silinen sembollere bakıyordu → KALDIRILDI.
 
                 // PAKET 14-FAZ31: Admin state'i Normal Oyun moduna resetle — Tutorial başlangıcında
                 // admin senaryo preset (S2/S3 vb.) aktif kalabiliyordu → TryConsumeOncedenHesaplanan

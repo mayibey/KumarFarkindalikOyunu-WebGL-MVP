@@ -1226,12 +1226,6 @@
       + '<p>4/10\'da her 10 spinin 4\'ünde near-miss yaşatılır — oyuncu "bir spin daha" der, dayanamaz, basar.</p>'
       + '<p>Gerçek slot sitelerinde bu değer <strong>6/10-7/10</strong> arasındadır.</p>',
 
-    kacisFreni: '<h4>Kaçış Frenleme</h4>'
-      + '<p>Oyuncu üst üste kaybetmeye başladığında "yeter, çekiliyorum" düşüncesi belirir. Sistem bu çıkış anını <strong>algılar ve önler.</strong></p>'
-      + '<p>Eşik kayıp sayısına ulaşıldığında bir sonraki spinde <strong>zorunlu küçük kazanç</strong> üretilir. Genellikle bahsin yarısı veya katı kadar. Önemli olan miktar değil, <strong>"şansım döndü"</strong> hissini yaratmaktır.</p>'
-      + '<p>Oyuncu içinden "neyse ki bekledim, kazandım" der. Hâlbuki o spin\'i <strong>operatör ona hediye etti</strong> — kalmasını istediği için.</p>'
-      + '<p>Eşik 8 ise: 8 üst üste kayıptan sonra zorunlu kırıntı. Düşük tutarsan oyuncu sık "tutunuyor" hisseder. Yüksek tutarsan oyuncu yorulup gidebilir.</p>',
-
     bonusTetik: '<h4>Bonus Tetikleme</h4>'
       + '<p>Bonus oyunu, slot oyunlarındaki <strong>en yoğun dopamin patlama anıdır.</strong> Animasyon, müzik, parlak renkler — hepsi maksimum heyecan için tasarlanır.</p>'
       + '<p>Oyuncu bonusun <strong>"şans eseri"</strong> geldiğine inanır. Hâlbuki çoğu zaman <strong>operatör tarafından elle tetiklenmiştir.</strong></p>'
@@ -1807,11 +1801,11 @@
   // Hook (Taze Kan) 1.5x-2.5x + %90 eğilim, Yontma 0.3x-0.7x + %70, Tutma 1.2x-1.8x dar + 2-1 deterministik,
   // Koruma 0.1x-0.3x + %8, Normal 0/0 (kullanıcı manuel). Eğilim yüzdeleri PanelKopru.SenaryoUygula'da motor'a yazılır.
   var SENARYOLAR = {
-    normal:  { minCarpan: 0,   maksCarpan: 0,   yakinKacirma: 0, ardisikKayip: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 2,   carpanOdeme: false },
-    hook:    { minCarpan: 1.1, maksCarpan: 2.2, yakinKacirma: 2, ardisikKayip: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 3,   carpanOdeme: false },
-    yontma:  { minCarpan: 0.3, maksCarpan: 0.7, yakinKacirma: 3, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 1,   carpanOdeme: false },
-    tutma:   { minCarpan: 1.1, maksCarpan: 1.5, yakinKacirma: 2, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 1,   carpanOdeme: false },
-    koruma:  { minCarpan: 0.1, maksCarpan: 0.3, yakinKacirma: 5, ardisikKayip: 0, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: false }
+    normal:  { minCarpan: 0,   maksCarpan: 0,   yakinKacirma: 0, bonusModu: 'otomatik', bonusSembolOlasilik: 2,   carpanOdeme: false },
+    hook:    { minCarpan: 1.1, maksCarpan: 2.2, yakinKacirma: 2, bonusModu: 'otomatik', bonusSembolOlasilik: 3,   carpanOdeme: false },
+    yontma:  { minCarpan: 0.3, maksCarpan: 0.7, yakinKacirma: 3, bonusModu: 'manuel',   bonusSembolOlasilik: 1,   carpanOdeme: false },
+    tutma:   { minCarpan: 1.1, maksCarpan: 1.5, yakinKacirma: 2, bonusModu: 'manuel',   bonusSembolOlasilik: 1,   carpanOdeme: false },
+    koruma:  { minCarpan: 0.1, maksCarpan: 0.3, yakinKacirma: 5, bonusModu: 'manuel',   bonusSembolOlasilik: 0.5, carpanOdeme: false }
   };
 
   // Son APPLY edilen state — sayfa açılışta normal preset
@@ -1857,8 +1851,6 @@
     document.getElementById('maksCarpan').value = s.maksCarpan;
     // FAZ35.69: yakinKacirma slider→toggle. Preset sayısal değer >0.5 → toggle.active (UI senkron).
     setToggleClass('yakinKacirma', s.yakinKacirma > 0.5);
-    // FAZ35.82: ardisikKayip number→toggle. Preset sayısal değer >0 → toggle.active.
-    setToggleClass('ardisikKayip', s.ardisikKayip > 0);
     // FAZ35.76: setToggleClass('yeniOyuncu') SİLİNDİ — kart yok.
     setToggleClass('carpanOdeme', s.carpanOdeme);
     // FAZ35.126.B: bonusManuel/bonusOtomatik Faz 35.123'te silindi (Anlık Müdahale accordion → bonus modu radio kaldırıldı,
@@ -1867,11 +1859,6 @@
     if (__bmUygula) __bmUygula.classList.toggle('active', s.bonusModu === 'manuel');
     var __boUygula = document.getElementById('bonusOtomatik');
     if (__boUygula) __boUygula.classList.toggle('active', s.bonusModu === 'otomatik');
-
-    // FAZ35.82: Ardışık kayıp kart SADECE Normal modda görünür (diğer modlar kendi davranışına sahip:
-    // Tutma deterministik döngü, Hook/Yontma/Koruma kendi bantları). secim undefined ise göster (defansif).
-    var akKart = document.getElementById('ardisikKayipKart');
-    if (akKart) akKart.style.display = (!secim || secim === 'normal') ? 'block' : 'none';
 
     // Bonus sembolü düşme olasılığı (preview'de animate, postMessage YOK)
     var bonusSembolEl = document.getElementById('bonusSembolOlasilik');
@@ -1996,7 +1983,6 @@
     unityeGonder('minCarpan',         minDom);    // DOM state
     unityeGonder('maksCarpan',        maksDom);   // DOM state
     unityeGonder('yakinKacirma',      ykDom);     // DOM state
-    unityeGonder('ardisikKayip',      akDom);     // DOM state
     unityeGonder('bonusModu',         'otomatik');   // FAZ36 FIX: preset-ezme — mod preset'i (yontma/koruma/tutma 'manuel') admin bonusunu eziyordu. Bonus hep otomatik (35.123 tasarimi); frekans #bonusSembolOlasilik slider'inda, Uygula'da ezilmez. Ilk acilis=otomatik (normal preset, degismez).
     // PAKET 14-FAZ24: bonusOtomatikOran preset gönderimi KALDIRILDI. Slider değişiminde kullanıcı değeri
     // (bonusYuzde + bonusOtomatikOran) zaten ANINDA Unity'e gönderiliyor. senaryoUygula preset 200 değerini
@@ -2051,7 +2037,6 @@
       case 'yakinKacirma':    return 'Yakın kaçırma ' + ((value === true || value === 'true' || value === 'True' || (typeof value === 'number' && value > 0.5)) ? 'açıldı' : 'kapatıldı');
       case 'minCarpan':       return 'Min ödeme çarpanı ' + value + 'x olarak uygulandı';
       case 'maksCarpan':      return 'Maks ödeme çarpanı ' + value + 'x olarak uygulandı';
-      case 'ardisikKayip':    return 'Ardışık kayıp limiti ' + value + ' olarak uygulandı';
       case 'carpanOdeme':     return 'Çarpan ödemesi ' + ((value === true || value === 'true' || value === 'True') ? 'açıldı' : 'kapatıldı');
       case 'carpanZorla':     return 'Çarpan zorla ' + value + 'x uygulandı';
       case 'bonusModu':       return 'Bonus modu: ' + value;
@@ -2194,7 +2179,6 @@
       minCarpan:      Number(document.getElementById('minCarpan').value),
       maksCarpan:     Number(document.getElementById('maksCarpan').value),
       yakinKacirma:   document.getElementById('yakinKacirmaToggle').classList.contains('active'), // FAZ35.69: toggle bool
-      ardisikKayip:   Number(document.getElementById('ardisikKayip').value),
       bonusModu:      document.getElementById('bonusManuel').classList.contains('active') ? 'manuel' : 'otomatik'
     };
     unityeGonder('tumAyarlar', tumAyarlar);
@@ -2262,7 +2246,6 @@
     unityeGonder('minCarpan',         s.minCarpan);
     unityeGonder('maksCarpan',        s.maksCarpan);
     unityeGonder('yakinKacirma',      s.yakinKacirma);
-    unityeGonder('ardisikKayip',      s.ardisikKayip);
     unityeGonder('bonusModu',         'otomatik');   // FAZ36 FIX: preset-ezme — mod preset'i (yontma/koruma/tutma 'manuel') admin bonusunu eziyordu. Bonus hep otomatik (35.123 tasarimi); frekans #bonusSembolOlasilik slider'inda, Uygula'da ezilmez. Ilk acilis=otomatik (normal preset, degismez).
     // FAZ36.1 FIX1: init DOM slider'ın güncel değerinden hesaplar — canlı slider ile AYNI formül (bonusPeriyotHesapla).
     var bonusYuzdeInit = parseFloat(document.getElementById('bonusSembolOlasilik').value) || 0;
@@ -2375,8 +2358,6 @@
       if (mkMax) mkMax.value = a.maksCarpan || 0;
       // FAZ35.69: yakinKacirma slider→toggle. Backend'den gelen sayısal değer >0.5 → toggle.active.
       setToggleClass('yakinKacirma', (typeof a.yakinKacirma === 'number') ? a.yakinKacirma > 0.5 : !!a.yakinKacirma);
-      var akInput = document.getElementById('ardisikKayip');
-      if (akInput) akInput.value = a.ardisikKayipLimiti;
       // FAZ35.76: yeniOyuncuToggle/Label DOM senkron SİLİNDİ — kart kaldırıldı.
       var ctTog = document.getElementById('carpanOdemeToggle'), ctLbl = document.getElementById('carpanOdemeLabel');
       if (ctTog && ctLbl && a.carpanTumbleAktif !== undefined) { ctTog.classList.toggle('active', !!a.carpanTumbleAktif); ctLbl.textContent = a.carpanTumbleAktif ? 'Aktif' : 'Kapalı'; }

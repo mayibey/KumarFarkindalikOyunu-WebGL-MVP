@@ -139,7 +139,7 @@ public class SpinTestAraci : EditorWindow
             _params.bonusOtomatikSpinPeriyodu = EditorGUILayout.IntField("Bonus periyot (0=kapalı)", _params.bonusOtomatikSpinPeriyodu);
             _params.yakinKacirmaDegeri = EditorGUILayout.IntSlider("Yakın Kaçırma (10'da N)", _params.yakinKacirmaDegeri, 0, 10);
             _params.odemeEgilimiYuzde = EditorGUILayout.IntSlider("Ödeme eğilimi %", _params.odemeEgilimiYuzde, 0, 100);
-            _params.ardisikKayipLimiti = EditorGUILayout.IntSlider("Ardışık kayıp limiti", _params.ardisikKayipLimiti, 1, 20);
+            // YOL 1: "Ardışık kayıp limiti" slider'ı kaldırıldı (runtime Kaçış Frenleme mekanizması silindi).
             EditorGUI.indentLevel--;
         }
 
@@ -419,24 +419,23 @@ public class SpinTestAraci : EditorWindow
                 ozet.AppendLine($"# BonusPeriyot;{_params.bonusOtomatikSpinPeriyodu}");
                 ozet.AppendLine($"# YakinKacirma10da;{_params.yakinKacirmaDegeri}");
                 ozet.AppendLine($"# OdemeEgilimi%;{_params.odemeEgilimiYuzde}");
-                ozet.AppendLine($"# ArdisikKayipLimiti;{_params.ardisikKayipLimiti}");
             }
             ozet.AppendLine();
-            ozet.AppendLine("Senaryo;Spin;ToplamBahis;ToplamKazanc;NetKar;RTP%;CarpanDus%;ClusterPatla%;BonusTetik;MaxKazanc;MaxArdKayip;MaxArdKazanc;KacisTetik;OrtSureMs");
+            ozet.AppendLine("Senaryo;Spin;ToplamBahis;ToplamKazanc;NetKar;RTP%;CarpanDus%;ClusterPatla%;BonusTetik;MaxKazanc;MaxArdKayip;MaxArdKazanc;OrtSureMs");
             foreach (var s in _sonuc.senaryolar)
                 ozet.AppendLine($"{s.senaryoAd};{s.toplamSpin};{s.toplamBahis};{s.toplamKazanc};{s.netKar};" +
                     $"{s.rtpYuzde:F1};{s.carpanDususOraniYuzde:F1};{s.clusterPatlamaOraniYuzde:F1};{s.bonusTetiklemeSayisi};" +
-                    $"{s.maxTekSpinKazanc};{s.enUzunArdisikKayipSerisi};{s.enUzunArdisikKazancSerisi};{s.kacisFrenlemeTetikSayisi};{s.ortalamaSpinSureMs:F1}");
+                    $"{s.maxTekSpinKazanc};{s.enUzunArdisikKayipSerisi};{s.enUzunArdisikKazancSerisi};{s.ortalamaSpinSureMs:F1}");
             File.WriteAllText(Path.Combine(_csvKlasoru, "ozet.csv"), ozet.ToString(), new UTF8Encoding(true));
 
             // detay.csv (tek dosya, tüm senaryolar)
             var detay = new StringBuilder();
-            detay.AppendLine("Senaryo;SpinNo;Bahis;BakiyeOnce;BakiyeSonra;Odenen;Cluster;Tumble;CarpanDeger;CarpanKaynak;Bonus;BonusOdenen;ArdKayipOnce;Kacis;Kategori;SpinTipi;SureMs;ClusterDetay");
+            detay.AppendLine("Senaryo;SpinNo;Bahis;BakiyeOnce;BakiyeSonra;Odenen;Cluster;Tumble;CarpanDeger;CarpanKaynak;Bonus;BonusOdenen;Kategori;SpinTipi;SureMs;ClusterDetay");
             foreach (var oz in _sonuc.senaryolar)
                 foreach (var s in oz.spinler)
                     detay.AppendLine($"\"{oz.senaryoAd}\";{s.spinNo};{s.bahis};{s.bakiyeOnce};{s.bakiyeSonra};{s.odenen};" +
                         $"{s.clusterSayisi};{s.tumbleSayisi};{s.carpanDeger};{s.carpanKaynak};" +
-                        $"{s.bonusTetiklendi};{s.bonusOdenen};{s.ardisikKayipSayacOnce};{s.kacisFrenlemeTetik};" +
+                        $"{s.bonusTetiklendi};{s.bonusOdenen};" +
                         $"{s.kazancKategorisi};{s.spinTipi};{s.spinSureMs};\"{s.clusterDetay}\"");
             File.WriteAllText(Path.Combine(_csvKlasoru, "detay.csv"), detay.ToString(), new UTF8Encoding(true));
 

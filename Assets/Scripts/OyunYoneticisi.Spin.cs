@@ -431,7 +431,6 @@ public partial class OyunYoneticisi
                 carpanOdemeAcik = _carpanTumbleAktif,     // "Çarpan Düşünce Ödeme Versin" toggle
                 // FAZ36.5: Altyapı snapshot — bu fazda motorlar OKUMAZ (davranış değişmez). Legacy yolları (Spin.cs:538/556/573/620/539) AYNEN.
                 yakinKacirma = yakinKacirmaDegeri10da,
-                ardisikKayipLimiti = _ardisikKayipLimiti,
                 egilimYuzde = _odemeEgilimiYuzde,
                 bonusGirmeOlasilik = _bonusGirmeOlasilik,
             };

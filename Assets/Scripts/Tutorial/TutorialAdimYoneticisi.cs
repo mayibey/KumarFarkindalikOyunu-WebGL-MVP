@@ -319,15 +319,14 @@ namespace KumarFarkindalik.Tutorial
                 mesajAksiyon = T9_AKSIYON,
                 mesajKapanis = T9_KAPANIS,
                 altBaslik = "ÇIKMA ANINDA YAKALAMA",
-                // PAKET 6D: 3 kayıp + 1 kazanç (limit'e ulaşıldığında otomatik frenleme)
-                yapilacaklar = new[] { "Kaçış limiti kutusuna 3 yaz", "Uygula bas", "4 spin at" },
+                // PAKET 6D: 3 kayıp + 1 kazanç — scripted demo (TutorialOyunYoneticisi.cs:761 AsamaSetKacis).
+                // YOL 1: runtime kaçış mekanizması KÖKTEN silindi; panel-etkileşim adımı (kutuya 3 yaz) kaldırıldı,
+                // step yalnız 4 scripted spin ile tamamlanır. vurguSelectorlari "#ardisikKayip" + parametreKosulu
+                // PanelKopru.ardisikKayipLimiti==3 + degisimAnahtarlari "ardisikKayip" silinen sembollerdi → koparıldı.
+                yapilacaklar = new[] { "4 spin at" },
                 sira = 8, // FAZ35.74: sira 10 → 8
-                vurguSelectorlari = new[] { "#ardisikKayip" },
+                vurguSelectorlari = new string[0],
                 gerekliSpin = 4,
-                // PAKET 14-FAZ35.7: Kaçış limiti KESIN 3 (talimat "3 yaz"). Eski 1-4 aralığı pedagojik
-                // tutarlılığı bozuyordu (kullanıcı 1 yazınca da geçiyordu).
-                parametreKosulu = () => PanelKopru.ardisikKayipLimiti == 3,
-                degisimAnahtarlari = new[] { "ardisikKayip" },
             };
 
             _adimlar[TutorialAdimId.T10] = new AdimVerisi

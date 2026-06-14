@@ -80,12 +80,6 @@ public interface IDonusAkisBaglami
     void PlayKayipHorn();
     /// <summary>false ise zorla çarpan sonrası tumble zinciri tek adımda durur (cascades yok).</summary>
     bool CarpanTumbleAktif { get; }
-    /// <summary>Panel: N ardışık kayıptan sonra zorunlu kırıntı eşiği.</summary>
-    int ArdisikKayipLimiti { get; }
-    int ArdisikKayipSayac { get; set; }
-    /// <summary>Eşik aşıldığında bir SONRAKİ spin için "garanti cluster" bayrağını set eder ve önbelleği temizler.
-    /// Sahte para yok; oynanacak spin gerçek cluster ile gerçek ödeme üretir.</summary>
-    void SonrakiSpinKacisFrenlemeAktifEt();
     /// <summary>Bonus otomatik tetikleme periyodu (admin panel ayarı). 0 = kapalı.</summary>
     int BonusOtomatikSpinPeriyodu { get; }
     int BonusOtomatikSpinSayaci { get; set; }
@@ -229,23 +223,7 @@ public class DonusAkisServisi
             _ctx.DonusKayitServisi?.RecordSpinResult(_ctx.SpinPrevBakiye, _ctx.EkonomiServisi.Bakiye, _ctx.SpinBahisTL, odenen);
         }
         SettledSpinDegerleriniNormalizeEt(odenen);
-
-        // Ardışık kayıp sayacı güncelle + Kaçış Frenleme tetikleme
-        if (odenen > 0)
-        {
-            _ctx.ArdisikKayipSayac = 0;
-        }
-        else
-        {
-            _ctx.ArdisikKayipSayac++;
-            if (_ctx.ArdisikKayipLimiti > 0 && _ctx.ArdisikKayipSayac >= _ctx.ArdisikKayipLimiti)
-            {
-                _ctx.SonrakiSpinKacisFrenlemeAktifEt();
-                _ctx.ArdisikKayipSayac = 0;
-                OturumKayitcisi.EkleEvent("kacis_frenleme_aktif", $"{_ctx.ArdisikKayipLimiti} kayıp sonrası bir sonraki spin'de cluster zorlanıyor", _ctx.spinNo);
-                Debug.Log($"[KAÇIŞ_FRENLEME] {_ctx.ArdisikKayipLimiti} ardışık kayıp → bir sonraki spin için cluster zorlanacak.");
-            }
-        }
+        // Runtime ardışık-kayıp sayaç + Kaçış Frenleme tetikleme bloğu KÖKTEN KALDIRILDI (Yol 1).
 
         // Bonus otomatik tetikleme periyodu (admin paneli)
         if (_ctx.BonusOtomatikSpinPeriyodu > 0 && !_ctx.BonusAktif)

@@ -448,8 +448,6 @@ public partial class OyunYoneticisi
 
     /// <summary>SpinTestAraci için: scatter index'i + state field okuma için public erişim.</summary>
     public int TestScatterIndex => _scatterIndexCache;
-    public bool TestKacisFrenlemeAktif => _kacisFrenlemeBuSpinAktif;
-    public int TestArdisikKayipSayac => _ardisikKayipSayac;
 
     /// <summary>SpinTestAraci için: senaryo dropdown index'iyle senaryo aktive eder. 0 = Normal Oyun, 1-5 = Senaryo 1-5.</summary>
     public void TestSenaryoSec(int dropdownIndex0Bazli)
@@ -596,13 +594,6 @@ public partial class OyunYoneticisi
     {
         _ = tl;
         OncedenHesaplananSpinOnbelleginiTemizle();
-    }
-
-    public void AdminSetArdisikKayipLimiti(int limit)
-    {
-        _ardisikKayipLimiti = Mathf.Max(1, limit);
-        _ardisikKayipSayac = 0;
-        Debug.Log($"[ADMIN][PANEL] ArdisikKayipLimiti = {_ardisikKayipLimiti}");
     }
 
     // FAZ35.76: _yeniOyuncuKoroutin + _yeniOyuncuOncekiEgilim field'ları SİLİNDİ

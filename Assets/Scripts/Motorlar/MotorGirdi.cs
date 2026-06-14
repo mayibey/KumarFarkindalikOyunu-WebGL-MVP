@@ -50,8 +50,6 @@ public sealed class MotorGirdi
     // Legacy okuma noktaları (Spin.cs:538/556/573/620/539) AYNEN yerinde — bu alanlar onları DUBLE ETMEZ, sadece taşır.
     /// <summary>yakinKacirmaDegeri10da — 10'da N near-miss yoğunluğu (0=kapalı). NearMissMotoru için.</summary>
     public int yakinKacirma;
-    /// <summary>_ardisikKayipLimiti — N ardışık kayıp sonrası zorla kazanç eşiği. KaçışEngellemeMotoru için.</summary>
-    public int ardisikKayipLimiti;
     /// <summary>_odemeEgilimiYuzde (0-100) — kazanç eğilimi yüzdesi. Eğilim tabanlı motor kararı için.</summary>
     public int egilimYuzde;
     /// <summary>_bonusGirmeOlasilik (0-1) — bonus oyuna girme olasılığı (legacy yol). BonusMotoru birleştirmesi için.</summary>

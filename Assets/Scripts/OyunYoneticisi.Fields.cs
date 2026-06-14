@@ -137,12 +137,8 @@ public partial class OyunYoneticisi
 
     public TMPro.TextMeshProUGUI zorlukValueText;
 
-    // GRUP B/MADDE5: default 8 → 999 (kaçış engelleme UI'dan kaldırıldı; 999=pratikte hiç tetiklenmez=güvenli kapalı).
-    // Panel artık ardisikKayip göndermiyor → 8'de bırakılırsa her 8 kayıpta sessizce zorla cluster gelirdi (kör nokta).
-    // Çağrı yolları (SonrakiSpinKacisFrenlemeAktifEt vb.) SİLİNMEDİ — ileride 36.9 KaçışEngellemeMotoru için korundu.
-    private int _ardisikKayipLimiti = 999;
-    private int _ardisikKayipSayac = 0;
-    // Kaçış Frenleme: ardışık kayıp eşiği aşıldığında SONRAKİ spin'in grid'i cluster oluşacak şekilde zorlanır.
+    // Runtime ardışık-kayıp sayaç+tetik mekanizması KÖKTEN KALDIRILDI (Yol 1).
+    // _kacisFrenlemeBuSpinAktif bayrağı KORUNDU: Tutma modu (Spin.cs:480) "bu spin garanti cluster" için kullanır.
     // Bayrak SimuleEtVeKaydetImpl tarafından okunur ve bir kez tüketilir.
     private bool _kacisFrenlemeBuSpinAktif = false;
     // FAZ35.76: _yeniOyuncuModuAktif + _yeniOyuncuBaslangicZamani field'ları SİLİNDİ (AdminSetYeniOyuncuModu kaldırıldı).
