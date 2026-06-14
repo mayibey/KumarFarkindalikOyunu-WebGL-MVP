@@ -913,6 +913,9 @@
     opacity: 0;
     transition: opacity 0.3s ease;
   }
+  /* MADDE3 FIX: çarpan blok mutex disable — modKilitle'nin inline opacity/pointerEvents'inden BAĞIMSIZ katman.
+     !important ile modKilitle(false) ezemez → mutex state kalıcı olur. */
+  .mutex-disabled { opacity: 0.4 !important; pointer-events: none !important; }
 </style>
 </head>
 <body>
@@ -983,6 +986,15 @@
       </div>
       <div class="accordion-content">
 
+      <!-- MADDE3: Olasılık bloğu aç/kapa toggle (otorite). AÇ → olasılık aktif, zorla otomatik kapalı. -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div class="toggle" id="carpanOlasilikToggle" onclick="carpanOlasilikToggleDegisti()">
+          <div class="toggle-dot"></div>
+        </div>
+        <span style="color:#f4d678;font-size:15px;flex:1;font-weight:600;">Doğal çarpan düşmesini kullan</span>
+        <span class="toggle-label" id="carpanOlasilikLabel">Kapalı</span>
+      </div>
+
       <!-- Çarpan düşme olasılığı -->
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
         <span style="color:#f4d678; font-size:15px; flex:1;">Çarpan düşme olasılığı</span>
@@ -1024,6 +1036,14 @@
             <label>Çarpan zorla</label>
             <span class="help-icon" data-tip="carpanZorla">?</span>
           </div>
+        </div>
+        <!-- MADDE3: Zorla bloğu aç/kapa toggle (otorite). AÇ → zorla aktif, olasılık otomatik kapalı. -->
+        <div style="display:flex;align-items:center;gap:10px;margin:6px 0 12px;">
+          <div class="toggle" id="carpanZorlaToggle" onclick="carpanZorlaToggleDegisti()">
+            <div class="toggle-dot"></div>
+          </div>
+          <span style="color:#ccc;font-size:15px;flex:1;font-weight:600;">Zorla çarpan kullan</span>
+          <span class="toggle-label" id="carpanZorlaLabel">Kapalı</span>
         </div>
         <div class="description" style="font-size:14px;">Bir sonraki spinde görünecek çarpan</div>
         <div class="multiplier-grid">
@@ -1384,21 +1404,18 @@
   var aktifBlok = null;
   var BLOK_LISTESI = [
     { id: 'blokCarpan', ad: 'Çarpan', reset: function() {
-        _carpanMutexSuppress = true;                           // GRUP B/MADDE3: reset sırasında mutex tetiklenmesin
-        carpanOlasilikInputDegisti(2);                         // carpanOlasilik=2 (slider+input+display+Unity)
-        var mc = document.getElementById('maxCarpanTekSpin');
-        if (mc) { mc.value = 3; maxCarpanTekSpinDegisti(mc); }  // maxCarpanTekSpin=3 + Unity
-        // GRUP B/MADDE3 REGRESYON FIX: carpanZorla(0) yalnız gerçekten pending force varken (gereksiz banner yok).
-        if (zorlaForceAktifMi()) {
-          var ci = document.getElementById('carpanInput');
-          if (ci) ci.value = '';                               // zorla çarpan seçim varsa DOM temizle
-          unityeGonder('carpanZorla', 0);                      // pending force temizle (tek-atımlık güvence)
-        }
+        // MADDE3 YENİDEN TASARIM: DOM default'ları doğrudan set (gönderim YOK — carpanBlokAktifEt aşağıda 0 gönderir).
+        var os = document.getElementById('carpanOlasilik');      if (os) os.value = 2;
+        var oi = document.getElementById('carpanOlasilikInput'); if (oi) oi.value = 2;
+        var od = document.getElementById('carpanOlasilikDeger'); if (od) od.textContent = '2%';
+        var mc = document.getElementById('maxCarpanTekSpin');    if (mc) mc.value = 3;
+        var ci = document.getElementById('carpanInput');         if (ci) ci.value = '';
+        zorlaIsiklariSondur();
         var co = document.getElementById('carpanOdemeToggle');
         if (co && co.classList.contains('active')) toggleDegisti('carpanOdeme'); // "Çarpan Düşünce Ödeme Versin" → Kapalı + Unity
-        _carpanMutexSuppress = false;                          // GRUP B/MADDE3: nötr duruma dön (ikisi de enable)
-        carpanBlokMutexUygula('temiz');
-        console.log('[blokYonetici] Çarpan → default (olasilik=2, maxAdet=3, zorla=yok, carpanOdeme=kapali)');
+        // İkisi de KAPALI (nötr): toggle'lar off, gruplar .mutex-disabled, carpanOlasilik=0 + (force varsa) carpanZorla=0.
+        carpanBlokAktifEt('kapali');
+        console.log('[blokYonetici] Çarpan → default (toggle nötr: olasılık kapalı, zorla kapalı)');
     }},
     { id: 'blokOdeme', ad: 'Ödeme Davranışı', reset: function() {
         var minEl = document.getElementById('minCarpan');
@@ -1578,8 +1595,7 @@
     maxCarpanTekSpinSonGecerli = n;
     input.value = n;
     unityeGonder('maxCarpanTekSpin', n);
-    // GRUP B/MADDE3: maxCarpan olasılık grubuna dahil → değişince zorla'yı temizle+kilitle.
-    if (!_carpanMutexSuppress) carpanBlokMutexUygula('olasilik');
+    // MADDE3: mutex artık toggle otoritesinde — burada otomatik tetik YOK (yalnız olasılık toggle açıkken erişilebilir).
   }
 
   // FAZ35.122: Ödeme Davranışı RADIO (Kapalı / Kaçış engelleme / Near-miss) — mutual exclusion + key gönderim.
@@ -1671,8 +1687,7 @@
     document.getElementById('carpanOlasilikInput').value = n;
     document.getElementById('carpanOlasilikDeger').textContent = n + '%';
     unityeGonder('carpanOlasilik', n);
-    // GRUP B/MADDE3: olasılık>0 → zorla'yı temizle+kilitle; =0 → serbest.
-    if (!_carpanMutexSuppress) carpanBlokMutexUygula(n > 0 ? 'olasilik' : 'temiz');
+    // MADDE3: mutex toggle otoritesinde — otomatik tetik YOK (slider yalnız olasılık toggle açıkken erişilebilir).
   }
   function carpanOlasilikInputDegisti(deger) {
     var n = parseInt(deger, 10);
@@ -1683,8 +1698,7 @@
     document.getElementById('carpanOlasilikInput').value = n;
     document.getElementById('carpanOlasilikDeger').textContent = n + '%';
     unityeGonder('carpanOlasilik', n);
-    // GRUP B/MADDE3: olasılık>0 → zorla'yı temizle+kilitle; =0 → serbest.
-    if (!_carpanMutexSuppress) carpanBlokMutexUygula(n > 0 ? 'olasilik' : 'temiz');
+    // MADDE3: mutex toggle otoritesinde — otomatik tetik YOK (input yalnız olasılık toggle açıkken erişilebilir).
   }
 
   // FAZ36.1 FIX1: Bonus yüzdesi → otomatik periyot. TEK formül (slider + init aynı fonksiyonu kullanır, kopya yok).
@@ -1744,6 +1758,7 @@
   //            bulur). 'carpanInput', 'carpanZorla100/250/500', 'carpanOdemeToggle' Çarpan accordion'una taşındı (id aynı).
   var MOD_KILITLI_IDS = [
     // Çarpan accordion (carpanZorla + carpanOdeme buraya taşındı, id'ler aynı)
+    'carpanOlasilikToggle', 'carpanZorlaToggle',   // MADDE3: çarpan blok aç/kapa toggle'ları (mod aktifken kilitli)
     'carpanOlasilik', 'carpanOlasilikInput', 'maxCarpanTekSpin',
     'carpanInput', 'carpanZorla100', 'carpanZorla250', 'carpanZorla500', 'carpanOdemeToggle',
     // Ödeme Davranışı accordion (Ödeme aralığı + Radio)
@@ -2069,9 +2084,8 @@
   function carpanZorla(deger) {
     unityeGonder('carpanZorla', deger);
     zorlaIsikGuncelle(deger);
-    // GRUP B/MADDE4: sol toast kaldırıldı — bilgi üst banner'a taşındı (Admin.cs AdminForceMesajKutusuGoster alt-tip).
-    // GRUP B/MADDE3: zorla↔olasılık mutual exclusion (deger>0 → zorla kilitle, deger=0 → serbest).
-    if (!_carpanMutexSuppress) carpanBlokMutexUygula(deger > 0 ? 'zorla' : 'temiz');
+    // GRUP B/MADDE4: sol toast kaldırıldı — bilgi üst banner'a taşındı (Admin.cs AdminForceMesajKutusuGoster).
+    // MADDE3: mutex toggle otoritesinde — otomatik tetik YOK (zorla butonları yalnız zorla toggle açıkken erişilebilir).
   }
 
   // FAZ36.6.1 İŞ2: Özel zorla değer doğrulama (maxCarpanTekSpin deseni) — >500 reddet + revert, ≤500 gönder.
@@ -2109,10 +2123,9 @@
   // Tek-aktif-blok rejimi (blokAc) blok SEVİYESİNDE; bu mutex blok İÇİ alt-kontrol seviyesinde çalışır.
   // Kaynak 'zorla' → olasılık grubunu sıfırla+disable. 'olasilik' → zorla'yı temizle+disable. 'temiz' → ikisi de enable.
   // Suppress flag: init/reset sırasında *Degisti çağrıları mutex'i tetiklemesin (nötr 'temiz' elle çağrılır).
-  var _carpanMutexSuppress = false;
   // GRUP B/MADDE3 REGRESYON FIX: panelde gerçekten pending zorla çarpan var mı?
   // (carpanInput dolu VEYA bir zorla butonu seçili). carpanZorla(0)'ı yalnız bu true iken gönder →
-  // boşken gereksiz "FORCE SIFIRLANDI" banner (AdminZorlaCarpanSec(0)) tetiklenmez.
+  // boşken gereksiz "Çarpan sıfırlandı" banner (AdminZorlaCarpanSec(0)) tetiklenmez.
   function zorlaForceAktifMi() {
     var ci = document.getElementById('carpanInput');
     if (ci && ci.value !== '') return true;
@@ -2121,48 +2134,62 @@
       return el && el.classList.contains('zorla-secili');
     });
   }
-  function carpanBlokMutexUygula(kaynak) {
-    var olasilikSlider = document.getElementById('carpanOlasilik');
-    var olasilikInput  = document.getElementById('carpanOlasilikInput');
-    var maxC           = document.getElementById('maxCarpanTekSpin');
-    var carpanInput    = document.getElementById('carpanInput');
-    var zorlaGrubu     = [carpanInput,
-      document.getElementById('carpanZorla100'),
-      document.getElementById('carpanZorla250'),
-      document.getElementById('carpanZorla500')];
-    var olasilikGrubu  = [olasilikSlider, olasilikInput, maxC];
-    function setDisabled(els, dis) {
-      els.forEach(function(el) {
-        if (!el) return;
-        el.disabled = dis;
-        el.style.opacity = dis ? '0.4' : '';
-        el.style.pointerEvents = dis ? 'none' : '';
-      });
-    }
-    if (kaynak === 'zorla') {
-      // Olasılık grubunu sıfırla (direkt DOM+unity — *Degisti çağırma, rekürsiyon yok) + disable.
-      if (olasilikSlider) olasilikSlider.value = 0;
-      if (olasilikInput)  olasilikInput.value = 0;
-      var degEl = document.getElementById('carpanOlasilikDeger');
-      if (degEl) degEl.textContent = '0%';
-      unityeGonder('carpanOlasilik', 0);
-      setDisabled(olasilikGrubu, true);
-      setDisabled(zorlaGrubu, false);
-    } else if (kaynak === 'olasilik') {
-      // Zorla'yı temizle + ışıkları söndür + disable. carpanZorla(0) SADECE gerçekten force aktifse
-      // (gereksiz "FORCE SIFIRLANDI" banner engellenir). Disable mantığı her durumda çalışır.
-      if (zorlaForceAktifMi()) {
-        if (carpanInput) carpanInput.value = '';
-        unityeGonder('carpanZorla', 0);
-        zorlaIsiklariSondur();
-      }
-      setDisabled(zorlaGrubu, true);
-      setDisabled(olasilikGrubu, false);
+
+  // ===== MADDE3 YENİDEN TASARIM: aç/kapa toggle OTORİTE (olasılık ↔ zorla mutual exclusion) =====
+  // Eski carpanBlokMutexUygula (inline setDisabled, modKilitle ile çakışıyordu) KALDIRILDI.
+  // Disable artık .mutex-disabled CSS class'ı (!important) ile → modKilitle(false) EZEMEZ. Toggle = tek otorite.
+  // aktif: 'olasilik' | 'zorla' | 'kapali' (ikisi de kapalı/nötr). Aktif blok C#'a değerini, pasif blok 0 gönderir.
+  var OLASILIK_GRUBU = ['carpanOlasilik', 'carpanOlasilikInput', 'maxCarpanTekSpin'];
+  var ZORLA_GRUBU    = ['carpanInput', 'carpanZorla100', 'carpanZorla250', 'carpanZorla500'];
+  function carpanBlokAktifEt(aktif) {
+    var olasilikAcik = (aktif === 'olasilik');
+    var zorlaAcik    = (aktif === 'zorla');
+
+    // Toggle DOM senkron
+    var olTgl = document.getElementById('carpanOlasilikToggle');
+    var olLbl = document.getElementById('carpanOlasilikLabel');
+    if (olTgl) olTgl.classList.toggle('active', olasilikAcik);
+    if (olLbl) olLbl.textContent = olasilikAcik ? 'Açık' : 'Kapalı';
+    var zoTgl = document.getElementById('carpanZorlaToggle');
+    var zoLbl = document.getElementById('carpanZorlaLabel');
+    if (zoTgl) zoTgl.classList.toggle('active', zorlaAcik);
+    if (zoLbl) zoLbl.textContent = zorlaAcik ? 'Açık' : 'Kapalı';
+
+    // Gruplar: aktif blok enable, pasif blok .mutex-disabled (+disabled attr; .mutex-disabled !important asıl güvence)
+    OLASILIK_GRUBU.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) { el.classList.toggle('mutex-disabled', !olasilikAcik); el.disabled = !olasilikAcik; }
+    });
+    ZORLA_GRUBU.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) { el.classList.toggle('mutex-disabled', !zorlaAcik); el.disabled = !zorlaAcik; }
+    });
+
+    // C# sinyalleri: aktif blok değerini gönder, pasif blok kapalı (0).
+    if (olasilikAcik) {
+      var n = parseInt(document.getElementById('carpanOlasilikInput').value, 10) || 0;
+      unityeGonder('carpanOlasilik', n);
     } else {
-      // 'temiz' — ikisi de serbest (nötr).
-      setDisabled(olasilikGrubu, false);
-      setDisabled(zorlaGrubu, false);
+      unityeGonder('carpanOlasilik', 0);
     }
+    // Zorla kapandıysa: gerçekten pending force varsa temizle + carpanZorla(0) (banner DOĞRU = force kapatıldı).
+    // Zorla açıkken değer kullanıcı butona/inputa basınca carpanZorla()'dan gider.
+    if (!zorlaAcik && zorlaForceAktifMi()) {
+      var ci = document.getElementById('carpanInput'); if (ci) ci.value = '';
+      unityeGonder('carpanZorla', 0);
+      zorlaIsiklariSondur();
+    }
+  }
+
+  function carpanOlasilikToggleDegisti() {
+    var t = document.getElementById('carpanOlasilikToggle');
+    var acik = !(t && t.classList.contains('active'));
+    carpanBlokAktifEt(acik ? 'olasilik' : 'kapali');
+  }
+  function carpanZorlaToggleDegisti() {
+    var t = document.getElementById('carpanZorlaToggle');
+    var acik = !(t && t.classList.contains('active'));
+    carpanBlokAktifEt(acik ? 'zorla' : 'kapali');
   }
 
   // GRUP B/MADDE6 GERİ ALINDI: minCarpan snap (0→0.01) kaldırıldı. min=0 = "bant kapalı" (0=devre dışı sentinel).
@@ -2277,6 +2304,9 @@
     // FAZ35.87 İŞ4: Default dropdown 'normal' → ayarlar serbest (modKilitle(false)).
     // Toggle yok, dropdown başka mod seçilince modKilitle(true) tetiklenir (senaryoOtomatikUygula içinde).
     modKilitle(false);
+    // MADDE3: çarpan blokları başlangıçta NÖTR (ikisi de kapalı) — toggle otorite, carpanOlasilik=0 + carpanZorla=0.
+    // modKilitle(false)'dan SONRA çağrılır; .mutex-disabled (!important) modKilitle'nin inline'ını ezer (kalıcı).
+    carpanBlokAktifEt('kapali');
 
     // FAZ35.87 İŞ4: Tüm modKilitle ID listesi için "ayarDegistirildi" listener — mod aktifken
     // herhangi bir ayar değişimi dropdown'u 'normal'e zorlar (tek yön kontrol).
