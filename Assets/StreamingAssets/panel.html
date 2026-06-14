@@ -1080,7 +1080,7 @@
             <div style="display:flex; flex-direction:column; gap:4px;">
               <span style="font-size:12px; color:#8a7c5c; letter-spacing:1px; text-transform:uppercase;">Min</span>
               <input type="number" id="minCarpan" value="3" placeholder="Min" step="0.1" min="0" style="max-width:90px;"
-                     oninput="ayarDegisti('minCarpan', this.value)" onchange="minCarpanSnap(this)">
+                     oninput="ayarDegisti('minCarpan', this.value)">
             </div>
             <span style="color:#8a7c5c; font-size:14px; align-self:center; padding-bottom:8px;">—</span>
             <div style="display:flex; flex-direction:column; gap:4px;">
@@ -1388,9 +1388,12 @@
         carpanOlasilikInputDegisti(2);                         // carpanOlasilik=2 (slider+input+display+Unity)
         var mc = document.getElementById('maxCarpanTekSpin');
         if (mc) { mc.value = 3; maxCarpanTekSpinDegisti(mc); }  // maxCarpanTekSpin=3 + Unity
-        var ci = document.getElementById('carpanInput');
-        if (ci) ci.value = '';                                 // zorla çarpan: seçim yok (DOM temizle)
-        unityeGonder('carpanZorla', 0);                        // pending force temizle (tek-atımlık güvence, görünen=gerçek)
+        // GRUP B/MADDE3 REGRESYON FIX: carpanZorla(0) yalnız gerçekten pending force varken (gereksiz banner yok).
+        if (zorlaForceAktifMi()) {
+          var ci = document.getElementById('carpanInput');
+          if (ci) ci.value = '';                               // zorla çarpan seçim varsa DOM temizle
+          unityeGonder('carpanZorla', 0);                      // pending force temizle (tek-atımlık güvence)
+        }
         var co = document.getElementById('carpanOdemeToggle');
         if (co && co.classList.contains('active')) toggleDegisti('carpanOdeme'); // "Çarpan Düşünce Ödeme Versin" → Kapalı + Unity
         _carpanMutexSuppress = false;                          // GRUP B/MADDE3: nötr duruma dön (ikisi de enable)
@@ -2106,6 +2109,17 @@
   // Kaynak 'zorla' → olasılık grubunu sıfırla+disable. 'olasilik' → zorla'yı temizle+disable. 'temiz' → ikisi de enable.
   // Suppress flag: init/reset sırasında *Degisti çağrıları mutex'i tetiklemesin (nötr 'temiz' elle çağrılır).
   var _carpanMutexSuppress = false;
+  // GRUP B/MADDE3 REGRESYON FIX: panelde gerçekten pending zorla çarpan var mı?
+  // (carpanInput dolu VEYA bir zorla butonu seçili). carpanZorla(0)'ı yalnız bu true iken gönder →
+  // boşken gereksiz "FORCE SIFIRLANDI" banner (AdminZorlaCarpanSec(0)) tetiklenmez.
+  function zorlaForceAktifMi() {
+    var ci = document.getElementById('carpanInput');
+    if (ci && ci.value !== '') return true;
+    return ZORLA_KUTULARI.some(function(id) {
+      var el = document.getElementById(id);
+      return el && el.classList.contains('zorla-secili');
+    });
+  }
   function carpanBlokMutexUygula(kaynak) {
     var olasilikSlider = document.getElementById('carpanOlasilik');
     var olasilikInput  = document.getElementById('carpanOlasilikInput');
@@ -2134,10 +2148,13 @@
       setDisabled(olasilikGrubu, true);
       setDisabled(zorlaGrubu, false);
     } else if (kaynak === 'olasilik') {
-      // Zorla'yı temizle (DOM+unity) + ışıkları söndür + disable.
-      if (carpanInput) carpanInput.value = '';
-      unityeGonder('carpanZorla', 0);
-      zorlaIsiklariSondur();
+      // Zorla'yı temizle + ışıkları söndür + disable. carpanZorla(0) SADECE gerçekten force aktifse
+      // (gereksiz "FORCE SIFIRLANDI" banner engellenir). Disable mantığı her durumda çalışır.
+      if (zorlaForceAktifMi()) {
+        if (carpanInput) carpanInput.value = '';
+        unityeGonder('carpanZorla', 0);
+        zorlaIsiklariSondur();
+      }
       setDisabled(zorlaGrubu, true);
       setDisabled(olasilikGrubu, false);
     } else {
@@ -2147,16 +2164,9 @@
     }
   }
 
-  // ===== GRUP B/MADDE6: minCarpan 0/negatif → görünür 0.01 snap =====
-  // Kullanıcı min'e 0 veya negatif girip alandan çıkınca (onchange/blur) EKRANDA 0.01 görünür + Unity'e gider.
-  // Böylece odemeAraligiSorunu min<=0 'eksik' dönmez, Apply gate (senaryoUygula) takılmaz. C# Mathf.Max(0f) 0.01 kabul eder.
-  function minCarpanSnap(input) {
-    var v = parseFloat(input.value);
-    if (isNaN(v) || v <= 0) {
-      input.value = '0.01';
-      ayarDegisti('minCarpan', 0.01);
-    }
-  }
+  // GRUP B/MADDE6 GERİ ALINDI: minCarpan snap (0→0.01) kaldırıldı. min=0 = "bant kapalı" (0=devre dışı sentinel).
+  // Snap, min=0'ı 0.01 yapıp senaryoUygula:ozelGonder (minDom>0) → oyunModu='ozel' → OzelMotoru her-spin hijack
+  // regresyonuna yol açıyordu. Çok düşük ödeme için min 0.2 max 1 (zaten çalışır); tam sıfır için NearMiss kullanılır.
 
   function varsayilanaDon() {
     // FAZ35.76: kazanmaOrani DOM reset SİLİNDİ — kart kaldırıldı.
