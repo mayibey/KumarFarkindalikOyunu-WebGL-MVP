@@ -1852,8 +1852,9 @@
     // FAZ35.76: kazanmaOrani animate SİLİNDİ — kart yok.
     document.getElementById('minCarpan').value  = s.minCarpan;
     document.getElementById('maksCarpan').value = s.maksCarpan;
-    // FAZ35.69: yakinKacirma slider→toggle. Preset sayısal değer >0.5 → toggle.active (UI senkron).
-    setToggleClass('yakinKacirma', s.yakinKacirma > 0.5);
+    // REGRESYON FIX (35.147 niyeti): mod apply yakinKacirma toggle'ını EZMESİN. Eski setToggleClass('yakinKacirma',
+    // s.yakinKacirma>0.5) çağrısı KALDIRILDI — preset (hook:2/yontma:3/tutma:2/koruma:5) toggle'ı programatik aktive edip
+    // senaryoUygula:nmAktif'i true okutuyor → yakinKacirma=true → NearMiss modları eziyordu. Toggle artık SADECE kullanıcı kontrolünde.
     // FAZ35.76: setToggleClass('yeniOyuncu') SİLİNDİ — kart yok.
     setToggleClass('carpanOdeme', s.carpanOdeme);
     // FAZ35.126.B: bonusManuel/bonusOtomatik Faz 35.123'te silindi (Anlık Müdahale accordion → bonus modu radio kaldırıldı,
