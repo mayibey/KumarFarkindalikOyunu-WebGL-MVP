@@ -35,7 +35,34 @@ public sealed class OzelMotoru : ISpinMotoru
         int minTl = Mathf.RoundToInt(g.bahis * g.minKat);   // admin MIN katı × bahis
         int maxTl = Mathf.RoundToInt(g.bahis * g.maksKat);  // admin MAX katı × bahis
         if (maxTl < minTl) { int t = minTl; minTl = maxTl; maxTl = t; }
-        if (minTl <= 0) minTl = 1;   // ozel: her spin kazanç → taban asla 0
+
+        // MADDE: min=0 (minKat<=0) → OLASILIKSAL band ("ödememe ihtimali"). Eğilim "öder mi" karar verir:
+        //   Random < egilim/100 → kazanç [taban..maxTl] (taban=1 TL: ödeyen spin 0 olamaz → anlamlı en küçük ödeme).
+        //   değilse → KAYIP grid (ham=0, bu spin boş). minKat>0 → MEVCUT deterministik (her spin [min,max]).
+        if (g.minKat <= 0f)
+        {
+            float egilim01 = Mathf.Clamp01(g.egilimYuzde / 100f);
+            if (Random.value > egilim01)
+            {
+                // Eğilim "ödeme yok" dedi → kayıp grid (kümesiz, ham=0). NearMiss değil; sade kazançsız grid.
+                var kayipGrid = ReceteAdimKurucu.KazancsizGridKur(g.sutun, g.satir, sembolSayisi, g.scatterIdx);
+                var kayipKayit = new SpinSimulasyonKaydi { Sutun = g.sutun, Satir = g.satir };
+                kayipKayit.IlkGrid = kayipGrid;
+                kayipKayit.IlkCarpanGrid = new int[g.sutun, g.satir];
+                kayipKayit.IlkCarpanDegerleri = new List<int>();
+                kayipKayit.ToplamHamKazanc = 0;       // Adımlar boş → tumble yok, ödeme 0
+                kayipKayit.NihaiCarpanToplam = 1;
+                kayipKayit.ZorlaCarpanKullanildi = false;
+                kayipKayit.SenaryoOdemeBandinaUygun = true;
+                Debug.Log($"[OzelMotoru] min=0 olasiliksal: egilim={g.egilimYuzde}% → KAYIP (bu spin 0 odeme).");
+                return kayipKayit;
+            }
+            minTl = 1;   // eğilim "öder" dedi → taban 1 TL (min=0 ama ödeyen spin 0 olamaz)
+        }
+        else if (minTl <= 0)
+        {
+            minTl = 1;   // minKat>0 ama yuvarlanınca 0 (çok küçük kat × bahis) → taban 1 (deterministik korunur)
+        }
 
         // KÜME SEÇİMİ (FAZ36.4): ham küme ödemesi ∈ [minTl, maxTl]. TEK yol — alt-band/band-fit YOK.
         // Yeni sözleşme: bant SADECE ham kümeyi sınırlar; çarpan AYRI/BAĞIMSIZ (aşağıda), nihai = ham × çarpan

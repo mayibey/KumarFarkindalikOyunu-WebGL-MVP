@@ -1547,8 +1547,10 @@
     // FAZ36 ACİL FIX: ikisi de ≤0 → ödeme aralığı KULLANILMIYOR (çarpan/bonus/eğilim-only Uygula) → serbest geç (red yok).
     // Biri 0 biri dolu = yarım giriş → 'eksik'. Band niyeti SADECE biri >0 iken vardır → o zaman tam validasyon.
     if (min <= 0 && max <= 0) return '';
-    if (min <= 0 || max <= 0) return 'eksik';
-    if (min > max) return 'sira';
+    // MADDE: min=0 && max>0 artık GEÇERLİ → "ödememe ihtimali bandı" (OzelMotoru eğilim olasılıksal: bazı spinler 0).
+    // Yalnız max<=0 (min>0 iken) = yarım giriş → 'eksik'. min=max=0 = bant kapalı (yukarıda).
+    if (max <= 0) return 'eksik';
+    if (min > max) return 'sira';                         // min=0 iken max>0 → min>max imkansız, atlanır
     if (!odemeAraligiUlasilabilirMi(min, max)) return 'ulasilamaz';
     return '';
   }
