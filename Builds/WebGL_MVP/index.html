@@ -165,7 +165,8 @@
                 document.querySelector("#unity-fullscreen-button").onclick = () => {
                   unityInstance.SetFullscreen(1);
                 };
-                // FAZ36.7.1: dev overlay blogu sablondan tamamen cikarildi (release temiz, hicbir build tipinde uretilmez).
+                // FAZ36.7.1: DEVELOPMENT_PLAYER overlay blogu (Profile + Unload) sablondan TAMAMEN kaldirildi —
+                // Profile/Unload hicbir build tipinde (dev dahil) uretilmeyecek.
               }).catch((message) => {
                 alert(message);
               });
