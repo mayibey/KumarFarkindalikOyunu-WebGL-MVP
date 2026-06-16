@@ -217,10 +217,15 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
         // ZorlaCarpan istisnası: line ~182 zaten cache atlıyor, bu noktaya ulaşmıyor.
         // Dar-bant-imkansızlığı (Faz 35.126) AYRI sorun — bu fix sadece cache stale bant-dışı oynatmayı çözer;
         // dar bantta sync fallback de bant dışı üretebilir, ama en azından Spin 1 davranışıyla TUTARLI olur.
+        // FORCE MUAFİYETİ: zorla çarpan cache'i (ZorlaCarpanKullanildi) bant kontrolünden MUAF — OMU re-validation
+        // (VarsayilanSpinPolitikasi:69) ile aynı mantık. Force kasıtlı kullanıcı kararı; ZorlaCarpanMotoru "band cap YOK"
+        // diyor → devasa ödeme bandı aşar (TASARIM). Muafiyet olmadan: cache reddi → fallback sync force-less → force kaybı
+        // (carpanOdeme=true force tekrar bug). Force OLMAYAN ozel spin → guard false → NORMAL bant kontrolü.
         if (!forBonusSpin
             && PanelKopru.aktifSenaryo == "ozel"
             && odemeMinKat > 0f && odemeMaksKat > 0f
-            && adayKayit != null)
+            && adayKayit != null
+            && !adayKayit.ZorlaCarpanKullanildi)
         {
             int bahisOzel = _ekonomiServisi != null ? _ekonomiServisi.Bahis : 0;
             int nihaiOnbellekOzel = _carpanServisi != null
@@ -239,7 +244,10 @@ public partial class OyunYoneticisi : MonoBehaviour, SahneBaglamaServisi.IBaglam
                 }
             }
         }
-        if (!forBonusSpin && AdminOyunSahnesiMi() && _adminVideoArdisikKazancSpinKalan > 0 && adayKayit != null)
+        // FORCE MUAFİYETİ (ozel check ile aynı): force cache'i video ardışık-kazanç kontrolünden de muaf → reddedilip
+        // fallback force-less'e düşmesin. Force OLMAYAN spin → guard false → NORMAL video kontrolü.
+        if (!forBonusSpin && AdminOyunSahnesiMi() && _adminVideoArdisikKazancSpinKalan > 0 && adayKayit != null
+            && !adayKayit.ZorlaCarpanKullanildi)
         {
             int bahisVideo = _ekonomiServisi != null ? _ekonomiServisi.Bahis : 0;
             int nihaiVideo = _carpanServisi != null
