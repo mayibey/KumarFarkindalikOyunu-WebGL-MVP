@@ -820,8 +820,9 @@ public class AnlaticiSeritKopru : MonoBehaviour
         if (_oy == null) { Debug.LogWarning("[Anlatici] _oy null, kontroller devre dışı bırakılamadı."); return; }
 
         int sayac = 0;
-        if (_oy.bahisArttirButon != null)        { _oy.bahisArttirButon.interactable = false;        sayac++; }
-        if (_oy.bahisAzaltButon != null)         { _oy.bahisAzaltButon.interactable = false;         sayac++; }
+        // GEÇİCİ (ekran görüntüsü): bahis +/- butonları AÇIK bırakıldı. Screenshot sonrası bu 2 satır geri açılacak (revert).
+        // if (_oy.bahisArttirButon != null)        { _oy.bahisArttirButon.interactable = false;        sayac++; }
+        // if (_oy.bahisAzaltButon != null)         { _oy.bahisAzaltButon.interactable = false;         sayac++; }
         if (_oy.bonusSatinAlButon != null)       { _oy.bonusSatinAlButon.interactable = false;       sayac++; }
         if (_oy.bakiyeYukleButon != null)        { _oy.bakiyeYukleButon.interactable = false;        sayac++; }
 
