@@ -189,7 +189,7 @@ namespace Senaryo.Scripted
                     "<color=#60A5FA><i>'belki bir dahaki sefere'</i></color> diyerek devam etmeye <color=#EF4444>programlanır</color>.";
                 var modal = UnityEngine.Object.FindObjectOfType<ScriptedModalKopru>();
                 if (modal != null)
-                    yield return modal.ModalGoster(mesaj);
+                    yield return modal.ModalGoster(mesaj, modalNo: 25);
                 else
                     Debug.LogWarning("[ScriptedBonusOyun] A5_S5 dinamik modal — ScriptedModalKopru bulunamadı.");
 

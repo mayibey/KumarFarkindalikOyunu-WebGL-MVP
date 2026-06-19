@@ -132,7 +132,8 @@ namespace Senaryo.Scripted
                     "veya bankalardan <color=#EF4444>kredi çekerek</color> para bulmaya çalışır.\n\n" +
                     "Burada amaç eski <color=#EF4444>kayıpların telafisidir</color>. Ancak bu, " +
                     "<color=#EF4444><b>kumar bağımlılığının en yıkıcı evresidir</b></color>: borç katlanarak " +
-                    "büyür, ilişkiler bozulur, hayatlar mahvolur."
+                    "büyür, ilişkiler bozulur, hayatlar mahvolur.",
+                    modalNo: 27
                 ));
             }
 

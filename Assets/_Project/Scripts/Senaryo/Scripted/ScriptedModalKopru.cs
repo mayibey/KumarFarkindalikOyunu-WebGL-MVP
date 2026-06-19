@@ -21,6 +21,8 @@ namespace Senaryo.Scripted
     public class ScriptedModalKopru : MonoBehaviour
     {
         public const int ANLATICI_SAHNE_BUILD_INDEX = 1;
+        /// <summary>02 senaryo akışındaki "BİLGİLENDİRİCİ ASİSTAN" modallarının toplam sayısı (sağ-üst sayaç paydası).</summary>
+        public const int TOPLAM_ASISTAN_MODAL = 29;
         public static ScriptedModalKopru Ornek { get; private set; }
 
         /// <summary>Modal görünür mü? ModalGoster coroutine süresince true; SpinButonImpl ve
@@ -39,6 +41,8 @@ namespace Senaryo.Scripted
         private CanvasGroup _balonCanvasGroup;
         private TextMeshProUGUI _mesajText;
         private TextMeshProUGUI _baslikText;
+        // Sağ-üst "X/29" rozeti — modalNo > 0 verildiğinde görünür (02 senaryo modalları).
+        private TextMeshProUGUI _sayacText;
         // TAMAM butonunun fade-in alpha kontrolü (Image+Button GameObject'in CanvasGroup'u).
         private CanvasGroup _tamamCanvasGroup;
         private Button _balonButton;
@@ -122,7 +126,7 @@ namespace Senaryo.Scripted
         /// karşılama gibi — modal "sol panel" anlatırken paneli kullanıcının görmesi gerekiyor).
         /// </summary>
         public IEnumerator ModalGoster(string mesaj, bool gizleAnlatici = true,
-            TextAlignmentOptions hizalama = TextAlignmentOptions.TopJustified)
+            TextAlignmentOptions hizalama = TextAlignmentOptions.TopJustified, int modalNo = 0)
         {
             Debug.Log($"[ModalKopru-DEBUG] ModalGoster START — mesaj uzunluğu={mesaj?.Length ?? 0}, _root={(_root != null)}, _mesajText={(_mesajText != null)}");
             if (string.IsNullOrEmpty(mesaj) || _root == null || _mesajText == null)
@@ -134,6 +138,20 @@ namespace Senaryo.Scripted
             // Faz 35.48: alignment çağrı bazında — 35.46'nın global MidlineJustified yan etkisi giderildi.
             // Default TopJustified (eski davranış); kısa modallar için çağıran override edebilir.
             _mesajText.alignment = hizalama;
+
+            // Sağ-üst modal sayacı: modalNo > 0 ise "X/29" göster, değilse gizle (03 admin / numarasız çağrılar).
+            if (_sayacText != null)
+            {
+                if (modalNo > 0)
+                {
+                    _sayacText.text = modalNo + "/" + TOPLAM_ASISTAN_MODAL;
+                    _sayacText.gameObject.SetActive(true);
+                }
+                else
+                {
+                    _sayacText.gameObject.SetActive(false);
+                }
+            }
 
             ModalAcik = true; // Spin butonu bu süre boyunca engellenir
             Debug.Log("[ModalKopru-DEBUG] ModalAcik=true SET edildi (try öncesi)");
@@ -439,6 +457,25 @@ namespace Senaryo.Scripted
             _baslikText.color = new Color(0.83f, 0.69f, 0.22f, 1f); // altın
             _baslikText.text = "BİLGİLENDİRİCİ ASİSTAN";
             _baslikText.raycastTarget = false;
+
+            // Sağ-üst modal sayacı rozeti ("X/29") — modalNo > 0 olduğunda ModalGoster doldurur.
+            // Başlık ortalı olduğu için sağ-üst köşe boş; rozet başlık hizasında durur.
+            var sayacGo = new GameObject("Sayac",
+                typeof(RectTransform), typeof(CanvasRenderer));
+            sayacGo.transform.SetParent(balonGo.transform, false);
+            var sayacRt = sayacGo.GetComponent<RectTransform>();
+            sayacRt.anchorMin = sayacRt.anchorMax = new Vector2(1f, 1f);
+            sayacRt.pivot = new Vector2(1f, 1f);
+            sayacRt.sizeDelta = new Vector2(72f, 26f);
+            sayacRt.anchoredPosition = new Vector2(-12f, -10f);
+            _sayacText = sayacGo.AddComponent<TextMeshProUGUI>();
+            _sayacText.alignment = TextAlignmentOptions.MidlineRight;
+            _sayacText.fontSize = 15f;
+            _sayacText.fontStyle = FontStyles.Bold;
+            _sayacText.color = new Color(0.83f, 0.69f, 0.22f, 0.85f); // altın, hafif silik
+            _sayacText.text = "";
+            _sayacText.raycastTarget = false;
+            sayacGo.SetActive(false); // modalNo > 0 gelene kadar gizli
 
             // Mesaj text (typewriter target)
             var mesajGo = new GameObject("Mesaj",

@@ -883,15 +883,15 @@ public class AnlaticiSeritKopru : MonoBehaviour
                 "• <b>KAZANÇ:</b> O spinde kazanılan miktar.\n\n" +
                 "Hadi başlayalım: ilk aşama <i>'Isındırma ve Umut'</i>.";
             // gizleAnlatici: false → modal "Sol panel" anlatırken kullanıcının paneli görmesi gerekiyor.
-            yield return modal.ModalGoster(mesaj, gizleAnlatici: false);
+            yield return modal.ModalGoster(mesaj, gizleAnlatici: false, modalNo: 1);
             // HOTFIX: Modal state'i temizlensin diye 1 frame bekle (ardışık ModalGoster yarış riski)
             yield return null;
             // PreA1 ek anlatım modal — A1 aşamasının pedagojik özeti
-            yield return modal.ModalGoster(A1_ANLATIM, gizleAnlatici: false);
+            yield return modal.ModalGoster(A1_ANLATIM, gizleAnlatici: false, modalNo: 2);
             // HOTFIX: ardışık ModalGoster yarış riski için bir frame ara
             yield return null;
             // PreA1 üçüncü modal — kullanıcıyı 8 spin atmaya davet et
-            yield return modal.ModalGoster(A1_DAVET, gizleAnlatici: false);
+            yield return modal.ModalGoster(A1_DAVET, gizleAnlatici: false, modalNo: 3);
         }
         finally
         {
@@ -911,7 +911,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
                 "Birinci aşama tamamlandı. Oyuncu şu an artıda, kendini iyi hissediyor.\n\n" +
                 "Sırada <color=#FB923C><b>'Kontrol Bende Hissi'</b></color> aşaması var. Bu aşamada algoritma oyuncuya üst üste <color=#EF4444>kayıplar</color> yaşatacak. Ama yine de <color=#4ADE80>bakiye</color> hâlâ pozitif olduğu için oyuncu <i>'kontrol bende, istediğim zaman çıkarım, bahis değişiklikleriyle kazanırım'</i> gibi düşünceler yaşar.\n\n" +
                 "Bu <color=#60A5FA>yanılsamayı</color> birlikte göreceğiz.";
-            yield return modal.ModalGoster(mesaj);
+            yield return modal.ModalGoster(mesaj, modalNo: 7);
         }
         finally
         {
@@ -941,7 +941,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
 
             string mesaj =
                 $"İkinci aşama tamamlandı. Oyuncunun bu aşama sonundaki <color=#16a34a>bakiyesi</color> {a2SonuBakiye:N0} TL, birinci aşamadaki bakiyesine {a1SonuBakiye:N0} TL göre {fark:N0} TL azaldı. Oyuncu aslında hâlâ <color=#16a34a>kârda</color> olmasına rağmen kârdan kaybettiği {fark:N0} TL'yi geri kazanabilmek için bir sonraki aşamaya ismini veren <color=#ea580c>\"kaybettiklerimi geri kazanabilirim\"</color> düşüncesine bürünür. Ancak bu düşünce oyuncunun daha fazla <color=#dc2626>kaybetmesine</color> sebep olur. Oyuncu artık kazanç peşinde değil, <color=#ea580c>\"kaybettiklerimi kurtarsam yeter\"</color> gibi bir düşünceye girebilir. Bu <color=#2563eb>kayıp kovalama</color> denilen psikolojik bir <color=#dc2626>tuzaktır</color>; bir kez bu döngüye girilirse çıkmak çok zordur.";
-            yield return modal.ModalGoster(mesaj);
+            yield return modal.ModalGoster(mesaj, modalNo: 12);
         }
         finally
         {
@@ -960,7 +960,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
             string mesaj =
                 "Üçüncü aşamayı gördük: <color=#2563eb>kayıp kovalama</color> <color=#dc2626>tuzağı</color>. Oyuncu <color=#ea580c>bahsi</color> yükselterek kurtulmaya çalışmıştır, fakat daha çok <color=#dc2626>kaybetmiştir</color>.\n\n" +
                 "Sırada <color=#ea580c>\"şansım döndü\"</color> aşaması var. Bu aşamada <color=#2563eb>algoritma</color> oyuncuyu pes etme eşiğine getirecektir ve üst üste sert <color=#dc2626>kayıplar</color> yaşatacaktır. Oyuncu tam pes etmek üzereyken <color=#16a34a>büyük bir kazanç</color> sağlatacaktır. Bu büyük kazanç, geçmişteki tüm kayıpları unutturacak kuvvetli bir <color=#dc2626>manipülasyon</color> hamlesidir. Amaç oynamaktan vazgeçmek üzere olan oyuncuyu tekrar oyuna bağlamaktır.";
-            yield return modal.ModalGoster(mesaj);
+            yield return modal.ModalGoster(mesaj, modalNo: 16);
         }
         finally
         {
@@ -978,7 +978,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
             if (modal == null) yield break;
             string mesaj =
                 "<color=#16a34a>Büyük kazanç</color> yaşandı. Oyuncu şu anda <color=#ea580c>\"şansım döndü, artık daha fazla kazanabilirim\"</color> düşüncesine kapıldı. Bu düşünce, <color=#2563eb>sistemin</color> bir sonraki aşamada oyuncuyu oyunda tutmak için kullandığı en güçlü etkendir. Oyuncu bundan sonraki tüm oyun deneyiminde hep bu anın peşinden koşacaktır. Sıradaki aşamada <color=#ea580c>şansının döndüğünü</color> sanan oyuncuya <color=#dc2626>bonus oyun tuzağı</color> kurularak <color=#ea580c>\"sonunu düşünen kahraman olamaz\"</color> mantığı ile hareket etmesi amaçlanmaktadır. Bu aşamada sistem oyuncuya yüksek vaat içeren <color=#16a34a>bonus oyun</color> teklifi sunar. Oyuncuya tüm <color=#16a34a>bakiyesini</color> yatırması karşılığında çok daha büyük kazançlar elde edebileceği vaat edilir. Oyuncu bu teklifi kabul edip parasını yatırırsa, çok büyük bir <color=#dc2626>kayıp</color> yaşayacaktır.";
-            yield return modal.ModalGoster(mesaj);
+            yield return modal.ModalGoster(mesaj, modalNo: 22);
         }
         finally
         {
@@ -1026,7 +1026,8 @@ public class AnlaticiSeritKopru : MonoBehaviour
             yield return modal.ModalGoster(
                 "İşte oyuncu <color=#EF4444>borç aldı</color>, <color=#4ADE80>bakiyesi yenilendi</color>. Şimdi tekrar oynamaya devam edecek.\n\n" +
                 "Kumar sitelerinde yeniden bakiye yükleyenlere <color=#EF4444>bilinçli olarak</color> ilk başlarda yine <color=#4ADE80>kazandırılır</color> — bu <i>'Isındırma ve Umut'</i> aşamasına benzer.\n\n" +
-                "Bu sayede oyuncu tekrar <color=#EF4444>döngüye girer</color>: <i>'şansım yine açıldı, kayıplarımı telafi ederim'</i> düşünür. Ama er ya da geç sistem kazanır, oyuncu <color=#EF4444>kaybeder</color>."
+                "Bu sayede oyuncu tekrar <color=#EF4444>döngüye girer</color>: <i>'şansım yine açıldı, kayıplarımı telafi ederim'</i> düşünür. Ama er ya da geç sistem kazanır, oyuncu <color=#EF4444>kaybeder</color>.",
+                modalNo: 28
             );
 
             // FAZ35.130: Modal 2 (bahis 10K bilgisi) + BahisAnimasyonu(4000→10000) SİLİNDİ — 5 spin oynanmayacak,
@@ -1099,7 +1100,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
             string mesaj =
                 "<color=#2563eb>Spin</color> çeviren oyuncuların hedefi <color=#2563eb>4 adet bonus sembolünü</color> aynı anda ekrana düşürerek <color=#16a34a>bonus oyuna</color> girmektir. <color=#2563eb>Sistem</color> burada <color=#2563eb>3 adet bonus (yıldız) sembolü</color> düşürerek, oyuncunun <color=#ea580c>\"neredeyse kazanıyordum\"</color> şeklinde düşünmesine sebep olur. Bu durum oyuncuyu kazandırmadan, kazanmış gibi <color=#ea580c>beyninde</color> <color=#ea580c>dopamin</color> salgılanmasına sebep olur. Bu da oyuncunun masada kalma davranışına devam etmesine sebep olur.";
             if (modal != null)
-                yield return modal.ModalGoster(mesaj);
+                yield return modal.ModalGoster(mesaj, modalNo: 17);
             YildizDonmeyiDurdur();
         }
         finally
@@ -1179,7 +1180,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
             if (modal == null) yield break;
             string mesaj =
                 "Ekrana <color=#2563eb>100x çarpan</color> düştü! Oyuncu pes etmek üzereyken <color=#2563eb>sistem</color> tarafından kurbanın oynamayı bırakmasını engellemek ve geçmiş <color=#dc2626>kayıplarını</color> unutturmak maksadıyla kurbana <color=#16a34a>büyük kazanç</color> verilir. Bu bir rastlantı değildir. Sistem oyuncuyu tam bu duygusal anında yakalar. Oyuncu <color=#ea580c>şansının döndüğünü</color> sanarak oyuna devam eder.";
-            yield return modal.ModalGoster(mesaj);
+            yield return modal.ModalGoster(mesaj, modalNo: 20);
 
             // Çekim Şartı Tuzağı — büyük kazanç sonrası "çekip çıkayım" düşüncesini söndüren ikinci modal.
             string cekimSartiMesaji =
@@ -1188,7 +1189,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
                 "<color=#2563eb>Bahis çevrim şartı</color>: Oyuncu, kazandığı parayı çekebilmek için bu tutarın belirli bir katı kadar bahis yapmak zorunda bırakılır. Bu şart tamamlanmadan para çekimine izin verilmez.\n\n" +
                 "<color=#2563eb>Spin sayısı şartı</color>: Oyuncunun belirli bir <color=#2563eb>spin</color> sayısına ulaşması istenir; örneğin oyuncudan <color=#2563eb>1000 spin</color> atması beklenebilir. Bu sayıya ulaşmadan çekim yapmasına izin verilmez.\n\n" +
                 "Sonuç değişmez: Oyuncu bu şartları tamamlamaya çalışırken <color=#2563eb>sistem</color> kazandığı parayı zamanla <color=#dc2626>geri alır</color>, hatta oyuncu çoğu zaman anaparasını da <color=#dc2626>kaybeder</color>. <color=#dc2626>Çekim şartını</color> sağlayıp parayı çekmeyi hayal eden oyuncu, şartlar sağlanana kadar zaten masada <color=#dc2626>tüketilmiş</color> olur.";
-            yield return modal.ModalGoster(cekimSartiMesaji);
+            yield return modal.ModalGoster(cekimSartiMesaji, modalNo: 21);
         }
         finally
         {
@@ -1256,7 +1257,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
             if (modal != null)
                 // Faz 35.52: diğer 16 modalla tutarlı üstten hizalama (default TopJustified). Faz 35.48'in
                 // kısa-metin MidlineJustified override'ı kaldırıldı — tutarlılık görsel boşluğa tercih edildi.
-                yield return modal.ModalGoster(mesaj);
+                yield return modal.ModalGoster(mesaj, modalNo: 26);
             else
                 Debug.LogWarning("[Anlatici] BasaArayisAkisi — ScriptedModalKopru bulunamadı, modal atlanıyor.");
 
@@ -1314,7 +1315,7 @@ public class AnlaticiSeritKopru : MonoBehaviour
                 "İşte bağımlılığın özü budur: <color=#EF4444><b>KAYIP → BORÇ → KAYIP → BORÇ</b></color>. Sonsuz döngü.\n\n" +
                 "Sonraki ekranda yaşanan toplam <color=#EF4444>kayıp</color> gösteriliyor.";
             if (modal != null)
-                yield return modal.ModalGoster(mesaj);
+                yield return modal.ModalGoster(mesaj, modalNo: 29);
             else
                 Debug.LogWarning("[Anlatici] DonguAkisi — ScriptedModalKopru bulunamadı, modal atlanıyor.");
 

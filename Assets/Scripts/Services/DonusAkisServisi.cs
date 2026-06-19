@@ -438,7 +438,23 @@ public class DonusAkisServisi
             var sonKayit = Senaryo.Scripted.ScriptedSpinYoneticisi.Ornek.SonKayit;
             if (sonKayit != null && !string.IsNullOrEmpty(sonKayit.modalMesaji) && _runCoroutine != null)
             {
-                yield return _runCoroutine(Senaryo.Scripted.ScriptedModalKopru.Ornek.ModalGoster(sonKayit.modalMesaji));
+                // Sağ-üst modal sayacı (X/29): asset spin modalını (asama, spinSiraNo) → sabit anlatı numarasına eşle.
+                // Numaralandırma 02_SenaryoluOyun_TUM_Metinler.md ile birebir (M_A1_S1=4 ... M_A5_S3=24).
+                int mno = 0;
+                int _a = sonKayit.asamaIndex, _s = sonKayit.spinSiraNo;
+                if (_a == 0 && _s == 1) mno = 4;
+                else if (_a == 0 && _s == 4) mno = 5;
+                else if (_a == 1 && _s == 2) mno = 8;
+                else if (_a == 1 && _s == 4) mno = 10;
+                else if (_a == 1 && _s == 6) mno = 11;
+                else if (_a == 2 && _s == 3) mno = 13;
+                else if (_a == 2 && _s == 6) mno = 14;
+                else if (_a == 2 && _s == 7) mno = 15;
+                else if (_a == 3 && _s == 2) mno = 18;
+                else if (_a == 3 && _s == 4) mno = 19;
+                else if (_a == 4 && _s == 1) mno = 23;
+                else if (_a == 4 && _s == 3) mno = 24;
+                yield return _runCoroutine(Senaryo.Scripted.ScriptedModalKopru.Ornek.ModalGoster(sonKayit.modalMesaji, modalNo: mno));
             }
         }
 

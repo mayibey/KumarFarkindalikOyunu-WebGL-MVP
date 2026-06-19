@@ -231,7 +231,8 @@ public partial class OyunYoneticisi
                 Debug.Log("[SpinButon-DEBUG] RETURN: A1S7 ÖNCE-modal tetiklendi");
                 StartCoroutine(OnceModalGosterVeSpin(
                     "Şimdi <color=#4ADE80>büyük bir kazanç</color> gelecek. Bu <color=#EF4444>kasıtlı</color>: algoritma oyuncuyu <color=#60A5FA><i>'şanslıyım'</i></color> hissine kaptırmak istiyor.\n\n" +
-                    "Kazanç sonrası oyuncunun zihninde <color=#60A5FA><i>'ben kazanırım'</i></color> duygusu yerleşecek."
+                    "Kazanç sonrası oyuncunun zihninde <color=#60A5FA><i>'ben kazanırım'</i></color> duygusu yerleşecek.",
+                    modalNo: 6
                 ));
                 return;
             }
@@ -241,7 +242,8 @@ public partial class OyunYoneticisi
                 Debug.Log("[SpinButon-DEBUG] RETURN: A2S4 ÖNCE-modal tetiklendi");
                 StartCoroutine(OnceModalGosterVeSpin(
                     "Şu an oyuncu <color=#FB923C>bahisini değiştirecek</color> (yükseltecek). Bu bahisin ardından algoritma <color=#EF4444>kasıtlı olarak</color> kazanç yaşatacak.\n\n" +
-                    "Amaç: oyuncuya <color=#60A5FA><i>'doğru zamanda doğru bahis'</i></color> duygusu vermek. Böylece oyuncu <color=#60A5FA>kontrolün kendinde olduğuna</color> inanır."
+                    "Amaç: oyuncuya <color=#60A5FA><i>'doğru zamanda doğru bahis'</i></color> duygusu vermek. Böylece oyuncu <color=#60A5FA>kontrolün kendinde olduğuna</color> inanır.",
+                    modalNo: 9
                 ));
                 return;
             }
@@ -1293,11 +1295,11 @@ public partial class OyunYoneticisi
 
     /// <summary>ÖNCE-modal helper: pedagojik modal'ı oynatır, modal kapanınca asıl SpinButonImpl
     /// çağrılır → flag artık set olduğu için ÖNCE bloğu atlanır, asıl spin atılır.</summary>
-    private System.Collections.IEnumerator OnceModalGosterVeSpin(string mesaj)
+    private System.Collections.IEnumerator OnceModalGosterVeSpin(string mesaj, int modalNo = 0)
     {
         var modal = UnityEngine.Object.FindObjectOfType<Senaryo.Scripted.ScriptedModalKopru>();
         if (modal != null)
-            yield return modal.ModalGoster(mesaj);
+            yield return modal.ModalGoster(mesaj, modalNo: modalNo);
         else
             Debug.LogWarning("[ÖNCE Modal] ScriptedModalKopru bulunamadı, modal atlanıyor.");
 
