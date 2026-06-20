@@ -424,14 +424,15 @@ public class IzgaraServisi
         // Referans "100x" tip: sarı-altın face gradient (üstü açık/beyazımsı → altı altın),
         // pembe kalın outline. Eski beyaz-düz ezmesi kaldırıldı (gradient AÇIK bırakıldı).
         tmp.enableVertexGradient = true;
+        // DENEME (geçici — beğenilmezse altın-sarıya geri dönülür): lacivert/koyu mavi face.
         tmp.colorGradient = new VertexGradient(
-            new Color32(0xFF, 0xE0, 0x00, 0xFF),  // üst parlak sarı tepe-highlight (#FFE000)
-            new Color32(0xFF, 0xE0, 0x00, 0xFF),
-            new Color32(0xFF, 0xA8, 0x00, 0xFF),  // alt ALTIN-sarı (#FFA800, turuncu kesildi)
-            new Color32(0xFF, 0xA8, 0x00, 0xFF));
+            new Color32(0x3B, 0x6B, 0xFF, 0xFF),  // üst parlak mavi highlight (#3B6BFF)
+            new Color32(0x3B, 0x6B, 0xFF, 0xFF),
+            new Color32(0x0A, 0x1A, 0x6B, 0xFF),  // alt koyu lacivert (#0A1A6B, derinlik)
+            new Color32(0x0A, 0x1A, 0x6B, 0xFF));
         tmp.color = Color.white;                  // gradient ile çarpılan nötr baz (beyaz)
-        tmp.outlineColor = new Color32(0x6B, 0x34, 0x10, 0xFF);  // NÖTR koyu kahve (pembe sarıyı kirletiyordu)
-        tmp.outlineWidth = 0.16f;                 // ince ama belirgin ("100x" gibi; 0.35 face'i boğuyordu)
+        tmp.outlineColor = new Color32(0xFF, 0xFF, 0xFF, 0xFF);  // BEYAZ outline (koyu yazı bombada kaybolmasın)
+        tmp.outlineWidth = 0.16f;                 // ince ama belirgin
     }
 
     /// <summary>Sadece verilen hücrelerin sprite'ını günceller (tumble oynatmasında mevcut meyvelerin değişmemesi için).</summary>
@@ -576,18 +577,19 @@ public class IzgaraServisi
             {
                 _carpanSharedMaterial = new Material(tmp.fontSharedMaterial);
                 _carpanSharedMaterial.name = "BombaCarpanMat";
-                // Outline: NÖTR koyu kahve + İNCE (0.16 — SetCarpanText ile birebir, baked).
-                // Pembe sıcak-kırmızı tonu sarıyı kirletiyordu; kahve referans "100x" gibi temiz çerçeve.
-                _carpanSharedMaterial.SetColor("_OutlineColor", new Color32(0x6B, 0x34, 0x10, 0xFF));
+                // DENEME outline: BEYAZ + İNCE (0.16 — SetCarpanText ile birebir, baked).
+                // Koyu lacivert yazı bombanın renkli zemininde kaybolmasın → beyaz çerçeve kontrastı.
+                _carpanSharedMaterial.SetColor("_OutlineColor", new Color32(0xFF, 0xFF, 0xFF, 0xFF));
                 _carpanSharedMaterial.SetFloat("_OutlineWidth", 0.16f);
                 // FaceDilate +0.07: face'i hafif şişir → opak alan geri gelir, yarı-saydamlık gider
                 // (arka bomba deseni harflerden geçmesin). 0 iken kalınlaştırıcılar face'i eritiyordu.
                 _carpanSharedMaterial.SetFloat("_FaceDilate", 0.07f);
                 if (_carpanUnderlayAktif)
                 {
-                    // Underlay (3D pop): NÖTR koyu kahve (bordo kırmızı taban sarıyı kirletiyordu), keskin.
+                    // DENEME underlay (3D pop): AÇIK mavi parlama — koyu yazıda koyu underlay görünmez,
+                    // açık underlay derinlik/ayrışma verir. Keskin (az yayılma).
                     _carpanSharedMaterial.EnableKeyword("UNDERLAY_ON");
-                    _carpanSharedMaterial.SetColor("_UnderlayColor", new Color32(0x4A, 0x26, 0x00, 0xFF)); // #4A2600 koyu kahve
+                    _carpanSharedMaterial.SetColor("_UnderlayColor", new Color32(0x6B, 0x8A, 0xFF, 0xFF)); // #6B8AFF açık mavi
                     _carpanSharedMaterial.SetFloat("_UnderlayOffsetX", 1f);
                     _carpanSharedMaterial.SetFloat("_UnderlayOffsetY", -1f);
                     _carpanSharedMaterial.SetFloat("_UnderlayDilate", 0.05f); // daha keskin, az yayılma
