@@ -425,12 +425,12 @@ public class IzgaraServisi
         // pembe kalın outline. Eski beyaz-düz ezmesi kaldırıldı (gradient AÇIK bırakıldı).
         tmp.enableVertexGradient = true;
         tmp.colorGradient = new VertexGradient(
-            new Color32(0xFF, 0xC4, 0x00, 0xFF),  // üst doygun parlak sarı (#FFC400)
-            new Color32(0xFF, 0xC4, 0x00, 0xFF),
-            new Color32(0xFF, 0x7A, 0x00, 0xFF),  // alt sıcak turuncu-altın (#FF7A00, derinlik)
-            new Color32(0xFF, 0x7A, 0x00, 0xFF));
+            new Color32(0xFF, 0xE0, 0x00, 0xFF),  // üst parlak sarı tepe-highlight (#FFE000)
+            new Color32(0xFF, 0xE0, 0x00, 0xFF),
+            new Color32(0xFF, 0xA8, 0x00, 0xFF),  // alt ALTIN-sarı (#FFA800, turuncu kesildi)
+            new Color32(0xFF, 0xA8, 0x00, 0xFF));
         tmp.color = Color.white;                  // gradient ile çarpılan nötr baz (beyaz)
-        tmp.outlineColor = new Color32(0xFF, 0x2D, 0x6F, 0xFF);  // PEMBE outline
+        tmp.outlineColor = new Color32(0x6B, 0x34, 0x10, 0xFF);  // NÖTR koyu kahve (pembe sarıyı kirletiyordu)
         tmp.outlineWidth = 0.16f;                 // ince ama belirgin ("100x" gibi; 0.35 face'i boğuyordu)
     }
 
@@ -576,20 +576,21 @@ public class IzgaraServisi
             {
                 _carpanSharedMaterial = new Material(tmp.fontSharedMaterial);
                 _carpanSharedMaterial.name = "BombaCarpanMat";
-                // Outline: PEMBE + İNCE (0.16 — SetCarpanText ile birebir, baked). 0.35 face'i boğuyordu.
-                _carpanSharedMaterial.SetColor("_OutlineColor", new Color32(0xFF, 0x2D, 0x6F, 0xFF));
+                // Outline: NÖTR koyu kahve + İNCE (0.16 — SetCarpanText ile birebir, baked).
+                // Pembe sıcak-kırmızı tonu sarıyı kirletiyordu; kahve referans "100x" gibi temiz çerçeve.
+                _carpanSharedMaterial.SetColor("_OutlineColor", new Color32(0x6B, 0x34, 0x10, 0xFF));
                 _carpanSharedMaterial.SetFloat("_OutlineWidth", 0.16f);
                 // FaceDilate +0.07: face'i hafif şişir → opak alan geri gelir, yarı-saydamlık gider
                 // (arka bomba deseni harflerden geçmesin). 0 iken kalınlaştırıcılar face'i eritiyordu.
                 _carpanSharedMaterial.SetFloat("_FaceDilate", 0.07f);
                 if (_carpanUnderlayAktif)
                 {
-                    // Underlay (3D pop): koyu BORDO, AZALTILMIŞ + KESKİN (yayılma/bulanıklık olmasın).
+                    // Underlay (3D pop): NÖTR koyu kahve (bordo kırmızı taban sarıyı kirletiyordu), keskin.
                     _carpanSharedMaterial.EnableKeyword("UNDERLAY_ON");
-                    _carpanSharedMaterial.SetColor("_UnderlayColor", new Color32(0x8A, 0x00, 0x30, 0xFF)); // #8A0030 bordo
+                    _carpanSharedMaterial.SetColor("_UnderlayColor", new Color32(0x4A, 0x26, 0x00, 0xFF)); // #4A2600 koyu kahve
                     _carpanSharedMaterial.SetFloat("_UnderlayOffsetX", 1f);
                     _carpanSharedMaterial.SetFloat("_UnderlayOffsetY", -1f);
-                    _carpanSharedMaterial.SetFloat("_UnderlayDilate", 0.08f);
+                    _carpanSharedMaterial.SetFloat("_UnderlayDilate", 0.05f); // daha keskin, az yayılma
                     _carpanSharedMaterial.SetFloat("_UnderlaySoftness", 0f); // keskin gölge
                 }
                 // Glow KAPATILDI: referans "100x"te belirgin glow yok; outer 0.5 + power 0.4 bulanık hale yapıyordu.
