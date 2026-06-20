@@ -425,10 +425,10 @@ public class IzgaraServisi
         // pembe kalın outline. Eski beyaz-düz ezmesi kaldırıldı (gradient AÇIK bırakıldı).
         tmp.enableVertexGradient = true;
         tmp.colorGradient = new VertexGradient(
-            new Color32(0xFF, 0xD4, 0x2E, 0xFF),  // üst-sol  doygun parlak sarı
-            new Color32(0xFF, 0xD4, 0x2E, 0xFF),  // üst-sağ
-            new Color32(0xFF, 0x8A, 0x00, 0xFF),  // alt-sol  altın
-            new Color32(0xFF, 0x8A, 0x00, 0xFF)); // alt-sağ
+            new Color32(0xFF, 0xC4, 0x00, 0xFF),  // üst doygun parlak sarı (#FFC400)
+            new Color32(0xFF, 0xC4, 0x00, 0xFF),
+            new Color32(0xFF, 0x7A, 0x00, 0xFF),  // alt sıcak turuncu-altın (#FF7A00, derinlik)
+            new Color32(0xFF, 0x7A, 0x00, 0xFF));
         tmp.color = Color.white;                  // gradient ile çarpılan nötr baz (beyaz)
         tmp.outlineColor = new Color32(0xFF, 0x2D, 0x6F, 0xFF);  // PEMBE outline
         tmp.outlineWidth = 0.16f;                 // ince ama belirgin ("100x" gibi; 0.35 face'i boğuyordu)
@@ -550,7 +550,9 @@ public class IzgaraServisi
             // Bold KALDIRILDI: LilitaOne zaten şişko gövdeli; faux-bold (_WeightBold 0.75) dilate üstüne
             // binince harfler hamurlaşıyordu. Bold'suz LilitaOne kendi gövdesiyle yeterince kalın.
             tmp.fontStyle &= ~FontStyles.Bold;
-            tmp.characterSpacing = _carpanCharacterSpacing;
+            // characterSpacing -15 → 0: "2x"/"5x" harfleri birbirine giriyordu; açılınca referans
+            // "100x" gibi rahat/net okunur. (Sahne değeri yoksayılıp kesin 0 — LilitaOne zaten geniş.)
+            tmp.characterSpacing = 0f;
             tmp.extraPadding = true;
             tmp.textWrappingMode = TextWrappingModes.NoWrap;
 
