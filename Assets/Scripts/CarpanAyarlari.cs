@@ -51,8 +51,8 @@ public class CarpanAyarlari : MonoBehaviour
 
     [Header("Carpan Yazi Gradient (Sari-Altin)")]
     public bool CarpanGradientAktif = true;
-    // Referans tip: ust beyazimsi sari highlight (#FFF6C0), alt altin (#FF8A00). Kesin deger SetCarpanText'te.
-    public Color CarpanGradientUst = new Color(1f, 0.965f, 0.753f, 1f);
+    // Referans tip: ust doygun parlak sari (#FFD42E), alt altin (#FF8A00). Kesin deger SetCarpanText'te.
+    public Color CarpanGradientUst = new Color(1f, 0.831f, 0.180f, 1f);
     public Color CarpanGradientAlt = new Color(1f, 0.541f, 0f, 1f);
     public float CarpanCharacterSpacing = -15f;
 

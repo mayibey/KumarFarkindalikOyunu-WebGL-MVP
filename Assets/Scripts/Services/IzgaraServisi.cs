@@ -122,6 +122,15 @@ public class IzgaraServisi
     private float _carpanGlowInner = 0f;
     private float _carpanGlowPower = 0.5f;
     private Material _carpanSharedMaterial;
+    // Çarpan "Nx" yazısı için şişko font (Lilita One SDF). Resources'tan lazy yüklenir —
+    // sahne düzenlemesi gerekmez (02/03/04 hepsi aynı koddan alır). Path: TextMesh Pro/Resources/Fonts & Materials/.
+    private TMP_FontAsset _carpanFont;
+    private TMP_FontAsset CarpanFontAl()
+    {
+        if (_carpanFont == null)
+            _carpanFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/LilitaOne SDF");
+        return _carpanFont;
+    }
     private Transform _slotGridRoot;
     private Vector2[] _cellPos;
     private RectTransform[] _cellRT;
@@ -416,8 +425,8 @@ public class IzgaraServisi
         // pembe kalın outline. Eski beyaz-düz ezmesi kaldırıldı (gradient AÇIK bırakıldı).
         tmp.enableVertexGradient = true;
         tmp.colorGradient = new VertexGradient(
-            new Color32(0xFF, 0xF6, 0xC0, 0xFF),  // üst-sol  ≈ beyazımsı sarı (highlight)
-            new Color32(0xFF, 0xF6, 0xC0, 0xFF),  // üst-sağ
+            new Color32(0xFF, 0xD4, 0x2E, 0xFF),  // üst-sol  doygun parlak sarı
+            new Color32(0xFF, 0xD4, 0x2E, 0xFF),  // üst-sağ
             new Color32(0xFF, 0x8A, 0x00, 0xFF),  // alt-sol  altın
             new Color32(0xFF, 0x8A, 0x00, 0xFF)); // alt-sağ
         tmp.color = Color.white;                  // gradient ile çarpılan nötr baz (beyaz)
@@ -526,11 +535,16 @@ public class IzgaraServisi
 
             var tmp = go.AddComponent<TextMeshProUGUI>();
             tmp.text = "";
+            // Şişko font (Lilita One SDF) — material türetiminden ÖNCE atanır ki BombaCarpanMat
+            // bu fontun ATLAS'ından türesin (yoksa Liberation atlas'ıyla karışıp bozuk render olur).
+            var carpanFont = CarpanFontAl();
+            if (carpanFont != null) tmp.font = carpanFont;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.raycastTarget = false;
             tmp.fontSize = _carpanOverlayFontSize;
             tmp.enableAutoSizing = true;
-            tmp.fontSizeMin = Mathf.Max(8, _carpanOverlayFontSize - 12);
+            // Auto-size min 42→36: şişko font geniş, "250x"/"500x" (4 karakter) sığsın.
+            tmp.fontSizeMin = Mathf.Max(8, _carpanOverlayFontSize - 18);
             tmp.fontSizeMax = _carpanOverlayFontSize;
             if (_carpanYaziKalin) tmp.fontStyle |= FontStyles.Bold;
             tmp.characterSpacing = _carpanCharacterSpacing;
