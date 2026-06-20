@@ -38,7 +38,8 @@ public class CarpanAyarlari : MonoBehaviour
 
     [Header("Carpan Yazi Gorunumu")]
     public Color CarpanYaziRengi = Color.white;
-    public Color CarpanYaziDisCizgiRengi = Color.black;
+    // Referans tip: pembe outline (#FF2D6F). Not: kesin deger SetCarpanText'te kodla uygulanir, bu alan ikincil.
+    public Color CarpanYaziDisCizgiRengi = new Color(1f, 0.176f, 0.435f, 1f);
 
     [Range(0f, 1f)]
     public float CarpanYaziDisCizgiKalinlik = 0.35f;
@@ -48,10 +49,11 @@ public class CarpanAyarlari : MonoBehaviour
     public Color CarpanYaziGolgeRengi = Color.black;
     public Vector2 CarpanYaziGolgeOffset = new Vector2(2f, -2f);
 
-    [Header("Carpan Yazi Gradient (Sari-Turuncu)")]
+    [Header("Carpan Yazi Gradient (Sari-Altin)")]
     public bool CarpanGradientAktif = true;
-    public Color CarpanGradientUst = new Color(1f, 0.922f, 0.231f, 1f);
-    public Color CarpanGradientAlt = new Color(1f, 0.596f, 0f, 1f);
+    // Referans tip: ust beyazimsi sari highlight (#FFF6C0), alt altin (#FF8A00). Kesin deger SetCarpanText'te.
+    public Color CarpanGradientUst = new Color(1f, 0.965f, 0.753f, 1f);
+    public Color CarpanGradientAlt = new Color(1f, 0.541f, 0f, 1f);
     public float CarpanCharacterSpacing = -15f;
 
     [Header("Carpan Yazi TMP Underlay (3D Pop)")]

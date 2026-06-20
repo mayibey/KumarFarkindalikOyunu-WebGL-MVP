@@ -412,10 +412,17 @@ public class IzgaraServisi
     {
         if (tmp == null) return;
         tmp.text = deger.ToString() + "x";
-        tmp.enableVertexGradient = false;
-        tmp.color = Color.white;
-        tmp.outlineColor = Color.black;
-        tmp.outlineWidth = 0.25f;
+        // Referans "100x" tip: sarı-altın face gradient (üstü açık/beyazımsı → altı altın),
+        // pembe kalın outline. Eski beyaz-düz ezmesi kaldırıldı (gradient AÇIK bırakıldı).
+        tmp.enableVertexGradient = true;
+        tmp.colorGradient = new VertexGradient(
+            new Color32(0xFF, 0xF6, 0xC0, 0xFF),  // üst-sol  ≈ beyazımsı sarı (highlight)
+            new Color32(0xFF, 0xF6, 0xC0, 0xFF),  // üst-sağ
+            new Color32(0xFF, 0x8A, 0x00, 0xFF),  // alt-sol  altın
+            new Color32(0xFF, 0x8A, 0x00, 0xFF)); // alt-sağ
+        tmp.color = Color.white;                  // gradient ile çarpılan nötr baz (beyaz)
+        tmp.outlineColor = new Color32(0xFF, 0x2D, 0x6F, 0xFF);  // PEMBE outline
+        tmp.outlineWidth = 0.35f;                 // kalın
     }
 
     /// <summary>Sadece verilen hücrelerin sprite'ını günceller (tumble oynatmasında mevcut meyvelerin değişmemesi için).</summary>
@@ -550,24 +557,27 @@ public class IzgaraServisi
             {
                 _carpanSharedMaterial = new Material(tmp.fontSharedMaterial);
                 _carpanSharedMaterial.name = "BombaCarpanMat";
-                _carpanSharedMaterial.SetColor("_OutlineColor", _carpanYaziDisCizgiRengi);
-                _carpanSharedMaterial.SetFloat("_OutlineWidth", _carpanYaziDisCizgiKalinlik);
+                // Outline: referans tip için PEMBE + kalın (SetCarpanText ile birebir tutarlı, baked).
+                _carpanSharedMaterial.SetColor("_OutlineColor", new Color32(0xFF, 0x2D, 0x6F, 0xFF));
+                _carpanSharedMaterial.SetFloat("_OutlineWidth", 0.35f);
                 if (_carpanUnderlayAktif)
                 {
+                    // Underlay (3D pop): referans tip için koyu BORDO (pembe outline'la uyumlu).
                     _carpanSharedMaterial.EnableKeyword("UNDERLAY_ON");
-                    _carpanSharedMaterial.SetColor("_UnderlayColor", _carpanUnderlayRengi);
-                    _carpanSharedMaterial.SetFloat("_UnderlayOffsetX", _carpanUnderlayOffsetX);
-                    _carpanSharedMaterial.SetFloat("_UnderlayOffsetY", _carpanUnderlayOffsetY);
-                    _carpanSharedMaterial.SetFloat("_UnderlayDilate", _carpanUnderlayDilate);
+                    _carpanSharedMaterial.SetColor("_UnderlayColor", new Color32(0x8A, 0x00, 0x30, 0xFF)); // #8A0030 bordo
+                    _carpanSharedMaterial.SetFloat("_UnderlayOffsetX", 1.5f);
+                    _carpanSharedMaterial.SetFloat("_UnderlayOffsetY", -1.5f);
+                    _carpanSharedMaterial.SetFloat("_UnderlayDilate", 0.22f);
                     _carpanSharedMaterial.SetFloat("_UnderlaySoftness", _carpanUnderlaySoftness);
                 }
                 if (_carpanGlowAktif)
                 {
+                    // Glow (parlama/highlight): referans tip için BEYAZ (sarı yerine → parlama hissi).
                     _carpanSharedMaterial.EnableKeyword("GLOW_ON");
-                    _carpanSharedMaterial.SetColor("_GlowColor", _carpanGlowRengi);
-                    _carpanSharedMaterial.SetFloat("_GlowOuter", _carpanGlowOuter);
+                    _carpanSharedMaterial.SetColor("_GlowColor", new Color(1f, 1f, 1f, 0.5f)); // beyaz α0.5
+                    _carpanSharedMaterial.SetFloat("_GlowOuter", 0.5f);
                     _carpanSharedMaterial.SetFloat("_GlowInner", _carpanGlowInner);
-                    _carpanSharedMaterial.SetFloat("_GlowPower", _carpanGlowPower);
+                    _carpanSharedMaterial.SetFloat("_GlowPower", 0.4f);
                 }
             }
             if (_carpanSharedMaterial != null)
