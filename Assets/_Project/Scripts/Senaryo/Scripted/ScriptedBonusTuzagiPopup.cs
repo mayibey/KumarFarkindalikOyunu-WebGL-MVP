@@ -243,7 +243,7 @@ namespace Senaryo.Scripted
             kutu.transform.SetParent(_root.transform, false);
             _kutuRt = kutu.GetComponent<RectTransform>();
             _kutuRt.anchorMin = _kutuRt.anchorMax = _kutuRt.pivot = new Vector2(0.5f, 0.5f);
-            _kutuRt.sizeDelta = new Vector2(720f, 460f);
+            _kutuRt.sizeDelta = new Vector2(880f, 580f);
             _kutuRt.anchoredPosition = Vector2.zero;
             _kutuRt.localScale = Vector3.zero;
             // Casino altın arka plan (gradient yerine solid altın + kırmızı border vurgusu)
@@ -263,10 +263,10 @@ namespace Senaryo.Scripted
             basRt.anchoredPosition = new Vector2(0f, -25f);
             var basTxt = basGo.AddComponent<TextMeshProUGUI>();
             basTxt.alignment = TextAlignmentOptions.Center;
-            basTxt.fontSize = 38f;
+            basTxt.fontSize = 48f;
             basTxt.fontStyle = FontStyles.Bold;
             basTxt.color = new Color(0.55f, 0.05f, 0.05f, 1f); // koyu kırmızı (altın üstünde okunabilir)
-            basTxt.text = "ŞANSLI ANINDASIN!";
+            basTxt.text = "ÇOK ŞANSLISIN";
             basTxt.raycastTarget = false;
 
             // Açıklama
@@ -277,16 +277,16 @@ namespace Senaryo.Scripted
             aciRt.offsetMin = new Vector2(40f, 130f); aciRt.offsetMax = new Vector2(-40f, -110f);
             var aciTxt = aciGo.AddComponent<TextMeshProUGUI>();
             aciTxt.alignment = TextAlignmentOptions.Center;
-            aciTxt.fontSize = 22f;
+            aciTxt.fontSize = 28f;
             aciTxt.fontStyle = FontStyles.Bold;
             aciTxt.color = new Color(0.10f, 0.05f, 0.05f, 1f);
             aciTxt.lineSpacing = 8f;
             aciTxt.enableWordWrapping = true;
             aciTxt.text =
                 "Tüm bakiyeni bonus oyuna yatır,\n" +
-                "<color=#9B0000><size=28>10.000 KATI KAZANMA</size></color>\n" +
+                "<color=#9B0000><size=36>10.000 KATI KAZANMA</size></color>\n" +
                 "şansını yakala!\n\n" +
-                "<i>Bu fırsat bir daha karşına çıkmayabilir!</i>";
+                "<i><b><size=34><color=#9B0000>Bu fırsat bir daha karşına çıkmayabilir!</color></size></b></i>";
             aciTxt.raycastTarget = false;
 
             // BONUS AL butonu — parlak yeşil
@@ -317,7 +317,7 @@ namespace Senaryo.Scripted
             btnTxtRt.offsetMin = btnTxtRt.offsetMax = Vector2.zero;
             _butonText = btnTxtGo.AddComponent<TextMeshProUGUI>();
             _butonText.alignment = TextAlignmentOptions.Center;
-            _butonText.fontSize = 26f;
+            _butonText.fontSize = 32f;
             _butonText.fontStyle = FontStyles.Bold;
             _butonText.color = Color.white;
             _butonText.text = "BONUS AL";
