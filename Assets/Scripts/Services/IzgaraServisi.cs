@@ -431,7 +431,7 @@ public class IzgaraServisi
             new Color32(0xFF, 0x8A, 0x00, 0xFF)); // alt-sağ
         tmp.color = Color.white;                  // gradient ile çarpılan nötr baz (beyaz)
         tmp.outlineColor = new Color32(0xFF, 0x2D, 0x6F, 0xFF);  // PEMBE outline
-        tmp.outlineWidth = 0.35f;                 // kalın
+        tmp.outlineWidth = 0.16f;                 // ince ama belirgin ("100x" gibi; 0.35 face'i boğuyordu)
     }
 
     /// <summary>Sadece verilen hücrelerin sprite'ını günceller (tumble oynatmasında mevcut meyvelerin değişmemesi için).</summary>
@@ -543,10 +543,13 @@ public class IzgaraServisi
             tmp.raycastTarget = false;
             tmp.fontSize = _carpanOverlayFontSize;
             tmp.enableAutoSizing = true;
-            // Auto-size min 42→36: şişko font geniş, "250x"/"500x" (4 karakter) sığsın.
+            // Auto-size min 36 / max 44: şişko LilitaOne geniş; "2x" göbeğe sığsın (eski max 54×1.5=81px
+            // bombayı kaplıyordu → 44×1.5≈66px), "250x"/"500x" auto-size ile küçülüp sığsın.
             tmp.fontSizeMin = Mathf.Max(8, _carpanOverlayFontSize - 18);
-            tmp.fontSizeMax = _carpanOverlayFontSize;
-            if (_carpanYaziKalin) tmp.fontStyle |= FontStyles.Bold;
+            tmp.fontSizeMax = Mathf.Min(44, _carpanOverlayFontSize);
+            // Bold KALDIRILDI: LilitaOne zaten şişko gövdeli; faux-bold (_WeightBold 0.75) dilate üstüne
+            // binince harfler hamurlaşıyordu. Bold'suz LilitaOne kendi gövdesiyle yeterince kalın.
+            tmp.fontStyle &= ~FontStyles.Bold;
             tmp.characterSpacing = _carpanCharacterSpacing;
             tmp.extraPadding = true;
             tmp.textWrappingMode = TextWrappingModes.NoWrap;
@@ -571,28 +574,24 @@ public class IzgaraServisi
             {
                 _carpanSharedMaterial = new Material(tmp.fontSharedMaterial);
                 _carpanSharedMaterial.name = "BombaCarpanMat";
-                // Outline: referans tip için PEMBE + kalın (SetCarpanText ile birebir tutarlı, baked).
+                // Outline: PEMBE + İNCE (0.16 — SetCarpanText ile birebir, baked). 0.35 face'i boğuyordu.
                 _carpanSharedMaterial.SetColor("_OutlineColor", new Color32(0xFF, 0x2D, 0x6F, 0xFF));
-                _carpanSharedMaterial.SetFloat("_OutlineWidth", 0.35f);
+                _carpanSharedMaterial.SetFloat("_OutlineWidth", 0.16f);
+                // FaceDilate +0.07: face'i hafif şişir → opak alan geri gelir, yarı-saydamlık gider
+                // (arka bomba deseni harflerden geçmesin). 0 iken kalınlaştırıcılar face'i eritiyordu.
+                _carpanSharedMaterial.SetFloat("_FaceDilate", 0.07f);
                 if (_carpanUnderlayAktif)
                 {
-                    // Underlay (3D pop): referans tip için koyu BORDO (pembe outline'la uyumlu).
+                    // Underlay (3D pop): koyu BORDO, AZALTILMIŞ + KESKİN (yayılma/bulanıklık olmasın).
                     _carpanSharedMaterial.EnableKeyword("UNDERLAY_ON");
                     _carpanSharedMaterial.SetColor("_UnderlayColor", new Color32(0x8A, 0x00, 0x30, 0xFF)); // #8A0030 bordo
-                    _carpanSharedMaterial.SetFloat("_UnderlayOffsetX", 1.5f);
-                    _carpanSharedMaterial.SetFloat("_UnderlayOffsetY", -1.5f);
-                    _carpanSharedMaterial.SetFloat("_UnderlayDilate", 0.22f);
-                    _carpanSharedMaterial.SetFloat("_UnderlaySoftness", _carpanUnderlaySoftness);
+                    _carpanSharedMaterial.SetFloat("_UnderlayOffsetX", 1f);
+                    _carpanSharedMaterial.SetFloat("_UnderlayOffsetY", -1f);
+                    _carpanSharedMaterial.SetFloat("_UnderlayDilate", 0.08f);
+                    _carpanSharedMaterial.SetFloat("_UnderlaySoftness", 0f); // keskin gölge
                 }
-                if (_carpanGlowAktif)
-                {
-                    // Glow (parlama/highlight): referans tip için BEYAZ (sarı yerine → parlama hissi).
-                    _carpanSharedMaterial.EnableKeyword("GLOW_ON");
-                    _carpanSharedMaterial.SetColor("_GlowColor", new Color(1f, 1f, 1f, 0.5f)); // beyaz α0.5
-                    _carpanSharedMaterial.SetFloat("_GlowOuter", 0.5f);
-                    _carpanSharedMaterial.SetFloat("_GlowInner", _carpanGlowInner);
-                    _carpanSharedMaterial.SetFloat("_GlowPower", 0.4f);
-                }
+                // Glow KAPATILDI: referans "100x"te belirgin glow yok; outer 0.5 + power 0.4 bulanık hale yapıyordu.
+                _carpanSharedMaterial.DisableKeyword("GLOW_ON");
             }
             if (_carpanSharedMaterial != null)
                 tmp.fontSharedMaterial = _carpanSharedMaterial;
