@@ -103,7 +103,7 @@ namespace Senaryo.Scripted
             // Anlatici HTML iframe'i gizle (popup üzerinde kalmasın)
             AnlaticiSeritKopru.Ornek?.Gizle();
 
-            _butonText.text = "BONUS AL — TÜM BAKİYE (" + OyunFormatServisi.FormatTL(bakiye) + ")";
+            _butonText.text = "BONUS AL\nTÜM BAKİYE (" + OyunFormatServisi.FormatTL(bakiye) + ")";
             _butonaTiklandi = false;
             IsAcik = true;
             _root.SetActive(true);
@@ -263,7 +263,7 @@ namespace Senaryo.Scripted
             basRt.anchoredPosition = new Vector2(0f, -25f);
             var basTxt = basGo.AddComponent<TextMeshProUGUI>();
             basTxt.alignment = TextAlignmentOptions.Center;
-            basTxt.fontSize = 48f;
+            basTxt.fontSize = 64f;
             basTxt.fontStyle = FontStyles.Bold;
             basTxt.color = new Color(0.55f, 0.05f, 0.05f, 1f); // koyu kırmızı (altın üstünde okunabilir)
             basTxt.text = "ÇOK ŞANSLISIN";
@@ -277,16 +277,16 @@ namespace Senaryo.Scripted
             aciRt.offsetMin = new Vector2(40f, 130f); aciRt.offsetMax = new Vector2(-40f, -110f);
             var aciTxt = aciGo.AddComponent<TextMeshProUGUI>();
             aciTxt.alignment = TextAlignmentOptions.Center;
-            aciTxt.fontSize = 28f;
+            aciTxt.fontSize = 38f;
             aciTxt.fontStyle = FontStyles.Bold;
             aciTxt.color = new Color(0.10f, 0.05f, 0.05f, 1f);
-            aciTxt.lineSpacing = 8f;
+            aciTxt.lineSpacing = 22f;
             aciTxt.enableWordWrapping = true;
             aciTxt.text =
                 "Tüm bakiyeni bonus oyuna yatır,\n" +
-                "<color=#9B0000><size=36>10.000 KATI KAZANMA</size></color>\n" +
+                "<color=#9B0000><size=52>10.000 KATI KAZANMA</size></color>\n" +
                 "şansını yakala!\n\n" +
-                "<i><b><size=34><color=#9B0000>Bu fırsat bir daha karşına çıkmayabilir!</color></size></b></i>";
+                "<i><b><size=44><color=#9B0000>Bu fırsat bir daha karşına çıkmayabilir!</color></size></b></i>";
             aciTxt.raycastTarget = false;
 
             // BONUS AL butonu — parlak yeşil
@@ -296,7 +296,7 @@ namespace Senaryo.Scripted
             var btnRt = btnGo.GetComponent<RectTransform>();
             btnRt.anchorMin = btnRt.anchorMax = new Vector2(0.5f, 0f);
             btnRt.pivot = new Vector2(0.5f, 0f);
-            btnRt.sizeDelta = new Vector2(420f, 80f);
+            btnRt.sizeDelta = new Vector2(440f, 100f); // 2 satır metin için yükseklik 80→100 (üst kenar 128px < açıklama alt 130px, çakışma yok)
             btnRt.anchoredPosition = new Vector2(0f, 28f);
             btnGo.GetComponent<Image>().color = new Color(0.15f, 0.68f, 0.38f, 1f); // canlı yeşil #27ae60
             _bonusAlButton = btnGo.GetComponent<Button>();
@@ -317,10 +317,10 @@ namespace Senaryo.Scripted
             btnTxtRt.offsetMin = btnTxtRt.offsetMax = Vector2.zero;
             _butonText = btnTxtGo.AddComponent<TextMeshProUGUI>();
             _butonText.alignment = TextAlignmentOptions.Center;
-            _butonText.fontSize = 32f;
+            _butonText.fontSize = 38f;
             _butonText.fontStyle = FontStyles.Bold;
             _butonText.color = Color.white;
-            _butonText.text = "BONUS AL";
+            _butonText.text = "BONUS AL\nTÜM BAKİYE";
             _butonText.raycastTarget = false;
         }
 
