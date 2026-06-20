@@ -243,7 +243,7 @@ namespace Senaryo.Scripted
             kutu.transform.SetParent(_root.transform, false);
             _kutuRt = kutu.GetComponent<RectTransform>();
             _kutuRt.anchorMin = _kutuRt.anchorMax = _kutuRt.pivot = new Vector2(0.5f, 0.5f);
-            _kutuRt.sizeDelta = new Vector2(880f, 580f);
+            _kutuRt.sizeDelta = new Vector2(1000f, 720f);
             _kutuRt.anchoredPosition = Vector2.zero;
             _kutuRt.localScale = Vector3.zero;
             // Casino altın arka plan (gradient yerine solid altın + kırmızı border vurgusu)
@@ -259,8 +259,8 @@ namespace Senaryo.Scripted
             var basRt = basGo.GetComponent<RectTransform>();
             basRt.anchorMin = new Vector2(0f, 1f); basRt.anchorMax = new Vector2(1f, 1f);
             basRt.pivot = new Vector2(0.5f, 1f);
-            basRt.sizeDelta = new Vector2(0f, 80f);
-            basRt.anchoredPosition = new Vector2(0f, -25f);
+            basRt.sizeDelta = new Vector2(0f, 90f);            // üst bölge (üstten 30..120px), altında gövdeye boşluk
+            basRt.anchoredPosition = new Vector2(0f, -30f);
             var basTxt = basGo.AddComponent<TextMeshProUGUI>();
             basTxt.alignment = TextAlignmentOptions.Center;
             basTxt.fontSize = 64f;
@@ -274,7 +274,9 @@ namespace Senaryo.Scripted
             aciGo.transform.SetParent(kutu.transform, false);
             var aciRt = aciGo.GetComponent<RectTransform>();
             aciRt.anchorMin = new Vector2(0f, 0f); aciRt.anchorMax = new Vector2(1f, 1f);
-            aciRt.offsetMin = new Vector2(40f, 130f); aciRt.offsetMax = new Vector2(-40f, -110f);
+            // Orta bölge: üstten 150 (başlık altı 120 + 30 boşluk), alttan 210 (buton üstü 170 + 40 boşluk).
+            // Alan = 720-150-210 = 360px → içerik (~337px) sığar; "fırsat" satırı butona girmez.
+            aciRt.offsetMin = new Vector2(40f, 210f); aciRt.offsetMax = new Vector2(-40f, -150f);
             var aciTxt = aciGo.AddComponent<TextMeshProUGUI>();
             aciTxt.alignment = TextAlignmentOptions.Center;
             aciTxt.fontSize = 38f;
@@ -296,8 +298,8 @@ namespace Senaryo.Scripted
             var btnRt = btnGo.GetComponent<RectTransform>();
             btnRt.anchorMin = btnRt.anchorMax = new Vector2(0.5f, 0f);
             btnRt.pivot = new Vector2(0.5f, 0f);
-            btnRt.sizeDelta = new Vector2(440f, 100f); // 2 satır metin için yükseklik 80→100 (üst kenar 128px < açıklama alt 130px, çakışma yok)
-            btnRt.anchoredPosition = new Vector2(0f, 28f);
+            btnRt.sizeDelta = new Vector2(600f, 130f); // geniş+yüksek: "TÜM BAKİYE (XX.XXX TL)" tek satıra sığar, 2 satır kırpılmaz
+            btnRt.anchoredPosition = new Vector2(0f, 40f); // alttan 40px, üst kenar 170px (açıklama alt 210px ile 40px boşluk)
             btnGo.GetComponent<Image>().color = new Color(0.15f, 0.68f, 0.38f, 1f); // canlı yeşil #27ae60
             _bonusAlButton = btnGo.GetComponent<Button>();
             // Hover efekti: ColorTint ile parlama (Selectable.Transition)
@@ -320,6 +322,8 @@ namespace Senaryo.Scripted
             _butonText.fontSize = 38f;
             _butonText.fontStyle = FontStyles.Bold;
             _butonText.color = Color.white;
+            _butonText.enableWordWrapping = false;             // alt satır ("TÜM BAKİYE (XX.XXX TL)") kendi içinde bölünmesin
+            _butonText.overflowMode = TextOverflowModes.Overflow; // kırpma yok
             _butonText.text = "BONUS AL\nTÜM BAKİYE";
             _butonText.raycastTarget = false;
         }
