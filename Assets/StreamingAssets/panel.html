@@ -1206,13 +1206,13 @@
   var MOD_ACIKLAMALARI = {
     normal:  { vurgu: 'Ödeme eğilimi varsayılan (%65)',         aciklama: 'Manuel ayarlarınız korunuyor. Tüm ayarları sıfırlamak için "Varsayılana Dön" butonunu kullanın.' },
     hook:    { vurgu: 'Isındırma ve umut', aciklama: 'Yeni gelene bol kazanç verilir, oyuna bağlanır',
-               html: 'Sistem yeni gelen oyuncuya bilerek <span style="color:#16a34a;font-weight:600;">yüksek kazançlar</span> vererek oyuna bağlar.' },
+               html: 'Sistem, yeni gelen oyuncuyu <span style="color:#dc2626;font-weight:600;">bağımlı hale getirmek</span> için <span style="color:#16a34a;font-weight:600;">yüksek kazançlar</span> verir.' },
     yontma:  { vurgu: 'Kaybettiklerimi geri kazanabilirim', aciklama: 'Bakiye sessizce erimeye başlar',
-               html: 'Sistem oyuncuya her tur ödeme yapar ancak bu ödemeler bahis miktarını geçmez — oyuncu <span style="color:#ea580c;font-weight:600;">kazandığını zannederken</span> <span style="color:#dc2626;font-weight:600;">kaybeder</span>.' },
+               html: 'Sistem, oyuncuya bahis miktarını geçmeyecek miktarda kazandırır.<br>Oyuncu, <span style="color:#ea580c;font-weight:600;">kazandığını zannederken</span> <span style="color:#dc2626;font-weight:600;">kaybeder</span>.' },
     tutma:   { vurgu: 'Şansın döndü', aciklama: 'Çıkmaya niyetli oyuncuya küçük kazanç hediyesi',
-               html: 'Sistem <span style="color:#2563eb;font-weight:600;">2 tur</span> üst üste oyuncuya <span style="color:#dc2626;font-weight:600;">kayıp yaşatır</span>, <span style="color:#2563eb;font-weight:600;">3. turda</span> <span style="color:#16a34a;font-weight:600;">cüzi miktarda ödeme</span> yaparak oyundan çıkmasını engeller.' },
+               html: 'Sistem ard arda <span style="color:#2563eb;font-weight:600;">2 tur</span> oyuncuya <span style="color:#dc2626;font-weight:600;">kaybettirir</span>.<br><span style="color:#2563eb;font-weight:600;">3\'üncü turda</span> <span style="color:#16a34a;font-weight:600;">düşük miktarda kazanmasını</span> sağlayarak oyundan çıkmasını engeller.' },
     koruma:  { vurgu: 'Gerçeklerle yüzleşme ve tükeniş', aciklama: 'Ödeme neredeyse durur',
-               html: 'Sistem <span style="color:#dc2626;font-weight:600;">neredeyse hiç ödeme yapmaz</span>, çok nadir öder.' }
+               html: 'Sistem, oyuncunun bakiyesini tüketmek için <span style="color:#dc2626;font-weight:600;">çok nadir ödeme yapar</span>.' }
   };
 
   function modAciklamasiniGuncelle(deger) {
@@ -1229,15 +1229,14 @@
   var TOOLTIP_ICERIKLERI = {
 
     oyunModu: '<h4>Oyun Modu Senaryosu</h4>'
-      + '<p>Aynı slot oyununun <strong>5 farklı ruh hali</strong>. Her senaryo, oyuncunun yaşadığı deneyimi tamamen değiştirir.</p>'
-      + '<p>Operatör tek tuşla moddan moda geçebilir. Oyuncu fark edemez — oyunun adı, görseli, sesleri hiç değişmez; sadece <strong>kazandırma algoritması</strong> değişir.</p>',
+      + '<p>Sistem, oyuncu farketmeden (<strong>Normal Oyun, Taze Kan, Ufak Miktarlarda Kaybettirme, Kaçışı Engelleme, Bakiye Tüketme</strong> gibi) mod değişiklikleri yapabilir.</p>'
+      + '<p>Mod değişikliği yapıldığında, oyunun ses ve görselinde hiçbir farklılık meydana gelmez. Sistem yalnızca <strong>kazandırma olasılığını</strong> değiştirir.</p>',
 
     odemeAraligi: '<h4>Ödeme Aralığı (En Kritik Ayar)</h4>'
-      + '<p>Bu, kasanın kâr garantisinin teknik adıdır. Min ve Max değerleri <strong>bahsin katı</strong> olarak çalışır.</p>'
-      + '<p><em>Min × bahis</em> → Oyuncuya verilebilecek minimum kazanç. <em>Max × bahis</em> → Asla aşılamayacak tavan.</p>'
-      + '<p>Örnek: Bahis 100 TL, Min 0.5x, Max 10x. Kazanç en az 50 TL, en çok 1.000 TL olabilir. Oyuncu ekrandaki devasa çarpanları (×500, ×1000) görse bile <strong>fiilen</strong> asla bu değerlere ulaşamaz — çünkü tavan çok altında kilitlidir.</p>'
-      + '<p>Oyuncu yıllarca "bir gün büyük vuracağım" der. Ama vurması olasılık dahilinde değildir, <strong>tasarım gereği imkânsızdır.</strong></p>'
-      + '<p>Gerçek slot sitelerinde max çoğu zaman 50x-100x bahis civarındadır.</p>',
+      + '<p>Bu, kasanın kâr garantisinin teknik adıdır. Minimum ve maximum değerleri <strong>kazanç katsayısını</strong> belirler.</p>'
+      + '<p><em>Min × bahis</em> → Oyuncuya verilebilecek en düşük kazancı. <em>Max × bahis</em> → En yüksek kazancı ifade eder.</p>'
+      + '<p>Örnek: 100 TL\'lik bahis oynandığında, Min 0.5x, Max 10x katsayısıyla kazanç en az 50 TL, en çok 1.000 TL olabilir. Oyuncu ekrandaki yüksek çarpanları (×500, ×1000) görse bile kazancı <strong>asla</strong> bu değerlere ulaşamaz. Çünkü sistem oyuncunun kazanma oranını düşük belirlemiştir.</p>'
+      + '<p>Oyuncuda bağımlılık arttıkça "bir gün çok büyük para kazanacağım" düşüncesi oluşur. Fakat sistem buna <strong>kesinlikle izin vermez.</strong></p>',
 
     nearMiss: '<h4>Neredeyse Oluyordu (Near-Miss)</h4>'
       + '<p>Bu, kumar bilimindeki <strong>en güçlü manipülasyon tekniğidir.</strong></p>'
@@ -1254,30 +1253,30 @@
       + '<p>Hiçbir bonus rastgele değildir. Hepsi <strong>bağlama mekanizmasının</strong> parçasıdır.</p>',
 
     bonusSiklik: '<h4>Bonus Sembolü Düşme Olasılığı</h4>'
-      + '<p>Her spin\'de bonus sembolünün (scatter) grid\'e doğal olarak düşme ihtimali. Sweet Bonanza\'da bu oran yaklaşık <strong>%0.5\'tir</strong> — yani her 200 spin\'de 1 bonus tetiklenir. Doğal istatistiksel rastlantı budur.</p>'
-      + '<p>Operatör bu değeri <strong>%3.3</strong>\'e (30 spin\'de 1) çekerse oyuncu bonusları sürekli görür: "bu oyun çok cömert" der, devam eder. <strong>%0.1</strong>\'e indirirse bonus neredeyse hiç gelmez: oyuncu spin\'lerini boşa harcar, yine de "birazdan gelir" umuduyla oturmaya devam eder.</p>'
-      + '<p>Oyuncu bu sayıyı asla göremez — sadece "bugün şanslı bir gün" veya "bugün hiç şans yok" hissini yaşar. Aslında her ikisi de <strong>operatörün kararıdır</strong>.</p>',
+      + '<p>Her spinde bonus sembolünün ekrana düşme ihtimali <strong>%0.5\'tir</strong>. Yani her 200 spinde 1 kez bonus tetiklenir.</p>'
+      + '<p>Operatör bu değeri:</p>'
+      + '<p>- <strong>%3.3</strong>\'e (30 spinde 1) yükselttiğinde oyuncu bonusları daha sık görmeye başlar ve "bu oyun çok kazandırıyor" düşüncesine kapılır.</p>'
+      + '<p>- <strong>%0.1</strong>\'e (1000 spinde 1) indirdiğinde bonus neredeyse hiç gelmez. Oyuncu "biraz sonra bonus gelir" umuduyla oyunda kalmaya devam eder.</p>',
 
     carpanZorla: '<h4>Çarpan Zorla</h4>'
-      + '<p>Oyuncu büyük çarpanları (×100, ×500) gördüğünde inanılmaz heyecan yaşar. <strong>"Bugün şansımın günü"</strong> hissi tepe yapar.</p>'
-      + '<p>Hâlbuki o çarpan <strong>operatörün düğmeye basmasıyla</strong> ekrana getirilmiştir. Şans değil, müdahale.</p>'
-      + '<p>Daha sinsi olan: Tumble toggle\'ı <strong>kapalı</strong> iken zorla çarpan düşürülürse, çarpan görünür ama <strong>sembol patlamaz</strong> — sistem grid\'i kasıtlı olarak cluster oluşmayacak şekilde dağıtır. Oyuncu ×500\'ü görür, "yazık ki sembol tutmadı" der. Oysa tutmaması da <strong>operatörün kararıdır.</strong></p>'
-      + '<p>Bu, kumar sitelerinin <strong>en kurnaz numarasıdır</strong> — oyuncuya "ne büyük şanssızlık" hissi yaşatıp aslında onu manipüle etmek.</p>'
-      + '<p><strong>Özel değer en fazla 500x.</strong></p>',
+      + '<p>Oyuncu, büyük çarpanları (×100, ×500) gördüğünde heyecanlanır. Bu heyecan oyuncuda <strong>"Bugün şanslı günüm"</strong> düşüncesini oluşturur.</p>'
+      + '<p>Aslında çarpan, <strong>operatörün düğmeye basmasıyla</strong> ekrana getirilmiştir. Bu durum oyuncunun şansıyla bağlantılı olmaksızın, <strong>sistemin müdahalesiyle</strong> ortaya çıkmıştır.</p>'
+      + '<p>Oyun içerisinde çarpan yüksek düşer ancak <strong>meyveler patlamaz</strong>. Bu durumda oyuncu kazanç elde edemez.</p>'
+      + '<p>Bu da sanal kumarın, oyuncuyu <strong>manipüle etmek</strong> maksadıyla kullanmış olduğu bir tuzaktır.</p>',
 
     carpanOlasilik: '<h4>Çarpan Düşme Olasılığı</h4>'
       + '<p>Doğal akışta çarpanın grid\'e düşme oranı. %2 = her 50 spinde bir çarpan görünür.</p>'
-      + '<p>Yüksek değerlerde oyuncu sürekli çarpan görür, kazanç beklentisi tepe yapar — ama <strong>Ödeme Aralığı tavanı</strong> kazancı baskılar. Slider 0-50 arası, gerçek değer için sağdaki kutuya elle 0-100 yazılabilir.</p>',
+      + '<p>Yüksek bahislerde, oyuncu sürekli yüksek çarpan görür ve kazanç beklentisi artar. Ama <strong>ödeme aralığı tavanı</strong> kazancı baskılar. Slider 0-50 arası, gerçek değer için sağdaki kutuya elle 0-100 yazılabilir.</p>',
 
     maxCarpanTekSpin: '<h4>Tek Spinde Maksimum Çarpan</h4>'
-      + '<p>Bir spinde kaç çarpan düşebileceğini sınırlar (<strong>1-5</strong>). <strong>5</strong> seçilirse her spinde <strong>1 ile 5 arasında RASTGELE</strong> sayıda çarpan gelir; 5 garanti değildir.</p>'
-      + '<p>Yüksek değer "büyük gün" hissi yaratır ama gerçek kazanç matematik tavanla sabittir.</p>',
+      + '<p>Bir spinde kaç çarpan düşebileceğini sınırlar (<strong>1-5</strong>). <strong>5</strong> seçilirse her spinde <strong>1 ile 5 arasında RASTGELE</strong> sayıda çarpan gelir.</p>'
+      + '<p>Yüksek çarpanlar oyuncuda <strong>"bugün büyük gün"</strong> hissi yaratır.</p>',
 
     odemeDavranisi: '<h4>Neredeyse Oluyordu (Near-Miss)</h4>'
-      + '<p>Bu ayar açıkken oyuncu her spinde ekranda <strong>7 aynı meyve</strong> (kazanç için 8 gerekir) ve <strong>3 bonus sembolü</strong> (bonus için 4 gerekir) görür. İkisi de <strong>kıl payı</strong> tutmaz; hiç kazanç verilmez ama her seferinde "az kalmıştı" hissi yaşatılır.</p>'
-      + '<p>Oyuncu her spinde <strong>"neredeyse oluyordu, bir daha denesem kesin olacak"</strong> diye düşünür. Bu, kumar bilimindeki <strong>en güçlü manipülasyon tekniğidir.</strong></p>'
-      + '<p>Oxford Üniversitesi araştırmasına göre (Clark ve ark., 2009) oyuncu "az kalmıştı" anında beyninde <strong>gerçek kazanç anıyla aynı</strong> dopamin salınımı yaşar: kaybetmiştir ama beyni <strong>kazanmış gibi</strong> ödüllendirir.</p>'
-      + '<p>Bu "kıl payı kaçış" rastgele değildir; sistem grid\'i <strong>kasıtlı olarak</strong> 7 meyve + 3 sembol dizilimiyle üretir. Tek amacı oyuncuya "bir spin daha" dedirtip masada tutmaktır.</p>'
+      + '<p>Bu ayar açıkken oyuncu her spinde ekranda <strong>7 aynı meyve</strong> (kazanç için 8 gerekir) ve <strong>3 bonus sembolü</strong> (bonus için 4 gerekir) görür. Burada oyuncuya hiç kazanç verilmez. Oyun içerisinde tutmak için <strong>"az kaldı, bu sefer olacak"</strong> hissi yaşatılır.</p>'
+      + '<p>Oyuncu her spinde <strong>"neredeyse oluyordu, bir daha denesem kesin olacak"</strong> diye düşünür.</p>'
+      + '<p>Oxford Üniversitesi araştırmasına göre (Clark ve ark., 2009) oyuncu "az kalmıştı" hissi oluştuğu anda beyninde <strong>gerçek kazanç anıyla aynı oranda</strong> dopamin salınımı yaşar. Oyuncu aslında kaybetmiştir ancak beyni <strong>kazanmış gibi</strong> ödüllendirir.</p>'
+      + '<p>Bu "kıl payı kaçış" tesadüfi bir durum değildir. Sistem, gridi <strong>kasıtlı olarak</strong> 7 meyve + 3 sembol dizilimiyle üretir. Tek amacı oyuncuda "bir spin daha" düşüncesinin oluşmasını sağlamaktır.</p>'
   };
 
   // ===== TOOLTIP SİSTEMİ =====

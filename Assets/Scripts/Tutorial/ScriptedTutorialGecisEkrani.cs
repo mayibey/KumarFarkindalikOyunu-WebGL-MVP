@@ -48,10 +48,9 @@ namespace KumarFarkindalik.Tutorial
         private static readonly Color BUTON_BORDER_NOTR = new Color(0.50f, 0.50f, 0.55f, 1f); // YENİDEN OYNA
 
         private const string MESAJ =
-            "Az önce bir kumar bağımlısının yaşadıklarını gördün. " +
-            "Peki bu manipülasyonlar nasıl tasarlanıyor? " +
-            "Sahne arkasını birlikte görelim. " +
-            "Sistemin perde arkasındaki mühendisliği öğrenmek ister misin?";
+            "Az önce bir kumar bağımlısının yaşadıklarını gördünüz. " +
+            "Peki bu manipülasyonlar nasıl tasarlanır? " +
+            "Sistemin perde arkasındaki mühendisliğine birlikte bakalım.";
 
         // === UI referansları ===
         private GameObject _root;

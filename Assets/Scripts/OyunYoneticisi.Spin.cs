@@ -241,8 +241,8 @@ public partial class OyunYoneticisi
                 _onceModalA2S4Gosterildi = true;
                 Debug.Log("[SpinButon-DEBUG] RETURN: A2S4 ÖNCE-modal tetiklendi");
                 StartCoroutine(OnceModalGosterVeSpin(
-                    "Şu an oyuncu <color=#FB923C>bahisini değiştirecek</color> (yükseltecek). Bu bahisin ardından algoritma <color=#EF4444>kasıtlı olarak</color> kazanç yaşatacak.\n\n" +
-                    "Amaç: oyuncuya <color=#60A5FA><i>'doğru zamanda doğru bahis'</i></color> duygusu vermek. Böylece oyuncu <color=#60A5FA>kontrolün kendinde olduğuna</color> inanır.",
+                    "Şu an oyuncu <color=#FB923C>bahis miktarını artırır</color>. Bu değişikliğin ardından algoritma <color=#EF4444>kasıtlı olarak</color> kazanç yaşatır.\n\n" +
+                    "Amaç, oyuncuya <color=#60A5FA><i>\"doğru zamanda doğru bahis\"</i></color> yaptığı duygusunu vermektir. Böylece oyuncu <color=#60A5FA>kontrolün kendisinde olduğunu</color> düşünür ve verdiği kararların sonucu etkilediğine inanır.",
                     modalNo: 9
                 ));
                 return;

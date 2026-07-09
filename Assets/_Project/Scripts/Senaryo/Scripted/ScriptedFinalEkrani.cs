@@ -199,7 +199,7 @@ namespace Senaryo.Scripted
             basTxt.fontStyle = FontStyles.Bold;
             basTxt.color = new Color(1f, 0.45f, 0.45f, 1f);
             basTxt.richText = true;
-            basTxt.text = "<color=#EF4444><b>SENARYO TAMAMLANDI</b></color>";
+            basTxt.text = "<color=#EF4444><b>SENARYO TAMAMLANMIŞTIR</b></color>";
             basTxt.raycastTarget = false;
 
             // Istatistik metni — FAZ35.134: Y aralığı +140..+325 (kutu 850). Center alignment (X+Y orta) korundu.
@@ -238,8 +238,8 @@ namespace Senaryo.Scripted
             aileTxt.enableWordWrapping = true;
             aileTxt.lineSpacing = 6f;
             aileTxt.text =
-                "Bu rakam ortalama bir aile için <color=#EF4444>2,5 aylık geçim</color> demek.\n" +
-                "<size=24><i>Gerçek hayatta oyuncu burada durmaz; bir sonraki maaş, bir sonraki <color=#EF4444>kredi</color>, bir sonraki dönüş umuduyla devam eder.</i></size>";
+                "Bu rakam, ortalama bir aile için yaklaşık <color=#EF4444>2,5 aylık geçim giderine</color> karşılık gelir.\n" +
+                "<size=24><i>Gerçek hayatta oyuncu burada durmaz; bir sonraki maaş, bir sonraki <color=#EF4444>kredi</color> ve bir sonraki \"geri kazanma\" umuduyla sürece devam eder.</i></size>";
             aileTxt.raycastTarget = false;
 
             // Mesaj (alt) — pedagojik metin + Yeşilay. FAZ35.134: offsetMin Y=110→130, offsetMax Y=-60→-70.
@@ -263,8 +263,8 @@ namespace Senaryo.Scripted
             // FAZ35.133: İlk 2 satır ("Türkiye'de binlerce kişi" + "Online kumar bağımlılığı hastalıktır...
             // farkındalıktır") SİLİNDİ. Metin "Unutulmamalıdır ki..." ile doğrudan başlıyor.
             mesTxt.text =
-                "Unutulmamalıdır ki <color=#16a34a><b>sanal kumar bağımlılığı çözümsüz değildir</b></color> ve her zaman yeni bir başlangıç yapmak mümkündür. Yaşanan zorluklar ne kadar büyük görünürse görünsün, <color=#16a34a><b>umut her zaman vardır</b></color> ve doğru destekle bu süreç aşılabilir. Bu noktada <color=#ea580c>ailenize, amirlerinize ve güvendiğiniz kişilere</color> durumu açıkça ifade etmek, çözüm yolunda atılacak <color=#16a34a><b>cesur bir adımdır</b></color>. <color=#dc2626><b>Yardım istemek bir zayıflık değil</b></color>, aksine güçlü bir farkındalık ve değişim isteğinin göstergesidir.\n\n" +
-                $"<color=#16a34a><b>Yeşilay Yardım Hattı: {YESILAY_HATTI}</b></color>";
+                "Unutulmamalıdır ki <color=#16a34a><b>sanal kumar bağımlılığı çözümsüz değildir</b></color> ve her zaman yeniden başlama imkânı vardır. Yaşanan zorluklar ne kadar ağır görünürse görünsün, uygun destekle bu süreç aşılabilir. Bu noktada durumu <color=#ea580c>ailenizle, amirlerinizle ve güvendiğiniz kişilerle</color> açıkça paylaşmak, çözüm yolunda atılacak <color=#16a34a><b>önemli bir adımdır</b></color>. <color=#dc2626><b>Yardım istemek bir zayıflık değil</b></color>; farkındalık ve değişim isteğinin göstergesidir.\n\n" +
+                $"<color=#16a34a><b>Yeşilay Danışmanlık Hattı: {YESILAY_HATTI}</b></color>";
             mesTxt.raycastTarget = false;
 
             // Yeniden başla butonu

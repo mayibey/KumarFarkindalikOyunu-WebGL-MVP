@@ -185,7 +185,7 @@ namespace Senaryo.Scripted
                 string mesaj =
                     $"Oyuncu tüm <color=#4ADE80>bakiyesi olan {BonusYatirim:N0} TL</color>'yi bonus oyuna yatırdı. " +
                     $"Geri aldığı <color=#EF4444>{BonusKazanc:N0} TL</color>; yatırdığının <color=#EF4444><b>%{yuzde:F1}</b></color>'i.\n\n" +
-                    "Bu <color=#EF4444>sömürünün</color> adı <color=#60A5FA><i>'değişken oranlı pekiştireç'</i></color>: beyin bu kayba rağmen " +
+                    "Bu <color=#EF4444>sömürünün</color> adı <color=#60A5FA><i>'değişken oranlı pekiştireç'</i></color>tir. Beyin bu kayba rağmen " +
                     "<color=#60A5FA><i>'belki bir dahaki sefere'</i></color> diyerek devam etmeye <color=#EF4444>programlanır</color>.";
                 var modal = UnityEngine.Object.FindObjectOfType<ScriptedModalKopru>();
                 if (modal != null)
