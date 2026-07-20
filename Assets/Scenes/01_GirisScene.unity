@@ -4983,7 +4983,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::ManipulasyonPaneliButonu
   hedefSahne: 03_AdminOyunScene
-  girisDogrulamasiIste: 1
+  girisDogrulamasiIste: 0
   hoverSuresi: 0.2
   hoverScale: 1.1
   flashSayisi: 4

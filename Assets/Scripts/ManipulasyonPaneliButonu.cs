@@ -18,7 +18,7 @@ public class ManipulasyonPaneliButonu : MonoBehaviour,
     [Header("Hedef")]
     [SerializeField] private string hedefSahne = "03_AdminOyunScene";
     [Tooltip("Sahne yüklenmeden önce yönetici kullanıcı adı/şifre doğrulaması istensin mi?")]
-    [SerializeField] private bool girisDogrulamasiIste = true;
+    [SerializeField] private bool girisDogrulamasiIste = false;
 
     [Header("Hover")]
     [SerializeField] private float hoverSuresi = 0.2f;
