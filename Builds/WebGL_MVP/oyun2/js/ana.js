@@ -16,7 +16,7 @@ import { izgaraDoldur } from "./motor/doldurucu.js";
 import { rngYap } from "./motor/rng.js";
 import { SlotGorunum } from "./ui/slotGorunum.js";
 import { WinFeedback } from "./ui/winFeedback.js";
-import { sesYukle, sesCal, sesKilidiKur, anaSes } from "./cekirdek/ses.js";
+import { sesYukle, sesCal, sesKilidiKur, anaSes, fonMuzigiCal } from "./cekirdek/ses.js";
 
 shimKur();
 kopruKaydet("SunumKoprusu", {
@@ -46,12 +46,9 @@ await Promise.all([
   sesYukle("alkis", "varlik/ses/alkis.mp3"),
   sesYukle("sayac_tik", "varlik/ses/sayac_tik.mp3"),
   sesYukle("kayip_horn", "varlik/ses/kayip_horn.mp3"),
-  sesYukle("fon", "varlik/ses/fon_muzigi.mp3"),
 ]);
-let fonBasladi = false;
-document.addEventListener("pointerdown", () => {
-  if (!fonBasladi) { fonBasladi = true; setTimeout(() => sesCal("fon", { ses: 0.25, dongu: true }), 300); }
-}, { once: true });
+// Fon müziği HTML5 Audio ile (decode sorununu bypass) — hemen başlat
+fonMuzigiCal("varlik/ses/fon_muzigi.mp3", 0.25);
 
 const S = uygulama.stage;
 
@@ -74,17 +71,28 @@ tahta.position.set(GENISLIK / 2, 500);
 tahta.scale.set(TAHTA_H / tahta.texture.height);
 S.addChild(tahta);
 
+// Tahta İÇ ALANI (oyun_tahtasi.webp'ten ÖLÇÜLDÜ: x 0.079-0.919, y 0.178-0.814).
 const tahtaW = tahta.texture.width * tahta.scale.x;
-const icW = tahtaW * 0.85, icH = TAHTA_H * 0.72;
-const BOSLUK = 8;
-const HUCRE = Math.min((icW - 5 * BOSLUK) / 6, (icH - 4 * BOSLUK) / 5);
-const gridW = 6 * HUCRE + 5 * BOSLUK, gridH = 5 * HUCRE + 4 * BOSLUK;
+const icX0 = tahta.position.x - tahtaW / 2 + 0.083 * tahtaW;
+const icX1 = tahta.position.x - tahtaW / 2 + 0.915 * tahtaW;
+const icY0 = tahta.position.y - TAHTA_H / 2 + 0.185 * TAHTA_H;
+const icY1 = tahta.position.y - TAHTA_H / 2 + 0.808 * TAHTA_H;
+const icW = icX1 - icX0, icH = icY1 - icY0;
+// Hücre DİKEY sınıra göre (semboller iri); 6 sütun iç genişliğe eşit yayılır.
+const HUCRE = Math.min(icW / 6 * 0.96, (icH - 4 * 6) / 5);
+const BOSLUK_Y = (icH - 5 * HUCRE) / 4;
+const BOSLUK_X = (icW - 6 * HUCRE) / 5;
+const gridW = 6 * HUCRE + 5 * BOSLUK_X, gridH = 5 * HUCRE + 4 * BOSLUK_Y;
 
 const slot = new SlotGorunum(uygulama, dokular, {
-  x: tahta.position.x - gridW / 2, y: tahta.position.y - gridH / 2 + 10,
-  hucre: HUCRE, bosluk: BOSLUK,
+  x: (icX0 + icX1) / 2 - gridW / 2, y: (icY0 + icY1) / 2 - gridH / 2,
+  hucre: HUCRE, boslukX: BOSLUK_X, boslukY: BOSLUK_Y,
 });
 S.addChild(slot.kok);
+// Maske: düşen meyveler tahta iç alanı DIŞINDA görünmesin
+const slotMaske = new PIXI.Graphics().rect(icX0, icY0, icW, icH).fill(0xffffff);
+S.addChild(slotMaske);
+slot.kok.mask = slotMaske;
 
 // --- Hoş geldin kutusu (Unity birebir: silik koyu sade kutu, ince çerçeve, küçük punto + x) ---
 const hosKutu = new PIXI.Graphics()

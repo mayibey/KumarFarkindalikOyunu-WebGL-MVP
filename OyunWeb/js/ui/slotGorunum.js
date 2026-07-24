@@ -5,10 +5,10 @@ import { SEMBOLLER, ANIM, SUTUN, SATIR, CARPAN_SEMBOL } from "../../veri/sabitle
 import { tween, bekle, easeOutCubic } from "../cekirdek/zamanlayici.js";
 
 export class SlotGorunum {
-  constructor(uygulama, dokular, { x, y, hucre = 150, bosluk = 12 }) {
+  constructor(uygulama, dokular, { x, y, hucre = 150, boslukX = 12, boslukY = 12 }) {
     this.uygulama = uygulama;
     this.dokular = dokular;
-    this.hucre = hucre; this.bosluk = bosluk;
+    this.hucre = hucre; this.boslukX = boslukX; this.boslukY = boslukY;
     this.kok = new PIXI.Container();
     this.kok.position.set(x, y);
     this.hucreler = new Array(SUTUN * SATIR).fill(null); // Container'lar
@@ -16,8 +16,8 @@ export class SlotGorunum {
 
   hucreKonum(i) {
     const x = i % SUTUN, y = Math.floor(i / SUTUN);
-    return [x * (this.hucre + this.bosluk) + this.hucre / 2,
-            y * (this.hucre + this.bosluk) + this.hucre / 2];
+    return [x * (this.hucre + this.boslukX) + this.hucre / 2,
+            y * (this.hucre + this.boslukY) + this.hucre / 2];
   }
 
   hucreYap(id, carpanDeger = 0) {
@@ -60,12 +60,14 @@ export class SlotGorunum {
     });
     patlayanlar.forEach((c) => c.destroy({ children: true }));
 
+    // Meyveler EKRAN YUKARISINDAN dökülür (Unity hissi): düşme mesafesi = kaç sıra yukarıdan.
+    const dususMesafe = (this.hucre + this.boslukY) * (SATIR + 0.5);
     const yeniler = adim.patlayan.map((i, k) => {
       const id = adim.dusen[k];
       const c = this.hucreYap(id, adim.dusenCarpan ? adim.dusenCarpan[k] : 0);
       const [px, py] = this.hucreKonum(i);
-      c.position.set(px, py - ANIM.ustOffset);
-      c.alpha = 0;
+      c.position.set(px, py - dususMesafe);
+      c.alpha = 1;
       this.kok.addChild(c);
       this.hucreler[i] = c;
       return { c, py };
@@ -74,8 +76,7 @@ export class SlotGorunum {
       sure: ANIM.dusme,
       easing: easeOutCubic,
       guncelle: (t) => yeniler.forEach(({ c, py }) => {
-        c.position.y = py - ANIM.ustOffset * (1 - t);
-        c.alpha = t;
+        c.position.y = (py - dususMesafe) + dususMesafe * t;
       }),
     });
     await bekle(ANIM.adimArasi);

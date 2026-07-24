@@ -31,7 +31,23 @@ export function sesCal(ad, { ses = 1, pitchRasgele = false, baslangic = 0, sure 
   return kaynak;
 }
 
-export function anaSes(v) { master.gain.value = v; } // AudioListener.volume karşılığı (SunumSesAyarla)
+// Fon müziği: HTML5 Audio element (decodeAudioData bazı mp3'lerde başarısız — bu bypass eder).
+let _fon = null;
+export function fonMuzigiCal(yol, ses = 0.25) {
+  if (_fon) return;
+  _fon = new Audio(yol);
+  _fon.loop = true; _fon.volume = ses;
+  const dene = () => { _fon.play().catch(() => {}); };
+  dene();
+  // iOS/otoplay kilidi: ilk dokunuşta tekrar dene
+  ["pointerdown", "touchstart", "keydown"].forEach((t) =>
+    document.addEventListener(t, dene, { once: true }));
+}
+
+export function anaSes(v) {
+  master.gain.value = v;                 // WebAudio efektleri (AudioListener.volume karşılığı)
+  if (_fon) _fon.volume = v === 0 ? 0 : 0.25;
+}
 
 export function sesKilidiKur() {
   const ac = () => { if (ctx.state !== "running") ctx.resume(); };
