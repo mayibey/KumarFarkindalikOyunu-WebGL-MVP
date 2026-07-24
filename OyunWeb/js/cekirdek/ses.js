@@ -37,6 +37,7 @@ export function fonMuzigiCal(yol, ses = 0.25) {
   if (_fon) return;
   _fon = new Audio(yol);
   _fon.loop = true; _fon.volume = ses;
+  window.__fonDurum = () => _fon ? { paused: _fon.paused, t: _fon.currentTime, vol: _fon.volume } : null;
   const dene = () => { _fon.play().catch(() => {}); };
   dene();
   // iOS/otoplay kilidi: ilk dokunuşta tekrar dene

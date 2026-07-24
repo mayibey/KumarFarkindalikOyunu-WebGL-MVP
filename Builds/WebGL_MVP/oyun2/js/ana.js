@@ -72,14 +72,15 @@ tahta.scale.set(TAHTA_H / tahta.texture.height);
 S.addChild(tahta);
 
 // Tahta İÇ ALANI (oyun_tahtasi.webp'ten ÖLÇÜLDÜ: x 0.079-0.919, y 0.178-0.814).
+// İç alan + KENAR PAYI: meyveler çerçeveye DEĞMESİN (kullanıcı geri bildirimi).
 const tahtaW = tahta.texture.width * tahta.scale.x;
-const icX0 = tahta.position.x - tahtaW / 2 + 0.083 * tahtaW;
-const icX1 = tahta.position.x - tahtaW / 2 + 0.915 * tahtaW;
-const icY0 = tahta.position.y - TAHTA_H / 2 + 0.185 * TAHTA_H;
-const icY1 = tahta.position.y - TAHTA_H / 2 + 0.808 * TAHTA_H;
+const icX0 = tahta.position.x - tahtaW / 2 + 0.105 * tahtaW;
+const icX1 = tahta.position.x - tahtaW / 2 + 0.895 * tahtaW;
+const icY0 = tahta.position.y - TAHTA_H / 2 + 0.220 * TAHTA_H;
+const icY1 = tahta.position.y - TAHTA_H / 2 + 0.775 * TAHTA_H;
 const icW = icX1 - icX0, icH = icY1 - icY0;
 // Hücre DİKEY sınıra göre (semboller iri); 6 sütun iç genişliğe eşit yayılır.
-const HUCRE = Math.min(icW / 6 * 0.96, (icH - 4 * 6) / 5);
+const HUCRE = Math.min(icW / 6 * 0.92, (icH - 4 * 6) / 5);
 const BOSLUK_Y = (icH - 5 * HUCRE) / 4;
 const BOSLUK_X = (icW - 6 * HUCRE) / 5;
 const gridW = 6 * HUCRE + 5 * BOSLUK_X, gridH = 5 * HUCRE + 4 * BOSLUK_Y;
