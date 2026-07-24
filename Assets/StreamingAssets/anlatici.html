@@ -360,8 +360,18 @@
       } catch (e) { console.warn('[anlatici] hoverZoom postMessage hata:', e); }
     }
 
-    panelEl.addEventListener('mouseenter', hoverBaslat);
-    panelEl.addEventListener('mouseleave', hoverBitir);
+    // Dokunmatik cihazda hover yok: panele DOKUNMAK büyüt/küçült arasında geçiş yapar.
+    // (Butonlara — ‹ › oklar, Yeniden Başlat — dokunuş geçiş sayılmaz.)
+    var dokunmatik = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    if (dokunmatik) {
+      panelEl.addEventListener('click', function (e) {
+        if (e.target.closest('button')) return;
+        hoverAktif ? hoverBitir() : hoverBaslat();
+      });
+    } else {
+      panelEl.addEventListener('mouseenter', hoverBaslat);
+      panelEl.addEventListener('mouseleave', hoverBitir);
+    }
 
     // Aşama değişimi anında hover state'i temizle (içerik değişince mouseleave gecikebilir → state takılır).
     // render() bu dosyada function declaration — window.render olarak da erişilebilir; defansif kontrol.
