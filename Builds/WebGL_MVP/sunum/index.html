@@ -5,11 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Sanal Kumar Bagımlılığı · Sunum</title>
 <style>
-  html,body{margin:0;height:100%;background:#0B0A09;overflow:hidden}
+  html,body{margin:0;height:100%;background:#0B0A09;overflow:hidden;touch-action:pan-x pan-y}
   #sahne{position:fixed;left:50%;top:50%;width:1920px;height:1080px;border:0;background:#0B0A09;transform-origin:center center}
 </style>
 </head>
 <body>
+<script>
+  /* PINCH_KILIT: iOS'ta iki parmak yakinlastirma bellegi patlatip sekmeyi cokertiyor. */
+  ["gesturestart","gesturechange","gestureend"].forEach(function(t){
+    document.addEventListener(t, function(e){ e.preventDefault(); }, {passive:false});
+  });
+  document.addEventListener("touchmove", function(e){
+    if(e.touches && e.touches.length>1) e.preventDefault();
+  }, {passive:false});
+</script>
 <script>
   var hedef = "sunum.html" + location.search + location.hash;
   if(!/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)){

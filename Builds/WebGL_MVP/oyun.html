@@ -9,6 +9,15 @@
          AudioContext'ler listeye alinir; ust pencere suspend/resume ile oyunu susturur.
          Yeni build'lerde SunumKoprusu.SunumSesAyarla da ayni isi Unity icinden yapar; bu blok
          ani ve garantili susturma icin korunur. Build sonrasi bu blok silinirse geri eklenmeli. */
+      /* PINCH_KILIT: iOS'ta iki parmak yakinlastirma bellegi patlatip sekmeyi cokertiyor. */
+      (function(){
+        ['gesturestart','gesturechange','gestureend'].forEach(function(t){
+          document.addEventListener(t, function(e){ e.preventDefault(); }, {passive:false});
+        });
+        document.addEventListener('touchmove', function(e){
+          if(e.touches && e.touches.length>1) e.preventDefault();
+        }, {passive:false});
+      })();
       (function(){
         var L = []; window.__sesBaglamlari = L;
         ["AudioContext","webkitAudioContext"].forEach(function(ad){

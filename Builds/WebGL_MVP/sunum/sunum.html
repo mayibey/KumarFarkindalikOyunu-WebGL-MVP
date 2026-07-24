@@ -511,6 +511,11 @@ const STAGE_ACCENT=["#E7B43C","#E9A02E","#E8892A","#E4711F","#DF5B20","#D9471F",
 const M="media/";
 const MOBIL_CIHAZ = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent); // mobil davranış anahtarı (ön-yükleme, medya diyeti)
 
+/* PINCH_KILIT: iOS'ta iki parmak yakınlaştırma sayfayı yüksek çözünürlükte yeniden
+   çizdirip belleği patlatıyor (sekme çökmesi). Pinch tamamen engellenir. */
+["gesturestart","gesturechange","gestureend"].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
+document.addEventListener("touchmove",e=>{ if(e.touches&&e.touches.length>1) e.preventDefault(); },{passive:false});
+
 const slides=[
   { type:"cover", accent:GOLD, section:"Kapak", bg:M+"image1.PNG",
     org:"Siirt İl Jandarma Komutanlığı<br>Personel Eğitim Programı",

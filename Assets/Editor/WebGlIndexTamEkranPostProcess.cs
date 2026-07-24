@@ -49,6 +49,17 @@ public static class WebGlIndexTamEkranPostProcess
         flex: 0 0 auto;
       }
     </style>
+    <script>
+      /* PINCH_KILIT: iOS'ta iki parmak yakinlastirma bellegi patlatip sekmeyi cokertiyor. */
+      (function(){
+        ['gesturestart','gesturechange','gestureend'].forEach(function(t){
+          document.addEventListener(t, function(e){ e.preventDefault(); }, {passive:false});
+        });
+        document.addEventListener('touchmove', function(e){
+          if(e.touches && e.touches.length>1) e.preventDefault();
+        }, {passive:false});
+      })();
+    </script>
 ";
 
     [PostProcessBuild(2000)]

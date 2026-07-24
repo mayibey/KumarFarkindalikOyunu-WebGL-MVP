@@ -7,7 +7,7 @@
 <title>Kumar Kazandırmaz</title>
 <link rel="shortcut icon" href="TemplateData/favicon.ico">
 <style>
-  html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000;}
+  html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000;touch-action:pan-x pan-y;}
   #sahne{position:fixed;inset:0;overflow:hidden;background:#000;}
   #oyun{position:absolute;left:0;top:0;width:1920px;height:1080px;border:0;background:#000;transform-origin:0 0;}
 </style>
@@ -17,6 +17,16 @@
   <iframe id="oyun" src="oyun.html" allow="autoplay; fullscreen" allowfullscreen title="Kumar Kazandırmaz"></iframe>
 </div>
 <script>
+/* PINCH_KILIT: iOS'ta iki parmak yakinlastirma sayfayi yuksek cozunurlukte yeniden
+   cizdirip bellegi patlatiyor (sekme cokmesi). Pinch tamamen engellenir. */
+(function(){
+  ['gesturestart','gesturechange','gestureend'].forEach(function(t){
+    document.addEventListener(t, function(e){ e.preventDefault(); }, {passive:false});
+  });
+  document.addEventListener('touchmove', function(e){
+    if(e.touches && e.touches.length>1) e.preventDefault();
+  }, {passive:false});
+})();
 (function(){
   var GW=1920, GH=1080;
   var sahne=document.getElementById('sahne'), oyun=document.getElementById('oyun');
