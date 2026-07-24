@@ -113,18 +113,18 @@ let bakiye = EKONOMI.baslangicBakiye, bahis = 500, kazancSon = 0, spinAktif = fa
 
 // --- Plakalar — Unity BİREBİR (workflow denetim Öncelik 1): DİK DÖRTGEN, koyu bordo
 //     yarı-saydam zemin, ince altın çerçeve, etiket+değer AYNI SATIR tek sarı, karma harf. ---
-// Ö1 (tur2): Unity plakaları YÜKSEK + kalın ÇİFT katmanlı altın çerçeve.
-function altPlaka(x, y, genislik, yukseklik = 84) {
+// Ö1 (tur2+3): Unity plakaları BÜYÜK + kalın ÇİFT katmanlı altın çerçeve, İRİ sarı yazı.
+function altPlaka(x, y, genislik, yukseklik = 92) {
   const g = new PIXI.Graphics()
-    .roundRect(-genislik / 2, -yukseklik / 2, genislik, yukseklik, 11)
-    .fill({ color: 0x2a0d0d, alpha: 0.66 })
-    .stroke({ color: 0xf0c860, width: 3.5 })                        // dış kalın açık altın
-    .roundRect(-genislik / 2 + 6, -yukseklik / 2 + 6, genislik - 12, yukseklik - 12, 8)
+    .roundRect(-genislik / 2, -yukseklik / 2, genislik, yukseklik, 12)
+    .fill({ color: 0x2a0d0d, alpha: 0.68 })
+    .stroke({ color: 0xf0c860, width: 4 })                          // dış kalın açık altın
+    .roundRect(-genislik / 2 + 7, -yukseklik / 2 + 7, genislik - 14, yukseklik - 14, 8)
     .stroke({ color: 0x7a5a16, width: 1.5 });                       // iç ince koyu (çift katman)
   g.position.set(x, y);
   S.addChild(g);
   const t = new PIXI.Text({ text: "", style: {
-    fontFamily: "LilitaOne", fontSize: 38, fill: 0xffd94d,
+    fontFamily: "LilitaOne", fontSize: 44, fill: 0xffd94d,
     stroke: { color: 0x2a1800, width: 3 } } });
   t.anchor.set(0.5); t.position.set(x, y);
   S.addChild(t);
@@ -141,8 +141,8 @@ const kazancT = new PIXI.Text({ text: "", style: {
 kazancT.anchor.set(0.5); kazancT.position.set(GENISLIK / 2, 62);
 S.addChild(kazancT);
 
-const bakiyeT = altPlaka(340, YUKSEKLIK - 76, 500);
-const bahisT = altPlaka(GENISLIK - 340, YUKSEKLIK - 76, 500);
+const bakiyeT = altPlaka(350, YUKSEKLIK - 72, 560);
+const bahisT = altPlaka(GENISLIK - 350, YUKSEKLIK - 72, 560);
 
 function metinleriGuncelle() {
   bakiyeT.text = `Bakiye: ${bakiye.toLocaleString("tr-TR")} TL`;
@@ -155,8 +155,8 @@ metinleriGuncelle();
 // Ö2 (tur2): Unity'de butonlar BÜYÜK, küme kompakt (aralar dar).
 const spinBtn = new PIXI.Sprite(dokular.btn_spin);
 spinBtn.anchor.set(0.5);
-spinBtn.position.set(GENISLIK / 2, YUKSEKLIK - 82);
-spinBtn.scale.set(192 / spinBtn.texture.height);
+spinBtn.position.set(GENISLIK / 2, YUKSEKLIK - 78);
+spinBtn.scale.set(200 / spinBtn.texture.height);
 spinBtn.eventMode = "static"; spinBtn.cursor = "pointer";
 S.addChild(spinBtn);
 
@@ -164,8 +164,8 @@ const BAHISLER = [50, 100, 200, 300, 500, 1000, 1500, 2500, 4000];
 function bahisBtn(doku, dx, yon) {
   const b = new PIXI.Sprite(doku);
   b.anchor.set(0.5);
-  b.position.set(GENISLIK / 2 + dx, YUKSEKLIK - 82);
-  b.scale.set(128 / b.texture.height);
+  b.position.set(GENISLIK / 2 + dx, YUKSEKLIK - 78);
+  b.scale.set(142 / b.texture.height);
   b.eventMode = "static"; b.cursor = "pointer";
   b.on("pointertap", () => {
     if (spinAktif) return;
