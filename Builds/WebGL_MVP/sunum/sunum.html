@@ -509,6 +509,7 @@ const GOLD_K="#7A570E", GREEN_K="#0B7A54";
 // aşama vurgusu: altından kan kırmızısına doğru ısınır
 const STAGE_ACCENT=["#E7B43C","#E9A02E","#E8892A","#E4711F","#DF5B20","#D9471F","#CE3422","#C11E1E"];
 const M="media/";
+const MOBIL_CIHAZ = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent); // mobil davranış anahtarı (ön-yükleme, medya diyeti)
 
 const slides=[
   { type:"cover", accent:GOLD, section:"Kapak", bg:M+"image1.PNG",
@@ -826,6 +827,23 @@ function render(s,i){
 const nodes=slides.map(render);
 const total=slides.length;
 
+/* MOBİL bellek diyeti: dev slayt görselleri yalnız aktif slayt ±1'de yüklü tutulur,
+   videolar istenmedikçe indirilmez. Oyunla aynı sekmede bellek sınırına takılmamak için. */
+if(MOBIL_CIHAZ){
+  document.querySelectorAll(".slide img").forEach(im=>{ im.dataset.kaynak=im.getAttribute("src")||""; im.removeAttribute("src"); });
+  document.querySelectorAll(".slide video").forEach(v=>{ v.preload="none"; });
+}
+function mobilMedyaGuncelle(){
+  if(!MOBIL_CIHAZ) return;
+  nodes.forEach((el,i)=>{
+    const yakin=Math.abs(i-cur)<=1;
+    el.querySelectorAll("img").forEach(im=>{
+      if(yakin){ if(!im.getAttribute("src")&&im.dataset.kaynak) im.src=im.dataset.kaynak; }
+      else if(im.getAttribute("src")) im.removeAttribute("src");
+    });
+  });
+}
+
 /* ============ Navigasyon ============ */
 let cur=0, timer=null, playing=false;
 const pad=n=>String(n).padStart(2,"0");
@@ -874,6 +892,7 @@ function show(n){
   if(vid){ const p=vid.play(); if(p&&p.catch) p.catch(()=>{}); }
   if(document.body.classList.contains("duzen")) dzSecBirak(); // slayt değişince seçimi bırak
   if(typeof oyunSesUygula==="function") oyunSesUygula();      // videolu slaytta oyun sesini sustur / geri aç
+  mobilMedyaGuncelle();                                       // mobil: uzak slaytların görsellerini bellekte tutma
   scheduleAuto();
 }
 function next(){ if(cur>=total-1){ stop(); return;} show(cur+1); }
@@ -986,7 +1005,6 @@ function oyunPanelGit(){
    Unity çoktan hazır olur, "yavaş açılıyor" hissi kalmaz (iframe görünmezken de yüklenir).
    MOBİLDE YAPILMAZ: telefon tarayıcısının bellek sınırı, arka planda yüklenen oyunla
    birleşince sekmeyi çökertiyor — telefonda oyun ancak 🎮 ile istenirse yüklenir. */
-const MOBIL_CIHAZ = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 window.addEventListener("load",()=>{ if(MOBIL_CIHAZ) return; setTimeout(()=>{ if(!oyunFrame.src) oyunFrame.src="../oyun.html"; },1200); });
 
 /* ---- Oyun sesi yönetimi ----

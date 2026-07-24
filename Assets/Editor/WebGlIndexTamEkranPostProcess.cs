@@ -103,6 +103,16 @@ public static class WebGlIndexTamEkranPostProcess
             "",
             RegexOptions.Multiline);
 
+        // Mobil: 3x retina framebuffer WebGL belleğini patlatıp iOS sekmesini çökertiyor;
+        // Unity config'ine telefonda 1x çizim ayarı eklenir (masaüstü etkilenmez).
+        const string dprSatiri = "        devicePixelRatio: (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 1 : window.devicePixelRatio),";
+        if (!html.Contains("devicePixelRatio:") && html.Contains("showBanner: unityShowBanner,"))
+        {
+            html = html.Replace(
+                "showBanner: unityShowBanner,",
+                "showBanner: unityShowBanner,\r\n" + dprSatiri);
+        }
+
         // Mobil: ikinci viewport meta oluşturan blok kaldır (viewport head'de)
         html = Regex.Replace(
             html,

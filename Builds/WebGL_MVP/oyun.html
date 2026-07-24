@@ -156,6 +156,9 @@
         productName: "KumarFarkindalikOyunu",
         productVersion: "1.0",
         showBanner: unityShowBanner,
+        // Mobil: 3x retina framebuffer (5760x3240) WebGL bellegini patlatip iOS sekmesini
+        // cokertiyor; telefonda 1x cizim yeterli ve guvenli. Masaustu etkilenmez.
+        devicePixelRatio: (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 1 : window.devicePixelRatio),
       };
 
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
