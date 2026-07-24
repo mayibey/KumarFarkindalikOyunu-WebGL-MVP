@@ -5,12 +5,22 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity Web Player | KumarFarkindalikOyunu</title>
     <script>
-      /* SUNUM_SES_YAKALA: sunum sayfasinin (sunum/) ses dugmesi icin. Unity'nin olusturdugu
-         AudioContext'ler listeye alinir; ust pencere suspend/resume ile oyunu susturur.
-         Yeni build'lerde SunumKoprusu.SunumSesAyarla da ayni isi Unity icinden yapar; bu blok
-         ani ve garantili susturma icin korunur. Build sonrasi bu blok silinirse geri eklenmeli. */
-      /* MOBIL_HATA_AVCISI: adrese ?debug eklenirse ekranda konsol acilir (eruda) —
-         telefonda cokme/hata aninda gercek sebebi gosterir. Normal kullanimda pasif. */
+      /* SUNUM_SES_YAKALA: sunum sayfasinin ses dugmesi icin AudioContext'leri yakalar. */
+      (function(){
+        var L = []; window.__sesBaglamlari = L;
+        ["AudioContext","webkitAudioContext"].forEach(function(ad){
+          var Orj = window[ad];
+          if (!Orj) return;
+          var Sarma = function(){
+            var c = new (Orj.bind.apply(Orj, [null].concat([].slice.call(arguments))))();
+            L.push(c);
+            return c;
+          };
+          Sarma.prototype = Orj.prototype;
+          window[ad] = Sarma;
+        });
+      })();
+      /* MOBIL_HATA_AVCISI: ?debug ile ekranda konsol (eruda). */
       window.__hatalar = [];
       window.addEventListener('error', function(e){
         try { window.__hatalar.push((e.message||'?') + ' @' + (e.filename||'') + ':' + (e.lineno||'')); } catch(_){}
@@ -18,15 +28,10 @@
       if (location.search.indexOf('debug') >= 0) {
         var _dbg = document.createElement('script');
         _dbg.src = 'https://cdn.jsdelivr.net/npm/eruda@3/eruda.min.js';
-        _dbg.onload = function(){
-          eruda.init();
-          console.log('[debug] konsol hazir; onceki hatalar:', window.__hatalar);
-        };
+        _dbg.onload = function(){ eruda.init(); console.log('[debug] konsol hazir; onceki hatalar:', window.__hatalar); };
         document.head.appendChild(_dbg);
       }
-
-      /* PINCH_KILIT: iOS'ta TARAYICI pinch'i bellegi patlatip sekmeyi cokertiyor — kapali.
-         Yerine OYUN_ZOOM (asagida) guvenli CSS zoom saglar. */
+      /* PINCH_KILIT: tarayici pinch'i iOS bellegini patlatiyor — kapali; OYUN_ZOOM devrede. */
       (function(){
         ['gesturestart','gesturechange','gestureend'].forEach(function(t){
           document.addEventListener(t, function(e){ e.preventDefault(); }, {passive:false});
@@ -35,10 +40,7 @@
           if(e.touches && e.touches.length>1) e.preventDefault();
         }, {passive:false});
       })();
-
-      /* OYUN_ZOOM: okuma icin yakinlastirma sart (ufak yazilar) ama tarayici zoom'u yasak.
-         Guvenli yol: 2 parmak pinch = CSS transform zoom (WebGL tamponu buyumez, bellek
-         patlamaz). 2 parmakla yakinlastir + kaydir; cift dokunus = 2x buyut / sifirla. Max 3x. */
+      /* OYUN_ZOOM: 2 parmak pinch = guvenli CSS zoom (1-3x, kaydirmali); cift dokunus 2x/sifirla. */
       (function(){
         if(!/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) return;
         var zk=1, zx=0, zy=0;
@@ -87,20 +89,6 @@
           }
         });
       })();
-      (function(){
-        var L = []; window.__sesBaglamlari = L;
-        ["AudioContext","webkitAudioContext"].forEach(function(ad){
-          var Orj = window[ad];
-          if (!Orj) return;
-          var Sarma = function(){
-            var c = new (Orj.bind.apply(Orj, [null].concat([].slice.call(arguments))))();
-            L.push(c);
-            return c;
-          };
-          Sarma.prototype = Orj.prototype;
-          window[ad] = Sarma;
-        });
-      })();
     </script>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
@@ -113,7 +101,7 @@
         width: 100%;
         height: 100%;
         overflow: hidden;
-        touch-action: none; /* pinch zoom = iOS bellek cokmesi; oyun dokunuslari etkilenmez */
+        touch-action: none; /* tarayici pinch = iOS bellek cokmesi; OYUN_ZOOM kendi zoom'unu saglar */
         min-height: -webkit-fill-available;
         padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         background: #000;
@@ -235,8 +223,6 @@
         productName: "KumarFarkindalikOyunu",
         productVersion: "1.0",
         showBanner: unityShowBanner,
-        // Mobil: 3x retina framebuffer (5760x3240) WebGL bellegini patlatip iOS sekmesini
-        // cokertiyor; telefonda 0.75x cizim (bellek emniyet payi, gorsel fark minimum). Masaustu etkilenmez.
         devicePixelRatio: (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 0.75 : window.devicePixelRatio),
       };
 
