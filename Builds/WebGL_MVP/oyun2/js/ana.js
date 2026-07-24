@@ -3,7 +3,9 @@
 // Bahis sağ-alt, kırmızı -/+ ve SPIN alt-orta, AYARLAR çarkı sağ-alt).
 import { sahneKur, uygulama, GENISLIK, YUKSEKLIK } from "./cekirdek/sahne.js";
 import { shimKur, kopruKaydet } from "./kopru/sendMessageShim.js";
-import { SEMBOLLER, EKONOMI, MODLAR } from "../veri/sabitler.js";
+import { SEMBOLLER, EKONOMI, MODLAR, ASAMALAR } from "../veri/sabitler.js";
+import { senaryoVerisiYukle, scriptedSpinBul, asamaScriptedSpinSayisi, kaydiPlanla } from "./motor/scriptedOynatici.js";
+import { egitmenModal } from "./ui/modalDom.js";
 import { spinUret } from "./motor/spinMotoru.js";
 import { izgaraDoldur } from "./motor/doldurucu.js";
 import { rngYap } from "./motor/rng.js";
@@ -13,8 +15,8 @@ import { sesYukle, sesCal, sesKilidiKur, anaSes } from "./cekirdek/ses.js";
 
 shimKur();
 kopruKaydet("SunumKoprusu", {
-  SunumAsamaGit: (n) => console.log("[F4] SunumAsamaGit", n, "— F5'te bağlanacak"),
-  SunumPanelGit: () => console.log("[F4] SunumPanelGit — F6'da bağlanacak"),
+  SunumAsamaGit: (n) => senaryoBaslat(Math.max(0, Math.min(6, n | 0))),
+  SunumPanelGit: () => console.log("[F5] SunumPanelGit — F6'da bağlanacak"),
   SunumSesAyarla: (a) => anaSes(a === 1 ? 1 : 0),
 });
 sesKilidiKur();
@@ -157,28 +159,87 @@ S.addChild(ayarBtn);
 const wf = new WinFeedback(uygulama);
 S.addChild(wf.kok);
 
-// --- Spin akışı ---
+// --- Senaryo durumu (F5): aşama 0-6, scripted A0-A4 + dinamik eğilim aşamaları ---
+await senaryoVerisiYukle();
+const senaryo = { aktif: false, asama: 0, spin: 1 };
+
+function senaryoBaslat(asamaIdx) {
+  senaryo.aktif = true;
+  senaryo.asama = asamaIdx;
+  senaryo.spin = 1;
+  bahis = ASAMALAR.bahisler[asamaIdx];
+  metinleriGuncelle();
+  console.log(`[F5] senaryo aşama ${asamaIdx + 1} başladı (bahis ${bahis})`);
+}
+
+// Serbest mod ayarı (senaryo dışı)
 const ayar = { egilimYuzde: MODLAR.normal.egilim, minKat: 0, maksKat: 0,
                aktifSenaryo: "normal", zorluk: 6, maxReroll: 200 };
+
+function senaryoDinamikAyar() {
+  const a = senaryo.asama;
+  return { egilimYuzde: ASAMALAR.egilimler[a], minKat: 0, maksKat: 0,
+           aktifSenaryo: "normal", zorluk: 8 - Math.round((ASAMALAR.egilimler[a] - 50) / 25),
+           maxReroll: 500 };
+}
+
+async function planOynat(plan) {
+  slot.gridGoster(plan.baslangicGrid, plan.baslangicCarpan);
+  for (const adim of plan.adimlar) {
+    sesCal("tumble_pop", { ses: 0.6, pitchRasgele: true });
+    await slot.tumbleAdimiOynat(adim);
+    kazancSon += adim.kazanc; metinleriGuncelle();
+  }
+}
 
 async function spinYap() {
   if (spinAktif || bakiye < bahis) return;
   spinAktif = true; spinBtn.alpha = 0.5;
   bakiye -= bahis; kazancSon = 0; metinleriGuncelle();
 
-  const sonuc = spinUret(bahis, ayar, rng);
-  slot.gridGoster(sonuc.baslangicGrid);
-  for (const adim of sonuc.adimlar) {
-    sesCal("tumble_pop", { ses: 0.6, pitchRasgele: true });
-    await slot.tumbleAdimiOynat(adim);
-    kazancSon += adim.kazanc; metinleriGuncelle();
+  let nihai = 0, modal = null;
+  if (senaryo.aktif) {
+    const kayit = scriptedSpinBul(senaryo.asama, senaryo.spin);
+    if (kayit) {
+      const plan = kaydiPlanla(kayit);
+      await planOynat(plan);
+      nihai = plan.nihai;
+      modal = kayit.modal;
+    } else {
+      const sonuc = spinUret(bahis, senaryoDinamikAyar(), rng);
+      await planOynat({ baslangicGrid: sonuc.baslangicGrid, baslangicCarpan: null,
+                        adimlar: sonuc.adimlar, nihai: sonuc.nihai });
+      nihai = sonuc.nihai;
+    }
+  } else {
+    const sonuc = spinUret(bahis, ayar, rng);
+    await planOynat({ baslangicGrid: sonuc.baslangicGrid, baslangicCarpan: null,
+                      adimlar: sonuc.adimlar, nihai: sonuc.nihai });
+    nihai = sonuc.nihai;
   }
-  bakiye += sonuc.nihai;
-  kazancSon = sonuc.nihai; metinleriGuncelle();
-  if (sonuc.nihai >= bahis * 2) await wf.goster(sonuc.nihai, bahis);
+
+  bakiye += nihai;
+  kazancSon = nihai; metinleriGuncelle();
+  if (nihai >= bahis * 2) await wf.goster(nihai, bahis);
+  if (modal) await egitmenModal(modal);
+
+  if (senaryo.aktif) {
+    senaryo.spin++;
+    const hedef = ASAMALAR.spinHedefi[senaryo.asama];
+    if (senaryo.spin > hedef && senaryo.asama < 6) {
+      senaryo.asama++;
+      senaryo.spin = 1;
+      bahis = ASAMALAR.bahisler[senaryo.asama];
+      console.log(`[F5] aşama ${senaryo.asama + 1}'e geçildi (bahis ${bahis})`);
+    }
+    metinleriGuncelle();
+  }
   spinAktif = false; spinBtn.alpha = 1;
 }
 spinBtn.on("pointertap", spinYap);
+
+// ?senaryo parametresiyle doğrudan senaryo modunda başla
+if (location.search.indexOf("senaryo") >= 0) senaryoBaslat(0);
 
 slot.gridGoster(izgaraDoldur(rng, {}));
 console.log("[F4] Unity düzenli ekran hazır");
