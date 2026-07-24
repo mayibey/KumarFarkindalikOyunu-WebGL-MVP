@@ -45,13 +45,13 @@ export const MODLAR = {
 
 // --- Anlatıcı aşama tablosu: AnlaticiSeritKopru.cs:239-265 ---
 export const ASAMALAR = {
-  egilimler:   [95, 80, 65, 40, 25, 12, 5],   // kaynak: _asamalar (kademeli 95→5; F5'te birebir teyit)
-  maxCarpan:   [5.0, 3.5, 2.5, 1.5, 1.0, 0.5, 0.1],
+  // AnlaticiSeritKopru.cs:257-266'dan SAYI SAYI doğrulandı (2026-07-24)
+  egilimler:   [95, 90, 50, 30, 20, 15, 5],
+  maxCarpan:   [5.0, 3.5, 1.0, 0.6, 0.4, 0.3, 0.1],
+  nearMiss:    [false, false, true, true, true, true, true],
   bahisler:    [500, 1500, 1500, 2500, 4000, 10000, 1500],
   spinHedefi:  [8, 8, 8, 5, 4, 5, 999],
 };
-// NOT: egilimler/maxCarpan ara değerleri F5'te AnlaticiSeritKopru.cs:257-265'ten
-// SAYI SAYI doğrulanacak (envanter yalnız uçları verdi: %95/5.0 → %5/0.1).
 
 // --- Reroll bütçeleri: Spin.cs:321 AsamaIcinMaxReroll (20-2000), SIMULASYON_MAX_REROLL=28 ---
 export const REROLL = { simulasyonMax: 28, asamaAralik: [20, 2000] };
