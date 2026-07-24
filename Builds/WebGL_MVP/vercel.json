@@ -1,4 +1,7 @@
 {
+  "redirects": [
+    { "source": "/sunum.html", "destination": "/sunum/", "permanent": false }
+  ],
   "headers": [
     {
       "source": "/Build/(.*\\.wasm\\.br)",
