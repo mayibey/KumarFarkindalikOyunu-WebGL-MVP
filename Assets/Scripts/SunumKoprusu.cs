@@ -17,6 +17,7 @@ using UnityEngine.SceneManagement;
 public class SunumKoprusu : MonoBehaviour
 {
     private const string SENARYO_SAHNE = "02_SenaryoluOyun";
+    private const string PANEL_SAHNE = "03_AdminOyunScene";
     private static SunumKoprusu _ornek;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -35,6 +36,33 @@ public class SunumKoprusu : MonoBehaviour
         Debug.Log($"[SunumKoprusu] SunumAsamaGit({asama}) — aktif sahne: {SceneManager.GetActiveScene().name}");
         StopAllCoroutines();
         StartCoroutine(AsamaGitCo(asama));
+    }
+
+    /// <summary>
+    /// JS çağrısı: unityInstance.SendMessage("SunumKoprusu", "SunumPanelGit", 0)
+    /// Sunumun "Perde Arkası" slaytındaki butondan gelir; manipülasyon paneline geçer
+    /// (giriş ekranındaki MANİPÜLASYON PANELİNE GİT butonu ile aynı yol, şifresiz).
+    /// </summary>
+    public void SunumPanelGit(int _)
+    {
+        Debug.Log($"[SunumKoprusu] SunumPanelGit — aktif sahne: {SceneManager.GetActiveScene().name}");
+        StopAllCoroutines();
+        if (SceneManager.GetActiveScene().name == PANEL_SAHNE) return;
+        if (GameManager.I != null)
+            GameManager.I.LoadScene(PANEL_SAHNE);
+        else
+            SceneManager.LoadScene(PANEL_SAHNE, LoadSceneMode.Single);
+    }
+
+    /// <summary>
+    /// JS çağrısı: unityInstance.SendMessage("SunumKoprusu", "SunumSesAyarla", acik)  (1 = ses açık, 0 = kapalı)
+    /// Sunumdaki 🔊 düğmesi ve videolu slaytların otomatik susturması kullanır.
+    /// AudioListener.volume globaldir; sahne değişse de ayar korunur.
+    /// </summary>
+    public void SunumSesAyarla(int acik)
+    {
+        AudioListener.volume = acik == 1 ? 1f : 0f;
+        Debug.Log($"[SunumKoprusu] SunumSesAyarla({acik})");
     }
 
     private IEnumerator AsamaGitCo(int asama)

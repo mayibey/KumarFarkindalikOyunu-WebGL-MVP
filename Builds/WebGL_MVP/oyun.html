@@ -4,6 +4,26 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity Web Player | KumarFarkindalikOyunu</title>
+    <script>
+      /* SUNUM_SES_YAKALA: sunum sayfasinin (sunum/) ses dugmesi icin. Unity'nin olusturdugu
+         AudioContext'ler listeye alinir; ust pencere suspend/resume ile oyunu susturur.
+         Yeni build'lerde SunumKoprusu.SunumSesAyarla da ayni isi Unity icinden yapar; bu blok
+         ani ve garantili susturma icin korunur. */
+      (function(){
+        var L = []; window.__sesBaglamlari = L;
+        ["AudioContext","webkitAudioContext"].forEach(function(ad){
+          var Orj = window[ad];
+          if (!Orj) return;
+          var Sarma = function(){
+            var c = new (Orj.bind.apply(Orj, [null].concat([].slice.call(arguments))))();
+            L.push(c);
+            return c;
+          };
+          Sarma.prototype = Orj.prototype;
+          window[ad] = Sarma;
+        });
+      })();
+    </script>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
     <!-- WEBGL_FULLSCREEN_PATCH -->
