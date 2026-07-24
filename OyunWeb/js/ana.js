@@ -8,7 +8,7 @@ import { senaryoVerisiYukle, scriptedSpinBul, asamaScriptedSpinSayisi, kaydiPlan
 import { egitmenModal, karsilamaModallari } from "./ui/modalDom.js";
 import { anlaticiAc, anlaticiKapat, anlaticiGuncelle, anlaticiKopruKur } from "./kopru/anlaticiKopru.js";
 import { bonusTuzagiPopup, borcPaneli, finalEkrani } from "./ui/senaryoOverlaylar.js";
-import { girisEkraniGoster } from "./ui/girisEkrani.js";
+import { girisEkraniKur } from "./ui/girisEkrani.js";
 import { kaydet, yukle } from "./cekirdek/kayit.js";
 import { panelAc, panelAyar, panelAyarIsle, panelKopruKur } from "./kopru/panelKopru.js";
 import { spinUret } from "./motor/spinMotoru.js";
@@ -380,10 +380,11 @@ if (location.search.indexOf("senaryo") >= 0) {
 } else if (location.search.indexOf("panel") >= 0) {
   panelModunaGec();
 } else {
-  girisEkraniGoster({
+  const girisKok = girisEkraniKur(uygulama, dokular, {
     onSenaryo: (ad) => { senaryo.kullaniciAdi = ad; senaryoBaslat(0, true); },
     onDevam: (k) => senaryoDevamEt(k),
-    onPanel: () => window.unityInstance.SendMessage("SunumKoprusu", "SunumPanelGit", 0),
+    onPanel: () => panelModunaGec(),
   });
+  S.addChild(girisKok);
 }
 console.log("[F5] açılış akışı hazır");
