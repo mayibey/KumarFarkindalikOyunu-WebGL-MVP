@@ -835,12 +835,16 @@ if(MOBIL_CIHAZ){
 }
 function mobilMedyaGuncelle(){
   if(!MOBIL_CIHAZ) return;
+  // Oyun paneli açıkken deste görsellerinin TAMAMI bırakılır (oyun belleğe sığsın);
+  // panel kapalıyken yalnız aktif slayt ±1 yüklü tutulur.
+  const oyunlu=document.body.classList.contains("oyunlu");
   nodes.forEach((el,i)=>{
-    const yakin=Math.abs(i-cur)<=1;
+    const yakin=!oyunlu && Math.abs(i-cur)<=1;
     el.querySelectorAll("img").forEach(im=>{
       if(yakin){ if(!im.getAttribute("src")&&im.dataset.kaynak) im.src=im.dataset.kaynak; }
       else if(im.getAttribute("src")) im.removeAttribute("src");
     });
+    if(oyunlu) el.querySelectorAll("video").forEach(v=>{ try{ v.pause(); }catch(e){} });
   });
 }
 
@@ -951,9 +955,10 @@ function oyunAc(){
 
   document.body.classList.add("oyunlu");
   deckOlcekle();
+  if(typeof mobilMedyaGuncelle==="function") mobilMedyaGuncelle(); // mobil: oyun açılırken deste görsellerini bırak
   stop();                                                // otomatik oynatma açıksa durdur
 }
-function oyunKapa(){ document.body.classList.remove("oyunlu"); deckOlcekle(); }
+function oyunKapa(){ document.body.classList.remove("oyunlu"); deckOlcekle(); if(typeof mobilMedyaGuncelle==="function") mobilMedyaGuncelle(); }
 function oyunToggle(){ document.body.classList.contains("oyunlu") ? oyunKapa() : oyunAc(); }
 
 /* Aşama slaytındaki 🎮 buton: oyun panelini açar, oyun yüklenene dek bekler,
