@@ -7,6 +7,7 @@ import { SEMBOLLER, EKONOMI, MODLAR, ASAMALAR } from "../veri/sabitler.js";
 import { senaryoVerisiYukle, scriptedSpinBul, asamaScriptedSpinSayisi, kaydiPlanla } from "./motor/scriptedOynatici.js";
 import { egitmenModal } from "./ui/modalDom.js";
 import { anlaticiAc, anlaticiGuncelle, anlaticiKopruKur } from "./kopru/anlaticiKopru.js";
+import { bonusTuzagiPopup, borcPaneli, finalEkrani } from "./ui/senaryoOverlaylar.js";
 import { spinUret } from "./motor/spinMotoru.js";
 import { izgaraDoldur } from "./motor/doldurucu.js";
 import { rngYap } from "./motor/rng.js";
@@ -161,9 +162,10 @@ const wf = new WinFeedback(uygulama);
 S.addChild(wf.kok);
 
 // --- Senaryo durumu (F5): aşama 0-6, scripted A0-A4 + dinamik eğilim aşamaları ---
-await senaryoVerisiYukle();
+const senaryoVeri = await senaryoVerisiYukle();
 const senaryo = { aktif: false, asama: 0, spin: 1, toplamSpin: 0,
-                  spinNetleri: [], asamaBasBakiye: 0 };
+                  spinNetleri: [], asamaBasBakiye: 0,
+                  bonusModu: false, bonusSpin: 0, borcAlindi: false, toplamYatirim: 0 };
 
 function anlaticiDurumGonder(ek = {}) {
   anlaticiGuncelle({
@@ -219,7 +221,8 @@ async function spinYap() {
   spinAktif = true; spinBtn.alpha = 0.5;
   bakiye -= bahis; kazancSon = 0; metinleriGuncelle();
 
-  let nihai = 0, modal = null;
+  senaryo.toplamYatirim += bahis;
+  let nihai = 0, modal = null, bonusTetik = false;
   if (senaryo.aktif) {
     const kayit = scriptedSpinBul(senaryo.asama, senaryo.spin);
     if (kayit) {
@@ -227,6 +230,7 @@ async function spinYap() {
       await planOynat(plan);
       nihai = plan.nihai;
       modal = kayit.modal;
+      bonusTetik = !!kayit.bonusTetik;
     } else {
       const sonuc = spinUret(bahis, senaryoDinamikAyar(), rng);
       await planOynat({ baslangicGrid: sonuc.baslangicGrid, baslangicCarpan: null,
@@ -249,20 +253,54 @@ async function spinYap() {
     senaryo.spin++;
     senaryo.toplamSpin++;
     senaryo.spinNetleri.push(nihai - bahis);
+
+    // A4S4 bonus tuzağı: cazip popup → BONUS AL → 10 sabit bonus spini (4000 TL) → bakiye erir
+    if (bonusTetik) { await bonusAkisiOynat(); }
+
     const hedef = ASAMALAR.spinHedefi[senaryo.asama];
-    if (senaryo.spin > hedef && senaryo.asama < 6) {
+    const sonAsama = senaryo.asama >= 6;
+
+    // Borç paneli: bakiye bitti + son aşamaya yaklaşıldıysa (A5→A6 köprüsü)
+    if (bakiye < bahis && !senaryo.borcAlindi && senaryo.asama >= 4 && !sonAsama) {
+      await borcPaneli();
+      bakiye += EKONOMI.borcMiktari; senaryo.borcAlindi = true;
+      metinleriGuncelle();
+    }
+
+    if (senaryo.spin > hedef && !sonAsama) {
       senaryo.asama++;
       senaryo.spin = 1;
       senaryo.spinNetleri = [];
       senaryo.asamaBasBakiye = bakiye;
       bahis = ASAMALAR.bahisler[senaryo.asama];
-      console.log(`[F5] aşama ${senaryo.asama + 1}'e geçildi (bahis ${bahis})`);
     }
     anlaticiDurumGonder();
     metinleriGuncelle();
+
+    // A7 tükeniş: son aşamada bakiye tükendiyse final cutscene
+    if (senaryo.asama >= 6 && bakiye < bahis) {
+      const yatirim = EKONOMI.baslangicBakiye + (senaryo.borcAlindi ? EKONOMI.borcMiktari : 0);
+      finalEkrani({
+        toplamYatirim: yatirim, sonBakiye: bakiye, netKayip: yatirim - bakiye,
+        toplamSpin: senaryo.toplamSpin,
+      }, () => location.reload());
+    }
   }
   spinAktif = false; spinBtn.alpha = 1;
 }
+
+// Bonus akışı: popup + 10 sabit bonus spini (senaryo.json bonusSpinleri, toplam 4000 TL).
+async function bonusAkisiOynat() {
+  await bonusTuzagiPopup();
+  for (const kayit of senaryoVeri.bonusSpinleri) {
+    const plan = kaydiPlanla(kayit);
+    await planOynat(plan);
+    bakiye += plan.nihai;
+    kazancSon = plan.nihai; metinleriGuncelle();
+    await bekleKisa(300);
+  }
+}
+const bekleKisa = (ms) => new Promise((r) => setTimeout(r, ms));
 spinBtn.on("pointertap", spinYap);
 
 // ?senaryo parametresiyle doğrudan senaryo modunda başla
