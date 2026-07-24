@@ -75,16 +75,16 @@ const slot = new SlotGorunum(uygulama, dokular, {
 });
 S.addChild(slot.kok);
 
-// --- Hoş geldin kutusu (Unity: sağ üst, jslib HosgeldinKutusunuAc karşılığı) ---
-const hosPlaka = new PIXI.Sprite(dokular.btn_bos_plaka);
-hosPlaka.anchor.set(0.5);
-hosPlaka.position.set(GENISLIK - 250, 62);
-hosPlaka.scale.set(360 / hosPlaka.texture.width);
-S.addChild(hosPlaka);
+// --- Hoş geldin kutusu (Unity birebir: lacivert zemin, ince altın çerçeve, beyaz yazı) ---
+const hosKutu = new PIXI.Graphics()
+  .roundRect(-170, -30, 340, 60, 14)
+  .fill(0x0e1a38)
+  .stroke({ color: 0xd8a63a, width: 3 });
+hosKutu.position.set(GENISLIK - 230, 58);
+S.addChild(hosKutu);
 const hosT = new PIXI.Text({ text: "Hoş Geldiniz Misafir", style: {
-  fontFamily: "LilitaOne", fontSize: 30, fill: 0xffe9a0,
-  stroke: { color: 0x3a2200, width: 4 } } });
-hosT.anchor.set(0.5); hosT.position.set(GENISLIK - 250, 62);
+  fontFamily: "Georgia, serif", fontSize: 28, fontWeight: "bold", fill: 0xffffff } });
+hosT.anchor.set(0.5); hosT.position.set(GENISLIK - 230, 58);
 S.addChild(hosT);
 
 // --- Ekonomi durumu ---
@@ -98,8 +98,8 @@ function plaka(doku, x, y, hedefW, yaziBoyut, yaziDy = 0) {
   p.scale.set(hedefW / p.texture.width);
   S.addChild(p);
   const t = new PIXI.Text({ text: "", style: {
-    fontFamily: "LilitaOne", fontSize: yaziBoyut, fill: 0xffe9a0,
-    stroke: { color: 0x3a2200, width: 5 } } });
+    fontFamily: "LilitaOne", fontSize: yaziBoyut, fill: 0xffdf4d,
+    stroke: { color: 0x2a1800, width: 5 } } });
   t.anchor.set(0.5); t.position.set(x, y + yaziDy);
   S.addChild(t);
   return t;
