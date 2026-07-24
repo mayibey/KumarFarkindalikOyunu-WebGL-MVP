@@ -47,6 +47,7 @@ public static class WebGlOlcekliSarmalPostProcess
 (function(){
   var GW=1920, GH=1080;
   var sahne=document.getElementById('sahne'), oyun=document.getElementById('oyun');
+  if(location.search) oyun.src='oyun.html'+location.search; // ?debug gibi parametreler oyuna aktarilsin
   function olcekle(){
     var w=sahne.clientWidth||window.innerWidth, h=sahne.clientHeight||window.innerHeight;
     if(!w||!h) return;
