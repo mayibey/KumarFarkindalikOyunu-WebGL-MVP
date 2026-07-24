@@ -6,6 +6,7 @@ import { shimKur, kopruKaydet } from "./kopru/sendMessageShim.js";
 import { SEMBOLLER, EKONOMI, MODLAR, ASAMALAR } from "../veri/sabitler.js";
 import { senaryoVerisiYukle, scriptedSpinBul, asamaScriptedSpinSayisi, kaydiPlanla } from "./motor/scriptedOynatici.js";
 import { egitmenModal } from "./ui/modalDom.js";
+import { anlaticiAc, anlaticiGuncelle, anlaticiKopruKur } from "./kopru/anlaticiKopru.js";
 import { spinUret } from "./motor/spinMotoru.js";
 import { izgaraDoldur } from "./motor/doldurucu.js";
 import { rngYap } from "./motor/rng.js";
@@ -161,16 +162,37 @@ S.addChild(wf.kok);
 
 // --- Senaryo durumu (F5): aşama 0-6, scripted A0-A4 + dinamik eğilim aşamaları ---
 await senaryoVerisiYukle();
-const senaryo = { aktif: false, asama: 0, spin: 1 };
+const senaryo = { aktif: false, asama: 0, spin: 1, toplamSpin: 0,
+                  spinNetleri: [], asamaBasBakiye: 0 };
+
+function anlaticiDurumGonder(ek = {}) {
+  anlaticiGuncelle({
+    asama: senaryo.asama, spin: senaryo.spin - 1,
+    hedefSpin: ASAMALAR.spinHedefi[senaryo.asama],
+    bakiyeNet: bakiye - senaryo.asamaBasBakiye,
+    toplamSpin: senaryo.toplamSpin,
+    spinNetleri: senaryo.spinNetleri.slice(),
+    tukenis: false, ...ek,
+  });
+}
 
 function senaryoBaslat(asamaIdx) {
   senaryo.aktif = true;
   senaryo.asama = asamaIdx;
   senaryo.spin = 1;
+  senaryo.spinNetleri = [];
+  senaryo.asamaBasBakiye = bakiye;
   bahis = ASAMALAR.bahisler[asamaIdx];
   metinleriGuncelle();
+  anlaticiAc();
+  anlaticiDurumGonder();
   console.log(`[F5] senaryo aşama ${asamaIdx + 1} başladı (bahis ${bahis})`);
 }
+
+anlaticiKopruKur({
+  asamaDegis: (n) => { if (Number.isFinite(n)) senaryoBaslat(Math.max(0, Math.min(6, n))); },
+  yenidenBaslat: () => { bakiye = EKONOMI.baslangicBakiye; senaryo.toplamSpin = 0; senaryoBaslat(0); },
+});
 
 // Serbest mod ayarı (senaryo dışı)
 const ayar = { egilimYuzde: MODLAR.normal.egilim, minKat: 0, maksKat: 0,
@@ -225,13 +247,18 @@ async function spinYap() {
 
   if (senaryo.aktif) {
     senaryo.spin++;
+    senaryo.toplamSpin++;
+    senaryo.spinNetleri.push(nihai - bahis);
     const hedef = ASAMALAR.spinHedefi[senaryo.asama];
     if (senaryo.spin > hedef && senaryo.asama < 6) {
       senaryo.asama++;
       senaryo.spin = 1;
+      senaryo.spinNetleri = [];
+      senaryo.asamaBasBakiye = bakiye;
       bahis = ASAMALAR.bahisler[senaryo.asama];
       console.log(`[F5] aşama ${senaryo.asama + 1}'e geçildi (bahis ${bahis})`);
     }
+    anlaticiDurumGonder();
     metinleriGuncelle();
   }
   spinAktif = false; spinBtn.alpha = 1;

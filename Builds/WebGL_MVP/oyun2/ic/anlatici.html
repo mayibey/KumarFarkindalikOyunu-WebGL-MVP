@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<script>
+/* PINCH_KILIT: bu ic sayfada tarayici pinch zoom'u iOS bellegini patlatip sekmeyi cokertiyor. */
+(function(){
+  ['gesturestart','gesturechange','gestureend'].forEach(function(t){
+    document.addEventListener(t, function(e){ e.preventDefault(); }, {passive:false});
+  });
+  document.addEventListener('touchmove', function(e){
+    if(e.touches && e.touches.length>1) e.preventDefault();
+  }, {passive:false});
+})();
+</script>
+
+<meta charset="UTF-8">
+<title>Anlatici Serit</title>
+<style>
+  html, body { height: 100%; }
+  body { margin: 0; padding: 0; background: transparent; color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, sans-serif;
+    overflow: hidden; }
+  /* FAZ35.19: Scroll body'den .panel'e taşındı — scrollbar panel border'ı içinde, 04 admin paneli emsali */
+  #anlaticiRoot { padding: 8px; height: 100%; box-sizing: border-box; }
+  .panel { background: #0f0a1a; border: 1px solid rgba(212,162,74,0.35);
+    border-radius: 14px; overflow-y: auto; overflow-x: hidden;
+    height: 100%; box-sizing: border-box;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4); position: relative;
+    scrollbar-width: thin;                        /* Firefox: ince ama görünür */
+    scrollbar-color: #d4a857 #0f0a1a; }           /* thumb / track (anlatici .panel bg uyumu) */
+  /* FAZ35.19: Scrollbar kuralları Faz 35.18'den .panel'e taşındı (body yerine) */
+  .panel::-webkit-scrollbar { width: 6px; }
+  .panel::-webkit-scrollbar-track { background: #0f0a1a; }
+  .panel::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #d4a857, #f4d678);
+    border-radius: 3px;
+  }
+  .panel::-webkit-scrollbar-thumb:hover { background: #f4d678; }
+  .header { padding: 12px 22px 10px; background: rgba(212,162,74,0.08);
+    border-bottom: 1px solid rgba(212,162,74,0.2); }
+  .header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .nav-btn { width: 26px; height: 26px; background: transparent;
+    border: 1px solid rgba(212,162,74,0.4); border-radius: 4px; color: #d4a24a;
+    font-size: 16px; cursor: pointer; line-height: 1; padding: 0; transition: all 0.15s; font-family: inherit; }
+  .nav-btn:hover { background: rgba(212,162,74,0.15); color: #f0d99a; }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .asama-num { font-size: 22px; letter-spacing: 0; color: rgba(212,162,74,0.85); font-weight: 500; }
+  .asama-baslik { color: #f0d99a; font-size: 22px; font-weight: 500; line-height: 1.3; text-align: center; }
+  .section { padding: 12px 22px 10px; border-top: 1px solid rgba(255,255,255,0.05); transition: background 180ms ease-out; }
+  .section-arka { background: rgba(160,50,50,0.08); border-top: none; }
+  .section-kafa { background: rgba(80,60,120,0.08); }
+  /* FAZ35.16: Panel hover'da background vurgusu + font büyütme (zoom Unity tarafında container width artar) */
+  @media (hover: hover) {
+    .section-label, .arka-text, .kafa-text, .bilim-not { transition: font-size 180ms ease-out, line-height 180ms ease-out; }
+    .panel.hover-zoom .section-arka { background: rgba(160,50,50,0.15); }
+    .panel.hover-zoom .section-kafa { background: rgba(80,60,120,0.15); }
+    /* FAZ35.16.1: Container 1300×calc(100vh-200px)'e büyür — fontlar da daha agresif büyür */
+    .panel.hover-zoom .arka-text,
+    .panel.hover-zoom .kafa-text { font-size: 28px; line-height: 1.6; }
+    .panel.hover-zoom .bilim-not { font-size: 22px; line-height: 1.6; }
+    .panel.hover-zoom .section-label { font-size: 17px; letter-spacing: 2px; }
+  }
+  .section-label { font-size: 13px; letter-spacing: 1.8px; font-weight: 500; margin-bottom: 6px; }
+  .label-arka { color: #d97070; }
+  .label-kafa { color: #a594c8; }
+  .label-spin { color: rgba(255,255,255,0.55); }
+  .arka-text { color: #e8d4b8; font-size: 17px; line-height: 1.5; margin-bottom: 8px; }
+  .rozetler { border-top: 1px dashed rgba(255,255,255,0.12); padding-top: 6px;
+    display: flex; gap: 5px; flex-wrap: wrap; }
+  .rozet { background: rgba(160,50,50,0.25); border: 1px solid rgba(160,50,50,0.4);
+    border-radius: 4px; padding: 4px 9px; font-size: 14px; color: #ff9999; }
+  .rozet-warn { background: rgba(160,100,50,0.2); border: 1px solid rgba(160,100,50,0.4); color: #ffb380; }
+  .rozet-good { background: rgba(60,140,60,0.2); border: 1px solid rgba(60,140,60,0.4); color: #80e080; }
+  .kafa-text { color: #c8b8e0; font-size: 17px; line-height: 1.5; font-style: italic; margin-bottom: 6px; }
+  .bilim-not { color: rgba(255,255,255,0.45); font-size: 16px; line-height: 1.45; }
+  /* FAZ35.129: ASAMALAR arka/kafa vurgu sınıfları — açık palet (modal emsali), koyu mor zemine kontrast, bold.
+     KURAL: bir blokta kırmızı+yeşil+turuncu üçlüsü YOK (mavi nötr/serbest). Tasarım: kırmızı=tehlike/kayıp/manipülasyon,
+     yeşil=kazanç/umut, mavi=teknik/sistem/sayı, turuncu=bilişsel çarpıtma/oyuncu düşüncesi. */
+  .vurgu-tehlike  { color:#ef4444; font-weight:600; }
+  .vurgu-kazanc   { color:#4ade80; font-weight:600; }
+  .vurgu-teknik   { color:#60a5fa; font-weight:600; }
+  .vurgu-carpitma { color:#fb923c; font-weight:600; }
+  .spin-bolum { padding: 10px 22px 8px; background: rgba(0,0,0,0.2);
+    border-top: 1px solid rgba(255,255,255,0.05); }
+  .spin-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .spin-sayac { font-size: 16px; color: #d4a24a; font-weight: 500; }
+  .spin-bar { display: flex; gap: 4px; margin-bottom: 6px; }
+  .spin-seg { flex: 1; height: 6px; border-radius: 3px;
+    background: rgba(255,255,255,0.12); transition: background 0.3s, box-shadow 0.3s;
+    cursor: help; position: relative; }
+  .spin-seg.dolu { background: #d4a24a; }
+  .spin-seg.kazanc { background: #5dd55d; box-shadow: 0 0 8px rgba(93,213,93,0.45); }
+  .spin-seg.kayip  { background: #ff5555; box-shadow: 0 0 8px rgba(255,85,85,0.45); }
+  .spin-seg.notr   { background: #60A5FA; box-shadow: 0 0 8px rgba(96,165,250,0.45); }
+  .spin-seg[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute; bottom: calc(100% + 8px); left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.92); color: #fff;
+    padding: 4px 8px; border-radius: 4px;
+    font-size: 13px; font-weight: 500; white-space: nowrap;
+    z-index: 100; pointer-events: none; }
+  .spin-seg[data-tooltip]:hover::before {
+    content: ''; position: absolute; bottom: calc(100% + 4px); left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent; border-top-color: rgba(0,0,0,0.92);
+    z-index: 100; pointer-events: none; }
+  .spin-info { font-size: 15px; color: rgba(255,255,255,0.4); text-align: center; margin-top: 4px; line-height: 1.4; }
+  .hikaye { padding: 8px 22px; background: rgba(0,0,0,0.3);
+    border-top: 1px solid rgba(255,255,255,0.05); }
+  .hikaye-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .hikaye-noktalar { display: flex; gap: 6px; align-items: center; justify-content: center; }
+  .nokta { width: 12px; height: 12px; border-radius: 50%;
+    background: rgba(255,255,255,0.18); transition: all 0.3s; cursor: pointer; }
+  .nokta.gecmis { background: #5d9a5d; }
+  .nokta.aktif { width: 16px; height: 16px; background: #d4a24a;
+    border: 2px solid #f0d99a; box-sizing: border-box; }
+  .bakiye { padding: 12px 22px 14px; background: rgba(120,30,30,0.18);
+    border-top: 1px solid rgba(160,50,50,0.3); }
+  .bakiye-bg-iyi { background: rgba(40,100,40,0.18); border-top: 1px solid rgba(60,140,60,0.3); }
+  .bakiye-tek-satir { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .bakiye-prefix { font-size: 16px; color: rgba(255,255,255,0.55); white-space: nowrap; }
+  .bakiye-net { font-size: 22px; font-weight: 600; line-height: 1; }
+  .bakiye-net.kayip { color: #ff5555; }
+  .bakiye-net.kazanc { color: #5dd55d; }
+  .bakiye-net.notr { color: rgba(255,255,255,0.6); }
+  .tukenis-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.92); display: none; align-items: center; justify-content: center;
+    z-index: 100; padding: 20px; text-align: center; }
+  .tukenis-overlay.aktif { display: flex; }
+  .tukenis-icerik { color: #fff; }
+  .tukenis-baslik { font-size: 18px; letter-spacing: 2px; color: #ff5555; margin-bottom: 18px; }
+  .tukenis-info { font-size: 16px; color: rgba(255,255,255,0.75); line-height: 1.6; margin-bottom: 14px; }
+  .tukenis-rakam { font-size: 40px; color: #ff5555; font-weight: 500; margin: 14px 0; }
+  .tukenis-yeniden { margin-top: 20px; padding: 12px 28px;
+    background: rgba(212,162,74,0.2); border: 1px solid rgba(212,162,74,0.5);
+    color: #f0d99a; border-radius: 8px; font-size: 16px; cursor: pointer; font-family: inherit; }
+  .tukenis-yeniden:hover { background: rgba(212,162,74,0.35); }
+</style>
+</head>
+<body>
+<div id="anlaticiRoot">
+  <div class="panel">
+    <div class="header">
+      <div class="header-row">
+        <button class="nav-btn" onclick="onceki()">‹</button>
+        <span class="asama-num" id="asamaNum">AŞAMA 1 / 7</span>
+        <button class="nav-btn" onclick="sonraki()">›</button>
+      </div>
+      <div class="asama-baslik" id="asamaBaslik">Isındırma ve Umut</div>
+    </div>
+    <div class="section section-arka">
+      <div class="section-label label-arka">SİSTEMİN ARKA YÜZÜ</div>
+      <div class="arka-text" id="arkaText">—</div>
+    </div>
+    <div class="section section-kafa">
+      <div class="section-label label-kafa">OYUNCU DÜŞÜNCESİ</div>
+      <div class="kafa-text" id="kafaText">—</div>
+      <!-- FAZ35.128: bilim-not DOM element kaldırıldı (her aşamadan bilim alanı + render satırı da silindi). -->
+    </div>
+    <div class="spin-bolum">
+      <div class="spin-row">
+        <span class="section-label label-spin" style="margin: 0;">SPİN İLERLEMESİ</span>
+        <span class="spin-sayac" id="spinSayac">0 / 8</span>
+      </div>
+      <div class="spin-bar" id="spinBar"></div>
+      <div class="spin-info" id="spinInfo">8 spin sonra aşama 2 başlayacak</div>
+    </div>
+    <div class="bakiye" id="bakiyeBolum">
+      <div class="bakiye-tek-satir">
+        <span class="bakiye-prefix" id="bakiyePrefix">0 spin · net durum:</span>
+        <span class="bakiye-net kayip" id="bakiyeNet">0 TL</span>
+      </div>
+    </div>
+    <div class="tukenis-overlay" id="tukenisOverlay">
+      <div class="tukenis-icerik">
+        <div class="tukenis-baslik">SİMÜLASYON TAMAMLANDI</div>
+        <div class="tukenis-info" id="tukenisSpinDakika">— spin · yaklaşık — dakika</div>
+        <div class="tukenis-rakam" id="tukenisRakam">−34.000 TL</div>
+        <div class="tukenis-info">Bu rakam ortalama bir aile için 2.5 aylık geçim demek. Gerçek hayatta oyuncu burada durmaz — bir sonraki maaş, bir sonraki kredi, bir sonraki dönüş umudu için devam eder.</div>
+        <button class="tukenis-yeniden" onclick="yenidenBaslat()">Yeniden Başlat</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  // FAZ35.128: ASAMALAR metinleri yenilendi (düz metin — eski <span> renk tag'leri kaldırıldı; renklendirme sonra).
+  // bilim alanı + render bloğu SİLİNDİ — layout temizliği için (alttaki line render kısmında da bilimNot satırı kaldırıldı).
+  var ASAMALAR = [
+    { isim: "Isındırma ve Umut",
+      arka: "Sisteme yeni katılan oyuncunun <span class=\"vurgu-kazanc\">yüksek miktarda kazanması</span> sağlanır. Buradaki amaç para kazandırmak değil, <span class=\"vurgu-tehlike\">oyuncuyu oyuna bağlamak</span>tır. Sistem, başlangıçta oyuncuda \"şanslıyım\" algısı oluşturarak oyuncuyu içeri çeker.",
+      kafa: "İlk kazançlar oyuncuya \"<span class=\"vurgu-carpitma\">Ben bu işi yapabiliyorum, bu oyunu çözerim</span>.\" hissini verir. Oyuncu, kazancını <span class=\"vurgu-carpitma\">kendi becerisine bağlar</span>; oysa bu tamamen sistemin yönlendirmesidir. Zihninde, \"<span class=\"vurgu-carpitma\">Oynamaya devam edersem kazanmaya devam ederim</span>.\" düşüncesi oluşur.",
+      rozetler: [{text:"Geri ödeme: %~250",tip:"good"},{text:"Tavan: bahsin 5×'i",tip:"good"},{text:"Şans: yapay yüksek",tip:"warn"}],
+      bakiyeRengi: "kazanc", bakiyeBaglam: "Sahte kazanç ileride büyük kayıp için yem olacak." },
+    { isim: "Kontrol Bende Hissi",
+      arka: "Bu aşamada sistem, oyuncuya küçük miktarlarda para <span class=\"vurgu-tehlike\">kaybettirmeye</span> başlar; ancak zaman zaman kazanmasını sağlayarak umudu canlı tutar. Oyuncunun totem, bahis oynama tekniğini değiştirme vb. davranış değişiklikleri karşılığında <span class=\"vurgu-kazanc\">küçük miktarlarda kazandırır</span>.<br>Sistemin tek gayesi <span class=\"vurgu-tehlike\">oyuncuyu masada tutmak</span>tır.",
+      kafa: "Oyuncu, \"<span class=\"vurgu-carpitma\">Hala artıdayım. Kendimi kontrol edebiliyorum, istediğim zaman oyunu bırakabilirim</span>. Ne zaman bahis yapacağımı biliyorum, belli bir düzen var, <span class=\"vurgu-carpitma\">ben bu oyunu çözdüm</span>.\" diye düşünür. Sistemin manipülasyonlarını kendi başarısı olarak algılar. Rastgele olaylarda bir <span class=\"vurgu-carpitma\">düzen görme yanılgısı</span>na kapılır. Gerçekte hiçbir etkisi olmasa da bahsi değiştirerek totem yapmak ona <span class=\"vurgu-carpitma\">kontrol hissi</span> verir.",
+      rozetler: [{text:"Geri ödeme: %~200",tip:"good"},{text:"Tavan: bahsin 3.5×'i",tip:"good"},{text:"Şans: yüksek",tip:"warn"}],
+      bakiyeRengi: "kazanc", bakiyeBaglam: "Hâlâ kazançta gibi ama gerçekte kayıp başladı." },
+    { isim: "Kaybettiklerimi Geri Kazanabilirim",
+      arka: "Bu aşamada <span class=\"vurgu-tehlike\">ilk ciddi kayıplar</span> başlar. Oyuncu “<span class=\"vurgu-carpitma\">Bahis miktarını artırırsam, kayıplarımı daha hızlı telafi edebilirim</span>” yanılgısıyla bahis miktarını artırır. Aslında bu sistemin hedeflediği davranıştır. Çünkü bahis miktarı arttıkça <span class=\"vurgu-tehlike\">kayıplarda artacaktır</span>.",
+      kafa: "Oyuncu, \"<span class=\"vurgu-carpitma\">Kaybettiklerimi geri kazanırsam, bir daha oynamayacağım</span>\" düşüncesi ile hareket eder. Yüksek miktarlarda bahis oynayarak <span class=\"vurgu-tehlike\">daha fazla risk alır</span>. Fakat sistem oyuncuya <span class=\"vurgu-tehlike\">hiç bir zaman kaybettiğini geri vermez</span>.",
+      rozetler: [{text:"Geri ödeme: %~75",tip:"warn"},{text:"Tavan: bahsin 1×'i",tip:"warn"},{text:"Şans: dengeli",tip:"warn"}],
+      bakiyeRengi: "kayip", bakiyeBaglam: "Telafi etmek için bahis 2 katına çıkacak — kayıp da öyle." },
+    { isim: "Şansın Döndü",
+      arka: "Bu aşamada kayıplar artmaya başlar. Sistem oyuncunun “<span class=\"vurgu-carpitma\">Neredeyse kazanıyordum</span>.” şeklinde düşünmesini sağlar. Zaman zaman oyuncunun <span class=\"vurgu-kazanc\">büyük miktarda kazanmasını</span> sağlar ve oyuncuyu heyecanlandırır. Böylece oyuncu geçmiş kayıpları unutarak artık <span class=\"vurgu-carpitma\">şansının geri döndüğüne inanır</span>.",
+      kafa: "Oyuncu, \"<span class=\"vurgu-carpitma\">Neredeyse kazanıyordum</span>.\" düşüncesi ile kendini <span class=\"vurgu-carpitma\">kazanmaya yakın</span> hisseder. Büyük bir kazanç elde ettiğinde \"<span class=\"vurgu-carpitma\">Oldu bu iş, şansım döndü</span>.\" algısı pekişir. Bunun ardından gelen kayıpları görmezden gelir.",
+      rozetler: [{text:"Geri ödeme: %~40",tip:"kayip"},{text:"Tavan: bahsin 0.6×'i",tip:"kayip"},{text:"Şans: düşük",tip:"warn"}],
+      bakiyeRengi: "kayip", bakiyeBaglam: "Kayıp dakikada hızlandı. Oyuncu fark etmiyor." },
+    { isim: "Sonunu Düşünen Kahraman Olamaz",
+      arka: "Sistem, oyuncunun artık <span class=\"vurgu-carpitma\">mantığını bir kenara bıraktığını</span> bilir. Oyuncu sağlıklı düşünemez, bilinçli karar alma becerisi ortadan kalkar ve artık <span class=\"vurgu-tehlike\">yalnızca dürtüleri</span> ile hareket etmeye başlar. Zaman zaman kazanması nedeniyle zafer sarhoşu olan yaşayan oyuncuya sistem <span class=\"vurgu-tehlike\">“şanslı saat, altın zaman vb.” gibi tekliflerle tuzak</span> kurarak oyuncunun <span class=\"vurgu-tehlike\">tüm parasını almayı</span> amaçlar.",
+      kafa: "Oyuncu, geçmişteki kayıpları görmezden gelir. Çok şanslı olduğuna inanarak <span class=\"vurgu-tehlike\">büyük riskler alır</span>. \"<span class=\"vurgu-carpitma\">Oyun bana yeterince kaybettirdi. Artık büyük kazanç elde edeceğim</span>.\" düşüncesi ile <span class=\"vurgu-tehlike\">bakiyesini tüketmeye</span> devam eder.",
+      rozetler: [{text:"Geri ödeme: %~20",tip:"kayip"},{text:"Tavan: bahsin 0.4×'i",tip:"kayip"},{text:"Şans: minimal",tip:"kayip"}],
+      bakiyeRengi: "kayip", bakiyeBaglam: "Toplam kayıp birikiyor. Oyuncu hâlâ duramıyor." },
+    { isim: "Başka Bir Yerden Para Bulmalıyım",
+      arka: "Tüm parasını kaybeden oyuncu farklı yerlerden para arayışına girer. Sistem, oyuncuyu <span class=\"vurgu-tehlike\">kredi kartıyla</span> bakiye satın almaya yönlendirir. Oyuncu <span class=\"vurgu-tehlike\">yalan söyleme, borçlanma, suça karışmak</span> suretiyle para bularak sisteme aktarır.",
+      kafa: "Oyuncu, yaşamış olduğu kayıplardan sonra <span class=\"vurgu-tehlike\">çaresiz kalır</span> ve kendisi için <span class=\"vurgu-carpitma\">tek çıkış yolunun bankalardan kredi çekmek</span> olduğunu düşünür.",
+      rozetler: [{text:"Geri ödeme: %~15",tip:"kayip"},{text:"Tavan: bahsin 0.3×'i",tip:"kayip"},{text:"Şans: tükenmiş",tip:"kayip"}],
+      bakiyeRengi: "kayip", bakiyeBaglam: "Kart limitine bonus eklendi. Borç başladı." },
+    { isim: "Tükeniş",
+      arka: "Bu aşamada oyuncu ne yaparsa yapsın <span class=\"vurgu-tehlike\">kazanç elde edemez</span>. Oyuncu <span class=\"vurgu-tehlike\">tüm parasını kaybetmiştir</span>. Sosyal ilişkilerinde insanların güvenini kaybetmiştir. Oyuncu sistem tarafından <span class=\"vurgu-tehlike\">bağımlı hale getirilmiştir</span>. Oyuncu bu noktadan sonra duygularını kontrol edemez.",
+      kafa: "Oyuncu, bankalardan kullandığı krediyi ve çevresinden aldığı borç paraların <span class=\"vurgu-tehlike\">tamamını sanal kumarda kaybeder</span>. \"<span class=\"vurgu-carpitma\">Ben nasıl bu hale geldim? Aileme ne diyeceğim?</span>\" diye çaresizlik içinde düşünür.",
+      rozetler: [{text:"Geri ödeme: %~5",tip:"kayip"},{text:"Tavan: bahsin 0.1×'i",tip:"kayip"},{text:"Şans: yok",tip:"kayip"}],
+      bakiyeRengi: "kayip", bakiyeBaglam: "Bu, ortalama bir maaşın katlarına ulaştı." }
+  ];
+  var aktifAsama = 0, aktifSpin = 0, SPIN_PER_ASAMA = 10, bakiyeNet = 0, toplamSpin = 0;
+  // Aşama spin eşiği (Unity → JSON state.hedefSpin). Aşama 7 = 999 (dinamik tükeniş), görsel max 10.
+  var ASAMA_SPIN_HEDEF = [8, 8, 8, 5, 4, 5, 999]; // Faz 35.50: A1=8, A2=8 motor _asamaSpinSayisi ile senkronlandı
+  var hedefSpin = 8;
+  var ASAMA7_GORSEL_MAX = 10;
+  var spinNetleri = []; // mevcut aşamadaki spin başına net (+/-) TL
+
+  function bildirBoyut() {
+    var root = document.getElementById('anlaticiRoot'); if (!root) return;
+    var h = root.getBoundingClientRect().height;
+    try { window.parent.postMessage({source:'anlaticiHtml', type:'resize', height: Math.ceil(h)}, '*'); } catch(e) {}
+  }
+
+  function formatTL(n) {
+    var sign = n < 0 ? '−' : (n > 0 ? '+' : '');
+    return sign + Math.abs(Math.round(n)).toLocaleString('tr-TR') + ' TL';
+  }
+
+  function render() {
+    var a = ASAMALAR[aktifAsama]; if (!a) return;
+    // FAZ35.17: "+2 offset" Tutorial=1 varsayımı, senaryo 2'den başlar.
+    // Aşama adı Türkçe uppercase (ı→I, i→İ için tr-TR locale şart; default toUpperCase yanlış sonuç verir).
+    document.getElementById('asamaNum').textContent = (aktifAsama + 2) + '. AŞAMA';
+    document.getElementById('asamaBaslik').textContent = a.isim.toLocaleUpperCase('tr-TR');
+    document.getElementById('arkaText').innerHTML = a.arka;
+    document.getElementById('kafaText').innerHTML = a.kafa;
+    // FAZ35.128: bilimNot render satırı kaldırıldı (alan + DOM element + render üçü beraber temizlendi).
+    // Rozetler bölümü kaldırıldı (panel kompakt akışı için).
+    // hedefSpin lokal aktif aşamadan array ile (manuel atla'da Unity onayını beklemez). Aşama 7 (999) → görsel max 10 çubuk.
+    var asamaIdx = Math.max(0, Math.min(6, aktifAsama));
+    var asamaHedef = ASAMA_SPIN_HEDEF[asamaIdx] || 10;
+    var gorselHedef = asamaHedef > 20 ? ASAMA7_GORSEL_MAX : asamaHedef;
+    var sayacText = (asamaHedef > 20) ? (aktifSpin + ' / ∞') : (aktifSpin + ' / ' + asamaHedef);
+    document.getElementById('spinSayac').textContent = sayacText;
+    var barHtml = '';
+    for (var i = 0; i < gorselHedef; i++) {
+      var segCls = 'spin-seg', segTip = '';
+      if (i < spinNetleri.length) {
+        var net = spinNetleri[i];
+        if (net > 0)      { segCls += ' kazanc'; segTip = ' data-tooltip="+' + net.toLocaleString('tr-TR') + ' TL"'; }
+        else if (net < 0) { segCls += ' kayip';  segTip = ' data-tooltip="' + net.toLocaleString('tr-TR') + ' TL"'; }
+        else              { segCls += ' notr';   segTip = ' data-tooltip="0 TL (başa baş)"'; }
+      }
+      barHtml += '<div class="' + segCls + '"' + segTip + '></div>';
+    }
+    document.getElementById('spinBar').innerHTML = barHtml;
+    var kalan = Math.max(0, asamaHedef - aktifSpin);
+    var spinInfo = document.getElementById('spinInfo');
+    if (aktifAsama === 5) {
+      // A6 = "Borca sürüklenme" aşaması — spin sayacı pedagojik olarak yanıltıcı, statik uyarı göster
+      spinInfo.textContent = 'Borç aldın, daha büyük kayıp geliyor…';
+      spinInfo.style.color = '#EF4444';
+    } else if (aktifAsama < 6) {
+      spinInfo.textContent = kalan + ' spin sonra aşama ' + (aktifAsama+2) + ' başlayacak';
+      spinInfo.style.color = '';
+    } else {
+      spinInfo.textContent = asamaHedef > 20 ? 'Bakiye tükenince simülasyon biter' : kalan + ' spin sonra simülasyon biter';
+      spinInfo.style.color = '';
+    }
+    // Hikaye akışı (7 nokta) bölümü kaldırıldı (panel kompakt akışı için).
+    var bb = document.getElementById('bakiyeBolum');
+    var bn = document.getElementById('bakiyeNet');
+    // Bakiye renk MANTIGI gerçeklikten gelir (aşama profilinden bağımsız)
+    var renkSinif, bgSinif = '';
+    if (bakiyeNet < 0) { renkSinif = 'kayip'; }
+    else if (bakiyeNet > 0) { renkSinif = 'kazanc'; bgSinif = ' bakiye-bg-iyi'; }
+    else { renkSinif = 'notr'; }
+    bn.className = 'bakiye-net ' + renkSinif;
+    bb.className = 'bakiye' + bgSinif;
+    bn.textContent = formatTL(bakiyeNet);
+    // Tek satır kompakt format: "10 spin · net durum:" + bakiyeNet
+    document.getElementById('bakiyePrefix').textContent = toplamSpin + ' spin · net durum:';
+    setTimeout(bildirBoyut, 50);
+  }
+
+  function unityeGonder(key, value) {
+    try { window.parent.postMessage({source:'yoneticiPanel', key:key, value:value}, '*'); } catch(e) {}
+  }
+
+  function onceki() { if (aktifAsama > 0) { aktifAsama--; aktifSpin = 0; spinNetleri = []; unityeGonder('anlaticiAsamaDegis', aktifAsama); render(); } }
+  function sonraki() { if (aktifAsama < 6) { aktifAsama++; aktifSpin = 0; spinNetleri = []; unityeGonder('anlaticiAsamaDegis', aktifAsama); render(); } }
+  function atla(idx) { if (idx >= 0 && idx < 7) { aktifAsama = idx; aktifSpin = 0; spinNetleri = []; unityeGonder('anlaticiAsamaDegis', aktifAsama); render(); } }
+  function yenidenBaslat() {
+    aktifAsama = 0; aktifSpin = 0; bakiyeNet = 0; toplamSpin = 0; spinNetleri = [];
+    document.getElementById('tukenisOverlay').classList.remove('aktif');
+    unityeGonder('anlaticiYenidenBaslat', true); render();
+  }
+  function tukenisGoster() {
+    document.getElementById('tukenisRakam').textContent = formatTL(bakiyeNet);
+    var spinSayi = toplamSpin || 0;
+    var dakika = Math.max(1, Math.ceil(spinSayi)); // ~1 spin / dakika
+    var spinDakikaEl = document.getElementById('tukenisSpinDakika');
+    if (spinDakikaEl) spinDakikaEl.textContent = spinSayi + ' spin · yaklaşık ' + dakika + ' dakika';
+    document.getElementById('tukenisOverlay').classList.add('aktif');
+    setTimeout(bildirBoyut, 100);
+  }
+
+  window.addEventListener('message', function(e) {
+    var d = e.data; if (!d) return;
+    if (d.source === 'unityToAnlatici') {
+      if (typeof d.asama === 'number' && d.asama >= 0 && d.asama < 7) aktifAsama = d.asama;
+      if (typeof d.spin === 'number') aktifSpin = d.spin;
+      if (typeof d.hedefSpin === 'number' && d.hedefSpin > 0) hedefSpin = d.hedefSpin;
+      if (typeof d.bakiyeNet === 'number') bakiyeNet = d.bakiyeNet;
+      if (typeof d.toplamSpin === 'number') toplamSpin = d.toplamSpin;
+      if (Array.isArray(d.spinNetleri)) spinNetleri = d.spinNetleri;
+      if (d.tukenisKapat === true) {
+        document.getElementById('tukenisOverlay').classList.remove('aktif');
+      }
+      if (d.tukenis === true) { tukenisGoster(); return; }
+      render();
+    }
+  });
+
+  window.addEventListener('load', function() {
+    render(); bildirBoyut();
+    try { window.parent.postMessage({source:'anlaticiHtml', type:'ready'}, '*'); } catch(e) {}
+  });
+
+  if (typeof ResizeObserver !== 'undefined') {
+    var ro = new ResizeObserver(function() { bildirBoyut(); });
+    setTimeout(function() { var root = document.getElementById('anlaticiRoot'); if (root) ro.observe(root); }, 100);
+  }
+
+  // FAZ35.16: Tüm panel hover-zoom — parent (Unity / PanelBridge.jslib) köprüsüne sinyal.
+  // Mouse panel iç bölgesine girince container width 460→900px (jslib tarafında).
+  // İçeride .panel.hover-zoom class'ı font-size + background vurgusunu tetikler.
+  (function() {
+    var panelEl = document.querySelector('.panel') || document.getElementById('anlaticiRoot');
+    if (!panelEl) return;
+
+    var hoverAktif = false;
+    function hoverBaslat() {
+      if (hoverAktif) return;
+      hoverAktif = true;
+      panelEl.classList.add('hover-zoom');
+      try {
+        window.parent.postMessage({ source: 'anlaticiHtml', type: 'hoverZoom', aktif: true }, '*');
+      } catch (e) { console.warn('[anlatici] hoverZoom postMessage hata:', e); }
+    }
+    function hoverBitir() {
+      if (!hoverAktif) return;
+      hoverAktif = false;
+      panelEl.classList.remove('hover-zoom');
+      try {
+        window.parent.postMessage({ source: 'anlaticiHtml', type: 'hoverZoom', aktif: false }, '*');
+      } catch (e) { console.warn('[anlatici] hoverZoom postMessage hata:', e); }
+    }
+
+    // Dokunmatik cihazda hover yok: panele DOKUNMAK büyüt/küçült arasında geçiş yapar.
+    // (Butonlara — ‹ › oklar, Yeniden Başlat — dokunuş geçiş sayılmaz.)
+    var dokunmatik = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    if (dokunmatik) {
+      panelEl.addEventListener('click', function (e) {
+        if (e.target.closest('button')) return;
+        hoverAktif ? hoverBitir() : hoverBaslat();
+      });
+    } else {
+      panelEl.addEventListener('mouseenter', hoverBaslat);
+      panelEl.addEventListener('mouseleave', hoverBitir);
+    }
+
+    // Aşama değişimi anında hover state'i temizle (içerik değişince mouseleave gecikebilir → state takılır).
+    // render() bu dosyada function declaration — window.render olarak da erişilebilir; defansif kontrol.
+    if (typeof window.render === 'function') {
+      var aslRender = window.render;
+      window.render = function() { hoverBitir(); return aslRender.apply(this, arguments); };
+    }
+  })();
+</script>
+</body>
+</html>
