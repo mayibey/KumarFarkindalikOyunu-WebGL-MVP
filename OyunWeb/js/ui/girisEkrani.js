@@ -14,28 +14,24 @@ export function girisEkraniKur(uygulama, dokular, { onSenaryo, onDevam, onPanel 
   const arka = new PIXI.Sprite(dokular.arkaplan_oyun);
   arka.width = 1920; arka.height = 1080; kok.addChild(arka);
 
-  // --- SOL: altın çerçeveli tahta + canlı slot demo ---
-  const TAHTA_H = 760;
+  // --- SOL: sık grid + tahta SARAR (oyun ekranıyla aynı mantık) ---
+  const gMerkez = { x: 610, y: 500 };
+  const HUCRE = 132, BOSLUK = 9;
+  const gW = 6 * HUCRE + 5 * BOSLUK, gH = 5 * HUCRE + 4 * BOSLUK;
+  const IC_W_ORAN = 0.79, IC_H_ORAN = 0.555;
   const tahta = new PIXI.Sprite(dokular.oyun_tahtasi);
   tahta.anchor.set(0.5);
-  tahta.position.set(600, 500);
-  tahta.scale.set(TAHTA_H / tahta.texture.height);
+  tahta.position.set(gMerkez.x, gMerkez.y);
+  tahta.scale.set((gW / IC_W_ORAN) / tahta.texture.width, (gH / IC_H_ORAN) / tahta.texture.height);
   kok.addChild(tahta);
 
-  const tahtaW = tahta.texture.width * tahta.scale.x;
-  const icX0 = tahta.x - tahtaW / 2 + 0.105 * tahtaW, icX1 = tahta.x - tahtaW / 2 + 0.895 * tahtaW;
-  const icY0 = tahta.y - TAHTA_H / 2 + 0.220 * TAHTA_H, icY1 = tahta.y - TAHTA_H / 2 + 0.775 * TAHTA_H;
-  const icW = icX1 - icX0, icH = icY1 - icY0;
-  const HUCRE = Math.min(icW / 6 * 0.92, (icH - 24) / 5);
-  const bY = (icH - 5 * HUCRE) / 4, bX = (icW - 6 * HUCRE) / 5;
-  const gW = 6 * HUCRE + 5 * bX, gH = 5 * HUCRE + 4 * bY;
-
   const demo = new SlotGorunum(uygulama, dokular, {
-    x: (icX0 + icX1) / 2 - gW / 2, y: (icY0 + icY1) / 2 - gH / 2,
-    hucre: HUCRE, boslukX: bX, boslukY: bY,
+    x: gMerkez.x - gW / 2, y: gMerkez.y - gH / 2,
+    hucre: HUCRE, boslukX: BOSLUK, boslukY: BOSLUK,
   });
   kok.addChild(demo.kok);
-  const maske = new PIXI.Graphics().rect(icX0, icY0, icW, icH).fill(0xffffff);
+  const maske = new PIXI.Graphics()
+    .rect(gMerkez.x - gW / 2 - 4, gMerkez.y - gH / 2 - 4, gW + 8, gH + 8).fill(0xffffff);
   kok.addChild(maske); demo.kok.mask = maske;
 
   const drng = rngYap(20260725);

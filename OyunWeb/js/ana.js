@@ -62,36 +62,30 @@ logo.anchor.set(0.5, 0); logo.position.set(255, 18);
 logo.scale.set(Math.min(430 / logo.texture.width, 1));
 S.addChild(logo);
 
-// --- Oyun tahtası + İÇİNE oturan ızgara ---
-// Ö1+Ö2 (tur2): Unity'de grid dikeyde alanı DOLDURUR, semboller iri. Tahta büyütüldü.
-const TAHTA_H = 880;
+// --- Izgara ÖNCE (sık + iri kare hücre), TAHTA grid'i SARAR (Unity düzeni) ---
+// Kullanıcı: meyveler seyrek olmasın; büyük ve sık, tahta grid'e otursun.
+const gridMerkez = { x: GENISLIK / 2, y: 500 };
+const HUCRE = 148, BOSLUK = 10;                 // sık: boşluk hücrenin ~%7'si
+const gridW = 6 * HUCRE + 5 * BOSLUK, gridH = 5 * HUCRE + 4 * BOSLUK;
+
+// Tahta iç alan oranı (oyun_tahtasi.webp): iç-w ~%79, iç-h ~%55.5. Tahtayı grid'i saracak
+// biçimde NON-UNIFORM ölçekle (grid sık kalır, tahta çerçeve etrafını sarar).
+const IC_W_ORAN = 0.79, IC_H_ORAN = 0.555;
+const tahtaHedefW = gridW / IC_W_ORAN, tahtaHedefH = gridH / IC_H_ORAN;
 const tahta = new PIXI.Sprite(dokular.oyun_tahtasi);
 tahta.anchor.set(0.5);
-tahta.position.set(GENISLIK / 2, 500);
-tahta.scale.set(TAHTA_H / tahta.texture.height);
+tahta.position.set(gridMerkez.x, gridMerkez.y);
+tahta.scale.set(tahtaHedefW / tahta.texture.width, tahtaHedefH / tahta.texture.height);
 S.addChild(tahta);
 
-// Tahta İÇ ALANI (oyun_tahtasi.webp'ten ÖLÇÜLDÜ: x 0.079-0.919, y 0.178-0.814).
-// İç alan + KENAR PAYI: meyveler çerçeveye DEĞMESİN (kullanıcı geri bildirimi).
-const tahtaW = tahta.texture.width * tahta.scale.x;
-const icX0 = tahta.position.x - tahtaW / 2 + 0.105 * tahtaW;
-const icX1 = tahta.position.x - tahtaW / 2 + 0.895 * tahtaW;
-const icY0 = tahta.position.y - TAHTA_H / 2 + 0.220 * TAHTA_H;
-const icY1 = tahta.position.y - TAHTA_H / 2 + 0.775 * TAHTA_H;
-const icW = icX1 - icX0, icH = icY1 - icY0;
-// Hücre DİKEY sınıra göre (semboller iri); 6 sütun iç genişliğe eşit yayılır.
-const HUCRE = Math.min(icW / 6 * 0.92, (icH - 4 * 6) / 5);
-const BOSLUK_Y = (icH - 5 * HUCRE) / 4;
-const BOSLUK_X = (icW - 6 * HUCRE) / 5;
-const gridW = 6 * HUCRE + 5 * BOSLUK_X, gridH = 5 * HUCRE + 4 * BOSLUK_Y;
-
 const slot = new SlotGorunum(uygulama, dokular, {
-  x: (icX0 + icX1) / 2 - gridW / 2, y: (icY0 + icY1) / 2 - gridH / 2,
-  hucre: HUCRE, boslukX: BOSLUK_X, boslukY: BOSLUK_Y,
+  x: gridMerkez.x - gridW / 2, y: gridMerkez.y - gridH / 2,
+  hucre: HUCRE, boslukX: BOSLUK, boslukY: BOSLUK,
 });
 S.addChild(slot.kok);
-// Maske: düşen meyveler tahta iç alanı DIŞINDA görünmesin
-const slotMaske = new PIXI.Graphics().rect(icX0, icY0, icW, icH).fill(0xffffff);
+const slotMaske = new PIXI.Graphics()
+  .rect(gridMerkez.x - gridW / 2 - 4, gridMerkez.y - gridH / 2 - 4, gridW + 8, gridH + 8)
+  .fill(0xffffff);
 S.addChild(slotMaske);
 slot.kok.mask = slotMaske;
 
