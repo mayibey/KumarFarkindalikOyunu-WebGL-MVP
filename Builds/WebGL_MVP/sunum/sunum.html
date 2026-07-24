@@ -956,6 +956,10 @@ function deckOlcekle(){
 }
 
 function oyunAc(){
+  // MOBİL KALICI ÇÖZÜM: sunum + oyun aynı sekmeye sığmıyor (iOS sekme bellek sınırı, defalarca
+  // doğrulandı — oyun tek başına çalışıyor, sunumla birleşince çöküyor). Telefonda oyun ayrı
+  // sekmede tam ekran açılır; ayrı sekme = ayrı bellek bütçesi. Masaüstünde panel aynen kalır.
+  if(MOBIL_CIHAZ){ window.open("../index.html","_blank"); return; }
   if(!oyunFrame.src) oyunFrame.src="../oyun.html";   // ilk açılışta yükle, sonra hep canlı kalsın (oyun.html = sarmalayıcısız oyun; ölçeklemeyi deck yapıyor)
 
   document.body.classList.add("oyunlu");
@@ -972,6 +976,7 @@ function oyunToggle(){ document.body.classList.contains("oyunlu") ? oyunKapa() :
 let _asamaGitSayac=0;
 function oyunAsamaGit(asama){
   if(document.body.classList.contains("duzen")) return; // düzen modunda pasif
+  if(MOBIL_CIHAZ){ oyunAc(); return; } // telefonda oyun ayrı sekmede; aşama köprüsü sekmeler arası çalışmaz
   oyunAc();
   const beklenen=++_asamaGitSayac; // hızlı ardışık tıklamada yalnız son istek işlesin
   let deneme=0;
@@ -994,6 +999,7 @@ function oyunAsamaGit(asama){
    ile çalışır — o metodun bulunmadığı eski oyun build'lerinde sessizce etkisiz kalır. */
 function oyunPanelGit(){
   if(document.body.classList.contains("duzen")) return; // düzen modunda pasif
+  if(MOBIL_CIHAZ){ oyunAc(); return; } // telefonda oyun ayrı sekmede; panel köprüsü sekmeler arası çalışmaz
   oyunAc();
   const beklenen=++_asamaGitSayac; // aşama/panel isteklerinden yalnız sonuncusu işlesin
   let deneme=0;
