@@ -8,7 +8,7 @@
       /* SUNUM_SES_YAKALA: sunum sayfasinin (sunum/) ses dugmesi icin. Unity'nin olusturdugu
          AudioContext'ler listeye alinir; ust pencere suspend/resume ile oyunu susturur.
          Yeni build'lerde SunumKoprusu.SunumSesAyarla da ayni isi Unity icinden yapar; bu blok
-         ani ve garantili susturma icin korunur. */
+         ani ve garantili susturma icin korunur. Build sonrasi bu blok silinirse geri eklenmeli. */
       (function(){
         var L = []; window.__sesBaglamlari = L;
         ["AudioContext","webkitAudioContext"].forEach(function(ad){
