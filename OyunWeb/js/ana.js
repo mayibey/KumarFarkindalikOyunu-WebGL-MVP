@@ -8,6 +8,8 @@ import { senaryoVerisiYukle, scriptedSpinBul, asamaScriptedSpinSayisi, kaydiPlan
 import { egitmenModal } from "./ui/modalDom.js";
 import { anlaticiAc, anlaticiGuncelle, anlaticiKopruKur } from "./kopru/anlaticiKopru.js";
 import { bonusTuzagiPopup, borcPaneli, finalEkrani } from "./ui/senaryoOverlaylar.js";
+import { girisEkraniGoster } from "./ui/girisEkrani.js";
+import { kaydet, yukle } from "./cekirdek/kayit.js";
 import { spinUret } from "./motor/spinMotoru.js";
 import { izgaraDoldur } from "./motor/doldurucu.js";
 import { rngYap } from "./motor/rng.js";
@@ -276,6 +278,7 @@ async function spinYap() {
     }
     anlaticiDurumGonder();
     metinleriGuncelle();
+    senaryoKaydet();
 
     // A7 tükeniş: son aşamada bakiye tükendiyse final cutscene
     if (senaryo.asama >= 6 && bakiye < bahis) {
@@ -303,8 +306,37 @@ async function bonusAkisiOynat() {
 const bekleKisa = (ms) => new Promise((r) => setTimeout(r, ms));
 spinBtn.on("pointertap", spinYap);
 
-// ?senaryo parametresiyle doğrudan senaryo modunda başla
-if (location.search.indexOf("senaryo") >= 0) senaryoBaslat(0);
-
 slot.gridGoster(izgaraDoldur(rng, {}));
-console.log("[F4] Unity düzenli ekran hazır");
+
+// Otomatik kaydet yardımı (senaryo modunda spin/aşama sonrası)
+function senaryoKaydet() {
+  if (!senaryo.aktif) return;
+  kaydet({ kullaniciAdi: senaryo.kullaniciAdi, asama: senaryo.asama, spin: senaryo.spin,
+           toplamSpin: senaryo.toplamSpin, bakiye, borcAlindi: senaryo.borcAlindi,
+           toplamYatirim: senaryo.toplamYatirim });
+}
+
+function senaryoDevamEt(k) {
+  senaryo.kullaniciAdi = k?.kullaniciAdi || "Misafir";
+  bakiye = k?.sonBakiye ?? EKONOMI.baslangicBakiye;
+  senaryo.toplamSpin = k?.toplamSpin ?? 0;
+  senaryo.borcAlindi = k?.borcAlindi ?? false;
+  senaryo.toplamYatirim = k?.toplamYatirim ?? 0;
+  senaryoBaslat(k?.aktifAsama ?? 0);
+  senaryo.spin = k?.aktifSpin ?? 1;
+  anlaticiDurumGonder(); metinleriGuncelle();
+}
+
+// --- Açılış akışı ---
+if (location.search.indexOf("senaryo") >= 0) {
+  senaryo.kullaniciAdi = "Misafir"; senaryoBaslat(0);
+} else if (location.search.indexOf("panel") >= 0) {
+  console.log("[F6] panel modu — sıradaki dilim");
+} else {
+  girisEkraniGoster({
+    onSenaryo: (ad) => { senaryo.kullaniciAdi = ad; senaryoBaslat(0); },
+    onDevam: (k) => senaryoDevamEt(k),
+    onPanel: () => window.unityInstance.SendMessage("SunumKoprusu", "SunumPanelGit", 0),
+  });
+}
+console.log("[F5] açılış akışı hazır");
