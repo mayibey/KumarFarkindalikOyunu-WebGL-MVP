@@ -9,6 +9,22 @@
          AudioContext'ler listeye alinir; ust pencere suspend/resume ile oyunu susturur.
          Yeni build'lerde SunumKoprusu.SunumSesAyarla da ayni isi Unity icinden yapar; bu blok
          ani ve garantili susturma icin korunur. Build sonrasi bu blok silinirse geri eklenmeli. */
+      /* MOBIL_HATA_AVCISI: adrese ?debug eklenirse ekranda konsol acilir (eruda) —
+         telefonda cokme/hata aninda gercek sebebi gosterir. Normal kullanimda pasif. */
+      window.__hatalar = [];
+      window.addEventListener('error', function(e){
+        try { window.__hatalar.push((e.message||'?') + ' @' + (e.filename||'') + ':' + (e.lineno||'')); } catch(_){}
+      });
+      if (location.search.indexOf('debug') >= 0) {
+        var _dbg = document.createElement('script');
+        _dbg.src = 'https://cdn.jsdelivr.net/npm/eruda@3/eruda.min.js';
+        _dbg.onload = function(){
+          eruda.init();
+          console.log('[debug] konsol hazir; onceki hatalar:', window.__hatalar);
+        };
+        document.head.appendChild(_dbg);
+      }
+
       /* PINCH_KILIT: iOS'ta iki parmak yakinlastirma bellegi patlatip sekmeyi cokertiyor. */
       (function(){
         ['gesturestart','gesturechange','gestureend'].forEach(function(t){
