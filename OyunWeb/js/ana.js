@@ -7,13 +7,16 @@ import { spinUret } from "./motor/spinMotoru.js";
 import { izgaraDoldur } from "./motor/doldurucu.js";
 import { rngYap } from "./motor/rng.js";
 import { SlotGorunum } from "./ui/slotGorunum.js";
+import { WinFeedback } from "./ui/winFeedback.js";
+import { sesYukle, sesCal, sesKilidiKur, anaSes } from "./cekirdek/ses.js";
 
 shimKur();
 kopruKaydet("SunumKoprusu", {
   SunumAsamaGit: (n) => console.log("[F4] SunumAsamaGit", n, "— F5'te bağlanacak"),
   SunumPanelGit: () => console.log("[F4] SunumPanelGit — F6'da bağlanacak"),
-  SunumSesAyarla: (a) => console.log("[F4] SunumSesAyarla", a),
+  SunumSesAyarla: (a) => anaSes(a === 1 ? 1 : 0), // AudioListener.volume karşılığı
 });
+sesKilidiKur();
 
 await sahneKur();
 
@@ -22,11 +25,23 @@ const font = new FontFace("LilitaOne", "url(varlik/font/LilitaOne-Regular.ttf)")
 await font.load(); document.fonts.add(font);
 
 // --- Varlık yükleme ---
-const dokuAdlari = [...SEMBOLLER, "arkaplan_oyun", "oyun_tahtasi", "btn_spin", "logo_kumar_yazisi"];
+const dokuAdlari = [...SEMBOLLER, "arkaplan_oyun", "oyun_tahtasi", "btn_spin",
+  "logo_kumar_yazisi", "btn_bahis_artir", "btn_bahis_azalt"];
 const dokular = {};
 await Promise.all(dokuAdlari.map(async (ad) => {
   dokular[ad] = await PIXI.Assets.load(`varlik/gorsel/${ad}.webp`);
 }));
+await Promise.all([
+  sesYukle("tumble_pop", "varlik/ses/tumble_pop.mp3"),
+  sesYukle("alkis", "varlik/ses/alkis.mp3"),
+  sesYukle("sayac_tik", "varlik/ses/sayac_tik.mp3"),
+  sesYukle("kayip_horn", "varlik/ses/kayip_horn.mp3"),
+  sesYukle("fon", "varlik/ses/fon_muzigi.mp3"),
+]);
+let fonBasladi = false;
+document.addEventListener("pointerdown", () => {
+  if (!fonBasladi) { fonBasladi = true; setTimeout(() => sesCal("fon", { ses: 0.25, dongu: true }), 300); }
+}, { once: true });
 
 // --- Sahne kurulumu ---
 const S = uygulama.stage;
@@ -39,13 +54,13 @@ logo.anchor.set(0.5, 0); logo.position.set(250, 20);
 logo.scale.set(Math.min(420 / logo.texture.width, 1));
 S.addChild(logo);
 
-// Oyun tahtası (çerçeve) — merkez
-const HUCRE = 132, BOSLUK = 10;
+// Oyun tahtası (çerçeve) — merkez; grid çerçevenin İÇİNE oturur
+const HUCRE = 118, BOSLUK = 10;
 const gridW = 6 * HUCRE + 5 * BOSLUK, gridH = 5 * HUCRE + 4 * BOSLUK;
 const tahta = new PIXI.Sprite(dokular.oyun_tahtasi);
 tahta.anchor.set(0.5);
 tahta.position.set(GENISLIK / 2, YUKSEKLIK / 2 - 40);
-const tahtaOlcek = Math.max((gridW + 150) / tahta.texture.width, (gridH + 150) / tahta.texture.height);
+const tahtaOlcek = Math.max((gridW + 190) / tahta.texture.width, (gridH + 190) / tahta.texture.height);
 tahta.scale.set(tahtaOlcek);
 S.addChild(tahta);
 
@@ -83,6 +98,29 @@ spinBtn.scale.set(Math.min(130 / spinBtn.texture.height, 1));
 spinBtn.eventMode = "static"; spinBtn.cursor = "pointer";
 S.addChild(spinBtn);
 
+// --- Bahis +/- butonları ---
+const BAHISLER = [50, 100, 200, 300, 500, 1000, 1500, 2500, 4000];
+function bahisBtnYap(doku, dx, yon) {
+  const b = new PIXI.Sprite(doku);
+  b.anchor.set(0.5);
+  b.position.set(GENISLIK / 2 + dx, YUKSEKLIK - 70);
+  b.scale.set(Math.min(84 / b.texture.height, 1));
+  b.eventMode = "static"; b.cursor = "pointer";
+  b.on("pointertap", () => {
+    if (spinAktif) return;
+    const i = BAHISLER.indexOf(bahis);
+    const yeni = BAHISLER[Math.min(BAHISLER.length - 1, Math.max(0, i + yon))];
+    bahis = yeni; metinleriGuncelle();
+  });
+  S.addChild(b);
+  return b;
+}
+bahisBtnYap(dokular.btn_bahis_azalt, -160, -1);
+bahisBtnYap(dokular.btn_bahis_artir, 160, +1);
+
+const wf = new WinFeedback(uygulama);
+S.addChild(wf.kok); // en üstte
+
 const ayar = { egilimYuzde: MODLAR.normal.egilim, minKat: 0, maksKat: 0,
                aktifSenaryo: "normal", zorluk: 6, maxReroll: 200 };
 
@@ -94,11 +132,15 @@ async function spinYap() {
   const sonuc = spinUret(bahis, ayar, rng);
   slot.gridGoster(sonuc.baslangicGrid);
   for (const adim of sonuc.adimlar) {
+    sesCal("tumble_pop", { ses: 0.6, pitchRasgele: true });
     await slot.tumbleAdimiOynat(adim);
     kazancSon += adim.kazanc; metinleriGuncelle();
   }
   bakiye += sonuc.nihai;
   kazancSon = sonuc.nihai; metinleriGuncelle();
+  if (sonuc.nihai >= bahis * 2) await wf.goster(sonuc.nihai, bahis);
+  else if (sonuc.nihai === 0 && sonuc.adimlar.length === 0 && Math.random() < 0.15)
+    sesCal("kayip_horn", { ses: 0.3 });
   spinAktif = false; spinBtn.alpha = 1;
 }
 spinBtn.on("pointertap", spinYap);
