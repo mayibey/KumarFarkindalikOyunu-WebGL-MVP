@@ -2,7 +2,9 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Sabit 1920 sanal genişlik: telefonlar sayfayı masaüstü düzeninde kurup ekrana sığdırır
+     (device-width ile dikey telefonda düzen dağılıyordu); masaüstünü etkilemez. -->
+<meta name="viewport" content="width=1920">
 <title>Sanal Kumar Bağımlılığı — Bilinçlendirme Sunumu</title>
 <style>
   :root{
@@ -981,8 +983,11 @@ function oyunPanelGit(){
 }
 
 /* Oyunu sayfa açılışında arka planda yüklemeye başla: panel ilk kez açıldığında
-   Unity çoktan hazır olur, "yavaş açılıyor" hissi kalmaz (iframe görünmezken de yüklenir). */
-window.addEventListener("load",()=>{ setTimeout(()=>{ if(!oyunFrame.src) oyunFrame.src="../oyun.html"; },1200); });
+   Unity çoktan hazır olur, "yavaş açılıyor" hissi kalmaz (iframe görünmezken de yüklenir).
+   MOBİLDE YAPILMAZ: telefon tarayıcısının bellek sınırı, arka planda yüklenen oyunla
+   birleşince sekmeyi çökertiyor — telefonda oyun ancak 🎮 ile istenirse yüklenir. */
+const MOBIL_CIHAZ = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+window.addEventListener("load",()=>{ if(MOBIL_CIHAZ) return; setTimeout(()=>{ if(!oyunFrame.src) oyunFrame.src="../oyun.html"; },1200); });
 
 /* ---- Oyun sesi yönetimi ----
    🔊 düğmesi kullanıcının tercihi; videolu slaytlar açıkken oyun sesi otomatik susturulur
