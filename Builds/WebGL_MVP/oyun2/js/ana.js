@@ -5,7 +5,7 @@ import { sahneKur, uygulama, GENISLIK, YUKSEKLIK } from "./cekirdek/sahne.js";
 import { shimKur, kopruKaydet } from "./kopru/sendMessageShim.js";
 import { SEMBOLLER, EKONOMI, MODLAR, ASAMALAR } from "../veri/sabitler.js";
 import { senaryoVerisiYukle, scriptedSpinBul, asamaScriptedSpinSayisi, kaydiPlanla } from "./motor/scriptedOynatici.js";
-import { egitmenModal } from "./ui/modalDom.js";
+import { egitmenModal, karsilamaModallari } from "./ui/modalDom.js";
 import { anlaticiAc, anlaticiGuncelle, anlaticiKopruKur } from "./kopru/anlaticiKopru.js";
 import { bonusTuzagiPopup, borcPaneli, finalEkrani } from "./ui/senaryoOverlaylar.js";
 import { girisEkraniGoster } from "./ui/girisEkrani.js";
@@ -184,7 +184,7 @@ function anlaticiDurumGonder(ek = {}) {
   });
 }
 
-function senaryoBaslat(asamaIdx) {
+async function senaryoBaslat(asamaIdx, karsilama = false) {
   senaryo.aktif = true;
   senaryo.asama = asamaIdx;
   senaryo.spin = 1;
@@ -194,6 +194,8 @@ function senaryoBaslat(asamaIdx) {
   metinleriGuncelle();
   anlaticiAc();
   anlaticiDurumGonder();
+  // Baştan başlarken (aşama 0, karşılama isteniyorsa) 3 tanıtım modalı
+  if (karsilama && asamaIdx === 0) await karsilamaModallari();
   console.log(`[F5] senaryo aşama ${asamaIdx + 1} başladı (bahis ${bahis})`);
 }
 
@@ -340,12 +342,12 @@ function senaryoDevamEt(k) {
 
 // --- Açılış akışı ---
 if (location.search.indexOf("senaryo") >= 0) {
-  senaryo.kullaniciAdi = "Misafir"; senaryoBaslat(0);
+  senaryo.kullaniciAdi = "Misafir"; senaryoBaslat(0, true);
 } else if (location.search.indexOf("panel") >= 0) {
   panelModunaGec();
 } else {
   girisEkraniGoster({
-    onSenaryo: (ad) => { senaryo.kullaniciAdi = ad; senaryoBaslat(0); },
+    onSenaryo: (ad) => { senaryo.kullaniciAdi = ad; senaryoBaslat(0, true); },
     onDevam: (k) => senaryoDevamEt(k),
     onPanel: () => window.unityInstance.SendMessage("SunumKoprusu", "SunumPanelGit", 0),
   });
