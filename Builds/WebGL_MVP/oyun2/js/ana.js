@@ -26,7 +26,7 @@ await font.load(); document.fonts.add(font);
 
 const dokuAdlari = [...SEMBOLLER, "arkaplan_oyun", "oyun_tahtasi", "btn_spin",
   "logo_kumar_yazisi", "btn_bahis_artir", "btn_bahis_azalt", "btn_ayarlar",
-  "etiket_bakiye", "etiket_bahis", "etiket_kazanc_label"];
+  "etiket_bakiye", "etiket_bahis", "etiket_kazanc", "btn_bos_plaka"];
 const dokular = {};
 await Promise.all(dokuAdlari.map(async (ad) => {
   dokular[ad] = await PIXI.Assets.load(`varlik/gorsel/${ad}.webp`);
@@ -55,26 +55,37 @@ logo.anchor.set(0.5, 0); logo.position.set(255, 18);
 logo.scale.set(Math.min(430 / logo.texture.width, 1));
 S.addChild(logo);
 
-// --- Oyun tahtası + İÇİNE oturan ızgara ---
-// Tahta 1536x1024; çerçeve payı: iç alan ~ genişliğin %84'ü, yüksekliğin %74'ü (görsel ölçüm).
-const TAHTA_H = 700;
+// --- Oyun tahtası + İÇİNE oturan ızgara (Unity oranı: tahta geniş, meyveler iri) ---
+const TAHTA_H = 760;
 const tahta = new PIXI.Sprite(dokular.oyun_tahtasi);
 tahta.anchor.set(0.5);
-tahta.position.set(GENISLIK / 2, 470);
+tahta.position.set(GENISLIK / 2, 505);
 tahta.scale.set(TAHTA_H / tahta.texture.height);
 S.addChild(tahta);
 
 const tahtaW = tahta.texture.width * tahta.scale.x;
-const icW = tahtaW * 0.82, icH = TAHTA_H * 0.66;
-const BOSLUK = 8;
+const icW = tahtaW * 0.86, icH = TAHTA_H * 0.64;
+const BOSLUK = 6;
 const HUCRE = Math.min((icW - 5 * BOSLUK) / 6, (icH - 4 * BOSLUK) / 5);
 const gridW = 6 * HUCRE + 5 * BOSLUK, gridH = 5 * HUCRE + 4 * BOSLUK;
 
 const slot = new SlotGorunum(uygulama, dokular, {
-  x: tahta.position.x - gridW / 2, y: tahta.position.y - gridH / 2 + 14,
+  x: tahta.position.x - gridW / 2, y: tahta.position.y - gridH / 2 + 10,
   hucre: HUCRE, bosluk: BOSLUK,
 });
 S.addChild(slot.kok);
+
+// --- Hoş geldin kutusu (Unity: sağ üst, jslib HosgeldinKutusunuAc karşılığı) ---
+const hosPlaka = new PIXI.Sprite(dokular.btn_bos_plaka);
+hosPlaka.anchor.set(0.5);
+hosPlaka.position.set(GENISLIK - 250, 62);
+hosPlaka.scale.set(360 / hosPlaka.texture.width);
+S.addChild(hosPlaka);
+const hosT = new PIXI.Text({ text: "Hoş Geldiniz Misafir", style: {
+  fontFamily: "LilitaOne", fontSize: 30, fill: 0xffe9a0,
+  stroke: { color: 0x3a2200, width: 4 } } });
+hosT.anchor.set(0.5); hosT.position.set(GENISLIK - 250, 62);
+S.addChild(hosT);
 
 // --- Ekonomi durumu ---
 const rng = rngYap((Math.floor(performance.now()) ^ 0x5eed) >>> 0);
@@ -94,7 +105,8 @@ function plaka(doku, x, y, hedefW, yaziBoyut, yaziDy = 0) {
   return t;
 }
 // Plakalarin içinde "BAKİYE:/BAHİS" etiketi BASILI — biz yalnız DEĞERİ yazarız (sağa kaydırık).
-const kazancT = plaka(dokular.etiket_kazanc_label, GENISLIK / 2, 88, 460, 40, 6);
+// KAZANÇ: Unity'deki gibi yatay altın bant (etiket_kazanc), üst-orta.
+const kazancT = plaka(dokular.etiket_kazanc, GENISLIK / 2, 62, 560, 40, 0);
 const bakiyeT = plaka(dokular.etiket_bakiye, 330, YUKSEKLIK - 78, 470, 36, 4);
 bakiyeT.position.x += 70;
 const bahisT = plaka(dokular.etiket_bahis, GENISLIK - 330, YUKSEKLIK - 78, 470, 36, 4);
