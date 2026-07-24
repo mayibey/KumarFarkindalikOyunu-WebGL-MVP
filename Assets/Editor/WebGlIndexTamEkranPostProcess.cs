@@ -13,7 +13,7 @@ public static class WebGlIndexTamEkranPostProcess
 
     static readonly string HeadEklenti = @"
     <!-- " + YamaIsareti + @" -->
-    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0, viewport-fit=cover"">
+    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"">
     <style>
       html, body {
         width: 100%;
@@ -21,6 +21,7 @@ public static class WebGlIndexTamEkranPostProcess
         margin: 0;
         padding: 0;
         overflow: hidden;
+        touch-action: none; /* pinch zoom = iOS bellek cokmesi */
         box-sizing: border-box;
       }
       *, *::before, *::after { box-sizing: inherit; }
