@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Kumar Kazandırmaz</title>
+<style>
+  html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000;touch-action:none;}
+  /* Sahne: mantıksal 1920x1080; pencereye oranlı sığdırılır (letterbox).
+     Sunum iframe'i pencereyi zaten 1920x1080 verir → ölçek 1, birebir. */
+  #sahne{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform-origin:center center;}
+  #yukleniyor{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    color:#d4a24a;font-family:sans-serif;font-size:28px;letter-spacing:.2em;}
+</style>
+<script>
+  /* SUNUM_SES_YAKALA: sunumun ses dugmesi AudioContext'leri suspend/resume eder. */
+  (function(){
+    var L=[]; window.__sesBaglamlari=L;
+    ["AudioContext","webkitAudioContext"].forEach(function(ad){
+      var Orj=window[ad]; if(!Orj) return;
+      var Sarma=function(){ var c=new (Orj.bind.apply(Orj,[null].concat([].slice.call(arguments))))(); L.push(c); return c; };
+      Sarma.prototype=Orj.prototype; window[ad]=Sarma;
+    });
+  })();
+  /* MOBIL_HATA_AVCISI: ?debug ile ekranda konsol. */
+  window.__hatalar=[];
+  window.addEventListener('error',function(e){ try{ window.__hatalar.push((e.message||'?')+' @'+(e.filename||'')+':'+(e.lineno||'')); }catch(_){} });
+  if(location.search.indexOf('debug')>=0){
+    var _d=document.createElement('script');
+    _d.src='https://cdn.jsdelivr.net/npm/eruda@3/eruda.min.js';
+    _d.onload=function(){ eruda.init(); console.log('[debug] konsol hazir; hatalar:', window.__hatalar); };
+    document.head.appendChild(_d);
+  }
+  /* PINCH_KILIT: tarayici pinch'i iOS bellegini patlatir — kapali; OYUN_ZOOM asagida. */
+  (function(){
+    ['gesturestart','gesturechange','gestureend'].forEach(function(t){
+      document.addEventListener(t,function(e){ e.preventDefault(); },{passive:false});
+    });
+    document.addEventListener('touchmove',function(e){ if(e.touches&&e.touches.length>1) e.preventDefault(); },{passive:false});
+  })();
+</script>
+</head>
+<body>
+<div id="sahne"><div id="yukleniyor">YÜKLENİYOR…</div></div>
+<script src="vendor/pixi.min.js"></script>
+<script type="module" src="js/ana.js"></script>
+</body>
+</html>
