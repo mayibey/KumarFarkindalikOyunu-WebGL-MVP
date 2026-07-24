@@ -65,17 +65,18 @@ logo.anchor.set(0.5, 0); logo.position.set(255, 18);
 logo.scale.set(Math.min(430 / logo.texture.width, 1));
 S.addChild(logo);
 
-// --- Oyun tahtası + İÇİNE oturan ızgara (Unity oranı: tahta geniş, meyveler iri) ---
-const TAHTA_H = 760;
+// --- Oyun tahtası + İÇİNE oturan ızgara ---
+// Ö1+Ö2 (tur2): Unity'de grid dikeyde alanı DOLDURUR, semboller iri. Tahta büyütüldü.
+const TAHTA_H = 880;
 const tahta = new PIXI.Sprite(dokular.oyun_tahtasi);
 tahta.anchor.set(0.5);
-tahta.position.set(GENISLIK / 2, 505);
+tahta.position.set(GENISLIK / 2, 500);
 tahta.scale.set(TAHTA_H / tahta.texture.height);
 S.addChild(tahta);
 
 const tahtaW = tahta.texture.width * tahta.scale.x;
-const icW = tahtaW * 0.86, icH = TAHTA_H * 0.64;
-const BOSLUK = 6;
+const icW = tahtaW * 0.85, icH = TAHTA_H * 0.72;
+const BOSLUK = 8;
 const HUCRE = Math.min((icW - 5 * BOSLUK) / 6, (icH - 4 * BOSLUK) / 5);
 const gridW = 6 * HUCRE + 5 * BOSLUK, gridH = 5 * HUCRE + 4 * BOSLUK;
 
@@ -92,14 +93,15 @@ const hosKutu = new PIXI.Graphics()
   .stroke({ color: 0xd8a63a, width: 1.5 });
 hosKutu.position.set(GENISLIK - 220, 54);
 S.addChild(hosKutu);
+// Ö4 (tur2): Unity serif ALTIN yazı (beyaz değil), ✕ kutu DIŞINDA sağ üst köşe
 const hosT = new PIXI.Text({ text: "Hoş Geldiniz Misafir", style: {
-  fontFamily: "Georgia, serif", fontSize: 22, fontWeight: "bold", fill: 0xf0f0f0 } });
-hosT.anchor.set(0.5); hosT.position.set(GENISLIK - 232, 54);
+  fontFamily: "Georgia, serif", fontSize: 21, fontWeight: "bold", fill: 0xe8c66a } });
+hosT.anchor.set(0.5); hosT.position.set(GENISLIK - 220, 54);
 S.addChild(hosT);
-// Unity'deki küçük 'x' kapatma ikonu (sağ üst köşe)
+// Unity'deki küçük 'x' kapatma ikonu (kutu dışında sağ üst)
 const hosX = new PIXI.Text({ text: "✕", style: {
-  fontFamily: "Arial", fontSize: 18, fill: 0x9aa4b8 } });
-hosX.anchor.set(0.5); hosX.position.set(GENISLIK - 90, 54);
+  fontFamily: "Arial", fontSize: 17, fill: 0x9aa4b8 } });
+hosX.anchor.set(0.5); hosX.position.set(GENISLIK - 46, 30);
 hosX.eventMode = "static"; hosX.cursor = "pointer";
 hosX.on("pointertap", () => { hosKutu.visible = false; hosT.visible = false; hosX.visible = false; });
 S.addChild(hosX);
@@ -111,15 +113,18 @@ let bakiye = EKONOMI.baslangicBakiye, bahis = 500, kazancSon = 0, spinAktif = fa
 
 // --- Plakalar — Unity BİREBİR (workflow denetim Öncelik 1): DİK DÖRTGEN, koyu bordo
 //     yarı-saydam zemin, ince altın çerçeve, etiket+değer AYNI SATIR tek sarı, karma harf. ---
-function altPlaka(x, y, genislik, yukseklik = 68) {
+// Ö1 (tur2): Unity plakaları YÜKSEK + kalın ÇİFT katmanlı altın çerçeve.
+function altPlaka(x, y, genislik, yukseklik = 84) {
   const g = new PIXI.Graphics()
-    .roundRect(-genislik / 2, -yukseklik / 2, genislik, yukseklik, 8)
-    .fill({ color: 0x2a0d0d, alpha: 0.60 })
-    .stroke({ color: 0xd4a24a, width: 2 });
+    .roundRect(-genislik / 2, -yukseklik / 2, genislik, yukseklik, 11)
+    .fill({ color: 0x2a0d0d, alpha: 0.66 })
+    .stroke({ color: 0xf0c860, width: 3.5 })                        // dış kalın açık altın
+    .roundRect(-genislik / 2 + 6, -yukseklik / 2 + 6, genislik - 12, yukseklik - 12, 8)
+    .stroke({ color: 0x7a5a16, width: 1.5 });                       // iç ince koyu (çift katman)
   g.position.set(x, y);
   S.addChild(g);
   const t = new PIXI.Text({ text: "", style: {
-    fontFamily: "LilitaOne", fontSize: 34, fill: 0xffd94d,
+    fontFamily: "LilitaOne", fontSize: 38, fill: 0xffd94d,
     stroke: { color: 0x2a1800, width: 3 } } });
   t.anchor.set(0.5); t.position.set(x, y);
   S.addChild(t);
@@ -136,8 +141,8 @@ const kazancT = new PIXI.Text({ text: "", style: {
 kazancT.anchor.set(0.5); kazancT.position.set(GENISLIK / 2, 62);
 S.addChild(kazancT);
 
-const bakiyeT = altPlaka(330, YUKSEKLIK - 78, 470);
-const bahisT = altPlaka(GENISLIK - 330, YUKSEKLIK - 78, 470);
+const bakiyeT = altPlaka(340, YUKSEKLIK - 76, 500);
+const bahisT = altPlaka(GENISLIK - 340, YUKSEKLIK - 76, 500);
 
 function metinleriGuncelle() {
   bakiyeT.text = `Bakiye: ${bakiye.toLocaleString("tr-TR")} TL`;
@@ -147,10 +152,11 @@ function metinleriGuncelle() {
 metinleriGuncelle();
 
 // --- Alt-orta: [-] [SPIN] [+] + sağ-alt AYARLAR ---
+// Ö2 (tur2): Unity'de butonlar BÜYÜK, küme kompakt (aralar dar).
 const spinBtn = new PIXI.Sprite(dokular.btn_spin);
 spinBtn.anchor.set(0.5);
-spinBtn.position.set(GENISLIK / 2, YUKSEKLIK - 88);
-spinBtn.scale.set(170 / spinBtn.texture.height);
+spinBtn.position.set(GENISLIK / 2, YUKSEKLIK - 82);
+spinBtn.scale.set(192 / spinBtn.texture.height);
 spinBtn.eventMode = "static"; spinBtn.cursor = "pointer";
 S.addChild(spinBtn);
 
@@ -158,8 +164,8 @@ const BAHISLER = [50, 100, 200, 300, 500, 1000, 1500, 2500, 4000];
 function bahisBtn(doku, dx, yon) {
   const b = new PIXI.Sprite(doku);
   b.anchor.set(0.5);
-  b.position.set(GENISLIK / 2 + dx, YUKSEKLIK - 85);
-  b.scale.set(105 / b.texture.height);
+  b.position.set(GENISLIK / 2 + dx, YUKSEKLIK - 82);
+  b.scale.set(128 / b.texture.height);
   b.eventMode = "static"; b.cursor = "pointer";
   b.on("pointertap", () => {
     if (spinAktif) return;
