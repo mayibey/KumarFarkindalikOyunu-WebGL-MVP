@@ -38,11 +38,18 @@ export function asistanModal(baslik, govdeHtml, sayfa = "") {
       borderRadius: "18px", padding: "26px 34px", color: "#e8ecf5",
       fontSize: "21px", lineHeight: "1.5", cursor: "pointer",
       boxShadow: "0 16px 60px rgba(0,0,0,0.7)" });
+    // Öncelik 3a: sol kenarda altın çerçeveli yuvarlak avatar (Unity birebir)
+    // Öncelik 4: başlık modal metin sütununa göre ORTALANMIŞ (sayfa sayacı sağda)
+    kutu.style.paddingLeft = "96px";
     kutu.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;
-        border-bottom:1px solid rgba(212,162,74,.3);padding-bottom:10px;margin-bottom:16px">
-        <span style="color:#d4a24a;font-weight:700;letter-spacing:2px;font-size:18px">${baslik}</span>
-        <span style="color:#8a94a8;font-size:16px">${sayfa}</span>
+      <img src="varlik/gorsel/egitmen_yuz.webp" style="position:absolute;left:-46px;top:26px;
+        width:88px;height:88px;border-radius:50%;border:3px solid #d4a24a;object-fit:cover;
+        background:#000;box-shadow:0 6px 20px rgba(0,0,0,.6)">
+      <div style="position:relative;border-bottom:1px solid rgba(212,162,74,.3);
+        padding-bottom:10px;margin-bottom:16px">
+        <span style="display:block;text-align:center;color:#d4a24a;font-weight:700;
+          letter-spacing:2px;font-size:18px">${baslik}</span>
+        <span style="position:absolute;right:0;top:0;color:#8a94a8;font-size:16px">${sayfa}</span>
       </div>
       <div>${govdeHtml}</div>
       <div style="margin-top:18px;text-align:right;color:#d4a24a;font-size:16px">▶ devam etmek için tıkla</div>`;

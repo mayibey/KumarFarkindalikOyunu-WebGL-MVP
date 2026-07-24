@@ -6,7 +6,7 @@ import { shimKur, kopruKaydet } from "./kopru/sendMessageShim.js";
 import { SEMBOLLER, EKONOMI, MODLAR, ASAMALAR } from "../veri/sabitler.js";
 import { senaryoVerisiYukle, scriptedSpinBul, asamaScriptedSpinSayisi, kaydiPlanla } from "./motor/scriptedOynatici.js";
 import { egitmenModal, karsilamaModallari } from "./ui/modalDom.js";
-import { anlaticiAc, anlaticiGuncelle, anlaticiKopruKur } from "./kopru/anlaticiKopru.js";
+import { anlaticiAc, anlaticiKapat, anlaticiGuncelle, anlaticiKopruKur } from "./kopru/anlaticiKopru.js";
 import { bonusTuzagiPopup, borcPaneli, finalEkrani } from "./ui/senaryoOverlaylar.js";
 import { girisEkraniGoster } from "./ui/girisEkrani.js";
 import { kaydet, yukle } from "./cekirdek/kayit.js";
@@ -85,46 +85,63 @@ const slot = new SlotGorunum(uygulama, dokular, {
 });
 S.addChild(slot.kok);
 
-// --- Hoş geldin kutusu (Unity birebir: lacivert zemin, ince altın çerçeve, beyaz yazı) ---
+// --- Hoş geldin kutusu (Unity birebir: silik koyu sade kutu, ince çerçeve, küçük punto + x) ---
 const hosKutu = new PIXI.Graphics()
-  .roundRect(-170, -30, 340, 60, 14)
-  .fill(0x0e1a38)
-  .stroke({ color: 0xd8a63a, width: 3 });
-hosKutu.position.set(GENISLIK - 230, 58);
+  .roundRect(-160, -26, 320, 52, 10)
+  .fill({ color: 0x0e1a38, alpha: 0.85 })
+  .stroke({ color: 0xd8a63a, width: 1.5 });
+hosKutu.position.set(GENISLIK - 220, 54);
 S.addChild(hosKutu);
 const hosT = new PIXI.Text({ text: "Hoş Geldiniz Misafir", style: {
-  fontFamily: "Georgia, serif", fontSize: 28, fontWeight: "bold", fill: 0xffffff } });
-hosT.anchor.set(0.5); hosT.position.set(GENISLIK - 230, 58);
+  fontFamily: "Georgia, serif", fontSize: 22, fontWeight: "bold", fill: 0xf0f0f0 } });
+hosT.anchor.set(0.5); hosT.position.set(GENISLIK - 232, 54);
 S.addChild(hosT);
+// Unity'deki küçük 'x' kapatma ikonu (sağ üst köşe)
+const hosX = new PIXI.Text({ text: "✕", style: {
+  fontFamily: "Arial", fontSize: 18, fill: 0x9aa4b8 } });
+hosX.anchor.set(0.5); hosX.position.set(GENISLIK - 90, 54);
+hosX.eventMode = "static"; hosX.cursor = "pointer";
+hosX.on("pointertap", () => { hosKutu.visible = false; hosT.visible = false; hosX.visible = false; });
+S.addChild(hosX);
+function hosGeldinGuncelle() { hosT.text = `Hoş Geldiniz ${senaryo.kullaniciAdi || "Misafir"}`; }
 
 // --- Ekonomi durumu ---
 const rng = rngYap((Math.floor(performance.now()) ^ 0x5eed) >>> 0);
 let bakiye = EKONOMI.baslangicBakiye, bahis = 500, kazancSon = 0, spinAktif = false;
 
-// --- Plakalar (KAZANÇ üst-orta, Bakiye sol-alt, Bahis sağ-alt) ---
-function plaka(doku, x, y, hedefW, yaziBoyut, yaziDy = 0) {
-  const p = new PIXI.Sprite(doku);
-  p.anchor.set(0.5); p.position.set(x, y);
-  p.scale.set(hedefW / p.texture.width);
-  S.addChild(p);
+// --- Plakalar — Unity BİREBİR (workflow denetim Öncelik 1): DİK DÖRTGEN, koyu bordo
+//     yarı-saydam zemin, ince altın çerçeve, etiket+değer AYNI SATIR tek sarı, karma harf. ---
+function altPlaka(x, y, genislik, yukseklik = 68) {
+  const g = new PIXI.Graphics()
+    .roundRect(-genislik / 2, -yukseklik / 2, genislik, yukseklik, 8)
+    .fill({ color: 0x2a0d0d, alpha: 0.60 })
+    .stroke({ color: 0xd4a24a, width: 2 });
+  g.position.set(x, y);
+  S.addChild(g);
   const t = new PIXI.Text({ text: "", style: {
-    fontFamily: "LilitaOne", fontSize: yaziBoyut, fill: 0xffdf4d,
-    stroke: { color: 0x2a1800, width: 5 } } });
-  t.anchor.set(0.5); t.position.set(x, y + yaziDy);
+    fontFamily: "LilitaOne", fontSize: 34, fill: 0xffd94d,
+    stroke: { color: 0x2a1800, width: 3 } } });
+  t.anchor.set(0.5); t.position.set(x, y);
   S.addChild(t);
   return t;
 }
-// Plakalarin içinde "BAKİYE:/BAHİS" etiketi BASILI — biz yalnız DEĞERİ yazarız (sağa kaydırık).
-// KAZANÇ: Unity'deki gibi yatay altın bant (etiket_kazanc), üst-orta.
-const kazancT = plaka(dokular.etiket_kazanc, GENISLIK / 2, 62, 560, 40, 0);
-const bakiyeT = plaka(dokular.etiket_bakiye, 330, YUKSEKLIK - 78, 470, 36, 4);
-bakiyeT.position.x += 70;
-const bahisT = plaka(dokular.etiket_bahis, GENISLIK - 330, YUKSEKLIK - 78, 470, 36, 4);
-bahisT.position.x += 55;
+// KAZANÇ: Unity yatay altın bant (etiket_kazanc); yazı BEYAZ (Öncelik 5), glow yok.
+const kazancSp = new PIXI.Sprite(dokular.etiket_kazanc);
+kazancSp.anchor.set(0.5); kazancSp.position.set(GENISLIK / 2, 62);
+kazancSp.scale.set(560 / kazancSp.texture.width);
+S.addChild(kazancSp);
+const kazancT = new PIXI.Text({ text: "", style: {
+  fontFamily: "LilitaOne", fontSize: 40, fill: 0xfdf6e3,
+  stroke: { color: 0x3a2400, width: 4 } } });
+kazancT.anchor.set(0.5); kazancT.position.set(GENISLIK / 2, 62);
+S.addChild(kazancT);
+
+const bakiyeT = altPlaka(330, YUKSEKLIK - 78, 470);
+const bahisT = altPlaka(GENISLIK - 330, YUKSEKLIK - 78, 470);
 
 function metinleriGuncelle() {
-  bakiyeT.text = `${bakiye.toLocaleString("tr-TR")} TL`;
-  bahisT.text = `${bahis.toLocaleString("tr-TR")} TL`;
+  bakiyeT.text = `Bakiye: ${bakiye.toLocaleString("tr-TR")} TL`;
+  bahisT.text = `Bahis: ${bahis.toLocaleString("tr-TR")} TL`;
   kazancT.text = `KAZANÇ: ${kazancSon.toLocaleString("tr-TR")} TL`;
 }
 metinleriGuncelle();
@@ -192,6 +209,7 @@ async function senaryoBaslat(asamaIdx, karsilama = false) {
   senaryo.asamaBasBakiye = bakiye;
   bahis = ASAMALAR.bahisler[asamaIdx];
   metinleriGuncelle();
+  hosGeldinGuncelle();
   anlaticiAc();
   anlaticiDurumGonder();
   // Baştan başlarken (aşama 0, karşılama isteniyorsa) 3 tanıtım modalı
@@ -207,10 +225,11 @@ anlaticiKopruKur({
 // Serbest/panel mod ayarı = panelAyar (panel canlı günceller)
 const ayar = panelAyar;
 
-// Manipülasyon paneli moduna geç: senaryo kapat, paneli aç, serbest oyun
+// Manipülasyon paneli moduna geç: senaryo kapat, ANLATICI ŞERİDİ GİZLE (Öncelik 3b), paneli aç
 function panelModunaGec() {
   senaryo.aktif = false;
   const g = document.getElementById("girisEkraniKok"); if (g) g.remove();
+  anlaticiKapat();                 // panel modunda sol senaryo şeridi OLMAMALI (Unity birebir)
   panelAc();
   console.log("[F6] manipülasyon paneli açıldı");
 }
