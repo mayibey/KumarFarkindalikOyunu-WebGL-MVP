@@ -10,6 +10,7 @@ import { anlaticiAc, anlaticiGuncelle, anlaticiKopruKur } from "./kopru/anlatici
 import { bonusTuzagiPopup, borcPaneli, finalEkrani } from "./ui/senaryoOverlaylar.js";
 import { girisEkraniGoster } from "./ui/girisEkrani.js";
 import { kaydet, yukle } from "./cekirdek/kayit.js";
+import { panelAc, panelAyar, panelAyarIsle, panelKopruKur } from "./kopru/panelKopru.js";
 import { spinUret } from "./motor/spinMotoru.js";
 import { izgaraDoldur } from "./motor/doldurucu.js";
 import { rngYap } from "./motor/rng.js";
@@ -20,9 +21,12 @@ import { sesYukle, sesCal, sesKilidiKur, anaSes } from "./cekirdek/ses.js";
 shimKur();
 kopruKaydet("SunumKoprusu", {
   SunumAsamaGit: (n) => senaryoBaslat(Math.max(0, Math.min(6, n | 0))),
-  SunumPanelGit: () => console.log("[F5] SunumPanelGit — F6'da bağlanacak"),
+  SunumPanelGit: () => panelModunaGec(),
   SunumSesAyarla: (a) => anaSes(a === 1 ? 1 : 0),
 });
+// panel.html → PanelKopru.AyarAl (shim yoneticiPanel mesajlarını buraya yönlendirir)
+kopruKaydet("PanelKopru", { AyarAl: (json) => panelAyarIsle(json) });
+panelKopruKur();
 sesKilidiKur();
 
 await sahneKur();
@@ -198,9 +202,16 @@ anlaticiKopruKur({
   yenidenBaslat: () => { bakiye = EKONOMI.baslangicBakiye; senaryo.toplamSpin = 0; senaryoBaslat(0); },
 });
 
-// Serbest mod ayarı (senaryo dışı)
-const ayar = { egilimYuzde: MODLAR.normal.egilim, minKat: 0, maksKat: 0,
-               aktifSenaryo: "normal", zorluk: 6, maxReroll: 200 };
+// Serbest/panel mod ayarı = panelAyar (panel canlı günceller)
+const ayar = panelAyar;
+
+// Manipülasyon paneli moduna geç: senaryo kapat, paneli aç, serbest oyun
+function panelModunaGec() {
+  senaryo.aktif = false;
+  const g = document.getElementById("girisEkraniKok"); if (g) g.remove();
+  panelAc();
+  console.log("[F6] manipülasyon paneli açıldı");
+}
 
 function senaryoDinamikAyar() {
   const a = senaryo.asama;
@@ -331,7 +342,7 @@ function senaryoDevamEt(k) {
 if (location.search.indexOf("senaryo") >= 0) {
   senaryo.kullaniciAdi = "Misafir"; senaryoBaslat(0);
 } else if (location.search.indexOf("panel") >= 0) {
-  console.log("[F6] panel modu — sıradaki dilim");
+  panelModunaGec();
 } else {
   girisEkraniGoster({
     onSenaryo: (ad) => { senaryo.kullaniciAdi = ad; senaryoBaslat(0); },
