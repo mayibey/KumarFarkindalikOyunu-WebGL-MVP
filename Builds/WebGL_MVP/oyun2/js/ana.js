@@ -11,6 +11,7 @@ import { bonusTuzagiPopup, borcPaneli, finalEkrani } from "./ui/senaryoOverlayla
 import { girisEkraniKur } from "./ui/girisEkrani.js";
 import { kaydet, yukle } from "./cekirdek/kayit.js";
 import { panelAc, panelAyar, panelAyarIsle, panelKopruKur } from "./kopru/panelKopru.js";
+import { bahisPaneliAc, bahisKopruKur } from "./kopru/bahisKopru.js";
 import { spinUret } from "./motor/spinMotoru.js";
 import { izgaraDoldur } from "./motor/doldurucu.js";
 import { rngYap } from "./motor/rng.js";
@@ -27,6 +28,7 @@ kopruKaydet("SunumKoprusu", {
 // panel.html → PanelKopru.AyarAl (shim yoneticiPanel mesajlarını buraya yönlendirir)
 kopruKaydet("PanelKopru", { AyarAl: (json) => panelAyarIsle(json) });
 panelKopruKur();
+bahisKopruKur();
 sesKilidiKur();
 
 await sahneKur();
@@ -69,9 +71,9 @@ const HUCRE = 148, BOSLUK = 10;                 // sık: boşluk hücrenin ~%7's
 const gridW = 6 * HUCRE + 5 * BOSLUK, gridH = 5 * HUCRE + 4 * BOSLUK;
 
 // Tahta iç alan oranı (oyun_tahtasi.webp): iç-w ~%79, iç-h ~%55.5. Tahtayı grid'i saracak
-// biçimde NON-UNIFORM ölçekle (grid sık kalır, tahta çerçeve etrafını sarar).
-const IC_W_ORAN = 0.79, IC_H_ORAN = 0.555;
-const tahtaHedefW = gridW / IC_W_ORAN, tahtaHedefH = gridH / IC_H_ORAN;
+// biçimde NON-UNIFORM ölçekle + %8 KENAR PAYI (grid tahtadan içeride, meyveler çerçeveye değmez).
+const IC_W_ORAN = 0.79, IC_H_ORAN = 0.555, KENAR_PAYI = 1.09;
+const tahtaHedefW = gridW / IC_W_ORAN * KENAR_PAYI, tahtaHedefH = gridH / IC_H_ORAN * KENAR_PAYI;
 const tahta = new PIXI.Sprite(dokular.oyun_tahtasi);
 tahta.anchor.set(0.5);
 tahta.position.set(gridMerkez.x, gridMerkez.y);
@@ -83,8 +85,10 @@ const slot = new SlotGorunum(uygulama, dokular, {
   hucre: HUCRE, boslukX: BOSLUK, boslukY: BOSLUK,
 });
 S.addChild(slot.kok);
+// Maske ÜSTTE genişletildi: meyveler grid tepesinden düşerken görünür (tumble dökülme).
+const maskUstPay = HUCRE * 1.3;
 const slotMaske = new PIXI.Graphics()
-  .rect(gridMerkez.x - gridW / 2 - 4, gridMerkez.y - gridH / 2 - 4, gridW + 8, gridH + 8)
+  .rect(gridMerkez.x - gridW / 2 - 4, gridMerkez.y - gridH / 2 - maskUstPay, gridW + 8, gridH + maskUstPay + 4)
   .fill(0xffffff);
 S.addChild(slotMaske);
 slot.kok.mask = slotMaske;
@@ -146,6 +150,14 @@ S.addChild(kazancT);
 
 const bakiyeT = altPlaka(350, YUKSEKLIK - 72, 560);
 const bahisT = altPlaka(GENISLIK - 350, YUKSEKLIK - 72, 560);
+// Bahis plakasına tıkla → bahis seçme paneli (görünmez tıklama alanı, plaka boyutunda)
+const bahisTiklaAlan = new PIXI.Graphics()
+  .rect(GENISLIK - 350 - 280, YUKSEKLIK - 72 - 46, 560, 92).fill({ color: 0xffffff, alpha: 0.001 });
+bahisTiklaAlan.eventMode = "static"; bahisTiklaAlan.cursor = "pointer";
+bahisTiklaAlan.on("pointertap", () => {
+  if (!spinAktif) bahisPaneliAc(bakiye, (m) => { if (m > 0) { bahis = m; metinleriGuncelle(); } });
+});
+S.addChild(bahisTiklaAlan);
 
 function metinleriGuncelle() {
   bakiyeT.text = `Bakiye: ${bakiye.toLocaleString("tr-TR")} TL`;

@@ -25,8 +25,8 @@ export class SlotGorunum {
     const doku = id === CARPAN_SEMBOL ? this.dokular.sembol_bomba : this.dokular[SEMBOLLER[id]];
     const sp = new PIXI.Sprite(doku);
     sp.anchor.set(0.5);
-    // Ö2 (tur2): semboller hücreyi neredeyse doldurur (Unity birebir); 0.94 → 1.04
-    const oran = Math.min(this.hucre / sp.texture.width, this.hucre / sp.texture.height) * 1.04;
+    // Sembol hücre içinde kalır (kenara değmesin): 1.04 → 0.92
+    const oran = Math.min(this.hucre / sp.texture.width, this.hucre / sp.texture.height) * 0.92;
     sp.scale.set(oran);
     c.addChild(sp);
     if (id === CARPAN_SEMBOL && carpanDeger > 0) {
@@ -60,23 +60,27 @@ export class SlotGorunum {
     });
     patlayanlar.forEach((c) => c.destroy({ children: true }));
 
-    // Meyveler EKRAN YUKARISINDAN dökülür (Unity hissi): düşme mesafesi = kaç sıra yukarıdan.
-    const dususMesafe = (this.hucre + this.boslukY) * (SATIR + 0.5);
+    // Meyveler GRID TEPESİNDEN dökülür (Unity hissi). Her yeni meyve grid'in üst kenarından
+    // başlar → kendi hücresine iner; düşüşün TAMAMI maske içinde (görünür). Sıralı hafif gecikme
+    // "akış" hissi verir. Grid üst kenarı local y = -boslukY (maske üst payıyla görünür).
+    const ustBaslangic = -this.hucre;
     const yeniler = adim.patlayan.map((i, k) => {
       const id = adim.dusen[k];
       const c = this.hucreYap(id, adim.dusenCarpan ? adim.dusenCarpan[k] : 0);
       const [px, py] = this.hucreKonum(i);
-      c.position.set(px, py - dususMesafe);
+      c.position.set(px, ustBaslangic);
       c.alpha = 1;
       this.kok.addChild(c);
       this.hucreler[i] = c;
-      return { c, py };
+      // sütuna göre küçük gecikme → soldan sağa akış hissi
+      return { c, py, gecikme: (i % SUTUN) * 0.03 };
     });
     await tween(this.uygulama, {
-      sure: ANIM.dusme,
+      sure: ANIM.dusme + 0.15,
       easing: easeOutCubic,
-      guncelle: (t) => yeniler.forEach(({ c, py }) => {
-        c.position.y = (py - dususMesafe) + dususMesafe * t;
+      guncelle: (t) => yeniler.forEach(({ c, py, gecikme }) => {
+        const tt = Math.max(0, Math.min(1, (t - gecikme) / (1 - gecikme)));
+        c.position.y = ustBaslangic + (py - ustBaslangic) * tt;
       }),
     });
     await bekle(ANIM.adimArasi);

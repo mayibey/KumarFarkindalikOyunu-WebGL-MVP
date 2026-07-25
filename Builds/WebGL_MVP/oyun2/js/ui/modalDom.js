@@ -25,15 +25,17 @@ function kokAl() {
 
 // Bilgilendirici Asistan — senaryo başı büyük tanıtım modalı (ScriptedModalKopru karşılığı).
 // Ekran ortasında geniş kutu, "BİLGİLENDİRİCİ ASİSTAN" başlığı + zengin HTML içerik.
-export function asistanModal(baslik, govdeHtml, sayfa = "") {
+// merkezX: modalın yatay merkezi (varsayılan ekran ortası 960). Panel modunda soldaki
+// yönetici paneliyle (0-520) çakışmaması için sağa kaydırılır (~1220).
+export function asistanModal(baslik, govdeHtml, sayfa = "", merkezX = 960) {
   return new Promise((coz) => {
     const kok = kokAl();
     const bg = document.createElement("div");
     Object.assign(bg.style, { position: "absolute", inset: "0",
       background: "rgba(0,0,0,0.5)", pointerEvents: "auto" });
     const kutu = document.createElement("div");
-    Object.assign(kutu.style, { position: "absolute", left: "50%", top: "50%",
-      transform: "translate(-50%,-50%)", width: "760px", maxHeight: "78%", overflow: "auto",
+    Object.assign(kutu.style, { position: "absolute", left: merkezX + "px", top: "50%",
+      transform: "translate(-50%,-50%)", width: "700px", maxHeight: "78%", overflow: "auto",
       background: "rgba(14,20,40,0.97)", border: "2px solid rgba(212,162,74,0.7)",
       borderRadius: "18px", padding: "26px 34px", color: "#e8ecf5",
       fontSize: "21px", lineHeight: "1.5", cursor: "pointer",
