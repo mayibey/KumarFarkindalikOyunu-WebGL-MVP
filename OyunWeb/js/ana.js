@@ -5,7 +5,7 @@ import { sahneKur, uygulama, GENISLIK, YUKSEKLIK } from "./cekirdek/sahne.js";
 import { shimKur, kopruKaydet } from "./kopru/sendMessageShim.js";
 import { SEMBOLLER, EKONOMI, MODLAR, ASAMALAR } from "../veri/sabitler.js";
 import { senaryoVerisiYukle, scriptedSpinBul, asamaScriptedSpinSayisi, kaydiPlanla } from "./motor/scriptedOynatici.js";
-import { egitmenModal, karsilamaModallari } from "./ui/modalDom.js";
+import { egitmenModal, karsilamaModallari, asistanModal } from "./ui/modalDom.js";
 import { anlaticiAc, anlaticiKapat, anlaticiGuncelle, anlaticiKopruKur } from "./kopru/anlaticiKopru.js";
 import { bonusTuzagiPopup, borcPaneli, finalEkrani } from "./ui/senaryoOverlaylar.js";
 import { girisEkraniKur } from "./ui/girisEkrani.js";
@@ -234,13 +234,25 @@ anlaticiKopruKur({
 // Serbest/panel mod ayarı = panelAyar (panel canlı günceller)
 const ayar = panelAyar;
 
-// Manipülasyon paneli moduna geç: senaryo kapat, ANLATICI ŞERİDİ GİZLE (Öncelik 3b), paneli aç
-function panelModunaGec() {
+// Manipülasyon paneli moduna geç: senaryo kapat, şerit gizle, panel aç + Unity tanıtım modalı
+async function panelModunaGec() {
   senaryo.aktif = false;
-  const g = document.getElementById("girisEkraniKok"); if (g) g.remove();
   anlaticiKapat();                 // panel modunda sol senaryo şeridi OLMAMALI (Unity birebir)
+  bahis = 500; metinleriGuncelle();
   panelAc();
+  hosGeldinGuncelle();
   console.log("[F6] manipülasyon paneli açıldı");
+  // Unity'de panele geçince gösterilen tanıtım modalı ("yeni sayfa" hissi) — metin panel_unity'den
+  await asistanModal("BİLGİLENDİRİCİ ASİSTAN",
+    `Bu bölüm, kumar yazılımlarının perde arkasını kendi elinizle keşfedebileceğiniz bir
+    <span style="color:#60a5fa">test alanıdır</span>.<br><br>
+    Soldaki yönetici panelinden makinenin davranışını siz belirlersiniz:
+    <span style="color:#60a5fa">ödeme aralığını</span> (kazancın bahsin kaç katı olacağı),
+    <span style="color:#60a5fa">kazanç eğilimini</span> (sistemin ne sıklıkta kazandıracağını) ve
+    <span style="color:#f4d678">bonus davranışını</span> ayarlayabilirsiniz.<br><br>
+    Farklı oyun modlarını deneyerek, gerçek kumar sitelerinin oyuncuyu nasıl yönlendirdiğini
+    gözlemleyin. Düşük ödeme eğilimiyle nasıl <span style="color:#ef4444">kayıp yaşatıldığını</span>,
+    ya da <span style="color:#ef4444">bonus tuzaklarının</span> nasıl kurulduğunu görün.`);
 }
 
 function senaryoDinamikAyar() {

@@ -56,14 +56,14 @@ export function girisEkraniKur(uygulama, dokular, { onSenaryo, onDevam, onPanel 
   // --- SAĞ: 2 süslü buton (btn_bos_plaka + altın yazı) ---
   function suslButon(y, satirlar, cb, olcek = 1) {
     const c = new PIXI.Container();
-    c.position.set(1420, y);
+    c.position.set(1430, y);
     const plaka = new PIXI.Sprite(dokular.btn_bos_plaka);
     plaka.anchor.set(0.5);
-    plaka.scale.set((460 * olcek) / plaka.texture.width);
+    plaka.scale.set((540 * olcek) / plaka.texture.width);
     c.addChild(plaka);
     const t = new PIXI.Text({ text: satirlar, style: {
-      fontFamily: "LilitaOne", fontSize: 34 * olcek, fill: 0xffe08a, align: "center",
-      stroke: { color: 0x5a1a00, width: 5 }, lineHeight: 40 * olcek } });
+      fontFamily: "LilitaOne", fontSize: 38 * olcek, fill: 0xffe08a, align: "center",
+      stroke: { color: 0x5a1a00, width: 5 }, lineHeight: 44 * olcek } });
     t.anchor.set(0.5); c.addChild(t);
     c.eventMode = "static"; c.cursor = "pointer";
     c.on("pointerover", () => c.scale.set(1.05));
@@ -80,10 +80,16 @@ export function girisEkraniKur(uygulama, dokular, { onSenaryo, onDevam, onPanel 
     suslButon(760, "SENARYOLU\nOYUNA BAŞLA", () => { sil(); kapat(); onSenaryo("Misafir"); }, 1);
     suslButon(910, "MANİPÜLASYON\nPANELİNE GİT", () => { kapat(); onPanel(); }, 0.82);
   } else {
-    suslButon(660, "SENARYOLU\nOYUNA BAŞLA", () => { kapat(); onSenaryo("Misafir"); }, 1.05);
-    suslButon(850, "MANİPÜLASYON\nPANELİNE GİT", () => { kapat(); onPanel(); }, 0.85);
+    suslButon(650, "SENARYOLU\nOYUNA BAŞLA", () => { kapat(); onSenaryo("Misafir"); }, 1.0);
+    suslButon(850, "MANİPÜLASYON\nPANELİNE GİT", () => { kapat(); onPanel(); }, 0.82);
   }
 
-  function kapat() { demoCalisiyor = false; kok.visible = false; kok.destroy({ children: true }); }
+  // Güvenli kapat: demo döngüsünü durdur + görünmez yap; devam eden tween bitene kadar
+  // destroy'u geciktir (yoksa yok edilmiş sprite'a position atanır → null hatası).
+  function kapat() {
+    demoCalisiyor = false;
+    kok.visible = false;
+    setTimeout(() => { try { kok.destroy({ children: true }); } catch (e) {} }, 1200);
+  }
   return kok;
 }
