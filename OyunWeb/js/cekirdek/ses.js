@@ -32,17 +32,21 @@ export function sesCal(ad, { ses = 1, pitchRasgele = false, baslangic = 0, sure 
 }
 
 // Fon müziği: HTML5 Audio element (decodeAudioData bazı mp3'lerde başarısız — bu bypass eder).
+// ÖNEMLİ: mp3'ü blob olarak fetch edip blob: URL veriyoruz — böylece IDM gibi indirme
+// yöneticileri açık mp3 URL'ini yakalayıp "indir" penceresi AÇAMAZ (Audio src=blob:).
 let _fon = null;
 export function fonMuzigiCal(yol, ses = 0.25) {
   if (_fon) return;
-  _fon = new Audio(yol);
+  _fon = new Audio();
   _fon.loop = true; _fon.volume = ses;
-  window.__fonDurum = () => _fon ? { paused: _fon.paused, t: _fon.currentTime, vol: _fon.volume } : null;
+  window.__fonDurum = () => _fon ? { paused: _fon.paused, t: _fon.currentTime, vol: _fon.volume, src: (_fon.src || "").slice(0, 12) } : null;
   const dene = () => { _fon.play().catch(() => {}); };
-  dene();
-  // iOS/otoplay kilidi: ilk dokunuşta tekrar dene
-  ["pointerdown", "touchstart", "keydown"].forEach((t) =>
-    document.addEventListener(t, dene, { once: true }));
+  const kilitDinle = () => ["pointerdown", "touchstart", "keydown"].forEach((t) =>
+    document.addEventListener(t, dene, { once: true }));  // iOS/otoplay kilidi
+  fetch(yol)
+    .then((r) => r.blob())
+    .then((b) => { _fon.src = URL.createObjectURL(b); dene(); kilitDinle(); })
+    .catch(() => { _fon.src = yol; dene(); kilitDinle(); });  // fetch olmazsa düz URL
 }
 
 export function anaSes(v) {
