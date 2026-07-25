@@ -33,6 +33,7 @@ export class WinFeedback {
     this.kok.addChild(this.tutar);
 
     this._donme = (tk) => {
+      if (window.__uyandir) window.__uyandir();  // kazanç şovu boyunca render uyanık
       const dt = tk.deltaMS / 1000;
       this.isinlar[0].rotation += dt * 0.35;   // CW yavaş
       this.isinlar[1].rotation -= dt * 0.9;    // CCW hızlı

@@ -8,11 +8,13 @@ export function tween(uygulama, { sure, guncelle, easing = (t) => t }) {
   return new Promise((resolve) => {
     let g = 0;
     const adim = (tk) => {
+      if (window.__uyandir) window.__uyandir();   // animasyon boyunca render uyanık kalsın (render-on-demand)
       g += tk.deltaMS / 1000;
       const t = Math.min(1, g / sure);
       guncelle(easing(t), t);
       if (t >= 1) { uygulama.ticker.remove(adim); resolve(); }
     };
+    if (window.__uyandir) window.__uyandir();      // uykudaysa ticker'ı başlat
     uygulama.ticker.add(adim);
   });
 }

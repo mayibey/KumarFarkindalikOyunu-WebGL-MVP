@@ -18,9 +18,21 @@ export async function sahneKur() {
     resolution: mobil ? 1 : Math.min(window.devicePixelRatio || 1, 2),
     autoDensity: true,
   });
-  // Mobilde render 30 FPS ile sınırlı: sürekli 60fps WebGL çizimi iOS'te termal/bellek
-  // birikimiyle ~30sn sonra sekmeyi çökertiyordu. 30fps yeterince akıcı + yarı yük.
+  // Mobilde render 30 FPS ile sınırlı: sürekli 60fps WebGL çizimi iOS'te termal/bellek yükü.
   if (mobil) uygulama.ticker.maxFPS = 30;
+  // RENDER-ON-DEMAND (mobil): ekranda animasyon/dokunma yokken ticker DURUR (GPU dinlenir →
+  // iOS'te uzun sürede biriken termal/bellek çökmesi önlenir). Dokunma/tıklama/animasyon uyandırır.
+  if (mobil) {
+    let uykuT = null;
+    window.__uyandir = () => {
+      if (uygulama && !uygulama.ticker.started) uygulama.ticker.start();
+      if (uykuT) clearTimeout(uykuT);
+      uykuT = setTimeout(() => { if (uygulama) uygulama.ticker.stop(); }, 3500);
+    };
+    ["pointerdown", "pointermove", "touchstart", "touchmove", "keydown", "wheel"].forEach((ev) =>
+      document.addEventListener(ev, () => window.__uyandir(), { passive: true }));
+    window.__uyandir();
+  }
   kok.appendChild(uygulama.canvas);
   // DOM overlay katmanı: anlatıcı/panel iframe'leri + modallar buraya eklenir. ZOOM yalnız
   // buna uygulanır (oyun canvas'ı zoom'dan muaf → kullanıcı isteği: yazılı panelleri büyüt, oyunu değil).
