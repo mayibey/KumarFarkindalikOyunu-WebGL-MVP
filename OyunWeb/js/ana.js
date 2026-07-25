@@ -88,14 +88,12 @@ const gridW = 6 * HUCRE + 5 * BOSLUK_X, gridH = 5 * HUCRE + 4 * BOSLUK_Y;
 // Tahta iç alan oranı (oyun_tahtasi.webp): iç-w ~%79, iç-h ~%55.5. Tahtayı grid'i saracak
 // biçimde NON-UNIFORM ölçekle + %8 KENAR PAYI (grid tahtadan içeride, meyveler çerçeveye değmez).
 // Unity tahtası daha KOMPAKT/DİK: iç alan oranları grid'e göre ayarlı, hafif kenar payı.
-// oyun_tahtasi.webp iç koyu alan: yatay %83.9. Grid'in çerçeveye değmemesi için tahtayı
-// grid'i rahat saracak kadar büyüt (iç pay). Merkez=gridMerkez.
-const IC_W_ORAN = 0.78, IC_H_ORAN = 0.70, KENAR_PAYI = 1.0;
-const tahtaHedefW = gridW / IC_W_ORAN * KENAR_PAYI, tahtaHedefH = gridH / IC_H_ORAN * KENAR_PAYI;
+// Unity "meyvelerarkaplanı" RectTransform: anchoredPos(94,26) → merkez (1054,514),
+// sizeDelta 1339x1215. İç koyu alan (%76x%55) grid'i (970x620) rahat sarar → meyve taşmaz.
 const tahta = new PIXI.Sprite(dokular.oyun_tahtasi);
 tahta.anchor.set(0.5);
-tahta.position.set(gridMerkez.x, gridMerkez.y);
-tahta.scale.set(tahtaHedefW / tahta.texture.width, tahtaHedefH / tahta.texture.height);
+tahta.position.set(1054, 514);
+tahta.scale.set(1339 / tahta.texture.width, 1215 / tahta.texture.height);
 S.addChild(tahta);
 
 const slot = new SlotGorunum(uygulama, dokular, {
@@ -187,10 +185,11 @@ metinleriGuncelle();
 // --- Alt-orta: [-] [SPIN] [+] + sağ-alt AYARLAR ---
 // Ö2 (tur2): Unity'de butonlar BÜYÜK, küme kompakt (aralar dar).
 // Unity: SPIN merkez (960,976); bahisAzalt (813,976) size~139x160; bahisArttir (1126,976) ~152x160.
+// Unity SpinIcon ekran merkez (964,989), boyut 370x271 (YAML delili).
 const spinBtn = new PIXI.Sprite(dokular.btn_spin);
 spinBtn.anchor.set(0.5);
-spinBtn.position.set(960, 976);
-spinBtn.scale.set(220 / spinBtn.texture.height);   // Unity spin daha büyük
+spinBtn.position.set(964, 989);
+spinBtn.scale.set(271 / spinBtn.texture.height);   // Unity SpinIcon yüksekliği 271
 spinBtn.eventMode = "static"; spinBtn.cursor = "pointer";
 S.addChild(spinBtn);
 
