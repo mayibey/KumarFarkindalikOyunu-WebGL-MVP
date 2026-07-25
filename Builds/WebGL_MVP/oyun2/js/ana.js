@@ -69,21 +69,26 @@ const arka = new PIXI.Sprite(dokular.arkaplan_oyun);
 arka.width = GENISLIK; arka.height = YUKSEKLIK;
 S.addChild(arka);
 
+// Unity Logo RectTransform: anchor(0,1) pivot(0,1), anchoredPos(35, 38.28), sizeDelta(441,337)
+// → sol-üst köşe ekranda (35, -38), genişlik 441 (ekran üstünden hafif taşar, Unity birebir).
 const logo = new PIXI.Sprite(dokular.logo_kumar_yazisi);
-logo.anchor.set(0.5, 0); logo.position.set(215, 22);
-logo.scale.set(Math.min(360 / logo.texture.width, 1));  // tahtayla örtüşmesin (sola+küçük)
+logo.anchor.set(0, 0); logo.position.set(35, -38);
+logo.scale.set(441 / logo.texture.width);
 S.addChild(logo);
 
 // --- Izgara ÖNCE (sık + iri kare hücre), TAHTA grid'i SARAR (Unity düzeni) ---
 // Kullanıcı: meyveler seyrek olmasın; büyük ve sık, tahta grid'e otursun.
-const gridMerkez = { x: GENISLIK / 2, y: 470 };
-const HUCRE = 132, BOSLUK = 12;                 // Unity oranı: grid tahta içinde oturaklı, boşluklu
-const gridW = 6 * HUCRE + 5 * BOSLUK, gridH = 5 * HUCRE + 4 * BOSLUK;
+// Unity SlotGrid (02_SenaryoluOyun.unity): cellSize 165x120, spacing 5, 6 sütun × 5 satır.
+// Merkez anchoredPos(94, 35.6) → ekran (1054, 504). Hücre kutusu 120 (kare meyve), sütun
+// aralığı 170 (165+5), satır aralığı 125 (120+5) → grid Unity'de GENİŞ+BASIK, sağda, aşağıda.
+const gridMerkez = { x: 1054, y: 504 };
+const HUCRE = 120, BOSLUK_X = 50, BOSLUK_Y = 5;
+const gridW = 6 * HUCRE + 5 * BOSLUK_X, gridH = 5 * HUCRE + 4 * BOSLUK_Y;
 
 // Tahta iç alan oranı (oyun_tahtasi.webp): iç-w ~%79, iç-h ~%55.5. Tahtayı grid'i saracak
 // biçimde NON-UNIFORM ölçekle + %8 KENAR PAYI (grid tahtadan içeride, meyveler çerçeveye değmez).
 // Unity tahtası daha KOMPAKT/DİK: iç alan oranları grid'e göre ayarlı, hafif kenar payı.
-const IC_W_ORAN = 0.82, IC_H_ORAN = 0.60, KENAR_PAYI = 1.05;
+const IC_W_ORAN = 0.81, IC_H_ORAN = 0.74, KENAR_PAYI = 1.0;  // Unity tahta ölçümü ~1199x839, merkez=gridMerkez
 const tahtaHedefW = gridW / IC_W_ORAN * KENAR_PAYI, tahtaHedefH = gridH / IC_H_ORAN * KENAR_PAYI;
 const tahta = new PIXI.Sprite(dokular.oyun_tahtasi);
 tahta.anchor.set(0.5);
@@ -93,7 +98,7 @@ S.addChild(tahta);
 
 const slot = new SlotGorunum(uygulama, dokular, {
   x: gridMerkez.x - gridW / 2, y: gridMerkez.y - gridH / 2,
-  hucre: HUCRE, boslukX: BOSLUK, boslukY: BOSLUK,
+  hucre: HUCRE, boslukX: BOSLUK_X, boslukY: BOSLUK_Y,
 });
 S.addChild(slot.kok);
 // Maske ÜSTTE genişletildi: meyveler grid tepesinden düşerken görünür (tumble dökülme).
@@ -159,11 +164,11 @@ const kazancT = new PIXI.Text({ text: "", style: {
 kazancT.anchor.set(0.5); kazancT.position.set(GENISLIK / 2, 62);
 S.addChild(kazancT);
 
-// Unity ölçümü: Bakiye plaka merkez ~527, genişlik ~545; Bahis merkez ~1409. Simetrik ~520/1400.
-const bakiyeT = altPlaka(525, YUKSEKLIK - 70, 545);
-const bahisT = altPlaka(GENISLIK - 525, YUKSEKLIK - 70, 545);
+// Unity BakiyeGorsel anchoredPos(-461,-436) size(490,160) → (499,976); BahisGorsel(487,-436)→(1447,976).
+const bakiyeT = altPlaka(499, 976, 490, 160);
+const bahisT = altPlaka(1447, 976, 490, 160);
 const bahisTiklaAlan = new PIXI.Graphics()
-  .rect(GENISLIK - 525 - 273, YUKSEKLIK - 70 - 46, 545, 92).fill({ color: 0xffffff, alpha: 0.001 });
+  .rect(1447 - 245, 976 - 80, 490, 160).fill({ color: 0xffffff, alpha: 0.001 });
 bahisTiklaAlan.eventMode = "static"; bahisTiklaAlan.cursor = "pointer";
 bahisTiklaAlan.on("pointertap", () => {
   if (!spinAktif) bahisPaneliAc(bakiye, (m) => { if (m > 0) { bahis = m; metinleriGuncelle(); } });
@@ -179,19 +184,20 @@ metinleriGuncelle();
 
 // --- Alt-orta: [-] [SPIN] [+] + sağ-alt AYARLAR ---
 // Ö2 (tur2): Unity'de butonlar BÜYÜK, küme kompakt (aralar dar).
+// Unity: SPIN merkez (960,976); bahisAzalt (813,976) size~139x160; bahisArttir (1126,976) ~152x160.
 const spinBtn = new PIXI.Sprite(dokular.btn_spin);
 spinBtn.anchor.set(0.5);
-spinBtn.position.set(GENISLIK / 2, YUKSEKLIK - 78);
-spinBtn.scale.set(200 / spinBtn.texture.height);
+spinBtn.position.set(960, 976);
+spinBtn.scale.set(220 / spinBtn.texture.height);   // Unity spin daha büyük
 spinBtn.eventMode = "static"; spinBtn.cursor = "pointer";
 S.addChild(spinBtn);
 
 const BAHISLER = [50, 100, 200, 300, 500, 1000, 1500, 2500, 4000];
-function bahisBtn(doku, dx, yon) {
+function bahisBtn(doku, x, yon) {
   const b = new PIXI.Sprite(doku);
   b.anchor.set(0.5);
-  b.position.set(GENISLIK / 2 + dx, YUKSEKLIK - 78);
-  b.scale.set(142 / b.texture.height);
+  b.position.set(x, 976);
+  b.scale.set(160 / b.texture.height);             // Unity buton yüksekliği 160
   b.eventMode = "static"; b.cursor = "pointer";
   b.on("pointertap", () => {
     if (spinAktif) return;
@@ -201,13 +207,14 @@ function bahisBtn(doku, dx, yon) {
   });
   S.addChild(b);
 }
-bahisBtn(dokular.btn_bahis_azalt, -150, -1);
-bahisBtn(dokular.btn_bahis_artir, 150, +1);
+bahisBtn(dokular.btn_bahis_azalt, 813, -1);
+bahisBtn(dokular.btn_bahis_artir, 1126, +1);
 
+// Unity AyarlarButton: sağ-alt köşe (1897.7,1053) size(176,155) → merkez (1810, 976).
 const ayarBtn = new PIXI.Sprite(dokular.btn_ayarlar);
 ayarBtn.anchor.set(0.5);
-ayarBtn.position.set(GENISLIK - 78, YUKSEKLIK - 84);
-ayarBtn.scale.set(130 / ayarBtn.texture.height);
+ayarBtn.position.set(1810, 976);
+ayarBtn.scale.set(155 / ayarBtn.texture.height);
 ayarBtn.eventMode = "static"; ayarBtn.cursor = "pointer";
 ayarBtn.on("pointertap", () => console.log("[F4] Ayarlar — panel F6'da"));
 S.addChild(ayarBtn);
