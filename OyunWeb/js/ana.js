@@ -149,11 +149,11 @@ const kazancT = new PIXI.Text({ text: "", style: {
 kazancT.anchor.set(0.5); kazancT.position.set(GENISLIK / 2, 62);
 S.addChild(kazancT);
 
-const bakiyeT = altPlaka(360, YUKSEKLIK - 68, 620);
-const bahisT = altPlaka(GENISLIK - 360, YUKSEKLIK - 68, 620);
+const bakiyeT = altPlaka(430, YUKSEKLIK - 68, 570);
+const bahisT = altPlaka(GENISLIK - 430, YUKSEKLIK - 68, 570);
 // Bahis plakasına tıkla → bahis seçme paneli (görünmez tıklama alanı, plaka boyutunda)
 const bahisTiklaAlan = new PIXI.Graphics()
-  .rect(GENISLIK - 360 - 310, YUKSEKLIK - 68 - 46, 620, 92).fill({ color: 0xffffff, alpha: 0.001 });
+  .rect(GENISLIK - 430 - 285, YUKSEKLIK - 68 - 46, 570, 92).fill({ color: 0xffffff, alpha: 0.001 });
 bahisTiklaAlan.eventMode = "static"; bahisTiklaAlan.cursor = "pointer";
 bahisTiklaAlan.on("pointertap", () => {
   if (!spinAktif) bahisPaneliAc(bakiye, (m) => { if (m > 0) { bahis = m; metinleriGuncelle(); } });
