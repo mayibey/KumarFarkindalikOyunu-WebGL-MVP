@@ -16,14 +16,15 @@ export function girisEkraniKur(uygulama, dokular, { onSenaryo, onDevam, onPanel 
 
   // --- SOL: grid + tahta SARAR. Unity 01_GirisScene SlotGrid: anchoredPos(-383,13)
   //     → merkez (577, 527). Hücre mantığı 02 ile aynı (165x120 → sütun 170, satır 125). ---
+  // Unity 01 SlotGrid merkez (577,527). 01'de ayrı tahta objesi yok; 02'de kanıtlanan
+  // tahta boyutu (meyvelerarkaplanı 1339x1215, aynı görsel + aynı grid) burada da kullanılır.
   const gMerkez = { x: 577, y: 527 };
   const HUCRE = 120, BOSLUK_X = 50, BOSLUK_Y = 5;
   const gW = 6 * HUCRE + 5 * BOSLUK_X, gH = 5 * HUCRE + 4 * BOSLUK_Y;
-  const IC_W_ORAN = 0.81, IC_H_ORAN = 0.74;
   const tahta = new PIXI.Sprite(dokular.oyun_tahtasi);
   tahta.anchor.set(0.5);
-  tahta.position.set(gMerkez.x, gMerkez.y);
-  tahta.scale.set((gW / IC_W_ORAN) / tahta.texture.width, (gH / IC_H_ORAN) / tahta.texture.height);
+  tahta.position.set(gMerkez.x, gMerkez.y + 10);
+  tahta.scale.set(1339 / tahta.texture.width, 1215 / tahta.texture.height);
   kok.addChild(tahta);
 
   const demo = new SlotGorunum(uygulama, dokular, {
