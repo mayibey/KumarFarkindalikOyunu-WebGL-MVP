@@ -251,9 +251,9 @@ const ayar = panelAyar;
 async function panelModunaGec() {
   senaryo.aktif = false;
   anlaticiKapat();                 // panel modunda sol senaryo şeridi OLMAMALI (Unity birebir)
+  hosKutu.visible = false; hosT.visible = false; hosX.visible = false; // Unity panelinde hoş geldin YOK
   bahis = 500; metinleriGuncelle();
   panelAc();
-  hosGeldinGuncelle();
   console.log("[F6] manipülasyon paneli açıldı");
   // Unity'de panele geçince gösterilen tanıtım modalı ("yeni sayfa" hissi) — metin panel_unity'den
   await asistanModal("BİLGİLENDİRİCİ ASİSTAN",
