@@ -49,8 +49,13 @@ await Promise.all([
   sesYukle("sayac_tik", "varlik/ses/sayac_tik.mp3"),
   sesYukle("kayip_horn", "varlik/ses/kayip_horn.mp3"),
 ]);
-// Fon müziği HTML5 Audio ile (decode sorununu bypass) — hemen başlat
-fonMuzigiCal("varlik/ses/fon_muzigi.mp3", 0.25);
+// Fon müziği: giriş ekranında ÇALMAZ, sadece oyuna/panele girince başlar.
+let _muzikBasladi = false;
+function muzikBaslat() {
+  if (_muzikBasladi) return;
+  _muzikBasladi = true;
+  fonMuzigiCal("varlik/ses/fon_muzigi.mp3", 0.25);
+}
 
 const S = uygulama.stage;
 
@@ -395,14 +400,16 @@ function senaryoDevamEt(k) {
 
 // --- Açılış akışı ---
 if (location.search.indexOf("senaryo") >= 0) {
+  muzikBaslat();
   senaryo.kullaniciAdi = "Misafir"; senaryoBaslat(0, true);
 } else if (location.search.indexOf("panel") >= 0) {
+  muzikBaslat();
   panelModunaGec();
 } else {
   const girisKok = girisEkraniKur(uygulama, dokular, {
-    onSenaryo: (ad) => { senaryo.kullaniciAdi = ad; senaryoBaslat(0, true); },
-    onDevam: (k) => senaryoDevamEt(k),
-    onPanel: () => panelModunaGec(),
+    onSenaryo: (ad) => { muzikBaslat(); senaryo.kullaniciAdi = ad; senaryoBaslat(0, true); },
+    onDevam: (k) => { muzikBaslat(); senaryoDevamEt(k); },
+    onPanel: () => { muzikBaslat(); panelModunaGec(); },
   });
   S.addChild(girisKok);
 }

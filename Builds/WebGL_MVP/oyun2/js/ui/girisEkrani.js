@@ -73,15 +73,16 @@ export function girisEkraniKur(uygulama, dokular, { onSenaryo, onDevam, onPanel 
     return c;
   }
 
+  // Butonlar EŞİT boy (Unity: aynı plaka ölçeği) — hepsi olcek=1.0
   const kaydetVar = kayitVar();
   if (kaydetVar) {
     const k = yukle();
-    suslButon(600, "DEVAM ET", () => { kapat(); onDevam(k); }, 0.85);
-    suslButon(760, "SENARYOLU\nOYUNA BAŞLA", () => { sil(); kapat(); onSenaryo("Misafir"); }, 1);
-    suslButon(910, "MANİPÜLASYON\nPANELİNE GİT", () => { kapat(); onPanel(); }, 0.82);
+    suslButon(540, "DEVAM ET", () => { kapat(); onDevam(k); }, 1.0);
+    suslButon(720, "SENARYOLU\nOYUNA BAŞLA", () => { sil(); kapat(); onSenaryo("Misafir"); }, 1.0);
+    suslButon(900, "MANİPÜLASYON\nPANELİNE GİT", () => { kapat(); onPanel(); }, 1.0);
   } else {
-    suslButon(660, "SENARYOLU\nOYUNA BAŞLA", () => { kapat(); onSenaryo("Misafir"); }, 1.0);
-    suslButon(870, "MANİPÜLASYON\nPANELİNE GİT", () => { kapat(); onPanel(); }, 0.85);
+    suslButon(650, "SENARYOLU\nOYUNA BAŞLA", () => { kapat(); onSenaryo("Misafir"); }, 1.0);
+    suslButon(860, "MANİPÜLASYON\nPANELİNE GİT", () => { kapat(); onPanel(); }, 1.0);
   }
 
   // Güvenli kapat: demo döngüsünü durdur + görünmez yap; devam eden tween bitene kadar
