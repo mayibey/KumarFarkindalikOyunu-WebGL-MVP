@@ -132,8 +132,8 @@ function altPlaka(x, y, genislik, yukseklik = 92) {
   g.position.set(x, y);
   S.addChild(g);
   const t = new PIXI.Text({ text: "", style: {
-    fontFamily: "LilitaOne", fontSize: 44, fill: 0xf5f00a,   // Unity ölçümü: parlak sarı (245,240,8)
-    stroke: { color: 0x2a1800, width: 3 } } });
+    fontFamily: "LilitaOne", fontSize: 44, fill: 0xf8f405,   // Unity ölçümü: parlak/saf sarı (245,240,8)
+    stroke: { color: 0x3a2600, width: 2 } } });               // ince stroke — yazı koyulaşmasın
   t.anchor.set(0.5); t.position.set(x, y);
   S.addChild(t);
   return t;
