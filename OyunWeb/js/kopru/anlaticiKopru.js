@@ -16,12 +16,12 @@ export function anlaticiAc() {
     position: "absolute", left: "12px", top: "248px",           // 23vh @1080
     width: "460px", height: "min(640px, 60%)",                   // clamp(330px,60vh,640px)
     zIndex: "100", transition: "width 180ms ease-out, height 180ms ease-out",
-    pointerEvents: "auto",
+    pointerEvents: "none",   // anlatıcı bilgi göstergesi (tıklama yok): pinch-zoom altındaki katmana geçsin
   });
   iframe = document.createElement("iframe");
   iframe.id = "anlaticiPanelIframe";
   iframe.src = "ic/anlatici.html";
-  Object.assign(iframe.style, { width: "100%", height: "100%", border: "0", background: "transparent" });
+  Object.assign(iframe.style, { width: "100%", height: "100%", border: "0", background: "transparent", pointerEvents: "none" });
   kutu.appendChild(iframe);
   sahne.appendChild(kutu);
 }
