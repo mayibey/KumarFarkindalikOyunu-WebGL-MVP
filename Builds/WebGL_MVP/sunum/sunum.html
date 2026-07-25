@@ -942,8 +942,12 @@ const oyunSahne=document.getElementById("oyunSahne");
 function oyunOlcekle(){
   const w=oyunSahne.clientWidth, h=oyunSahne.clientHeight;
   if(!w||!h) return;
-  const s=Math.min(w/1920, h/1080);
-  oyunFrame.style.transform=`translate(${(w-1920*s)/2}px, ${(h-1080*s)/2}px) scale(${s})`;
+  // iframe'i CSS transform:scale ile BUYUTMEK iOS'te WebGL canvas'i re-composite edip
+  // belleği patlatiyor (panel genisletince cokme). Yerine GERCEK boyut ver: oyun kendi
+  // icinde 1920x1080'i bu boyuta letterbox eder → framebuffer sabit, bellek patlamaz.
+  oyunFrame.style.transform="";
+  oyunFrame.style.width=w+"px";
+  oyunFrame.style.height=h+"px";
 }
 new ResizeObserver(oyunOlcekle).observe(oyunSahne);
 window.addEventListener("resize",oyunOlcekle);

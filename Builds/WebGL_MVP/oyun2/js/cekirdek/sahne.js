@@ -15,7 +15,9 @@ export async function sahneKur() {
     background: 0x0b0a09,
     antialias: !mobil,                 // mobilde AA kapalı: WebGL bellek/GPU yükü azalır
     powerPreference: mobil ? "low-power" : "high-performance",
-    resolution: mobil ? 1 : Math.min(window.devicePixelRatio || 1, 2),
+    // Mobilde iç çözünürlük 0.6x: WebGL framebuffer belleği ~%64 azalır (1920x1080→1152x648).
+    // Hafif bulanıklık pahasına iOS bellek çökmesi ciddi azalır (canlı sunum için kritik).
+    resolution: mobil ? 0.6 : Math.min(window.devicePixelRatio || 1, 2),
     autoDensity: true,
   });
   // Mobilde render 30 FPS ile sınırlı: sürekli 60fps WebGL çizimi iOS'te termal/bellek yükü.
