@@ -66,13 +66,14 @@ S.addChild(logo);
 
 // --- Izgara ÖNCE (sık + iri kare hücre), TAHTA grid'i SARAR (Unity düzeni) ---
 // Kullanıcı: meyveler seyrek olmasın; büyük ve sık, tahta grid'e otursun.
-const gridMerkez = { x: GENISLIK / 2, y: 500 };
-const HUCRE = 148, BOSLUK = 10;                 // sık: boşluk hücrenin ~%7'si
+const gridMerkez = { x: GENISLIK / 2, y: 470 };
+const HUCRE = 132, BOSLUK = 12;                 // Unity oranı: grid tahta içinde oturaklı, boşluklu
 const gridW = 6 * HUCRE + 5 * BOSLUK, gridH = 5 * HUCRE + 4 * BOSLUK;
 
 // Tahta iç alan oranı (oyun_tahtasi.webp): iç-w ~%79, iç-h ~%55.5. Tahtayı grid'i saracak
 // biçimde NON-UNIFORM ölçekle + %8 KENAR PAYI (grid tahtadan içeride, meyveler çerçeveye değmez).
-const IC_W_ORAN = 0.79, IC_H_ORAN = 0.555, KENAR_PAYI = 1.09;
+// Unity tahtası daha KOMPAKT/DİK: iç alan oranları grid'e göre ayarlı, hafif kenar payı.
+const IC_W_ORAN = 0.82, IC_H_ORAN = 0.60, KENAR_PAYI = 1.05;
 const tahtaHedefW = gridW / IC_W_ORAN * KENAR_PAYI, tahtaHedefH = gridH / IC_H_ORAN * KENAR_PAYI;
 const tahta = new PIXI.Sprite(dokular.oyun_tahtasi);
 tahta.anchor.set(0.5);
