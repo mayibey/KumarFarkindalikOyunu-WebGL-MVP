@@ -132,7 +132,7 @@ function altPlaka(x, y, genislik, yukseklik = 92) {
   g.position.set(x, y);
   S.addChild(g);
   const t = new PIXI.Text({ text: "", style: {
-    fontFamily: "LilitaOne", fontSize: 44, fill: 0xffd94d,
+    fontFamily: "LilitaOne", fontSize: 44, fill: 0xf5f00a,   // Unity ölçümü: parlak sarı (245,240,8)
     stroke: { color: 0x2a1800, width: 3 } } });
   t.anchor.set(0.5); t.position.set(x, y);
   S.addChild(t);
@@ -149,11 +149,11 @@ const kazancT = new PIXI.Text({ text: "", style: {
 kazancT.anchor.set(0.5); kazancT.position.set(GENISLIK / 2, 62);
 S.addChild(kazancT);
 
-const bakiyeT = altPlaka(430, YUKSEKLIK - 68, 570);
-const bahisT = altPlaka(GENISLIK - 430, YUKSEKLIK - 68, 570);
-// Bahis plakasına tıkla → bahis seçme paneli (görünmez tıklama alanı, plaka boyutunda)
+// Unity ölçümü: Bakiye plaka merkez ~527, genişlik ~545; Bahis merkez ~1409. Simetrik ~520/1400.
+const bakiyeT = altPlaka(525, YUKSEKLIK - 70, 545);
+const bahisT = altPlaka(GENISLIK - 525, YUKSEKLIK - 70, 545);
 const bahisTiklaAlan = new PIXI.Graphics()
-  .rect(GENISLIK - 430 - 285, YUKSEKLIK - 68 - 46, 570, 92).fill({ color: 0xffffff, alpha: 0.001 });
+  .rect(GENISLIK - 525 - 273, YUKSEKLIK - 70 - 46, 545, 92).fill({ color: 0xffffff, alpha: 0.001 });
 bahisTiklaAlan.eventMode = "static"; bahisTiklaAlan.cursor = "pointer";
 bahisTiklaAlan.on("pointertap", () => {
   if (!spinAktif) bahisPaneliAc(bakiye, (m) => { if (m > 0) { bahis = m; metinleriGuncelle(); } });
