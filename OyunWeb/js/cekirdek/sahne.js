@@ -22,6 +22,15 @@ export async function sahneKur() {
   // birikimiyle ~30sn sonra sekmeyi çökertiyordu. 30fps yeterince akıcı + yarı yük.
   if (mobil) uygulama.ticker.maxFPS = 30;
   kok.appendChild(uygulama.canvas);
+  // DOM overlay katmanı: anlatıcı/panel iframe'leri + modallar buraya eklenir. ZOOM yalnız
+  // buna uygulanır (oyun canvas'ı zoom'dan muaf → kullanıcı isteği: yazılı panelleri büyüt, oyunu değil).
+  const domUst = document.createElement("div");
+  domUst.id = "domUst";
+  Object.assign(domUst.style, {
+    position: "absolute", left: "0", top: "0", width: GENISLIK + "px", height: YUKSEKLIK + "px",
+    pointerEvents: "none", transformOrigin: "center center",
+  });
+  kok.appendChild(domUst);
   const y = document.getElementById("yukleniyor");
   if (y) y.remove();
 
@@ -49,16 +58,13 @@ function olcekle() {
   s.style.top = "50%";
 }
 
-/* OYUN_ZOOM: zoom Pixi STAGE içinde uygulanır (canvas fiziksel boyutu 1920x1080 SABİT kalır
-   → iOS GPU framebuffer büyümez, bellek patlaması yok). 2 parmak = yakınlaştır/kaydır,
-   çift dokunuş = 2x / sıfırla. */
+/* OYUN_ZOOM: zoom yalnız DOM overlay katmanına (#domUst: yazılı paneller/modallar) uygulanır.
+   Oyun canvas'ı SABİT kalır (kullanıcı: oyunu değil panelleri yakınlaştır). CSS scale yalnız
+   DOM'a — canvas'a değil — bu yüzden iOS'te bellek patlaması yok. 2 parmak zoom/kaydır, çift dokun 2x. */
 let _zoomK = 1, _panX = 0, _panY = 0;
 function zoomUygula() {
-  if (!uygulama) return;
-  const st = uygulama.stage;
-  st.scale.set(_zoomK);
-  st.pivot.set(GENISLIK / 2 - _panX, YUKSEKLIK / 2 - _panY); // ekran ortasından zoom + pan
-  st.position.set(GENISLIK / 2, YUKSEKLIK / 2);
+  const d = document.getElementById("domUst");
+  if (d) d.style.transform = `translate(${_panX}px, ${_panY}px) scale(${_zoomK})`;
 }
 function oyunZoomKur() {
   if (!mobilMi()) return;

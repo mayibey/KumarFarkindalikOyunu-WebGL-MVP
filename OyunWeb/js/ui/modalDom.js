@@ -19,7 +19,7 @@ function kokAl() {
     position: "absolute", left: "0", top: "0", width: "1920px", height: "1080px",
     pointerEvents: "none", zIndex: "40", fontFamily: "'Segoe UI', Tahoma, sans-serif",
   });
-  document.getElementById("sahne").appendChild(_kok);
+  (document.getElementById("domUst") || document.getElementById("sahne")).appendChild(_kok);
   return _kok;
 }
 

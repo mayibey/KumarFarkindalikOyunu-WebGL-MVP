@@ -10,7 +10,7 @@ let kutu = null, iframe = null, sonState = null, hazir = false;
 
 export function anlaticiAc() {
   if (kutu) { kutu.style.display = "block"; return; }
-  const sahne = document.getElementById("sahne");
+  const sahne = document.getElementById("domUst") || document.getElementById("sahne");
   kutu = document.createElement("div");
   Object.assign(kutu.style, {
     position: "absolute", left: "12px", top: "248px",           // 23vh @1080

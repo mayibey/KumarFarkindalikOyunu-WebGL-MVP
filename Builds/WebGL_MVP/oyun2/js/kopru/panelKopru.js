@@ -21,7 +21,7 @@ export function panelAc() {
   iframe.id = "panelIframe"; iframe.src = "ic/panel.html";
   Object.assign(iframe.style, { width: "100%", height: "100%", border: "0", background: "transparent" });
   kutu.appendChild(iframe);
-  document.getElementById("sahne").appendChild(kutu);
+  (document.getElementById("domUst") || document.getElementById("sahne")).appendChild(kutu);
 }
 export function panelKapat() { if (kutu) kutu.style.display = "none"; }
 export function panelAcikMi() { return !!kutu && kutu.style.display !== "none"; }
