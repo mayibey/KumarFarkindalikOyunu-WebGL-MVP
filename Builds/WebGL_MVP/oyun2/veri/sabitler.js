@@ -28,7 +28,8 @@ export const ODEME_12P   = [1.0, 1.5, 2.0, 2.5, 3.0, 5.0, 10.0, 25.0, 0];
 // <=11 → ODEME_10_11; 12+ → ODEME_12P. total += pay*bahis; RoundToInt.
 
 // --- Animasyon süreleri: TumbleAyarlari.cs:151-162 ---
-export const ANIM = { pop: 0.38, dusme: 0.82, adimArasi: 0.18, ustOffset: 120 };
+// Unity/Pixi ortası hız (kullanıcı: Unity çok yavaş, Pixi hızlıydı): ~1.35x yavaşlatıldı.
+export const ANIM = { pop: 0.5, dusme: 1.1, adimArasi: 0.24, ustOffset: 120 };
 
 // --- Çarpan: envanter (OyunYoneticisi.Fields.cs:505-570, CarpanServisi) ---
 export const CARPAN = { uretimYuzde: 2, maxAdet: 5, toplama: "SUM", forceDegerler: [5, 10, 50, 100] };

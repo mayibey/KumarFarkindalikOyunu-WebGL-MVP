@@ -68,7 +68,7 @@ export function girisEkraniKur(uygulama, dokular, { onSenaryo, onDevam, onPanel 
     const t = new PIXI.Text({ text: satirlar, style: {
       fontFamily: "LilitaOne, TitanOne, sans-serif", fontSize: 36 * olcek, fill: 0xffe08a, align: "center",
       stroke: { color: 0x5a1a00, width: 5 }, lineHeight: 40 * olcek } });
-    t.anchor.set(0.5); c.addChild(t);
+    t.anchor.set(0.5); t.position.set(0, -6 * olcek); c.addChild(t);  // font üst metriği boşluğunu telafi (dikey ortala)
     c.eventMode = "static"; c.cursor = "pointer";
     c.on("pointerover", () => c.scale.set(1.05));
     c.on("pointerout", () => c.scale.set(1));
