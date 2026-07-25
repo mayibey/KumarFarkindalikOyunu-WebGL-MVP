@@ -31,7 +31,9 @@
         _dbg.onload = function(){ eruda.init(); console.log('[debug] konsol hazir; onceki hatalar:', window.__hatalar); };
         document.head.appendChild(_dbg);
       }
-      /* PINCH_KILIT: tarayici pinch'i iOS bellegini patlatiyor — kapali; OYUN_ZOOM devrede. */
+      /* PINCH_KILIT (AKTİF): tarayıcı pinch'i + eski OYUN_ZOOM'un body CSS-scale'i iOS'te WebGL
+         canvas'ı büyütüp belleği patlatıyordu (sekme çökmesi). Zoom kaldırıldı, pinch tamamen
+         engellendi — Unity canvas hiçbir zaman CSS ile büyütülmez → iOS bellek patlaması olmaz. */
       (function(){
         ['gesturestart','gesturechange','gestureend'].forEach(function(t){
           document.addEventListener(t, function(e){ e.preventDefault(); }, {passive:false});
@@ -39,55 +41,6 @@
         document.addEventListener('touchmove', function(e){
           if(e.touches && e.touches.length>1) e.preventDefault();
         }, {passive:false});
-      })();
-      /* OYUN_ZOOM: 2 parmak pinch = guvenli CSS zoom (1-3x, kaydirmali); cift dokunus 2x/sifirla. */
-      (function(){
-        if(!/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) return;
-        var zk=1, zx=0, zy=0;
-        function uygula(){
-          document.body.style.transformOrigin='0 0';
-          document.body.style.transform = (zk<=1.01) ? '' : 'translate('+zx+'px,'+zy+'px) scale('+zk+')';
-        }
-        function sinirla(){
-          zk=Math.min(3,Math.max(1,zk));
-          var w=window.innerWidth,h=window.innerHeight;
-          zx=Math.min(0,Math.max(w-w*zk,zx));
-          zy=Math.min(0,Math.max(h-h*zk,zy));
-          if(zk<=1.01){zk=1;zx=0;zy=0;}
-        }
-        var p=null;
-        document.addEventListener('touchstart',function(e){
-          if(e.touches.length===2){
-            var a=e.touches[0],b=e.touches[1];
-            p={ d0:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)||1, k0:zk,
-                mx:(a.clientX+b.clientX)/2, my:(a.clientY+b.clientY)/2, x0:zx, y0:zy };
-          }
-        },{passive:false});
-        document.addEventListener('touchmove',function(e){
-          if(p && e.touches.length===2){
-            e.preventDefault();
-            var a=e.touches[0],b=e.touches[1];
-            var d=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)||1;
-            var mx=(a.clientX+b.clientX)/2, my=(a.clientY+b.clientY)/2;
-            var k=Math.min(3,Math.max(1,p.k0*d/p.d0));
-            zx = mx - (p.mx-p.x0)*(k/p.k0);
-            zy = my - (p.my-p.y0)*(k/p.k0);
-            zk = k;
-            sinirla(); uygula();
-          }
-        },{passive:false});
-        document.addEventListener('touchend',function(e){ if(e.touches.length<2) p=null; });
-        var sonT=0, sonX=0, sonY=0;
-        document.addEventListener('touchend',function(e){
-          if(e.touches.length===0 && e.changedTouches.length===1){
-            var t=e.changedTouches[0], s=Date.now();
-            if(s-sonT<350 && Math.abs(t.clientX-sonX)<40 && Math.abs(t.clientY-sonY)<40){
-              if(zk>1){ zk=1; } else { zk=2; zx=-t.clientX; zy=-t.clientY; }
-              sinirla(); uygula();
-            }
-            sonT=s; sonX=t.clientX; sonY=t.clientY;
-          }
-        });
       })();
     </script>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
