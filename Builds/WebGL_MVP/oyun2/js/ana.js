@@ -88,7 +88,9 @@ const gridW = 6 * HUCRE + 5 * BOSLUK_X, gridH = 5 * HUCRE + 4 * BOSLUK_Y;
 // Tahta iç alan oranı (oyun_tahtasi.webp): iç-w ~%79, iç-h ~%55.5. Tahtayı grid'i saracak
 // biçimde NON-UNIFORM ölçekle + %8 KENAR PAYI (grid tahtadan içeride, meyveler çerçeveye değmez).
 // Unity tahtası daha KOMPAKT/DİK: iç alan oranları grid'e göre ayarlı, hafif kenar payı.
-const IC_W_ORAN = 0.81, IC_H_ORAN = 0.74, KENAR_PAYI = 1.0;  // Unity tahta ölçümü ~1199x839, merkez=gridMerkez
+// oyun_tahtasi.webp iç koyu alan: yatay %83.9. Grid'in çerçeveye değmemesi için tahtayı
+// grid'i rahat saracak kadar büyüt (iç pay). Merkez=gridMerkez.
+const IC_W_ORAN = 0.78, IC_H_ORAN = 0.70, KENAR_PAYI = 1.0;
 const tahtaHedefW = gridW / IC_W_ORAN * KENAR_PAYI, tahtaHedefH = gridH / IC_H_ORAN * KENAR_PAYI;
 const tahta = new PIXI.Sprite(dokular.oyun_tahtasi);
 tahta.anchor.set(0.5);

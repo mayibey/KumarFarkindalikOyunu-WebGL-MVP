@@ -69,6 +69,10 @@ export function asistanModal(baslik, govdeHtml, sayfa = "", merkezX = 960) {
     // bitince renkli HTML. İlk tık → hemen tamamla; ikinci tık → kapat.
     const govdeEl = kutu.querySelector(".govde-tw");
     const duz = govdeHtml.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "").replace(/\n{3,}/g, "\n\n");
+    // Kutu SABİT boyut (Unity): tam metnin yüksekliğini baştan ölç + sabitle, typewriter o alanda aksın.
+    govdeEl.innerHTML = govdeHtml;
+    govdeEl.style.minHeight = govdeEl.offsetHeight + "px";
+    govdeEl.textContent = "";
     let i = 0, bitti = false;
     function tamamla() {
       clearInterval(yaz); govdeEl.style.whiteSpace = "";
@@ -124,7 +128,7 @@ export function egitmenModal(mesajTmp) {
     const kok = kokAl();
     const kutu = document.createElement("div");
     Object.assign(kutu.style, {
-      position: "absolute", left: "70px", bottom: "170px", width: "620px",
+      position: "absolute", left: "70px", bottom: "300px", width: "620px",  // alt HUD/bakiye ile çakışmasın
       background: "rgba(15,10,26,0.96)", border: "2px solid rgba(212,162,74,0.7)",
       borderRadius: "16px", padding: "22px 26px 18px", color: "#fff",
       fontSize: "26px", lineHeight: "1.45", pointerEvents: "auto", cursor: "pointer",
@@ -145,8 +149,11 @@ export function egitmenModal(mesajTmp) {
     kutu.appendChild(ipucu);
     kok.appendChild(kutu);
 
-    // Typewriter (ScriptedModalKopru hissi)
+    // Typewriter (ScriptedModalKopru hissi). Kutu SABİT: tam metin yüksekliğini sabitle.
     const html = tmpToHtml(mesajTmp);
+    metin.innerHTML = html;
+    metin.style.minHeight = metin.offsetHeight + "px";
+    metin.textContent = "";
     const duz = html.replace(/<[^>]+>/g, "");
     let i = 0, bitti = false;
     const yaz = setInterval(() => {
