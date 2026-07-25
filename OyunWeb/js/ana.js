@@ -60,8 +60,8 @@ arka.width = GENISLIK; arka.height = YUKSEKLIK;
 S.addChild(arka);
 
 const logo = new PIXI.Sprite(dokular.logo_kumar_yazisi);
-logo.anchor.set(0.5, 0); logo.position.set(255, 18);
-logo.scale.set(Math.min(430 / logo.texture.width, 1));
+logo.anchor.set(0.5, 0); logo.position.set(215, 22);
+logo.scale.set(Math.min(360 / logo.texture.width, 1));  // tahtayla örtüşmesin (sola+küçük)
 S.addChild(logo);
 
 // --- Izgara ÖNCE (sık + iri kare hücre), TAHTA grid'i SARAR (Unity düzeni) ---
