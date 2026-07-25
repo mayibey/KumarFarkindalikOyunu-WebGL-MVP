@@ -35,6 +35,11 @@ await sahneKur();
 
 const font = new FontFace("LilitaOne", "url(varlik/font/LilitaOne-Regular.ttf)");
 await font.load(); document.fonts.add(font);
+// LilitaOne'da Ş İ Ğ ş ğ glyph'leri YOK → TitanOne (LilitaOne'a görsel özdeş) fallback ile
+// eksik Türkçe karakterleri tamamla. Tüm PIXI.Text fontFamily "LilitaOne, TitanOne, sans-serif".
+const fontTR = new FontFace("TitanOne", "url(varlik/font/TitanOne-Regular.ttf)");
+await fontTR.load(); document.fonts.add(fontTR);
+const FONT_YIGIN = "LilitaOne, TitanOne, sans-serif";
 
 const dokuAdlari = [...SEMBOLLER, "arkaplan_oyun", "oyun_tahtasi", "btn_spin",
   "logo_kumar_yazisi", "btn_bahis_artir", "btn_bahis_azalt", "btn_ayarlar",
@@ -137,7 +142,7 @@ function altPlaka(x, y, genislik, yukseklik = 92) {
   g.position.set(x, y);
   S.addChild(g);
   const t = new PIXI.Text({ text: "", style: {
-    fontFamily: "LilitaOne", fontSize: 44, fill: 0xf5f006,   // Unity ölçümü: saf parlak sarı (245,240,8)
+    fontFamily: FONT_YIGIN, fontSize: 44, fill: 0xf5f006,   // Unity ölçümü: saf parlak sarı (245,240,8)
     dropShadow: { color: 0x000000, alpha: 0.5, blur: 2, distance: 2 } } }); // stroke yerine gölge (renk saf kalsın)
   t.anchor.set(0.5); t.position.set(x, y);
   S.addChild(t);
@@ -149,7 +154,7 @@ kazancSp.anchor.set(0.5); kazancSp.position.set(GENISLIK / 2, 62);
 kazancSp.scale.set(560 / kazancSp.texture.width);
 S.addChild(kazancSp);
 const kazancT = new PIXI.Text({ text: "", style: {
-  fontFamily: "LilitaOne", fontSize: 40, fill: 0xfdf6e3,
+  fontFamily: FONT_YIGIN, fontSize: 40, fill: 0xfdf6e3,
   stroke: { color: 0x3a2400, width: 4 } } });
 kazancT.anchor.set(0.5); kazancT.position.set(GENISLIK / 2, 62);
 S.addChild(kazancT);

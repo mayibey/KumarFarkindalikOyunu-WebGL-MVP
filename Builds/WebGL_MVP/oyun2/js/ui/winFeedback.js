@@ -19,14 +19,14 @@ export class WinFeedback {
     this.isinlar.forEach((k) => { k.position.set(W / 2, H / 2 - 60); this.kok.addChild(k); });
 
     this.baslik = new PIXI.Text({ text: "", style: {
-      fontFamily: "LilitaOne", fontSize: 110, fill: 0xffd700,
+      fontFamily: "LilitaOne, TitanOne, sans-serif", fontSize: 110, fill: 0xffd700,
       stroke: { color: 0x7a4a00, width: 10 }, dropShadow: { distance: 6, alpha: 0.6 } } });
     this.baslik.anchor.set(0.5);
     this.baslik.position.set(W / 2, H / 2 - 120);
     this.kok.addChild(this.baslik);
 
     this.tutar = new PIXI.Text({ text: "", style: {
-      fontFamily: "LilitaOne", fontSize: 88, fill: 0xffffff,
+      fontFamily: "LilitaOne, TitanOne, sans-serif", fontSize: 88, fill: 0xffffff,
       stroke: { color: 0x000000, width: 8 } } });
     this.tutar.anchor.set(0.5);
     this.tutar.position.set(W / 2, H / 2 + 20);

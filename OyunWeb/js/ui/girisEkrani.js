@@ -15,8 +15,9 @@ export function girisEkraniKur(uygulama, dokular, { onSenaryo, onDevam, onPanel 
   arka.width = 1920; arka.height = 1080; kok.addChild(arka);
 
   // --- SOL: sık grid + tahta SARAR (oyun ekranıyla aynı mantık) ---
-  const gMerkez = { x: 610, y: 500 };
-  const HUCRE = 132, BOSLUK = 9;
+  // Unity'ye göre tahta+meyveler bir tık büyütüldü (HUCRE 132→142), tahta hafif sola.
+  const gMerkez = { x: 590, y: 505 };
+  const HUCRE = 142, BOSLUK = 9;
   const gW = 6 * HUCRE + 5 * BOSLUK, gH = 5 * HUCRE + 4 * BOSLUK;
   const IC_W_ORAN = 0.79, IC_H_ORAN = 0.555;
   const tahta = new PIXI.Sprite(dokular.oyun_tahtasi);
@@ -59,11 +60,11 @@ export function girisEkraniKur(uygulama, dokular, { onSenaryo, onDevam, onPanel 
     c.position.set(1440, y);
     const plaka = new PIXI.Sprite(dokular.btn_bos_plaka);
     plaka.anchor.set(0.5);
-    plaka.scale.set((620 * olcek) / plaka.texture.width);  // Unity butonları daha geniş
+    plaka.scale.set((540 * olcek) / plaka.texture.width);  // küçültüldü (dip dibe/iri şikayeti)
     c.addChild(plaka);
     const t = new PIXI.Text({ text: satirlar, style: {
-      fontFamily: "LilitaOne", fontSize: 38 * olcek, fill: 0xffe08a, align: "center",
-      stroke: { color: 0x5a1a00, width: 5 }, lineHeight: 44 * olcek } });
+      fontFamily: "LilitaOne, TitanOne, sans-serif", fontSize: 33 * olcek, fill: 0xffe08a, align: "center",
+      stroke: { color: 0x5a1a00, width: 5 }, lineHeight: 38 * olcek } });
     t.anchor.set(0.5); c.addChild(t);
     c.eventMode = "static"; c.cursor = "pointer";
     c.on("pointerover", () => c.scale.set(1.05));
@@ -73,16 +74,16 @@ export function girisEkraniKur(uygulama, dokular, { onSenaryo, onDevam, onPanel 
     return c;
   }
 
-  // Butonlar EŞİT boy (Unity: aynı plaka ölçeği) — hepsi olcek=1.0
+  // Butonlar EŞİT boy (olcek=1.0), küçültülmüş + aralık açık (dip dibe değil)
   const kaydetVar = kayitVar();
   if (kaydetVar) {
     const k = yukle();
-    suslButon(540, "DEVAM ET", () => { kapat(); onDevam(k); }, 1.0);
-    suslButon(720, "SENARYOLU\nOYUNA BAŞLA", () => { sil(); kapat(); onSenaryo("Misafir"); }, 1.0);
-    suslButon(900, "MANİPÜLASYON\nPANELİNE GİT", () => { kapat(); onPanel(); }, 1.0);
+    suslButon(530, "DEVAM ET", () => { kapat(); onDevam(k); }, 1.0);
+    suslButon(710, "SENARYOLU\nOYUNA BAŞLA", () => { sil(); kapat(); onSenaryo("Misafir"); }, 1.0);
+    suslButon(890, "MANİPÜLASYON\nPANELİNE GİT", () => { kapat(); onPanel(); }, 1.0);
   } else {
-    suslButon(650, "SENARYOLU\nOYUNA BAŞLA", () => { kapat(); onSenaryo("Misafir"); }, 1.0);
-    suslButon(860, "MANİPÜLASYON\nPANELİNE GİT", () => { kapat(); onPanel(); }, 1.0);
+    suslButon(640, "SENARYOLU\nOYUNA BAŞLA", () => { kapat(); onSenaryo("Misafir"); }, 1.0);
+    suslButon(830, "MANİPÜLASYON\nPANELİNE GİT", () => { kapat(); onPanel(); }, 1.0);
   }
 
   // Güvenli kapat: demo döngüsünü durdur + görünmez yap; devam eden tween bitene kadar

@@ -31,7 +31,7 @@ export class SlotGorunum {
     c.addChild(sp);
     if (id === CARPAN_SEMBOL && carpanDeger > 0) {
       const t = new PIXI.Text({ text: `x${carpanDeger}`, style: {
-        fontFamily: "LilitaOne", fontSize: Math.round(this.hucre * 0.34),
+        fontFamily: "LilitaOne, TitanOne, sans-serif", fontSize: Math.round(this.hucre * 0.34),
         fill: 0xffe14d, stroke: { color: 0x481207, width: 6 } } });
       t.anchor.set(0.5);
       t.position.set(0, 2);
