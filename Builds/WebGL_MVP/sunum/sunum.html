@@ -849,7 +849,9 @@ function mobilMedyaGuncelle(){
       if(yakin){ if(!im.getAttribute("src")&&im.dataset.kaynak) im.src=im.dataset.kaynak; }
       else if(im.getAttribute("src")) im.removeAttribute("src");
     });
-    if(oyunlu) el.querySelectorAll("video").forEach(v=>{ try{ v.pause(); }catch(e){} });
+    // Oyun (Unity 500MB) açıkken videolar da bellekten TAMAMEN atılır (pause yetmez).
+    if(oyunlu) el.querySelectorAll("video").forEach(v=>{ try{ v.pause(); if(v.getAttribute("src")){ v.dataset.vkaynak=v.getAttribute("src"); v.removeAttribute("src"); v.load(); } }catch(e){} });
+    else el.querySelectorAll("video").forEach(v=>{ try{ if(!v.getAttribute("src")&&v.dataset.vkaynak) v.src=v.dataset.vkaynak; }catch(e){} });
   });
 }
 
