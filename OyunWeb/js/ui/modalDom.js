@@ -128,7 +128,8 @@ export function egitmenModal(mesajTmp) {
     const kok = kokAl();
     const kutu = document.createElement("div");
     Object.assign(kutu.style, {
-      position: "absolute", left: "70px", bottom: "300px", width: "620px",  // alt HUD/bakiye ile çakışmasın
+      // Ekran ORTASINDA (asistanModal gibi) — kullanıcı: tüm senaryo modalları ortada açılsın
+      position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-50%)", width: "620px",
       background: "rgba(15,10,26,0.96)", border: "2px solid rgba(212,162,74,0.7)",
       borderRadius: "16px", padding: "22px 26px 18px", color: "#fff",
       fontSize: "26px", lineHeight: "1.45", pointerEvents: "auto", cursor: "pointer",
