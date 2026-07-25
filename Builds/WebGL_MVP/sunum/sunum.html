@@ -942,12 +942,18 @@ const oyunSahne=document.getElementById("oyunSahne");
 function oyunOlcekle(){
   const w=oyunSahne.clientWidth, h=oyunSahne.clientHeight;
   if(!w||!h) return;
-  // iframe'i CSS transform:scale ile BUYUTMEK iOS'te WebGL canvas'i re-composite edip
-  // belleği patlatiyor (panel genisletince cokme). Yerine GERCEK boyut ver: oyun kendi
-  // icinde 1920x1080'i bu boyuta letterbox eder → framebuffer sabit, bellek patlamaz.
-  oyunFrame.style.transform="";
-  oyunFrame.style.width=w+"px";
-  oyunFrame.style.height=h+"px";
+  if(MOBIL_CIHAZ){
+    // MOBIL: gercek boyut ver — iframe'i CSS scale ile buyutmek iOS'te WebGL canvas'i
+    // re-composite edip belleği patlatiyor (cokme). Oyun kendi icinde letterbox eder.
+    oyunFrame.style.transform="";
+    oyunFrame.style.width=w+"px"; oyunFrame.style.height=h+"px";
+  } else {
+    // MASAUSTU: 1920x1080 sanal ekran, transform:scale ile panele orantili sigar/buyur
+    // (16:9 korunur, tam responsive). Masaustunde bellek sorunu yok.
+    oyunFrame.style.width="1920px"; oyunFrame.style.height="1080px";
+    const s=Math.min(w/1920, h/1080);
+    oyunFrame.style.transform=`translate(${(w-1920*s)/2}px, ${(h-1080*s)/2}px) scale(${s})`;
+  }
 }
 new ResizeObserver(oyunOlcekle).observe(oyunSahne);
 window.addEventListener("resize",oyunOlcekle);
