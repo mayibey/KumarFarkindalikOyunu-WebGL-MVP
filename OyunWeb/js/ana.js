@@ -154,8 +154,8 @@ kazancSp.anchor.set(0.5); kazancSp.position.set(GENISLIK / 2, 62);
 kazancSp.scale.set(560 / kazancSp.texture.width);
 S.addChild(kazancSp);
 const kazancT = new PIXI.Text({ text: "", style: {
-  fontFamily: FONT_YIGIN, fontSize: 40, fill: 0xfdf6e3,
-  stroke: { color: 0x3a2400, width: 4 } } });
+  fontFamily: FONT_YIGIN, fontSize: 40, fill: 0xf2d605,   // Unity ölçümü: parlak sarı (242,214,5)
+  dropShadow: { color: 0x000000, alpha: 0.5, blur: 2, distance: 2 } } });
 kazancT.anchor.set(0.5); kazancT.position.set(GENISLIK / 2, 62);
 S.addChild(kazancT);
 
@@ -244,8 +244,11 @@ async function senaryoBaslat(asamaIdx, karsilama = false) {
   hosGeldinGuncelle();
   anlaticiAc();
   anlaticiDurumGonder();
-  // Baştan başlarken (aşama 0, karşılama isteniyorsa) 3 tanıtım modalı
-  if (karsilama && asamaIdx === 0) await karsilamaModallari();
+  // Baştan başlarken (aşama 0, karşılama isteniyorsa): grid düşerek gelir + 3 tanıtım modalı
+  if (karsilama && asamaIdx === 0) {
+    await slot.gridDusereksGoster(izgaraDoldur(rng, {}));  // meyveler yukarıdan dökülür (Unity hissi)
+    await karsilamaModallari();
+  }
   console.log(`[F5] senaryo aşama ${asamaIdx + 1} başladı (bahis ${bahis})`);
 }
 
@@ -264,6 +267,7 @@ async function panelModunaGec() {
   hosKutu.visible = false; hosT.visible = false; hosX.visible = false; // Unity panelinde hoş geldin YOK
   bahis = 500; metinleriGuncelle();
   panelAc();
+  await slot.gridDusereksGoster(izgaraDoldur(rng, {}));  // panele girince meyveler düşerek gelir
   console.log("[F6] manipülasyon paneli açıldı");
   // Unity'de panele geçince gösterilen tanıtım modalı ("yeni sayfa" hissi) — metin panel_unity'den
   await asistanModal("BİLGİLENDİRİCİ ASİSTAN",
@@ -286,7 +290,7 @@ function senaryoDinamikAyar() {
 }
 
 async function planOynat(plan) {
-  slot.gridGoster(plan.baslangicGrid, plan.baslangicCarpan);
+  await slot.gridDusereksGoster(plan.baslangicGrid, plan.baslangicCarpan);  // spin başı: grid düşerek gelir
   for (const adim of plan.adimlar) {
     sesCal("tumble_pop", { ses: 0.6, pitchRasgele: true });
     await slot.tumbleAdimiOynat(adim);

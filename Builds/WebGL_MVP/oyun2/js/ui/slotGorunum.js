@@ -26,7 +26,7 @@ export class SlotGorunum {
     const sp = new PIXI.Sprite(doku);
     sp.anchor.set(0.5);
     // Sembol Unity boyutuna (biraz daha küçük, hücre içinde oturaklı)
-    const oran = Math.min(this.hucre / sp.texture.width, this.hucre / sp.texture.height) * 0.88;
+    const oran = Math.min(this.hucre / sp.texture.width, this.hucre / sp.texture.height) * 0.94;
     sp.scale.set(oran);
     c.addChild(sp);
     if (id === CARPAN_SEMBOL && carpanDeger > 0) {
@@ -50,6 +50,31 @@ export class SlotGorunum {
       this.kok.addChild(c);
       this.hucreler[i] = c;
     }
+  }
+
+  // Tüm grid'i GRID TEPESİNDEN dökerek göster (Unity açılış + her spin başı hissi).
+  // Sütun sütun hafif gecikmeli akış; düşüş maske içinde görünür.
+  async gridDusereksGoster(grid, carpanlar = null) {
+    for (const h of this.hucreler) if (h) h.destroy({ children: true });
+    const ustBaslangic = -this.hucre;
+    const yeniler = [];
+    for (let i = 0; i < grid.length; i++) {
+      const c = this.hucreYap(grid[i], carpanlar ? carpanlar[i] : 0);
+      const [px, py] = this.hucreKonum(i);
+      c.position.set(px, ustBaslangic);
+      this.kok.addChild(c);
+      this.hucreler[i] = c;
+      const sutun = i % SUTUN, satir = Math.floor(i / SUTUN);
+      yeniler.push({ c, py, gecikme: sutun * 0.045 + satir * 0.02 });
+    }
+    await tween(this.uygulama, {
+      sure: ANIM.dusme + 0.3,
+      easing: easeOutCubic,
+      guncelle: (t) => yeniler.forEach(({ c, py, gecikme }) => {
+        const tt = Math.max(0, Math.min(1, (t - gecikme) / (1 - gecikme)));
+        c.position.y = ustBaslangic + (py - ustBaslangic) * tt;
+      }),
+    });
   }
 
   async tumbleAdimiOynat(adim) {

@@ -32,11 +32,11 @@ export function asistanModal(baslik, govdeHtml, sayfa = "", merkezX = 960) {
     const kok = kokAl();
     const bg = document.createElement("div");
     Object.assign(bg.style, { position: "absolute", inset: "0",
-      background: "rgba(0,0,0,0.5)", pointerEvents: "auto" });
+      background: "rgba(0,0,0,0.32)", pointerEvents: "auto" });  // Unity: daha az karartma
     const kutu = document.createElement("div");
     Object.assign(kutu.style, { position: "absolute", left: merkezX + "px", top: "50%",
       transform: "translate(-50%,-50%)", width: "700px", maxHeight: "78%", overflow: "auto",
-      background: "rgba(14,20,40,0.97)", border: "2px solid rgba(212,162,74,0.7)",
+      background: "rgba(14,20,40,0.85)", border: "2px solid rgba(212,162,74,0.7)",  // Unity: yarı şeffaf
       borderRadius: "18px", padding: "26px 34px", color: "#e8ecf5",
       fontSize: "21px", lineHeight: "1.5", cursor: "pointer",
       boxShadow: "0 16px 60px rgba(0,0,0,0.7)" });
@@ -55,17 +55,37 @@ export function asistanModal(baslik, govdeHtml, sayfa = "", merkezX = 960) {
           letter-spacing:2px;font-size:18px">${baslik}</span>
         <span style="position:absolute;right:0;top:0;color:#8a94a8;font-size:16px">${sayfa}</span>
       </div>
-      <div>${govdeHtml}</div>`;
+      <div class="govde-tw" style="white-space:pre-wrap"></div>`;
     const tamamBtn = document.createElement("button");
     tamamBtn.textContent = "TAMAM";
     Object.assign(tamamBtn.style, { position: "absolute", right: "26px", bottom: "18px",
       fontSize: "18px", fontWeight: "700", padding: "8px 30px", borderRadius: "8px",
       border: "1.5px solid rgba(212,162,74,.7)", background: "rgba(20,28,50,0.9)",
       color: "#e8ecf5", cursor: "pointer", fontFamily: "inherit" });
-    tamamBtn.onclick = (e) => { e.stopPropagation(); bg.remove(); coz(); };
     kutu.appendChild(tamamBtn);
     bg.appendChild(kutu); kok.appendChild(bg);
-    bg.addEventListener("click", () => { bg.remove(); coz(); });
+
+    // Typewriter (Unity ScriptedModalKopru: yazı kayarak gelir). Yazarken düz metin,
+    // bitince renkli HTML. İlk tık → hemen tamamla; ikinci tık → kapat.
+    const govdeEl = kutu.querySelector(".govde-tw");
+    const duz = govdeHtml.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "").replace(/\n{3,}/g, "\n\n");
+    let i = 0, bitti = false;
+    function tamamla() {
+      clearInterval(yaz); govdeEl.style.whiteSpace = "";
+      govdeEl.innerHTML = govdeHtml; bitti = true;
+    }
+    const yaz = setInterval(() => {
+      i += 2;
+      if (i >= duz.length) tamamla();
+      else govdeEl.textContent = duz.slice(0, i);
+    }, 20);
+    function etkilesim(e) {
+      if (e) e.stopPropagation();
+      if (!bitti) { tamamla(); return; }   // ilk tık: metni tamamla
+      bg.remove(); coz();                    // ikinci tık: kapat
+    }
+    tamamBtn.onclick = etkilesim;
+    bg.addEventListener("click", () => etkilesim());
   });
 }
 
