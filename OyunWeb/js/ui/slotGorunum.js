@@ -26,7 +26,7 @@ export class SlotGorunum {
     const sp = new PIXI.Sprite(doku);
     sp.anchor.set(0.5);
     // Sembol Unity boyutuna (biraz daha küçük, hücre içinde oturaklı)
-    const oran = Math.min(this.hucre / sp.texture.width, this.hucre / sp.texture.height) * 0.94;
+    const oran = Math.min(this.hucre / sp.texture.width, this.hucre / sp.texture.height) * 1.0;  // Unity: meyve tam hücre (120)
     sp.scale.set(oran);
     c.addChild(sp);
     if (id === CARPAN_SEMBOL && carpanDeger > 0) {

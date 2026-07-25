@@ -14,12 +14,12 @@ export function girisEkraniKur(uygulama, dokular, { onSenaryo, onDevam, onPanel 
   const arka = new PIXI.Sprite(dokular.arkaplan_oyun);
   arka.width = 1920; arka.height = 1080; kok.addChild(arka);
 
-  // --- SOL: sık grid + tahta SARAR (oyun ekranıyla aynı mantık) ---
-  // Unity'ye göre tahta+meyveler bir tık büyütüldü (HUCRE 132→142), tahta hafif sola.
-  const gMerkez = { x: 590, y: 505 };
-  const HUCRE = 142, BOSLUK = 9;
-  const gW = 6 * HUCRE + 5 * BOSLUK, gH = 5 * HUCRE + 4 * BOSLUK;
-  const IC_W_ORAN = 0.79, IC_H_ORAN = 0.555;
+  // --- SOL: grid + tahta SARAR. Unity 01_GirisScene SlotGrid: anchoredPos(-383,13)
+  //     → merkez (577, 527). Hücre mantığı 02 ile aynı (165x120 → sütun 170, satır 125). ---
+  const gMerkez = { x: 577, y: 527 };
+  const HUCRE = 120, BOSLUK_X = 50, BOSLUK_Y = 5;
+  const gW = 6 * HUCRE + 5 * BOSLUK_X, gH = 5 * HUCRE + 4 * BOSLUK_Y;
+  const IC_W_ORAN = 0.81, IC_H_ORAN = 0.74;
   const tahta = new PIXI.Sprite(dokular.oyun_tahtasi);
   tahta.anchor.set(0.5);
   tahta.position.set(gMerkez.x, gMerkez.y);
@@ -28,7 +28,7 @@ export function girisEkraniKur(uygulama, dokular, { onSenaryo, onDevam, onPanel 
 
   const demo = new SlotGorunum(uygulama, dokular, {
     x: gMerkez.x - gW / 2, y: gMerkez.y - gH / 2,
-    hucre: HUCRE, boslukX: BOSLUK, boslukY: BOSLUK,
+    hucre: HUCRE, boslukX: BOSLUK_X, boslukY: BOSLUK_Y,
   });
   kok.addChild(demo.kok);
   const maske = new PIXI.Graphics()
@@ -49,22 +49,24 @@ export function girisEkraniKur(uygulama, dokular, { onSenaryo, onDevam, onPanel 
   demoDongu();
 
   // --- SAĞ: logo ---
+  // Unity 01 Logo: anchoredPos(610.49,187) → merkez (1570,353), sizeDelta genişlik 697.
   const logo = new PIXI.Sprite(dokular.logo_kumar_yazisi);
-  logo.anchor.set(0.5); logo.position.set(1440, 250);
-  logo.scale.set(Math.min(680 / logo.texture.width, 1));
+  logo.anchor.set(0.5); logo.position.set(1570, 353);
+  logo.scale.set(697 / logo.texture.width);
   kok.addChild(logo);
 
   // --- SAĞ: 2 süslü buton (btn_bos_plaka + altın yazı) ---
+  // Unity 01: SenaryoluOyunButton merkez (1533,685), ManipulasyonPaneliButton (1533,955), boyut 480x238.
   function suslButon(y, satirlar, cb, olcek = 1) {
     const c = new PIXI.Container();
-    c.position.set(1440, y);
+    c.position.set(1533, y);
     const plaka = new PIXI.Sprite(dokular.btn_bos_plaka);
     plaka.anchor.set(0.5);
-    plaka.scale.set((455 * olcek) / plaka.texture.width);  // Unity ölçüsüne indirildi (~480px bbox)
+    plaka.scale.set((480 * olcek) / plaka.texture.width);   // Unity sizeDelta genişlik 480
     c.addChild(plaka);
     const t = new PIXI.Text({ text: satirlar, style: {
-      fontFamily: "LilitaOne, TitanOne, sans-serif", fontSize: 29 * olcek, fill: 0xffe08a, align: "center",
-      stroke: { color: 0x5a1a00, width: 4 }, lineHeight: 33 * olcek } });
+      fontFamily: "LilitaOne, TitanOne, sans-serif", fontSize: 36 * olcek, fill: 0xffe08a, align: "center",
+      stroke: { color: 0x5a1a00, width: 5 }, lineHeight: 40 * olcek } });
     t.anchor.set(0.5); c.addChild(t);
     c.eventMode = "static"; c.cursor = "pointer";
     c.on("pointerover", () => c.scale.set(1.05));
@@ -74,17 +76,16 @@ export function girisEkraniKur(uygulama, dokular, { onSenaryo, onDevam, onPanel 
     return c;
   }
 
-  // Butonlar EŞİT boy (olcek=1.0), küçültülmüş + aralık açık (dip dibe değil)
+  // Unity 01: 2 buton merkez_y 685 ve 955 (arası 270). Kayıt varsa üstüne DEVAM (3 buton sığdır).
   const kaydetVar = kayitVar();
   if (kaydetVar) {
     const k = yukle();
-    suslButon(530, "DEVAM ET", () => { kapat(); onDevam(k); }, 1.0);
-    suslButon(710, "SENARYOLU\nOYUNA BAŞLA", () => { sil(); kapat(); onSenaryo("Misafir"); }, 1.0);
-    suslButon(890, "MANİPÜLASYON\nPANELİNE GİT", () => { kapat(); onPanel(); }, 1.0);
+    suslButon(505, "DEVAM ET", () => { kapat(); onDevam(k); }, 0.92);
+    suslButon(730, "SENARYOLU\nOYUNA BAŞLA", () => { sil(); kapat(); onSenaryo("Misafir"); }, 0.92);
+    suslButon(955, "MANİPÜLASYON\nPANELİNE GİT", () => { kapat(); onPanel(); }, 0.92);
   } else {
-    // Unity ölçümü: buton1 merkez_y~683, buton2~952, arası~269 (glow dahil)
-    suslButon(634, "SENARYOLU\nOYUNA BAŞLA", () => { kapat(); onSenaryo("Misafir"); }, 1.0);
-    suslButon(862, "MANİPÜLASYON\nPANELİNE GİT", () => { kapat(); onPanel(); }, 1.0);
+    suslButon(685, "SENARYOLU\nOYUNA BAŞLA", () => { kapat(); onSenaryo("Misafir"); }, 1.0);
+    suslButon(955, "MANİPÜLASYON\nPANELİNE GİT", () => { kapat(); onPanel(); }, 1.0);
   }
 
   // Güvenli kapat: demo döngüsünü durdur + görünmez yap; devam eden tween bitene kadar
