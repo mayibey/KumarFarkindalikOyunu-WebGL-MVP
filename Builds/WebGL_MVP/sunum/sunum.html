@@ -960,7 +960,7 @@ function deckOlcekle(){
 function oyunAc(){
   // PixiJS (/oyun2): Unity'nin aksine ~6MB, mobil bellek sınırını zorlamaz → sunumla AYNI sekmede
   // iframe içinde açılır (ayrı sekme workaround'u artık gerekmiyor). Mobilde çökme testi için bu hal.
-  if(!oyunFrame.src) oyunFrame.src="../oyun.html";   // UNITY (zoom kaldirildi, cokme testi) - Pixi: ../oyun2/oyun.html
+  if(!oyunFrame.src) oyunFrame.src="../oyun2/oyun.html";   // UNITY (zoom kaldirildi, cokme testi) - Pixi: ../oyun2/oyun.html
 
   document.body.classList.add("oyunlu");
   deckOlcekle();
@@ -1019,7 +1019,7 @@ function oyunPanelGit(){
    Unity çoktan hazır olur, "yavaş açılıyor" hissi kalmaz (iframe görünmezken de yüklenir).
    MOBİLDE YAPILMAZ: telefon tarayıcısının bellek sınırı, arka planda yüklenen oyunla
    birleşince sekmeyi çökertiyor — telefonda oyun ancak 🎮 ile istenirse yüklenir. */
-window.addEventListener("load",()=>{ setTimeout(()=>{ if(!oyunFrame.src) oyunFrame.src="../oyun.html"; },1200); });
+window.addEventListener("load",()=>{ setTimeout(()=>{ if(!oyunFrame.src) oyunFrame.src="../oyun2/oyun.html"; },1200); });
 
 /* ---- Oyun sesi yönetimi ----
    🔊 düğmesi kullanıcının tercihi; videolu slaytlar açıkken oyun sesi otomatik susturulur
