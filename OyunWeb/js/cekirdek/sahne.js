@@ -61,10 +61,20 @@ function olcekle() {
 /* OYUN_ZOOM: zoom yalnız DOM overlay katmanına (#domUst: yazılı paneller/modallar) uygulanır.
    Oyun canvas'ı SABİT kalır (kullanıcı: oyunu değil panelleri yakınlaştır). CSS scale yalnız
    DOM'a — canvas'a değil — bu yüzden iOS'te bellek patlaması yok. 2 parmak zoom/kaydır, çift dokun 2x. */
-let _zoomK = 1, _panX = 0, _panY = 0;
+let _zoomK = 1, _originX = GENISLIK / 2, _originY = YUKSEKLIK / 2;
 function zoomUygula() {
   const d = document.getElementById("domUst");
-  if (d) d.style.transform = `translate(${_panX}px, ${_panY}px) scale(${_zoomK})`;
+  if (!d) return;
+  // ZOOM-TO-POINT: parmakların ortasından sabit yakınlaşır (pan yok → yakınlaştırırken KAYMAZ).
+  d.style.transformOrigin = `${_originX}px ${_originY}px`;
+  d.style.transform = _zoomK <= 1.001 ? "" : `scale(${_zoomK})`;
+}
+// ekran pikseli → domUst (1920x1080) koordinatı
+function ekranToDom(cx, cy) {
+  const lk = letterboxK() || 1;
+  const ofsX = (window.innerWidth - GENISLIK * lk) / 2;
+  const ofsY = (window.innerHeight - YUKSEKLIK * lk) / 2;
+  return [(cx - ofsX) / lk, (cy - ofsY) / lk];
 }
 function oyunZoomKur() {
   if (!mobilMi()) return;
@@ -72,12 +82,10 @@ function oyunZoomKur() {
   document.addEventListener("touchstart", (e) => {
     if (e.touches.length === 2) {
       const [a, b] = e.touches;
-      p = {
-        d0: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1,
-        k0: _zoomK,
-        mx: (a.clientX + b.clientX) / 2, my: (a.clientY + b.clientY) / 2,
-        x0: _panX, y0: _panY,
-      };
+      const mx = (a.clientX + b.clientX) / 2, my = (a.clientY + b.clientY) / 2;
+      [_originX, _originY] = ekranToDom(mx, my);        // zoom odağı = parmakların ortası (sabit)
+      p = { d0: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1, k0: _zoomK };
+      zoomUygula();
     }
   }, { passive: false });
   document.addEventListener("touchmove", (e) => {
@@ -85,12 +93,7 @@ function oyunZoomKur() {
       e.preventDefault();
       const [a, b] = e.touches;
       const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1;
-      const mx = (a.clientX + b.clientX) / 2, my = (a.clientY + b.clientY) / 2;
-      const lk = letterboxK() || 1;
-      _zoomK = Math.min(3, Math.max(1, p.k0 * d / p.d0));
-      _panX = p.x0 + (mx - p.mx) / lk;   // parmak kaydırması → 1920 koordinatına çevrilir
-      _panY = p.y0 + (my - p.my) / lk;
-      if (_zoomK <= 1.01) { _zoomK = 1; _panX = 0; _panY = 0; }
+      _zoomK = Math.min(3, Math.max(1, p.k0 * d / p.d0));   // yalnız ölçek değişir → kayma yok
       zoomUygula();
     }
   }, { passive: false });
@@ -100,15 +103,8 @@ function oyunZoomKur() {
     if (e.touches.length === 0 && e.changedTouches.length === 1) {
       const t = e.changedTouches[0], s = Date.now();
       if (s - sonT < 350 && Math.abs(t.clientX - sonX) < 40 && Math.abs(t.clientY - sonY) < 40) {
-        if (_zoomK > 1) { _zoomK = 1; _panX = 0; _panY = 0; }
-        else {
-          _zoomK = 2;
-          const lk = letterboxK() || 1;
-          const ofsX = (window.innerWidth - GENISLIK * lk) / 2;
-          const ofsY = (window.innerHeight - YUKSEKLIK * lk) / 2;
-          _panX = GENISLIK / 2 - (t.clientX - ofsX) / lk;   // çift dokunulan noktaya odaklan
-          _panY = YUKSEKLIK / 2 - (t.clientY - ofsY) / lk;
-        }
+        if (_zoomK > 1) { _zoomK = 1; }
+        else { _zoomK = 2; [_originX, _originY] = ekranToDom(t.clientX, t.clientY); }  // dokunulan noktaya odaklan
         zoomUygula();
       }
       sonT = s; sonX = t.clientX; sonY = t.clientY;
