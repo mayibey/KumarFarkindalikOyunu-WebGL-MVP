@@ -37,18 +37,29 @@ export function mobilMi() {
 }
 
 // Pencereye oranlı sığdır (letterbox). Sunum iframe'i tam 1920x1080 verir → ölçek 1.
+// ÖNEMLİ: CSS transform SADECE letterbox yapar; zoom canvas'ı CSS ile büyütmez (iOS'te
+// CSS-scaled WebGL canvas dev bir GPU compose katmanı ayırıp sekmeyi ANINDA çökertiyordu).
+function letterboxK() {
+  return Math.min(window.innerWidth / GENISLIK, window.innerHeight / YUKSEKLIK);
+}
 function olcekle() {
-  const k = Math.min(window.innerWidth / GENISLIK, window.innerHeight / YUKSEKLIK);
   const s = document.getElementById("sahne");
-  s.style.transform = `translate(-50%,-50%) scale(${k * _zoomK})`;
-  // zoom kaydırması letterbox ölçeğiyle birlikte uygulanır
-  s.style.left = `calc(50% + ${_zoomX}px)`;
-  s.style.top = `calc(50% + ${_zoomY}px)`;
+  s.style.transform = `translate(-50%,-50%) scale(${letterboxK()})`;
+  s.style.left = "50%";
+  s.style.top = "50%";
 }
 
-/* OYUN_ZOOM: tarayıcı pinch'i kilitli (bellek); okuma için güvenli CSS zoom.
-   2 parmak = yakınlaştır/kaydır, çift dokunuş = 2x / sıfırla. */
-let _zoomK = 1, _zoomX = 0, _zoomY = 0;
+/* OYUN_ZOOM: zoom Pixi STAGE içinde uygulanır (canvas fiziksel boyutu 1920x1080 SABİT kalır
+   → iOS GPU framebuffer büyümez, bellek patlaması yok). 2 parmak = yakınlaştır/kaydır,
+   çift dokunuş = 2x / sıfırla. */
+let _zoomK = 1, _panX = 0, _panY = 0;
+function zoomUygula() {
+  if (!uygulama) return;
+  const st = uygulama.stage;
+  st.scale.set(_zoomK);
+  st.pivot.set(GENISLIK / 2 - _panX, YUKSEKLIK / 2 - _panY); // ekran ortasından zoom + pan
+  st.position.set(GENISLIK / 2, YUKSEKLIK / 2);
+}
 function oyunZoomKur() {
   if (!mobilMi()) return;
   let p = null;
@@ -59,7 +70,7 @@ function oyunZoomKur() {
         d0: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1,
         k0: _zoomK,
         mx: (a.clientX + b.clientX) / 2, my: (a.clientY + b.clientY) / 2,
-        x0: _zoomX, y0: _zoomY,
+        x0: _panX, y0: _panY,
       };
     }
   }, { passive: false });
@@ -69,12 +80,12 @@ function oyunZoomKur() {
       const [a, b] = e.touches;
       const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1;
       const mx = (a.clientX + b.clientX) / 2, my = (a.clientY + b.clientY) / 2;
-      const k = Math.min(3, Math.max(1, p.k0 * d / p.d0));
-      _zoomX = p.x0 + (mx - p.mx);
-      _zoomY = p.y0 + (my - p.my);
-      _zoomK = k;
-      if (_zoomK <= 1.01) { _zoomK = 1; _zoomX = 0; _zoomY = 0; }
-      olcekle();
+      const lk = letterboxK() || 1;
+      _zoomK = Math.min(3, Math.max(1, p.k0 * d / p.d0));
+      _panX = p.x0 + (mx - p.mx) / lk;   // parmak kaydırması → 1920 koordinatına çevrilir
+      _panY = p.y0 + (my - p.my) / lk;
+      if (_zoomK <= 1.01) { _zoomK = 1; _panX = 0; _panY = 0; }
+      zoomUygula();
     }
   }, { passive: false });
   document.addEventListener("touchend", (e) => { if (e.touches.length < 2) p = null; });
@@ -83,9 +94,16 @@ function oyunZoomKur() {
     if (e.touches.length === 0 && e.changedTouches.length === 1) {
       const t = e.changedTouches[0], s = Date.now();
       if (s - sonT < 350 && Math.abs(t.clientX - sonX) < 40 && Math.abs(t.clientY - sonY) < 40) {
-        if (_zoomK > 1) { _zoomK = 1; _zoomX = 0; _zoomY = 0; }
-        else { _zoomK = 2; _zoomX = window.innerWidth / 2 - t.clientX; _zoomY = window.innerHeight / 2 - t.clientY; }
-        olcekle();
+        if (_zoomK > 1) { _zoomK = 1; _panX = 0; _panY = 0; }
+        else {
+          _zoomK = 2;
+          const lk = letterboxK() || 1;
+          const ofsX = (window.innerWidth - GENISLIK * lk) / 2;
+          const ofsY = (window.innerHeight - YUKSEKLIK * lk) / 2;
+          _panX = GENISLIK / 2 - (t.clientX - ofsX) / lk;   // çift dokunulan noktaya odaklan
+          _panY = YUKSEKLIK / 2 - (t.clientY - ofsY) / lk;
+        }
+        zoomUygula();
       }
       sonT = s; sonX = t.clientX; sonY = t.clientY;
     }
