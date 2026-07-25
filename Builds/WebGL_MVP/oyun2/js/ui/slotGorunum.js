@@ -25,8 +25,8 @@ export class SlotGorunum {
     const doku = id === CARPAN_SEMBOL ? this.dokular.sembol_bomba : this.dokular[SEMBOLLER[id]];
     const sp = new PIXI.Sprite(doku);
     sp.anchor.set(0.5);
-    // Sembol hücre içinde kalır (kenara değmesin): 1.04 → 0.92
-    const oran = Math.min(this.hucre / sp.texture.width, this.hucre / sp.texture.height) * 0.92;
+    // Sembol Unity boyutuna (biraz daha küçük, hücre içinde oturaklı)
+    const oran = Math.min(this.hucre / sp.texture.width, this.hucre / sp.texture.height) * 0.88;
     sp.scale.set(oran);
     c.addChild(sp);
     if (id === CARPAN_SEMBOL && carpanDeger > 0) {
