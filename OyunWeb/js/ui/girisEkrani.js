@@ -2,6 +2,7 @@
 // sağda KUMAR KAZANDIRMAZ logosu + 2 süslü altın buton (btn_bos_plaka + yazı).
 // GirisDemoAnimator karşılığı: sol tahtada sürekli tumble demo döner.
 import { SEMBOLLER } from "../../veri/sabitler.js";
+import { mobilMi } from "../cekirdek/sahne.js";
 import { rngYap } from "../motor/rng.js";
 import { izgaraDoldur } from "../motor/doldurucu.js";
 import { spinUret } from "../motor/spinMotoru.js";
@@ -38,7 +39,8 @@ export function girisEkraniKur(uygulama, dokular, { onSenaryo, onDevam, onPanel 
 
   const drng = rngYap(20260725);
   demo.gridGoster(izgaraDoldur(drng, {}));
-  let demoCalisiyor = true;
+  // Mobilde sürekli demo animasyonu YOK: statik grid gösterilir (iOS bellek/termal → 30sn çökme önlemi).
+  let demoCalisiyor = !mobilMi();
   async function demoDongu() {
     while (demoCalisiyor) {
       const s = spinUret(1000, { egilimYuzde: 90, minKat: 0, maksKat: 0, aktifSenaryo: "normal", zorluk: 4, maxReroll: 100 }, drng);
@@ -47,7 +49,7 @@ export function girisEkraniKur(uygulama, dokular, { onSenaryo, onDevam, onPanel 
       await new Promise((r) => setTimeout(r, 1400));
     }
   }
-  demoDongu();
+  if (demoCalisiyor) demoDongu();
 
   // --- SAĞ: logo ---
   // Unity 01 Logo: anchoredPos(610.49,187) → merkez (1570,353), sizeDelta genişlik 697.

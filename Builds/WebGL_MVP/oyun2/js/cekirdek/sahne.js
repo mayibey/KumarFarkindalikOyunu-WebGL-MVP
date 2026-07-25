@@ -7,16 +7,20 @@ export let uygulama = null; // PIXI.Application
 
 export async function sahneKur() {
   const kok = document.getElementById("sahne");
+  const mobil = mobilMi();
   uygulama = new PIXI.Application();
   await uygulama.init({
     width: GENISLIK,
     height: YUKSEKLIK,
     background: 0x0b0a09,
-    antialias: true,
-    // Mobilde 1x çizim yeterli (Unity'de DPR 0.75 kullanıyorduk; Pixi hafif, 1 güvenli).
-    resolution: mobilMi() ? 1 : Math.min(window.devicePixelRatio || 1, 2),
+    antialias: !mobil,                 // mobilde AA kapalı: WebGL bellek/GPU yükü azalır
+    powerPreference: mobil ? "low-power" : "high-performance",
+    resolution: mobil ? 1 : Math.min(window.devicePixelRatio || 1, 2),
     autoDensity: true,
   });
+  // Mobilde render 30 FPS ile sınırlı: sürekli 60fps WebGL çizimi iOS'te termal/bellek
+  // birikimiyle ~30sn sonra sekmeyi çökertiyordu. 30fps yeterince akıcı + yarı yük.
+  if (mobil) uygulama.ticker.maxFPS = 30;
   kok.appendChild(uygulama.canvas);
   const y = document.getElementById("yukleniyor");
   if (y) y.remove();
