@@ -153,15 +153,15 @@ function altPlaka(x, y, genislik, yukseklik = 92) {
   S.addChild(t);
   return t;
 }
-// KAZANÇ: Unity yatay altın bant (etiket_kazanc); yazı BEYAZ (Öncelik 5), glow yok.
+// KAZANÇ: Unity SpinKazancText ekran merkez (1033,58) — grid ile hizalı (ortada değil, sağda).
 const kazancSp = new PIXI.Sprite(dokular.etiket_kazanc);
-kazancSp.anchor.set(0.5); kazancSp.position.set(GENISLIK / 2, 62);
+kazancSp.anchor.set(0.5); kazancSp.position.set(1033, 58);
 kazancSp.scale.set(560 / kazancSp.texture.width);
 S.addChild(kazancSp);
 const kazancT = new PIXI.Text({ text: "", style: {
   fontFamily: FONT_YIGIN, fontSize: 40, fill: 0xf2d605,   // Unity ölçümü: parlak sarı (242,214,5)
   dropShadow: { color: 0x000000, alpha: 0.5, blur: 2, distance: 2 } } });
-kazancT.anchor.set(0.5); kazancT.position.set(GENISLIK / 2, 62);
+kazancT.anchor.set(0.5); kazancT.position.set(1033, 58);
 S.addChild(kazancT);
 
 // Unity BakiyeGorsel anchoredPos(-461,-436) size(490,160) → (499,976); BahisGorsel(487,-436)→(1447,976).
