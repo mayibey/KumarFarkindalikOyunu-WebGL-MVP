@@ -1018,6 +1018,7 @@ function oyunPanelGit(){
     if(ui){
       try{ ui.SendMessage("SunumKoprusu","SunumPanelGit", 0); }
       catch(e){ console.warn("[sunum] SunumPanelGit gönderilemedi (eski oyun build'i olabilir):", e); }
+      _panelAcik=true; try{ stopAllVideos(); }catch(e){} oyunSesUygula(); // panele geçince yan videoyu durdur + oyun sesini aç → çarpan efekti/müzik canlı
       return;
     }
     if(++deneme<240) setTimeout(gonder,500);
@@ -1036,9 +1037,10 @@ window.addEventListener("load",()=>{ setTimeout(()=>{ if(!oyunFrame.src) oyunFra
    (video sesiyle çakışmasın), slayttan çıkınca kullanıcının tercihi geri gelir.
    Unity tarafı: SunumKoprusu.SunumSesAyarla (yeni build ister; eski build'de sessizce etkisiz). */
 let oyunSesiAcik=true;      // kullanıcının 🔊 tercihi
+let _panelAcik=false;      // panele geçilince true → oyun sesi açık (panel slaytındaki video kısıtı bypass, çarpan efekti/müzik çalsın)
 let _sesSonGonderilen=null; // oyuna en son iletilen durum (gereksiz tekrar göndermeyelim)
 const sesBtn=document.getElementById("sesBtn");
-function aktifSlaytVideolu(){ const s=slides[cur]; return s.type==="video" || !!s.video; }
+function aktifSlaytVideolu(){ if(_panelAcik) return false; const s=slides[cur]; return s.type==="video" || !!s.video; }
 function oyunSesUygula(){
   const istenen = oyunSesiAcik && !aktifSlaytVideolu();
   let win=null;
