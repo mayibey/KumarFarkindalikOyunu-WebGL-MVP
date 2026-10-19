@@ -1,0 +1,1 @@
+Sanal kumar tuzağını daha iyi anlatmak amacıyla, gerçeğiyle birebir aynı çalışan bir sanal kumar simülasyonu tasarladık: Kumar Kazandırmaz. Birazdan bu simülasyonu adım adım, birlikte izleyeceğiz.

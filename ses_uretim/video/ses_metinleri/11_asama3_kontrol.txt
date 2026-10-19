@@ -1,0 +1,1 @@
+Üçüncü aşamada oyuncu, sonuçların tesadüf değil, kendi becerisine bağlı olduğuna inanmaya başlar. Oyunun mantığını çözdüğünü sanır. Buna kontrol yanılsaması denir. Oysa oyuncu, oyunu yönettiğini düşünürken, oyun onu adım adım içine çeker.

@@ -1,0 +1,44 @@
+KUMAR FARKINDALIK OYUNU - SUNUM PAKETI
+=======================================
+Sanal Kumar Bagimliligi Bilinclendirme Sunumu + Canli Oyun Demosu
+
+NASIL CALISTIRILIR?
+-------------------
+1) Bu klasoru bilgisayara kopyalayin (zip geldiyse once TUMUNU cikartin).
+2) "BASLAT.bat" dosyasina cift tiklayin.
+3) Tarayici otomatik acilir ve slayt sunumu gelir.
+
+Hicbir program kurmaniza gerek yoktur. Windows 10/11 uzerinde
+hazir gelen bilesenlerle calisir.
+
+SUNUM KONTROLLERI
+-----------------
+- Sag/sol ok tuslari veya ekrana tiklama : slaytlar arasinda gezinme
+- F : tam ekran
+- P : otomatik oynatma
+- G veya sag alttaki oyun kolu dugmesi : OYUN PANELI
+  Ekran ikiye bolunur; solda sunum devam eder, sagda oyun canli calisir.
+  Ortadaki altin cizgiyi surukleyerek boyutu ayarlayabilirsiniz.
+  Panel kapatilsa bile oyun arka planda kaldigi yerden devam eder.
+  NOT: Oyun tarafina tikladiktan sonra slaytlari ok tusuyla ilerletmek
+  icin once sunum tarafina bir kez tiklayin.
+
+ONEMLI NOTLAR
+-------------
+- Acilan siyah komut penceresini KAPATMAYIN; sunum ve oyun o pencere
+  acik oldugu surece calisir. Isiniz bitince pencereyi kapatin.
+- Windows "Bilgisayariniz korundu" (SmartScreen) uyarisi verirse:
+  "Daha fazla bilgi" -> "Yine de calistir" secin. Dosya guvenlidir.
+- Tarayici olarak Chrome veya Edge onerilir.
+- Sayfa acilmazsa tarayiciya elle su adresi yazin: http://localhost:8090/
+
+ICERIK
+------
+sunum.html   -> Slayt sunumu (oyun paneli entegre)
+media\       -> Sunum gorselleri ve videolari
+oyun\        -> Oyunun kendisi (Unity WebGL)
+sunucu.ps1   -> Her seyi calistiran kucuk yerel sunucu
+BASLAT.bat   -> Tek tikla baslatici
+
+Bu uygulama egitim amaclidir; gercek para icermez, kumar oynatmaz.
+Yesilay Danismanlik Hatti: 115

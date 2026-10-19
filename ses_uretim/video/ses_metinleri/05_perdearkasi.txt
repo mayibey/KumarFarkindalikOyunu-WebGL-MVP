@@ -1,0 +1,1 @@
+Bu oyunun bir de perde arkası var: yönetici paneli. Sistemin oyuncuları, yani kurbanları, nasıl manipüle ettiğini ve hangi hileleri kullandığını, en sonunda bu panelin üzerinden göstereceğiz. Buna hilenin mutfağı diyoruz.

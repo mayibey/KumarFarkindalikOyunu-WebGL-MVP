@@ -1,0 +1,83 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1920px;height:1080px;overflow:hidden}
+  body{
+    font-family:-apple-system,"Segoe UI",system-ui,Roboto,sans-serif;
+    background:linear-gradient(135deg,#f4f6f2 0%,#e7f0e9 55%,#dcece0 100%);
+    color:#1d1f25;padding:96px 120px;display:flex;flex-direction:column;
+  }
+  .eyebrow{display:flex;align-items:center;gap:14px;color:#2f7d52;font-weight:800;
+    font-size:19px;letter-spacing:.26em;text-transform:uppercase;margin-bottom:22px}
+  .eyebrow .cizgi{width:46px;height:3px;background:#2f7d52;border-radius:2px}
+  h1{font-size:74px;line-height:1.05;font-weight:900;letter-spacing:-.02em;margin-bottom:20px}
+  h1 .kirmizi{color:#c8202a}
+  .alt{font-size:26px;line-height:1.5;color:#4a4d55;max-width:1150px;margin-bottom:56px}
+  .alt b{color:#c8202a}
+
+  .kompozisyon{display:flex;align-items:center;gap:0;flex:1}
+
+  /* SOL: 3 madde dikey */
+  .kimeler{display:flex;flex-direction:column;gap:22px;width:560px}
+  .madde{display:flex;align-items:center;gap:24px;background:#ffffff;
+    border:1px solid rgba(47,125,82,.22);border-left:6px solid #2f7d52;
+    border-radius:16px;padding:26px 32px;box-shadow:0 10px 28px rgba(30,50,35,.08)}
+  .madde .ikon{font-size:44px;line-height:1;filter:saturate(1.1)}
+  .madde .yazi{font-size:32px;font-weight:800;letter-spacing:.01em;color:#1d1f25}
+
+  /* ORTA: süslü ayraç (üstten+alttan ortaya sivrilen çift çizgi) */
+  .ayrac{width:170px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ayrac svg{display:block}
+  .ayrac .etiket{margin-top:10px;font-size:15px;font-weight:800;letter-spacing:.18em;
+    text-transform:uppercase;color:#2f7d52}
+
+  /* SAĞ: Yeşilay / YEDAM paneli */
+  .destek{flex:1;background:linear-gradient(160deg,#1f7a4d,#14603b);border-radius:22px;
+    padding:44px 48px;color:#eafaf0;box-shadow:0 22px 50px rgba(20,80,50,.30);position:relative;overflow:hidden}
+  .destek::after{content:"";position:absolute;right:-70px;top:-70px;width:260px;height:260px;
+    border-radius:50%;background:rgba(255,255,255,.06)}
+  .destek .kicker{font-size:17px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;
+    color:#bff0d2;margin-bottom:10px}
+  .destek h2{font-size:40px;font-weight:900;line-height:1.1;margin-bottom:26px}
+  .hat{display:flex;align-items:baseline;gap:18px;margin-bottom:8px}
+  .hat .alo{font-size:30px;font-weight:800;color:#d7f6e3}
+  .hat .no{font-size:96px;font-weight:900;line-height:.9;letter-spacing:-.02em;color:#ffffff;
+    text-shadow:0 4px 18px rgba(0,0,0,.25)}
+  .hat .ek{font-size:22px;color:#bff0d2;font-weight:600}
+  .merkezler{margin-top:26px;display:flex;flex-direction:column;gap:14px}
+  .merkez{display:flex;align-items:center;gap:14px;font-size:24px;font-weight:600}
+  .merkez .nokta{width:11px;height:11px;border-radius:50%;background:#7fe0a6;flex:none}
+  .merkez b{font-weight:800;color:#fff}
+</style></head><body>
+  <div class="eyebrow"><span class="cizgi"></span>Cesaret · Yalnız Değilsiniz</div>
+  <h1>Yardım istemek zayıflık değil <span class="kirmizi">cesarettir.</span></h1>
+  <div class="alt">Durumu <b>açıkça paylaşmak</b>, çözüm yolunda atılacak en cesur adımdır. Güvendiklerinize açılın — ve profesyonel desteğe uzanın.</div>
+
+  <div class="kompozisyon">
+    <div class="kimeler">
+      <div class="madde"><span class="ikon">👨‍👩‍👧</span><span class="yazi">Ailenize</span></div>
+      <div class="madde"><span class="ikon">🎖️</span><span class="yazi">Amirlerinize</span></div>
+      <div class="madde"><span class="ikon">🤝</span><span class="yazi">Güvendiğiniz kişilere</span></div>
+    </div>
+
+    <div class="ayrac">
+      <svg width="150" height="230" viewBox="0 0 150 230" fill="none">
+        <polyline points="30,26 118,115 30,204" stroke="#2f7d52" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>
+        <polyline points="58,26 146,115 58,204" stroke="#2f7d52" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="etiket">ve destek</div>
+    </div>
+
+    <div class="destek">
+      <div class="kicker">Profesyonel Destek</div>
+      <h2>Yeşilay Danışmanlık Merkezi<br><span style="font-weight:700;font-size:30px;color:#cff3dd">(YEDAM)</span></h2>
+      <div class="hat">
+        <span class="alo">ALO</span><span class="no">115</span><span class="ek">ücretsiz danışma hattı</span>
+      </div>
+      <div class="merkezler">
+        <div class="merkez"><span class="nokta"></span><span><b>YEDAM</b> — bağımlılıkla mücadele danışmanlığı</span></div>
+        <div class="merkez"><span class="nokta"></span><span><b>Sağlıklı Hayat Merkezleri</b> (SHM)</span></div>
+        <div class="merkez"><span class="nokta"></span><span>Gizli, güvenli ve <b>ücretsiz</b></span></div>
+      </div>
+    </div>
+  </div>
+</body></html>

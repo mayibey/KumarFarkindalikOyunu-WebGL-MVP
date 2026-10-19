@@ -1,0 +1,198 @@
+<style>
+:root{--zemin:#14161b;--yuzey:#1b1e26;--kutu:#191c24;--metin:#e8e6e0;--soft:#a4a29b;--cizgi:rgba(255,255,255,.09);--kirmizi:#e0574a;--kirmizi-zem:rgba(224,87,74,.12);--altin:#d6a94f;--altin-zem:rgba(214,169,79,.12);--yesil:#5fae7e;--mor:#8b7fd6}
+@media(prefers-color-scheme:light){:root{--zemin:#f2efe9;--yuzey:#fff;--kutu:#f6f2ea;--metin:#1d1f25;--soft:#63615b;--cizgi:rgba(0,0,0,.10);--kirmizi:#c13b2d;--kirmizi-zem:rgba(193,59,45,.09);--altin:#9e7420;--altin-zem:rgba(158,116,32,.10);--yesil:#2f7d52;--mor:#5a4fb0}}
+:root[data-theme=dark]{--zemin:#14161b;--yuzey:#1b1e26;--kutu:#191c24;--metin:#e8e6e0;--soft:#a4a29b;--cizgi:rgba(255,255,255,.09);--kirmizi:#e0574a;--kirmizi-zem:rgba(224,87,74,.12);--altin:#d6a94f;--altin-zem:rgba(214,169,79,.12);--yesil:#5fae7e;--mor:#8b7fd6}
+:root[data-theme=light]{--zemin:#f2efe9;--yuzey:#fff;--kutu:#f6f2ea;--metin:#1d1f25;--soft:#63615b;--cizgi:rgba(0,0,0,.10);--kirmizi:#c13b2d;--kirmizi-zem:rgba(193,59,45,.09);--altin:#9e7420;--altin-zem:rgba(158,116,32,.10);--yesil:#2f7d52;--mor:#5a4fb0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--zemin);color:var(--metin);font-family:-apple-system,"Segoe UI",system-ui,Roboto,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+.sar{max-width:880px;margin:0 auto;padding:0 22px}
+header{border-bottom:1px solid var(--cizgi);padding:50px 0 32px;background:linear-gradient(180deg,var(--kirmizi-zem),transparent)}
+.eyebrow{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--kirmizi);font-weight:700;margin:0 0 14px}
+h1{font-size:clamp(28px,5vw,42px);line-height:1.08;margin:0 0 10px;font-weight:800;letter-spacing:-.02em;text-wrap:balance}
+h1 span{color:var(--altin)}
+.altbilgi{color:var(--soft);font-size:15px;max-width:62ch}
+.ozet{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.rozet{display:inline-flex;align-items:baseline;gap:7px;background:var(--yuzey);border:1px solid var(--cizgi);border-radius:8px;padding:8px 13px;font-size:13px;color:var(--soft)}
+.rozet b{color:var(--metin);font-size:15px;font-weight:700}
+.bolum{display:flex;align-items:center;gap:16px;margin:44px 0 20px}
+.bolum .bno{font-family:ui-monospace,monospace;font-size:13px;font-weight:700;color:var(--zemin);background:var(--altin);border-radius:6px;padding:4px 9px;flex:none}
+.bolum h2{font-size:20px;margin:0;font-weight:800}
+.bolum .cizgi{flex:1;height:1px;background:var(--cizgi)}
+.sahne{background:var(--yuzey);border:1px solid var(--cizgi);border-radius:14px;padding:20px 22px;margin-bottom:16px}
+.sbas{display:flex;align-items:center;gap:11px;flex-wrap:wrap;padding-bottom:14px;margin-bottom:16px;border-bottom:1px solid var(--cizgi)}
+.sno{font-family:ui-monospace,monospace;font-weight:700;font-size:14px;color:var(--kirmizi);background:var(--kirmizi-zem);border-radius:6px;padding:3px 9px;flex:none}
+.sbaslik{font-weight:700;font-size:16px;flex:1;min-width:170px}
+.slaytref{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);flex:none}
+.tipr{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--mor);border:1px solid var(--mor);border-radius:20px;padding:2px 9px;flex:none}
+.sure{font-family:ui-monospace,monospace;font-size:12.5px;color:var(--soft);border:1px solid var(--cizgi);border-radius:20px;padding:3px 10px;font-variant-numeric:tabular-nums;flex:none}
+.satir{display:flex;gap:12px;margin-bottom:12px}
+.satir:last-child{margin-bottom:0}
+.etk{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--soft);flex:none;width:60px;padding-top:3px}
+.ekran{flex:1;color:var(--metin);font-size:14.5px}
+.ekran .oyun,.kop.ekran,.oyun{color:var(--altin);font-weight:600}
+.ekran .vurgu,.vurgu{color:var(--kirmizi);font-weight:600}
+.kop{color:var(--mor);font-weight:700}
+.seswrap{flex:1;display:flex;flex-direction:column;gap:8px}
+.ses{background:var(--kutu);border:1px solid var(--cizgi);border-left:3px solid var(--altin);border-radius:0 10px 10px 0;padding:12px 15px;font-size:15px;line-height:1.6}
+.ses .setk{display:block;font-size:10.5px;letter-spacing:.1em;color:var(--altin);font-weight:700;margin-bottom:6px}
+.ses p{margin:0 0 7px}
+.ses code{font-size:11px;color:var(--soft);background:var(--zemin);padding:2px 7px;border-radius:5px}
+.ipuc{background:var(--altin-zem);border:1px solid var(--cizgi);border-radius:10px;padding:13px 16px;font-size:13.5px;margin:8px 0 22px}
+.ipuc b{color:var(--altin)}
+.acik{background:var(--kirmizi-zem);border:1px solid var(--cizgi);border-radius:10px;padding:13px 16px;font-size:13.5px;margin:16px 0}
+.acik b{color:var(--kirmizi)}
+footer{border-top:1px solid var(--cizgi);margin-top:44px;padding:28px 0 56px;color:var(--soft);font-size:13px}
+.tema{position:fixed;top:14px;right:14px;z-index:9;background:var(--yuzey);border:1px solid var(--cizgi);color:var(--soft);border-radius:20px;padding:7px 13px;font-size:12px;cursor:pointer;font-family:inherit}
+.duzenle{outline:1px dashed transparent;border-radius:5px;padding:2px 6px;margin:-2px -6px 7px;transition:outline-color .15s,background .15s;cursor:text}
+.duzenle:hover{outline-color:var(--cizgi);background:rgba(127,127,127,.06)}
+.duzenle:focus{outline:1.5px solid var(--altin);background:var(--zemin)}
+.sesalt{display:flex;align-items:center;gap:10px}
+.kopbtn{background:var(--altin-zem);border:1px solid var(--cizgi);color:var(--altin);border-radius:7px;padding:4px 11px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s}
+.kopbtn:hover{background:var(--altin);color:var(--zemin)}
+.kopbtn.ok{background:var(--yesil);color:#fff;border-color:var(--yesil)}
+.topbtn{position:fixed;top:14px;right:118px;z-index:9;background:var(--altin);border:1px solid var(--altin);color:var(--zemin);border-radius:20px;padding:7px 15px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit}
+.topbtn.ok{background:var(--yesil);border-color:var(--yesil);color:#fff}
+@media(max-width:560px){.satir{flex-direction:column;gap:5px}.etk{width:auto;padding-top:0}.topbtn{right:96px;padding:7px 11px}}
+</style>
+<button class="tema" onclick="var r=document.documentElement;var d=(r.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))==='dark';r.setAttribute('data-theme',d?'light':'dark');">☀ / ☾ tema</button>
+<header><div class="sar">
+<p class="eyebrow">Video Prodüksiyon Senaryosu · Seslendirme Metinleri</p>
+<h1>Kumar Kazandırmaz —<br><span>Sanal Kumar Farkındalık Videosu</span></h1>
+<p class="altbilgi">Yapay zeka seslendirmeli eğitim videosunun sahne planı. Her sahnede: ekranda ne göründüğü, oyunda ne olduğu ve okunan metin. <b>Bu doküman videonun güncel montaj haline göre hazırlandı.</b></p>
+<div class="ozet"><span class="rozet"><b>24</b> sahne</span><span class="rozet"><b>~8,7</b> dk</span><span class="rozet"><b>4</b> oyun + <b>panel</b></span><span class="rozet">✏️ metinler düzenlenebilir</span></div>
+</div></header>
+<button class="topbtn" onclick="kopyalaTum(this)">📋 Tüm metinleri kopyala</button>
+<main class="sar">
+<div class="ipuc"><b>Video akış mantığı:</b> Tam ekran <b>SLAYT + seslendirme</b> → köprü cümlesi <span class="kop">"şimdi bunun oyundaki karşılığına bakalım"</span> (çubuk sola kayar, oyun büyür) → <b class="oyun">OYUN</b> görüntüsü + oyun müziği. Oyun aşamaları (2, 4, 5, 6) gerçek oynanış kaydından; slaytlar sunumdan temiz alındı. Ton sakin, ciddi, net.</div>
+<div class="ipuc" style="border-color:var(--altin)"><b>✏️ Metinleri düzenleme:</b> Her seslendirme metnine <b>doğrudan tıklayıp değiştirebilirsiniz</b>. Değiştirdikten sonra o metnin altındaki <b>"📋 Kopyala"</b>ya, hepsini birden almak için sağ üstteki <b>"Tüm metinleri kopyala"</b>ya basıp bana yapıştırın — ilgili sesleri yeniden üretip videoya işlerim.</div>
+
+<div class="bolum"><span class="bno">BÖLÜM 1</span><h2>Açılış ve Giriş</h2><span class="cizgi"></span></div>
+<div class="sahne">
+    <div class="sbas"><span class="sno">01</span><span class="sbaslik">Kapak</span><span class="slaytref">Slayt 1</span><span class="tipr">SLAYT</span><span class="sure">0:08</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran">Tam ekran kapak slaytı: kurum adı + eğitim başlığı, arka planda kişi ve slot ekranı. Oyun yok.</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME</span><p contenteditable="true" spellcheck="false" data-dosya="01_kapak.txt" class="duzenle">Siirt İl Jandarma Komutanlığı, Sanal Kumar Bağımlılığı. Bilgilendirme ve Farkındalık Eğitimi.</p><div class="sesalt"><code>01_kapak.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div><div class="sahne">
+    <div class="sbas"><span class="sno">02</span><span class="sbaslik">Sanal Kumar Tuzağı</span><span class="slaytref">Giriş 01</span><span class="tipr">SLAYT</span><span class="sure">0:18</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran">Açık zeminli tam ekran slayt: başlık + borçlanma / aile / psikoloji açıklaması.</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME</span><p contenteditable="true" spellcheck="false" data-dosya="02_tuzak.txt" class="duzenle">Sanal kumar; borçlanmaya, aile içi problemlere ve psikolojik sorunlara yol açan tehlikeli bir bağımlılıktır. Özellikle gençler; ekonomik nedenler, kolay para kazanma düşüncesi, reklamlar ve heyecan arayışı gibi etkenlerle, sanal bahis ve kumarın aldatıcı cazibesine kapılmaktadır.</p><div class="sesalt"><code>02_tuzak.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div><div class="sahne">
+    <div class="sbas"><span class="sno">03</span><span class="sbaslik">Kolay Para Görüntüsü</span><span class="slaytref">Giriş 02</span><span class="tipr">SLAYT</span><span class="sure">0:16</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran">Tam ekran slayt. <span class="vurgu">borç, yalnızlık, kaygı</span> kelimeleri kırmızı vurguyla.</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME</span><p contenteditable="true" spellcheck="false" data-dosya="03_kolaypara.txt" class="duzenle">Sanal kumar, kolay para kazanma yöntemi gibi görünür. Aslında planlı bir şekilde oyuncuların parasını elinden almayı amaçlar. Cep telefonuyla her an her yerden erişilebilen bu dijital tuzak, bireyleri borç, yalnızlık ve kaygıyla baş başa bırakır.</p><div class="sesalt"><code>03_kolaypara.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div><div class="sahne">
+    <div class="sbas"><span class="sno">04</span><span class="sbaslik">Simülasyonun Tanıtımı</span><span class="slaytref">Giriş 03</span><span class="tipr">SLAYT</span><span class="sure">0:11</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran">Tam ekran slayt + sağda oyun ekranı görseli (Kumar Kazandırmaz).</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME</span><p contenteditable="true" spellcheck="false" data-dosya="04_simulasyon.txt" class="duzenle">Sanal kumar tuzağını daha iyi anlatmak amacıyla, gerçeğiyle birebir aynı çalışan bir sanal kumar simülasyonu tasarladık: Kumar Kazandırmaz. Birazdan bu simülasyonu adım adım, birlikte izleyeceğiz.</p><div class="sesalt"><code>04_simulasyon.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div><div class="sahne">
+    <div class="sbas"><span class="sno">05</span><span class="sbaslik">Hilenin Mutfağı — Önizleme</span><span class="slaytref">Giriş 04</span><span class="tipr">SLAYT</span><span class="sure">0:15</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran">Slayt: "Hilenin Mutfağı · Manipülasyon Paneli" + yönetici paneli görseli.</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME</span><p contenteditable="true" spellcheck="false" data-dosya="05_perdearkasi.txt" class="duzenle">Bu oyunun bir de perde arkası var: yönetici paneli. Sistemin oyuncuları, yani kurbanları, nasıl manipüle ettiğini ve hangi hileleri kullandığını, en sonunda bu panelin üzerinden göstereceğiz. Buna hilenin mutfağı diyoruz.</p><div class="sesalt"><code>05_perdearkasi.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div><div class="sahne">
+    <div class="sbas"><span class="sno">06</span><span class="sbaslik">Amaç: Kaybettirmek</span><span class="slaytref">Giriş 05</span><span class="tipr">SLAYT</span><span class="sure">0:23</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran">Tam ekran slayt: dört maddelik süreç özeti.</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME</span><p contenteditable="true" spellcheck="false" data-dosya="06_amac.txt" class="duzenle">Bu çalışmada; bireyin oyunla tanışmasını, oyunun içine yerleştirilmiş psikolojik manipülasyon öğelerini ve yaşanan maddi ve manevi çöküş sürecini göstereceğiz. Üstelik bu simülasyonda, gerçeğinde olduğu gibi istendiği zaman kazandırılıp istendiği zaman kaybettirildiğini birazdan hilenin mutfağında tüm detaylarıyla göreceğiz.</p><div class="sesalt"><code>06_amac.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div><div class="sahne">
+    <div class="sbas"><span class="sno">07</span><span class="sbaslik">Kasa Her Zaman Kazanır</span><span class="slaytref">Giriş 06</span><span class="tipr">SLAYT</span><span class="sure">0:14</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran">Slayt: "Kasa, her zaman kazanır!" vurgusu.</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME</span><p contenteditable="true" spellcheck="false" data-dosya="07_kasa.txt" class="duzenle">Bu aşamalar herkeste aynı sırayla görülmeyebilir. Kurban, parasını oyunun herhangi bir anında kaybedebilir. Ama değişmeyen tek bir gerçek vardır: oyun, sistemin kazanması üzerine kuruludur. Kasa, her zaman kazanır.</p><div class="sesalt"><code>07_kasa.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div><div class="sahne">
+    <div class="sbas"><span class="sno">08</span><span class="sbaslik">8 Aşama — Geçiş</span><span class="slaytref">Ayraç</span><span class="tipr">SLAYT</span><span class="sure">0:10</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran">Bölüm ayracı: "8 AŞAMA" + bağımlılık süreci (kazanma/kaybetme eğrisi) grafiği.</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME</span><p contenteditable="true" spellcheck="false" data-dosya="08_gecis.txt" class="duzenle">Şimdi bir kurbanın adım adım çöküşünü, sekiz aşamada izleyeceğiz. Her aşamada, anlatılan manipülasyonu oyunun içinden canlı olarak göreceğiz.</p><div class="sesalt"><code>08_gecis.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div>
+
+<div class="bolum"><span class="bno">BÖLÜM 2</span><h2>Simülasyon — 8 Aşamada Çöküş</h2><span class="cizgi"></span></div>
+<div class="sahne">
+    <div class="sbas"><span class="sno">09</span><span class="sbaslik">Aşama 1 — Bal Tuzağı</span><span class="slaytref">Aşama 1</span><span class="tipr">SLAYT</span><span class="sure">0:19</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran">Slayt: "Bal Tuzağı" + tuzak cümleleri (Hoş geldin bonusu · 2X kazanç · %250 iade) + reklam görseli.</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME</span><p contenteditable="true" spellcheck="false" data-dosya="09_asama1_baltuzagi.txt" class="duzenle">Birinci aşama, bireyi oyuna çekmektir: bal tuzağı. Hoş geldin bonusu, en az iki kat kazanç, kayıplara yüzde iki yüz elli iade gibi vaatlerle ilgi çekilir. Bu bonuslar, aslında bireyi oyunun içine çekmek için kurulmuş bir tuzaktır. Bedava peynir, yalnızca fare kapanında bulunur.</p><div class="sesalt"><code>09_asama1_baltuzagi.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div><div class="sahne">
+    <div class="sbas"><span class="sno">10</span><span class="sbaslik">Aşama 2 — Isındırma ve Umut</span><span class="slaytref">Aşama 2</span><span class="tipr">SLAYT → OYUN</span><span class="sure">~0:55</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran"><b>SLAYT:</b> "Isındırma ve Umut" + bilişsel çarpıtmalar. <b class="kop">→ KÖPRÜ</b> (çubuk sola kayar, oyun büyür). <b class="oyun">OYUN:</b> spin, arka arkaya kazanç, <span class="oyun">Büyük Kazanç 1.531 ₺</span>, 2x çarpan.</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME (SLAYT)</span><p contenteditable="true" spellcheck="false" data-dosya="10_asama2_isindirma.txt" class="duzenle">İkinci aşamada oyuncuya bilerek para kazandırılır. Çünkü ilk kazanç, kişiyi daha büyük kayıplara hazırlayan yemdir. Art arda gelen kazançlar beyinde bir mutluluk hissi yaratır ve kişi, şansın kendisinden yana olduğuna inanır. Şunu unutmayın: oyundaki her ışık, her ses ve her kazanç animasyonu tesadüf değildir. Bunlar, beyinde ödül hissi yaratıp kişiyi oyuna bağlamak için özenle tasarlanmış psikolojik tetikleyicilerdir. İşte bu yüzden ilk kazanç, en tehlikeli başlangıçtır.</p><div class="sesalt"><code>10_asama2_isindirma.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div><div class="ses"><span class="setk">🎙 KÖPRÜ</span><p contenteditable="true" spellcheck="false" data-dosya="kopru_oyun.txt" class="duzenle">Şimdi bunun oyundaki karşılığına bakalım.</p><div class="sesalt"><code>kopru_oyun.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div><div class="sahne">
+    <div class="sbas"><span class="sno">11</span><span class="sbaslik">Aşama 3 — Kontrol Bende Hissi</span><span class="slaytref">Aşama 3</span><span class="tipr">SLAYT</span><span class="sure">0:16</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran">Slayt: "Kontrol Bende Hissi" — beceri / kontrol yanılsaması.</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME</span><p contenteditable="true" spellcheck="false" data-dosya="11_asama3_kontrol.txt" class="duzenle">Üçüncü aşamada oyuncu, sonuçların tesadüf değil, kendi becerisine bağlı olduğuna inanmaya başlar. Oyunun mantığını çözdüğünü sanır. Buna kontrol yanılsaması denir. Oysa oyuncu, oyunu yönettiğini düşünürken, oyun onu adım adım içine çeker.</p><div class="sesalt"><code>11_asama3_kontrol.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div><div class="sahne">
+    <div class="sbas"><span class="sno">12</span><span class="sbaslik">Aşama 4 — Kaybettiklerimi Geri Kazanabilirim</span><span class="slaytref">Aşama 4</span><span class="tipr">SLAYT → OYUN</span><span class="sure">~0:31</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran"><b>SLAYT:</b> "Kaybettiklerimi Geri Kazanabilirim" + tekrar eden yalan. <b class="kop">→ KÖPRÜ.</b> <b class="oyun">OYUN:</b> spin, <span class="vurgu">bakiye düşer (kayıp)</span>, boş spin sesi — ilk ciddi kayıplar.</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME (SLAYT)</span><p contenteditable="true" spellcheck="false" data-dosya="12_asama4_kayip.txt" class="duzenle">Dördüncü aşamada ilk ciddi kayıplar başlar. Oyuncu, kaybettiklerini geri kazanmak için daha çok oynar. Artık amaç para kazanmak değil, kayıpları telafi etmektir. Ama kazanma ümidiyle devam edilen bu süreç, kayıpları durdurmaz; arttırır.</p><div class="sesalt"><code>12_asama4_kayip.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div><div class="ses"><span class="setk">🎙 KÖPRÜ</span><p contenteditable="true" spellcheck="false" data-dosya="kopru_oyun.txt" class="duzenle">Şimdi bunun oyundaki karşılığına bakalım.</p><div class="sesalt"><code>kopru_oyun.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div><div class="sahne">
+    <div class="sbas"><span class="sno">13</span><span class="sbaslik">Aşama 5 — Şansım Döndü</span><span class="slaytref">Aşama 5 · ÖZEL</span><span class="tipr">SLAYT → OYUN</span><span class="sure">~0:56</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran"><b>SLAYT:</b> "Şansım Döndü" — tuzağa ikinci ısındırma (tanıtım metni). <b class="kop">→ KÖPRÜ.</b> <b class="oyun">OYUN:</b> SPIN'e basılır → <span class="oyun">100x çarpan ekrana düşer</span> → EFSANE KAZANÇ → <span class="oyun">+50.000 ₺</span>. Tam bu anda <span class="vurgu">çevrim şartı / para çekme tuzağı</span> anlatımı devreye girer (100x ekranda dururken).</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME (SLAYT · TANITIM)</span><p contenteditable="true" spellcheck="false" data-dosya="13a_sansim_tanit.txt" class="duzenle">Beşinci aşamada, yaşadığı kayıplardan sonra oyundan soğuyan kurban, sistem tarafından yeniden oyuna ısındırılır. Tam pes edileceği anda sistem devreye girer ve oyuncuya, geçmiş bütün kayıplarını unutturacak kadar büyük bir kazanç verir. Bağımlılığın pekiştiği en tehlikeli an tam da burasıdır.</p><div class="sesalt"><code>13a_sansim_tanit.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div><div class="ses"><span class="setk">🎙 KÖPRÜ</span><p contenteditable="true" spellcheck="false" data-dosya="kopru_oyun.txt" class="duzenle">Şimdi bunun oyundaki karşılığına bakalım.</p><div class="sesalt"><code>kopru_oyun.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div><div class="ses"><span class="setk">🎙 SESLENDIRME (OYUN · ÇEVRIM ŞARTI)</span><p contenteditable="true" spellcheck="false" data-dosya="13b_sansim_cevrim.txt" class="duzenle">Bu kazançtan sonra bazılarının aklına şu düşünce gelir: artık büyük para kazandım, çekip çıkabilirim. Oysa sistem buna kolay kolay izin vermez. Kumar siteleri kazancı çekebilmek için çevrim şartı koyar; çekmek istediğiniz miktar kadar yeniden oynamanızı, hatta yüzlerce spin atmanızı zorunlu kılar. Oyuncu bu şartları tamamlamaya çalışırken parası adım adım, sistematik biçimde eritilir. Böylece sistem, verdiğini eninde sonunda geri alır.</p><div class="sesalt"><code>13b_sansim_cevrim.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div><div class="sahne">
+    <div class="sbas"><span class="sno">14</span><span class="sbaslik">Aşama 6 — Sonunu Düşünen Kahraman Olamaz</span><span class="slaytref">Aşama 6</span><span class="tipr">SLAYT → OYUN</span><span class="sure">~0:38</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran"><b>SLAYT:</b> "Sonunu Düşünen Kahraman Olamaz" — aldatıcı zirve, bonus/kaldıraç. <b class="kop">→ KÖPRÜ.</b> <b class="oyun">OYUN:</b> <span class="oyun">"ÇOK ŞANSLISIN"</span> teklifi → <span class="vurgu">tüm bakiye bonusa yatırılır</span> → 10 SPIN bonus oyunu (hırs anı).</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME (SLAYT)</span><p contenteditable="true" spellcheck="false" data-dosya="14_asama6_dongu.txt" class="duzenle">Altıncı aşamada oyuncunun önüne büyük kazanç fırsatları çıkar; bonus oyun, kaldıraç ve altın oyun gibi taktiklerle aldatıcı bir zirve yaşatılır. Tam bu noktada ondan yüksek bahisler istenir. Beyin, o büyük kazanç duygusunu tekrar tekrar aramaya başlar. Sonunu düşünen, kahraman olamaz.</p><div class="sesalt"><code>14_asama6_dongu.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div><div class="ses"><span class="setk">🎙 KÖPRÜ</span><p contenteditable="true" spellcheck="false" data-dosya="kopru_oyun.txt" class="duzenle">Şimdi bunun oyundaki karşılığına bakalım.</p><div class="sesalt"><code>kopru_oyun.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div><div class="sahne">
+    <div class="sbas"><span class="sno">15</span><span class="sbaslik">Aşama 7 — Başka Bir Yerden Para Bulmalıyım</span><span class="slaytref">Aşama 7</span><span class="tipr">SLAYT</span><span class="sure">0:20</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran">Slayt: "Başka Bir Yerden Para Bulmalıyım" — kontrol kaybı, bahane, yalan; borç mesajları görseli.</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME</span><p contenteditable="true" spellcheck="false" data-dosya="15_asama7_kontrolkaybi.txt" class="duzenle">Yedinci aşamada birey kontrolünü tamamen kaybeder.  Oyuna devam edebilmek için başka bir yerden para arayışı içine girer. Bir el daha oynarsam borçlarımı kapatırım diyerek, ailesinden ve arkadaşlarından bahanelerle borç ister. İçe kapanma, pişmanlık ve suçluluk başlar. Çünkü borçla kurulmaya çalışılan düzen, ilk rüzgârda yıkılır.</p><div class="sesalt"><code>15_asama7_kontrolkaybi.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div><div class="sahne">
+    <div class="sbas"><span class="sno">16</span><span class="sbaslik">Aşama 8 — Gerçeklerle Yüzleşme</span><span class="slaytref">Aşama 8</span><span class="tipr">VİDEO SLAYT</span><span class="sure">~0:22</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran">Üstte <b>"Gerçeklerle Yüzleşme · Gelir-gider dengesinin çöküşü"</b> başlığı + altta <b class="oyun">oynayan video</b>: telefonda icra/ev sahibi/borç bildirimleri, elle tutulan gelir-gider defteri (gider ≫ gelir).</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME</span><p contenteditable="true" spellcheck="false" data-dosya="16_asama8_tukenis.txt" class="duzenle">Son aşamada birey elindeki her şeyi kaybetmiştir. Kirasını, faturalarını, borçlarını ödeyemez; icralar başlar. İş hayatında huzursuzluk, ailede ve sosyal çevrede kopmalar, yalan, güven kaybı ve depresyon. Finansal, duygusal ve zihinsel bir çöküş. Kurban, kendini çaresiz ve bunalmış hisseder.</p><div class="sesalt"><code>16_asama8_tukenis.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div>
+
+<div class="bolum"><span class="bno">BÖLÜM 3</span><h2>Perde Arkası — Panele Geçiş</h2><span class="cizgi"></span></div>
+<div class="sahne">
+    <div class="sbas"><span class="sno">17</span><span class="sbaslik">Perde Arkası — Panele Geçiş</span><span class="slaytref">Slayt</span><span class="tipr">SLAYT</span><span class="sure">0:15</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran">Slayt: <b>"Sıra Hilenin Mutfağı'nda"</b> + "Manipülasyon Panelini Aç" butonu + oyun görseli.</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME</span><p contenteditable="true" spellcheck="false" data-dosya="17_perde_gecis.txt" class="duzenle">İzlediğimiz sekiz aşamanın hiçbiri tesadüf değildi. Kazandıran ilk eller, tam vaktinde gelen bonuslar, seriyi bozan kayıplar... hepsi sistem tarafından yönetildi. Şimdi aynı oyuna bir de kasanın tarafından bakalım.</p><div class="sesalt"><code>17_perde_gecis.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div>
+<div class="acik" style="border-color:var(--yesil)"><b style="color:var(--yesil)">✅ Panel çekildi ve montajlandı</b> — Yönetici paneli canlı gösterimi, <code>PANEL.mp4</code> (~80 sn). Oyun modları dondurularak sırayla, sonra çarpan düşürme ve "ödeme yok" tuzağı.</div>
+<div class="sahne">
+    <div class="sbas"><span class="sno">P1</span><span class="sbaslik">Panel — Oyun Modları</span><span class="slaytref">Yönetici Paneli</span><span class="tipr">PANEL KAYDI</span><span class="sure">~0:36</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran"><b>Yönetici paneli açılır, oyun modu menüsü açık.</b> Her mod anlatılırken o modun seçili hali dondurulur — sırayla: <span class="oyun">Taze Kan · Ufak Miktarlarda Kayıp Ettirme · Kaçış Engelleme · Bakiye Tüketme</span>. Her mod, 8 aşamadan birini yönetir.</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME</span><p contenteditable="true" spellcheck="false" data-dosya="pnl1_modlar.txt" class="duzenle">İşte oyuncunun asla göremediği ekran: yönetici paneli. Bu oyunun her davranışı sistem tarafından bu ekrandan yönetiliyor. Şu oyun modu menüsüne bakın; her biri, az önce izlediğiniz aşamalardan birini kontrol ediyor. Taze Kan Modu, yeni gelen oyuncuya bol kazanç verip onu oyuna bağlar. Ufak Miktarlarda Kayıp Ettirme Modu, bakiyeyi sessizce, fark ettirmeden eritir. Kaçış Engelleme Modu, tam oyundan çıkacakken oyuncuya küçük bir kazanç hediye edip şansım döndü dedirtir. Bakiye Tüketme Modu ise ödemeyi neredeyse tamamen durdurur; bu da tükeniş aşamasıdır.</p><div class="sesalt"><code>pnl1_modlar.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div><div class="sahne">
+    <div class="sbas"><span class="sno">P2</span><span class="sbaslik">Panel — Çarpan Düşür</span><span class="slaytref">Yönetici Paneli</span><span class="tipr">PANEL KAYDI</span><span class="sure">~0:18</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran">Çarpan ayarı yapılır → <span class="oyun">100x grid&#39;e düşer → EFSANE KAZANÇ 30.000 ₺</span>. "Bu ayarla oyuncu bir sonraki turda kazanacak; hem de şanslı olduğunu sanarak."</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME</span><p contenteditable="true" spellcheck="false" data-dosya="pnl2_carpan.txt" class="duzenle">Ve daha neler neler... Şimdi gelin, hep beraber ekrana bir çarpan düşürelim. İşte bu kadar kolay. Bu ayarı sistem yaptığı an, oyuncu bir sonraki turda kazanacak. Üstelik kazandığını, şansının yaver gittiğini sanarak. Oysa o kazancı, biz buradan verdik.</p><div class="sesalt"><code>pnl2_carpan.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div><div class="sahne">
+    <div class="sbas"><span class="sno">P3</span><span class="sbaslik">Panel — Neredeyse Kazanıyordu</span><span class="slaytref">Yönetici Paneli</span><span class="tipr">PANEL KAYDI</span><span class="sure">~0:26</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran">"Çarpan Düşünce Ödeme Versin: <b>Kapalı</b>" → <span class="vurgu">500x düşer ama KAZANÇ 0</span>. "Az kaldı, bu sefer kesin" tuzağı; kumarda şans yok, kasanın kararı var.</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME</span><p contenteditable="true" spellcheck="false" data-dosya="pnl3_yakinkacir.txt" class="duzenle">Şimdi de tam tersini yapalım: oyuncuya neredeyse kazanıyordum dedirten ama asla kazandırmayan bir ayar. Bakın; ekrana beş yüz çarpan gibi kocaman bir sayı düşüyor, oyuncunun kalbi hızlanıyor... ama ödeme yok. Az kaldı, bu sefer kesin olacaktı deyip oynamaya devam ediyor. İşte kumarın acı gerçeği: burada şans diye bir şey yoktur; kazanan da kaybeden de baştan bellidir, hepsi bu panelden yazılır.</p><div class="sesalt"><code>pnl3_yakinkacir.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div>
+
+<div class="bolum"><span class="bno">BÖLÜM 4</span><h2>Umut ve Kapanış</h2><span class="cizgi"></span></div>
+<div class="sahne">
+    <div class="sbas"><span class="sno">18</span><span class="sbaslik">Ama…</span><span class="slaytref">Kapanış</span><span class="tipr">SLAYT</span><span class="sure">0:04</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran">Tam ekran, beyaz zemin: dev kırmızı <b>"AMA…"</b> + "her şey burada bitmek zorunda değil".</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME</span><p contenteditable="true" spellcheck="false" data-dosya="19_ama.txt" class="duzenle">Ama, her şey burada bitmek zorunda değil.</p><div class="sesalt"><code>19_ama.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div><div class="sahne">
+    <div class="sbas"><span class="sno">19</span><span class="sbaslik">Yeni Bir Başlangıç</span><span class="slaytref">Kapanış</span><span class="tipr">SLAYT</span><span class="sure">0:14</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran">Slayt: <b>"Hiçbir şey için geç değil!"</b> + fark etmek / yardım istemek / umut metni.</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME</span><p contenteditable="true" spellcheck="false" data-dosya="20_yeni.txt" class="duzenle">Hiçbir şey için geç değil. En önemli adım, durumu fark etmek ve yardım istemekten çekinmemektir. Yaşanan zorluklar ne kadar büyük görünürse görünsün, umut her zaman vardır. Her zaman yeni bir başlangıç mümkündür.</p><div class="sesalt"><code>20_yeni.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div><div class="sahne">
+    <div class="sbas"><span class="sno">20</span><span class="sbaslik">Cesaret · Yalnız Değilsiniz</span><span class="slaytref">Kapanış</span><span class="tipr">SLAYT</span><span class="sure">~0:18</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran"><b>YENİ TASARIM:</b> sol dikey kartlar (Ailenize · Amirlerinize · Güvendiğiniz kişilere) → süslü çift-ok ayraç → sağda <b>Yeşilay Danışmanlık Merkezi (YEDAM)</b> yeşil paneli: <span class="oyun">ALO 115</span> ücretsiz danışma hattı · Sağlıklı Hayat Merkezleri (SHM).</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME</span><p contenteditable="true" spellcheck="false" data-dosya="21_cesaret.txt" class="duzenle">Yardım istemek zayıflık değil, cesarettir. Ailenize, amirlerinize ve güvendiğiniz kişilere durumu açıkça anlatmak, çözüm yolunda atılacak en cesur adımdır. Unutmayın, yalnız değilsiniz. Yeşilay Danışmanlık Merkezi ve ücretsiz alo yüz on beş hattı, bu yolda her zaman yanınızda.</p><div class="sesalt"><code>21_cesaret.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div><div class="sahne">
+    <div class="sbas"><span class="sno">21</span><span class="sbaslik">Kapanış</span><span class="slaytref">Kapanış</span><span class="tipr">SLAYT</span><span class="sure">0:08</span></div>
+    <div class="satir"><span class="etk">Ekran</span><div class="ekran">Kapanış: kişi zincirlerinden kurtulur, UMUT · MUTLULUK · GELECEK tabelası + <b>"Kazanan yok; ama fark eden, yardım isteyen ve yeniden başlayan var"</b> + kurum imzası.</div></div>
+    <div class="satir"><span class="etk">Ses</span><div class="seswrap"><div class="ses"><span class="setk">🎙 SESLENDIRME</span><p contenteditable="true" spellcheck="false" data-dosya="22_kapanis.txt" class="duzenle">Sanal kumar bağımlılığında kazanan yoktur. Ama fark eden, yardım isteyen ve yeniden başlayan vardır. Kazanan, hiç başlamayandır.</p><div class="sesalt"><code>22_kapanis.txt</code><button class="kopbtn" onclick="kopyalaTek(this)">📋 Kopyala</button></div></div></div></div>
+  </div>
+<div class="acik" style="border-color:var(--yesil)"><b style="color:var(--yesil)">✅ Tam video HAZIR:</b> Üç parça (giriş+aşamalar · panel · kapanış) gapless birleşti → <code>FINAL_TAM.mp4</code> (~8,7 dk). Kapanış parçası <code>KAPANIS.mp4</code> (~39 sn).</div>
+
+<footer><p><b>Not:</b> Süreler yaklaşıktır; tam video ~8,7 dakika. Metinleri düzenlemek için üstteki metne tıklayın — her metnin altındaki dosya adı (<code>xx.txt</code>) o metnin ses dosyasını gösterir; metin değişince ilgili ses yeniden üretilip videoya işlenir.</p></footer>
+</main>
+<script>
+function _kop(txt,btn,adEski){
+  var f=function(){btn.textContent='✓ Kopyalandi';btn.classList.add('ok');setTimeout(function(){btn.textContent=adEski;btn.classList.remove('ok');},1600);};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(f,function(){_kopEski(txt);f();});}
+  else{_kopEski(txt);f();}
+}
+function _kopEski(txt){try{var t=document.createElement('textarea');t.value=txt;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);}catch(e){}}
+function kopyalaTek(btn){
+  var box=btn.closest('.ses');var p=box.querySelector('.duzenle');
+  _kop(p.dataset.dosya+':\n'+p.innerText.trim(),btn,'📋 Kopyala');
+}
+function kopyalaTum(btn){
+  var ps=document.querySelectorAll('.duzenle');var out=[];
+  ps.forEach(function(p){out.push(p.dataset.dosya+':\n'+p.innerText.trim());});
+  _kop(out.join('\n\n'),btn,'📋 Tum metinleri kopyala');
+}
+</script>
